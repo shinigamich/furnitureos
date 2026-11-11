@@ -1,0 +1,47 @@
+name: CI
+on:
+  push:
+    branches-ignore: []
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    name: Linux (GCC, Qt 6)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build g++ cmake \
+            qt6-base-dev libqt6opengl6-dev libqt6svg6-dev qt6-tools-dev qt6-l10n-tools \
+            libgl1-mesa-dev nlohmann-json3-dev libgtest-dev libgmock-dev xvfb
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DFOS_WERROR=ON
+      - name: Build
+        run: cmake --build build
+      - name: Test
+        run: xvfb-run -a ctest --test-dir build --output-on-failure
+
+  linux-headless-clang:
+    name: Linux headless core (Clang)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build clang cmake \
+            nlohmann-json3-dev libgtest-dev libgmock-dev
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=clang++ -DFOS_BUILD_GUI=OFF
+      - name: Build
+        run: cmake --build build
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+  # Windows and macOS jobs are intentionally absent until those builds have been
+  # brought up and verified; see PROJECT_STATUS.md.
