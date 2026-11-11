@@ -29,8 +29,10 @@ struct PartRow {
     int operationCount = 0;
 
     const EdgeCell& edge(domain::EdgeSide s) const { return edges[static_cast<std::size_t>(s)]; }
-    double finishedAreaM2() const noexcept { return length * width / 1.0e6; }
-    double cutAreaM2() const noexcept { return cutLength * cutWidth / 1.0e6; }
+    /// length * width in m2; 0 when either size is not a positive finite number.
+    double finishedAreaM2() const noexcept;
+    /// cutLength * cutWidth in m2; 0 when either size is not a positive finite number.
+    double cutAreaM2() const noexcept;
 };
 
 struct PartList {

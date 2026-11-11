@@ -9,7 +9,9 @@
 namespace fos::production {
 
 struct CsvOptions {
-    char separator = ',';   ///< ',' or ';' (any single-byte character except '"', CR, LF).
+    /// Field separator: ',' or ';' (any single byte). A double quote, CR, LF or NUL cannot
+    /// delimit fields and is replaced by ','.
+    char separator = ',';
     bool utf8Bom = false;   ///< Prefix EF BB BF (helps Excel detect UTF-8).
     bool crlf = true;       ///< RFC 4180 line ending CRLF; false -> LF.
     bool writeHeader = true;

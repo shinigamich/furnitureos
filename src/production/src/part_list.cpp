@@ -6,6 +6,9 @@
 
 namespace fos::production {
 
+double PartRow::finishedAreaM2() const noexcept { return detail::areaM2(length, width); }
+double PartRow::cutAreaM2() const noexcept { return detail::areaM2(cutLength, cutWidth); }
+
 PartList partList(const domain::Model& model, const Scope& scope) {
     auto c = detail::collect(model, scope);
     PartList out;

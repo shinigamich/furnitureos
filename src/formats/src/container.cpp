@@ -5,7 +5,7 @@
 
 #include <cstdio>
 #include <fstream>
-#include <sstream>
+#include <iterator>
 
 namespace fos::formats {
 namespace {
@@ -261,9 +261,12 @@ core::Result<LoadedDocument> parseDocument(std::string_view text, const FormatSp
         if (!app->is_object())
             return corrupt(name, std::string("has an \"app\" entry that is ") + jsonTypeName(*app) +
                                      ", expected an object.");
-        out.document.app.name = app->value("name", Json("")).is_string() ? app->value("name", std::string()) : "";
-        out.document.app.version =
-            app->value("version", Json("")).is_string() ? app->value("version", std::string()) : "";
+        const auto appText = [&](const char* key) {
+            const auto it = app->find(key);
+            return it != app->end() && it->is_string() ? it->get<std::string>() : std::string();
+        };
+        out.document.app.name = appText("name");
+        out.document.app.version = appText("version");
     } else {
         out.document.app.name.clear();
     }
@@ -374,11 +377,10 @@ core::Result<std::string> readFile(const std::filesystem::path& path) {
         return makeError(ErrorCode::IoError, "'" + name + "' is a directory, not a file.", name);
     std::ifstream in(path, std::ios::binary);
     if (!in) return makeError(ErrorCode::IoError, "File '" + name + "' cannot be opened for reading.", name);
-    std::ostringstream buffer;
-    buffer << in.rdbuf();
-    if (in.bad() || buffer.fail())
+    std::string data{std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()};
+    if (in.bad())
         return makeError(ErrorCode::IoError, "File '" + name + "' could not be read completely.", name);
-    return buffer.str();
+    return data;
 }
 
 core::Result<LoadedDocument> loadDocument(const std::filesystem::path& path, const FormatSpec& spec,

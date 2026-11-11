@@ -24,7 +24,7 @@ namespace fos::domain::fixtures {
 ///  back        796 x 716 x  3   none                          796   x 716
 /// (L1 of every carcass part is its front edge.)
 ///
-/// Totals: particleboard finished area 2.3324 m2 (5 parts), HDF 0.569936 m2;
+/// Totals: particleboard finished area 2.07464 m2 (5 parts), HDF 0.569936 m2;
 /// banding abs2 = 3.732 m (2*0.720 + 3*0.764), abs04 = 2.240 m (4*0.560).
 /// Operations: side.left carries two 5 mm x 13 mm shelf-pin holes on its inner face.
 /// Hardware: 4 x generic shelf support "hw.shelf_pin_5".
