@@ -1,0 +1,10 @@
+/build/
+/build-*/
+/out/
+CMakeUserPresets.json
+.vscode/
+.idea/
+*.user
+compile_commands.json
+node_modules/
+*.autosave
