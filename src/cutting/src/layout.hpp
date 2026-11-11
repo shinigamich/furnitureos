@@ -14,6 +14,7 @@ struct RunStats {
     double sheetArea = 0;
     double fullSheetArea = 0;
     double usedArea = 0;
+    double usedOnRemnants = 0; ///< Piece area cut from listed remnant sheets.
     double remnantArea = 0;   ///< Reusable offcuts.
     double largestRemnant = 0;
     int cuts = 0;             ///< Trim cuts included.

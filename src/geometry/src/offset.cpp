@@ -55,6 +55,12 @@ core::Result<Polygon2> deflateConvex(const Polygon2& ccw, double distance, doubl
     }
     Polygon2 result = cleaned({std::move(current)}, eps);
     if (result.size() < 3 || winding(result, eps) != Winding::CounterClockwise) return collapsed(ccw, distance);
+    // Clipping rotates the ring arbitrarily: start at the vertex nearest to input vertex 0.
+    std::size_t first = 0;
+    for (std::size_t i = 1; i < result.size(); ++i)
+        if (length(result[i] - ccw[0]) < length(result[first] - ccw[0])) first = i;
+    std::rotate(result.vertices.begin(), result.vertices.begin() + static_cast<std::ptrdiff_t>(first),
+                result.vertices.end());
     return result;
 }
 
@@ -90,8 +96,15 @@ core::Result<Polygon2> offsetPolygon(const Polygon2& polygon, double distance, c
         const double ratio = denom > 0.0 ? std::sqrt(2.0 / denom) : std::numeric_limits<double>::infinity();
         firstOf[i] = out.size();
         if (joinSide && ratio > limit) {
-            out.push_back(v + n0 * distance); // bevel
-            out.push_back(v + n1 * distance);
+            // Bevel: cut the corner by the line perpendicular to the corner bisector at
+            // exactly |distance| from the vertex; the cut meets the two offset edge lines.
+            const Vec2 sum = n0 + n1;
+            const double sumLen = length(sum);
+            if (sumLen < 1e-12) return collapsed(ccw, distance); // hairpin corner
+            const Vec2 bisector = sum * (1.0 / sumLen);
+            const double cosHalf = dot(n0, bisector); // == dot(n1, bisector) >= 0
+            out.push_back(v + (bisector + (n0 - bisector * cosHalf) * (1.0 / (1.0 + cosHalf))) * distance);
+            out.push_back(v + (bisector + (n1 - bisector * cosHalf) * (1.0 / (1.0 + cosHalf))) * distance);
         } else {
             if (denom < 1e-12) return collapsed(ccw, distance); // hairpin corner: offset lines do not meet
             out.push_back(v + (n0 + n1) * (distance / denom)); // intersection of the two offset lines

@@ -9,8 +9,10 @@ struct OffsetOptions {
     /// Maximum allowed ratio (miter length / |distance|), where the miter length is the
     /// distance from the original vertex to the mitered corner tip. A right-angle corner has
     /// ratio sqrt(2) ~ 1.414; sharper corners have larger ratios. Corners exceeding the limit
-    /// are bevelled (cut by the straight line joining the two offset edge ends).
-    /// Values below 1 behave like 1 (every outward corner bevelled).
+    /// are bevelled: the miter tip is cut off by a straight line perpendicular to the corner
+    /// bisector at exactly |distance| from the original vertex (2 vertices instead of 1), so
+    /// the offset outline never comes closer than |distance| to the original outline.
+    /// Values below 1 behave like 1 (every corner on the offset side bevelled).
     double miterLimit = 2.0;
     /// Geometric tolerance in mm.
     double eps = core::kLengthEps;
@@ -23,8 +25,9 @@ struct OffsetOptions {
 /// are NOT rounded, so corner tips are farther than |distance| from the original outline.
 ///
 /// Input: any simple polygon, either winding; repeated/collinear vertices are removed first.
-/// Output: counter-clockwise polygon without collinear vertices. distance == 0 returns the
-/// cleaned, counter-clockwise input.
+/// Output: counter-clockwise polygon without collinear vertices whose first vertex is the
+/// image of the first (cleaned) input vertex, or the remaining vertex nearest to it when a
+/// convex deflate removed it. distance == 0 returns the cleaned, counter-clockwise input.
 ///
 /// Supported cases (result is exact for the miter offset):
 ///  * CONVEX polygon, any inflate distance.

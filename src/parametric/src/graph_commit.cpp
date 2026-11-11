@@ -109,7 +109,15 @@ core::Result<void> detectCycles(const GraphState& state, const Journal& journal,
                 std::string path;
                 for (std::size_t i = from; i < stack.size(); ++i) path += stack[i].node->def.name + " -> ";
                 path += child->first;
-                const Node& culprit = *stack.back().node;
+                // Name the definition that was changed in this transaction (it closed the cycle).
+                const Node* changed = stack[from].node;
+                for (std::size_t i = from; i < stack.size(); ++i) {
+                    if (journal.nodesBefore.count(stack[i].node->def.name)) {
+                        changed = stack[i].node;
+                        break;
+                    }
+                }
+                const Node& culprit = *changed;
                 return record(diags, ErrorCode::CyclicDependency, "parametric.dependency.cycle",
                               "Cyclic dependency: " + path + " (each parameter depends on the next); parameter '" +
                                   culprit.def.name + "' is defined as '" + culprit.def.expression + "'.",

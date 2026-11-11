@@ -96,7 +96,7 @@ Key scoreKey(Objective o, const RunStats& s) {
     case Objective::MinimizeSheets: return {ua, uc, sh, lost, s.cost, cuts, s.cutLength, big};
     case Objective::MinimizeWaste: return {ua, uc, lost, sh, s.cost, cuts, s.cutLength, big};
     case Objective::PreferRemnants:
-        return {ua, uc, static_cast<double>(s.fullSheets), s.fullSheetArea, sh, lost, cuts, big};
+        return {ua, uc, static_cast<double>(s.fullSheets), s.fullSheetArea, -s.usedOnRemnants, sh, lost, cuts};
     case Objective::MinimizeCuts: return {ua, uc, sh, cuts, s.cutLength, lost, s.cost, big};
     }
     return {};

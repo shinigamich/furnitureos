@@ -84,7 +84,10 @@ RunStats computeStats(const Job& job, const std::vector<Instance>& instances, co
         }
         st.cuts += trimCutCount(job);
         st.cutLength += trimCutLength(job, stock);
-        for (const Placed& p : sheet.placed) st.usedArea += p.length * p.width;
+        for (const Placed& p : sheet.placed) {
+            st.usedArea += p.length * p.width;
+            if (stock.isRemnant) st.usedOnRemnants += p.length * p.width;
+        }
         for (const CutNode& n : sheet.nodes) {
             if (n.kind == NodeKind::Cut) {
                 ++st.cuts;
