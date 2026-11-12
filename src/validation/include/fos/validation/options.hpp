@@ -11,7 +11,7 @@ namespace fos::validation {
 struct ValidationOptions {
     bool checkParts = true;                ///< validation.part.*, validation.assembly.*
     bool checkEdgeBanding = true;          ///< validation.edge.*
-    bool checkPartInterference = true;     ///< validation.interference.parts
+    bool checkPartInterference = true;     ///< validation.interference.parts / .outside_groove
     bool checkAssemblyInterference = true; ///< validation.interference.assemblies
     bool checkMachining = true;            ///< machining.* (merged) + validation.machining.*
     bool checkHardware = true;             ///< validation.hardware.*
@@ -26,9 +26,10 @@ struct ValidationOptions {
     /// Two solids interfere when they overlap by MORE than this on every separating-axis
     /// candidate. Parts that touch, or overlap by up to this amount, are accepted.
     double interferenceTolerance = 0.01;
-    /// Overlap accepted between two parts when at least one of them carries a recognised
-    /// groove (press fit of a panel in its groove). Replaces `interferenceTolerance` for
-    /// such pairs when larger.
+    /// Groove engagement (README, check 3): when two interfering, axis-aligned parts overlap
+    /// inside the swept box of a Groove operation of one of them, the overlap may extend beyond
+    /// that box by at most this much on every axis (press fit). Beyond it the pair is reported
+    /// as validation.interference.outside_groove.
     double grooveFitTolerance = 0.1;
     /// Severity of interference between different assemblies in the project frame.
     core::Severity assemblyInterferenceSeverity = core::Severity::Warning;

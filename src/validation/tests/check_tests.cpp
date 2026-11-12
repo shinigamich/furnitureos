@@ -70,6 +70,31 @@ TEST(Parts, NanSizeAndDanglingIdsDoNotCrash) {
     EXPECT_EQ(count(r, "validation.interference.parts"), 0u) << toText(r);
 }
 
+TEST(Parts, NanEverywhereDoesNotCrash) {
+    domain::Model m = domain::fixtures::basicCabinet();
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    m.assemblies.push_back(m.assemblies[0]);
+    m.assemblies[1].id = domain::AssemblyId("cab2");
+    m.assemblies[1].placement.origin = {nan, 0, 0};
+    part(m, "cab1/back").placement.xAxis = {nan, nan, nan};
+    part(m, "cab1/top").thickness = -1;
+    std::get<Hole>(part(m, "cab1/side.left").operations[0].shape).u = nan;
+    Operation g;
+    g.id = OperationId("g");
+    g.source = "x";
+    g.shape = domain::Groove{Face::A, nan, 0, 10, nan, nan, 8};
+    part(m, "cab1/bottom").operations.push_back(g);
+    m.materials[0].sheetLength = nan;
+    m.edgeBands[0].thickness = nan;
+    m.assemblies[0].hardware[0].quantity = -3;
+    const ValidationReport r = validateModel(m);
+    EXPECT_FALSE(r.ok());
+    EXPECT_EQ(count(r, "validation.assembly.non_rigid_placement"), 1u) << toText(r);
+    EXPECT_EQ(count(r, "validation.edge.invalid_band"), 1u);
+    EXPECT_EQ(count(r, "validation.completeness.material_sheet_size"), 1u);
+    EXPECT_FALSE(toMarkdown(r).empty());
+}
+
 TEST(Parts, ThicknessMismatchNamesBothNumbers) {
     domain::Model m = domain::fixtures::basicCabinet();
     part(m, "cab1/shelf.1").thickness = 16;
