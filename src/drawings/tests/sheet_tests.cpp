@@ -96,8 +96,9 @@ TEST(Sheet, FrameTitleBlockAndCalibrationOnA3) {
     // All title-block texts are inside the title block (230..410 x 10..38).
     const Rect2 tb{{230, 10}, {410, 38}};
     for (const Primitive& p : s.primitives)
-        if (const Text* t = std::get_if<Text>(&p); t && t->elementId.rfind("sheet/title.", 0) == 0)
+        if (const Text* t = std::get_if<Text>(&p); t && t->elementId.rfind("sheet/title.", 0) == 0) {
             EXPECT_TRUE(tb.contains(t->position)) << t->elementId;
+        }
 
     // Calibration: one line exactly 100 mm long, 11 ticks 10 mm apart, label "100 mm", 2 notes.
     std::size_t lines = 0, ticks = 0, notes = 0;
@@ -175,15 +176,21 @@ TEST(Sheet, InvalidInputIsRejected) {
 }
 
 // Paper size needed by the three views of the fixture at scale s (first angle), by hand.
-// Annotated boxes relative to each view origin (dimension stacks: below 16.1 + 1.5 overshoot =
-// 17.6; left: overall line at 12.8, its rotated text reaches 12.8 + 0.8 + 0.75 * 2.5 = 15.475):
-//   height = (720 s + 17.6) + 12 + (563 s + 17.6);   width = (800 s + 15.475) + 12 + (563 s + 15.475)
-//   1:5  -> 303.8 x 315.55      1:10 -> 175.5 x 179.25
+// Annotated boxes relative to each view origin:
+//   below: overall line at 16.1 + 1.5 extension overshoot = 17.6;
+//   left:  overall line at 12.8, its rotated text reaches 12.8 + 0.8 + 0.75 * 2.5 = 15.475;
+//   the 18 mm / 3 mm chain dimensions at the ends are narrower than 2.5 arrow lengths, so their
+//   arrows sit outside on a tail of 1.6 * 2.5 = 4 mm that sticks out past the view outline:
+//   front: 4 right, 4 above;  top: 4 right, 4 above (3 mm back);  left view: 4 above, and its
+//   3 mm chain end is on the left where the 15.475 of the vertical stack already reaches farther.
+//   height = (720 s + 17.6 + 4) + 12 + (563 s + 17.6 + 4)           = 1283 s + 55.2
+//   width  = (800 s + 15.475 + 4) + 12 + (563 s + 15.475)           = 1363 s + 46.95
+//   1:5  -> 319.55 x 311.8     1:10 -> 183.25 x 183.5     1:20 -> 115.1 x 119.35
 
 TEST(AssemblyDrawing, FitToPagePicksTheLargestStandardScale) {
     const domain::Model m = domain::fixtures::basicCabinet();
     const domain::AssemblyId id("cab1");
-    // A3 landscape: drawing area 390 x 249. 1:5 needs 303.8 mm of height -> 1:10.
+    // A3 landscape: drawing area 390 x 249. 1:5 needs 311.8 mm of height -> 1:10.
     auto r = generateAssemblyDrawing(m, id, onPaper(PaperFormat::A3));
     ASSERT_TRUE(r.ok()) << r.error().message;
     ASSERT_EQ(r.value().sheets.size(), 1u);
@@ -192,20 +199,20 @@ TEST(AssemblyDrawing, FitToPagePicksTheLargestStandardScale) {
     EXPECT_EQ(findText(a3, "sheet/title.scale")->text, "1:10") << "the chosen scale is recorded on the sheet";
     EXPECT_EQ(findText(a3, "sheet/title.title")->text, "Base cabinet 800");
     EXPECT_EQ(findText(a3, "sheet/title.sheet")->text, "1/1");
-    // A2 landscape: area 564 x 372 -> 1:5 fits (303.8 high), 1:2 (720 * 0.5 + ... > 372) does not.
+    // A2 landscape: area 564 x 372 -> 1:5 fits (311.8 high), 1:2 (720 * 0.5 + ... > 372) does not.
     r = generateAssemblyDrawing(m, id, onPaper(PaperFormat::A2));
     ASSERT_TRUE(r.ok());
     EXPECT_EQ(r.value().sheets[0].scale.text(), "1:5");
-    // A4 portrait: area 180 x 225 (strip 28 + 16 + 8 = 52). 1:10 needs 179.25 x 175.5 -> fits.
+    // A4 portrait: area 180 x 225 (strip 28 + 16 + 8 = 52). 1:10 is 183.25 wide -> 3.25 mm too
+    // wide, so the next standard scale 1:20 is taken (never an in-between scale such as 1:10.2).
     r = generateAssemblyDrawing(m, id, onPaper(PaperFormat::A4, PaperOrientation::Portrait));
     ASSERT_TRUE(r.ok());
-    EXPECT_EQ(r.value().sheets[0].scale.text(), "1:10");
-    // A4 landscape: area 267 x 138 -> 1:10 is too high (175.5); 1:20: 64.05 + 12 + 45.75 + ... fits.
+    EXPECT_EQ(r.value().sheets[0].scale.text(), "1:20");
+    // A4 landscape: area 267 x 138 -> 1:10 is too high (183.5); 1:20 (119.35) fits.
     r = generateAssemblyDrawing(m, id, onPaper(PaperFormat::A4));
     ASSERT_TRUE(r.ok());
     EXPECT_EQ(r.value().sheets[0].scale.text(), "1:20");
-    for (const Scale& s : standardScales())
-        if (s.text() == r.value().sheets[0].scale.text()) SUCCEED();
+    EXPECT_DOUBLE_EQ(r.value().sheets[0].views[0].placement.scale, 0.05);
 }
 
 TEST(AssemblyDrawing, ExplicitScaleIsExactOrAnError) {
@@ -218,11 +225,11 @@ TEST(AssemblyDrawing, ExplicitScaleIsExactOrAnError) {
     EXPECT_EQ(r.error().code, core::ErrorCode::ConstraintViolation);
     // The message names the scale, the need and the available area.
     EXPECT_NE(r.error().message.find("1:5"), std::string::npos) << r.error().message;
-    EXPECT_NE(r.error().message.find("303.8"), std::string::npos) << r.error().message;
+    EXPECT_NE(r.error().message.find("319.6 x 311.8"), std::string::npos) << r.error().message;
     EXPECT_NE(r.error().message.find("390 x 249"), std::string::npos) << r.error().message;
     EXPECT_NE(r.error().message.find("Base cabinet 800"), std::string::npos);
 
-    // A custom scale 1:8 fits (height 90 + 17.6 + 12 + 70.375 + 17.6 = 207.575) and is used as is.
+    // A custom scale 1:8 fits (height 1283 / 8 + 55.2 = 215.575) and is used as is.
     opt.sheet.scale = ScaleRequest::explicitScale(1, 8);
     r = generateAssemblyDrawing(m, id, opt);
     ASSERT_TRUE(r.ok()) << r.error().message;
@@ -272,16 +279,16 @@ TEST(AssemblyDrawing, ThreeViewArrangementFirstAndThirdAngle) {
             EXPECT_DOUBLE_EQ(v.placement.scale, 0.1);
             EXPECT_TRUE(s.drawingArea.contains(v.paperBounds.min, 1e-9) && s.drawingArea.contains(v.paperBounds.max, 1e-9));
         }
-        // Hand-computed box of the front view: [-15.475, 80] x [-17.6, 72] around its origin.
+        // Hand-computed box of the front view: [-15.475, 80 + 4] x [-17.6, 72 + 4] around its origin.
         EXPECT_NEAR(f->paperBounds.min.x, f->placement.origin.x - 15.475, 1e-9);
         EXPECT_NEAR(f->paperBounds.min.y, f->placement.origin.y - 17.6, 1e-9);
-        EXPECT_NEAR(f->paperBounds.max.x, f->placement.origin.x + 80.0, 1e-9);
-        EXPECT_NEAR(f->paperBounds.max.y, f->placement.origin.y + 72.0, 1e-9);
-        // The whole arrangement (179.25 x 175.5) is centred in the drawing area.
+        EXPECT_NEAR(f->paperBounds.max.x, f->placement.origin.x + 84.0, 1e-9);
+        EXPECT_NEAR(f->paperBounds.max.y, f->placement.origin.y + 76.0, 1e-9);
+        // The whole arrangement (183.25 x 183.5) is centred in the drawing area.
         Rect2 total;
         for (const PlacedView& v : s.views) total.expand(v.paperBounds);
-        EXPECT_NEAR(total.width(), 179.25, 1e-9);
-        EXPECT_NEAR(total.height(), 175.5, 1e-9);
+        EXPECT_NEAR(total.width(), 183.25, 1e-9);
+        EXPECT_NEAR(total.height(), 183.5, 1e-9);
         EXPECT_TRUE(samePoint(total.center(), s.drawingArea.center(), 1e-9));
         // paper <-> view conversion round trip for UI picking.
         EXPECT_TRUE(samePoint(f->placement.toView(f->placement.toPaper({400, 360})), {400, 360}, 1e-9));
@@ -319,7 +326,7 @@ TEST(AssemblyDrawing, SectionsGetTheirOwnNumberedSheets) {
     EXPECT_EQ(r.value().sheets[1].id, "cab1/sheet.section.1");
     ASSERT_EQ(r.value().sheets[1].views.size(), 1u);
     EXPECT_EQ(r.value().sheets[1].views[0].viewId, "cab1/section.left");
-    // 563 x 720 section alone on A3: 1:5 needs 144 + 17.6 = 161.6 mm of height -> fits; 1:2 does not.
+    // 563 x 720 section alone on A3: 1:5 needs 144 + 17.6 + 4 = 165.6 mm of height -> fits; 1:2 does not.
     EXPECT_EQ(r.value().sheets[1].scale.text(), "1:5");
     ASSERT_EQ(r.value().views.size(), 4u);
     EXPECT_EQ(r.value().views[3].sheetIndex, 1u);
@@ -330,11 +337,12 @@ TEST(AssemblyDrawing, SectionsGetTheirOwnNumberedSheets) {
         if (const Line* l = std::get_if<Line>(&p); l && l->style == LineStyle::Thin && !l->sourceId.empty()) ++hatch;
     EXPECT_GT(hatch, 50u);
 
-    // A plane in front of everything leaves nothing to draw: explicit error, no empty sheet.
-    opt.sections[0].position = -5.0;
+    // Looking along +X, a plane at x = 900 has the whole cabinet on the viewer's side: nothing
+    // is left to draw -> explicit error, no empty sheet.
+    opt.sections[0].position = 900.0;
     const auto e = generateAssemblyDrawing(m, domain::AssemblyId("cab1"), opt);
     ASSERT_FALSE(e.ok());
-    EXPECT_NE(e.error().message.find("-5"), std::string::npos);
+    EXPECT_NE(e.error().message.find("900"), std::string::npos);
 }
 
 TEST(AssemblyDrawing, UnknownAssemblyAndDiagnostics) {
