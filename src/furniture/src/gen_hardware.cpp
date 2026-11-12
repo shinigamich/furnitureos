@@ -6,6 +6,7 @@
 #include "gen_context.hpp"
 
 #include <algorithm>
+#include <cmath>
 
 namespace fos::furniture::detail {
 namespace {
@@ -16,6 +17,56 @@ domain::HardwareDefinition limitDepth(domain::HardwareDefinition def, const char
     const auto it = def.params.find(key);
     if (it != def.params.end()) it->second = std::min(it->second, (panelThickness - 2.0) / 2.0);
     return def;
+}
+
+/// Intermediate hinge heights (from the door bottom) moved out of the zones occupied by
+/// shelves that rest against the carrying side panel. The top and bottom hinges keep their
+/// rule positions. Each forbidden zone is [shelf bottom - clearance, shelf top + clearance]
+/// relative to the door bottom; a hinge inside one is moved to the nearer zone boundary
+/// that is free and keeps the hinges ascending and at least `clearance` from the end hinges.
+/// Returns an empty vector when no hinge had to move (the rule positions are used as is).
+std::vector<double> hingesClearOfShelves(const std::vector<double>& rule, const domain::Part& door,
+                                         const domain::Part& side, const std::vector<domain::Part>& parts,
+                                         double clearance, bool& unresolved) {
+    unresolved = false;
+    if (rule.size() < 3 || clearance <= 0) return {};
+    const geometry::Aabb d = door.bounds(), s = side.bounds();
+    std::vector<std::pair<double, double>> zones;
+    for (const domain::Part& p : parts) {
+        if (p.role != domain::PartRole::Shelf) continue;
+        const geometry::Aabb b = p.bounds();
+        const bool touchesSide = b.min.x <= s.max.x + 0.5 && b.max.x >= s.min.x - 0.5 && b.min.y < s.max.y &&
+                                 b.max.y > s.min.y;
+        if (!touchesSide) continue;
+        zones.emplace_back(b.min.z - d.min.z - clearance, b.max.z - d.min.z + clearance);
+    }
+    if (zones.empty()) return {};
+    const auto blocked = [&](double h) {
+        for (const auto& [lo, hi] : zones)
+            if (h > lo + core::kLengthEps && h < hi - core::kLengthEps) return true;
+        return false;
+    };
+    std::vector<double> out = rule;
+    bool moved = false;
+    for (std::size_t i = 1; i + 1 < out.size(); ++i) {
+        if (!blocked(out[i])) continue;
+        const double lowLimit = out[i - 1] + clearance, highLimit = rule.back() - clearance;
+        double best = 0;
+        bool found = false;
+        for (const auto& [lo, hi] : zones) {
+            for (double cand : {lo, hi}) {
+                if (cand < lowLimit - core::kLengthEps || cand > highLimit + core::kLengthEps || blocked(cand)) continue;
+                if (!found || std::abs(cand - rule[i]) < std::abs(best - rule[i])) best = cand, found = true;
+            }
+        }
+        if (!found) {
+            unresolved = true;
+            return {};
+        }
+        out[i] = best;
+        moved = true;
+    }
+    return moved ? out : std::vector<double>{};
 }
 
 core::Result<hardware::Placement> place(Gen& g, const Job& j, const domain::HardwareInstanceId& id) {
@@ -60,7 +111,23 @@ core::Result<hardware::Placement> place(Gen& g, const Job& j, const domain::Hard
         c.maxFrontGap = std::max(c.maxFrontGap, g.v(p::kFrontOffset));
         const auto hinge =
             j.sharedPanel ? limitDepth(def.value(), hardware::keys::kPlateHoleDepth, g.v(p::kThickness)) : def.value();
-        return hardware::placeHinges(parts[j.a], parts[j.b], hinge, c);
+        // Keep intermediate hinges clear of shelves on the carrying panel.
+        const domain::Part& door = parts[j.a];
+        const double doorHeight = door.bounds().size().z;
+        if (auto n = hardware::hingeCount(doorHeight, c.weightClass, c.rules); n) {
+            if (auto rule = hardware::hingePositions(doorHeight, n.value(), c.offsetFromTop, c.offsetFromBottom); rule) {
+                bool unresolved = false;
+                c.positions = hingesClearOfShelves(rule.value(), door, parts[j.b], parts, g.v(p::kHingeShelfClearance),
+                                                   unresolved);
+                if (unresolved)
+                    g.warn("furniture.hinge.near_shelf",
+                           "An intermediate hinge of '" + door.name + "' could not be moved at least " +
+                               core::formatLength(g.v(p::kHingeShelfClearance)) +
+                               " mm away from a shelf; check the hinge and shelf positions.",
+                           door.id.str());
+            }
+        }
+        return hardware::placeHinges(door, parts[j.b], hinge, c);
     }
     case JobKind::Handle: {
         auto def = lookup(sel.handle, "handle");

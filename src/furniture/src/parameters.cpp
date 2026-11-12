@@ -56,6 +56,9 @@ std::vector<StandardParameter> standardParameters(const ConstructionOptions& o) 
         input(p::kFrontOffset, 2, "Gap between the carcass front and the inner face of overlay fronts"),
         input(p::kInsetGap, 2, "Inset fronts: gap to the surrounding panels"),
         input(p::kHingeOffset, 100, "Top / bottom hinge centre from the door end"),
+        input(p::kHingeShelfClearance, 40,
+              "Least distance from an intermediate hinge centre to a shelf face on the same side panel "
+              "(generic rule of thumb keeping the mounting plate and its holes clear of the shelf and its supports)"),
         input(p::kHandleEdgeOffset, 50, "Door handle centre from the free door edge"),
         input(p::kHandleEndOffset, 100, "Door handle centre from the door top / bottom (HandlePosition Top / Bottom)"),
         input(p::kJointEndOffset, 50, "First / last joint fastener from the joint ends (at most a quarter of the joint)"),

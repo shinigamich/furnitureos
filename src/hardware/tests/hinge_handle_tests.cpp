@@ -332,3 +332,40 @@ TEST(PlaceHandle, Failures) {
     EXPECT_NE(r.error().message.find("hole_spacing"), std::string::npos);
     EXPECT_FALSE(placeHandle(d, handle, HandleConfig{}).ok());
 }
+
+TEST(PlaceHinges, ExplicitPositionsOverrideTheRule) {
+    Cabinet c;
+    const auto d = door(402); // 716 mm high, bottom edge at assembly z = 2
+    auto cfg = hingeConfig();
+    cfg.positions = {80, 300, 640}; // overrides count, rules and offsets
+    const auto r = placeHinges(d, c.right, def(ids::kHingeCup35), cfg);
+    ASSERT_TRUE(r.ok()) << r.error().message;
+    EXPECT_EQ(r.value().instances[0].quantity, 3);
+    const auto& cups = *r.value().operationsFor(d.id);
+    const auto& plates = *r.value().operationsFor(c.right.id);
+    ASSERT_EQ(cups.size(), 3u);
+    expectHole(cups[0], Hole{Face::A, 80, 374.5, 35, 13, false});
+    expectHole(cups[1], Hole{Face::A, 300, 374.5, 35, 13, false});
+    expectHole(cups[2], Hole{Face::A, 640, 374.5, 35, 13, false});
+    // Middle hinge: assembly z = 2 + 300 = 302 -> plate holes at 302 -/+ 16 = 286 and 318.
+    expectHole(plates[2], Hole{Face::A, 286, 37, 5, 13, false});
+    expectHole(plates[3], Hole{Face::A, 318, 37, 5, 13, false});
+}
+
+TEST(PlaceHinges, ExplicitPositionsAreValidated) {
+    Cabinet c;
+    const auto d = door(402); // 716 mm high
+    auto cfg = hingeConfig();
+    cfg.positions = {300};
+    auto r = placeHinges(d, c.right, def(ids::kHingeCup35), cfg);
+    ASSERT_FALSE(r.ok());
+    EXPECT_NE(r.error().message.find("at least 2 hinges"), std::string::npos) << r.error().message;
+    cfg.positions = {100, 100};
+    r = placeHinges(d, c.right, def(ids::kHingeCup35), cfg);
+    ASSERT_FALSE(r.ok());
+    EXPECT_NE(r.error().message.find("strictly ascending"), std::string::npos) << r.error().message;
+    cfg.positions = {100, 716};
+    r = placeHinges(d, c.right, def(ids::kHingeCup35), cfg);
+    ASSERT_FALSE(r.ok());
+    EXPECT_NE(r.error().message.find("outside the door height"), std::string::npos) << r.error().message;
+}

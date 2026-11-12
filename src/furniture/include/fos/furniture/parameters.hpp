@@ -33,6 +33,7 @@ inline constexpr const char* kFrontGap = "front_gap";
 inline constexpr const char* kFrontOffset = "front_offset";
 inline constexpr const char* kInsetGap = "inset_gap";
 inline constexpr const char* kHingeOffset = "hinge_offset";
+inline constexpr const char* kHingeShelfClearance = "hinge_shelf_clearance";
 inline constexpr const char* kHandleEdgeOffset = "handle_edge_offset";
 inline constexpr const char* kHandleEndOffset = "handle_end_offset";
 inline constexpr const char* kJointEndOffset = "joint_end_offset";

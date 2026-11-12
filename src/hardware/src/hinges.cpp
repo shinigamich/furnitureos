@@ -4,6 +4,8 @@
 #include "fos/hardware/catalog.hpp"
 #include "util.hpp"
 
+#include <cmath>
+
 namespace fos::hardware {
 using namespace detail;
 using domain::Face;
@@ -125,16 +127,38 @@ core::Result<Placement> placeHinges(const Part& door, const Part& side, const do
                         " mm hinge cup centred " + num(cupC) + " mm from its hinged edge (needs at least " +
                         num(cupC + cupD / 2) + " mm).", door);
 
+    core::Result<std::vector<double>> heights = std::vector<double>{};
     int count = cfg.count;
-    if (count == 0) {
-        auto n = hingeCount(doorHeight, cfg.weightClass, cfg.rules);
-        if (!n) return core::makeError(n.error().code, "Door " + quoted(door) + ": " + n.error().message, door.id.str());
-        count = n.value();
+    if (!cfg.positions.empty()) {
+        const auto& ps = cfg.positions;
+        if (ps.size() < 2)
+            return fail("Door " + quoted(door) + " needs at least 2 hinges but " + std::to_string(ps.size()) +
+                            " explicit hinge position was given.",
+                        door);
+        for (std::size_t i = 0; i < ps.size(); ++i) {
+            if (!std::isfinite(ps[i]) || ps[i] <= core::kLengthEps || ps[i] >= doorHeight - core::kLengthEps)
+                return fail("Door " + quoted(door) + ": hinge position " + num(ps[i]) +
+                                " mm is outside the door height (0 .. " + num(doorHeight) + " mm).",
+                            door);
+            if (i > 0 && ps[i] <= ps[i - 1] + core::kLengthEps)
+                return fail("Door " + quoted(door) + ": explicit hinge positions must be strictly ascending (" +
+                                num(ps[i - 1]) + " mm is followed by " + num(ps[i]) + " mm).",
+                            door);
+        }
+        heights = ps;
+        count = static_cast<int>(ps.size());
+    } else {
+        if (count == 0) {
+            auto n = hingeCount(doorHeight, cfg.weightClass, cfg.rules);
+            if (!n)
+                return core::makeError(n.error().code, "Door " + quoted(door) + ": " + n.error().message, door.id.str());
+            count = n.value();
+        }
+        heights = hingePositions(doorHeight, count, cfg.offsetFromTop, cfg.offsetFromBottom);
+        if (!heights)
+            return core::makeError(heights.error().code, "Door " + quoted(door) + ": " + heights.error().message,
+                                   door.id.str());
     }
-    auto heights = hingePositions(doorHeight, count, cfg.offsetFromTop, cfg.offsetFromBottom);
-    if (!heights)
-        return core::makeError(heights.error().code, "Door " + quoted(door) + ": " + heights.error().message,
-                               door.id.str());
 
     const std::string what = hinge.name.empty() ? hinge.id.str() : hinge.name;
     OpWriter w(cfg.instanceId);

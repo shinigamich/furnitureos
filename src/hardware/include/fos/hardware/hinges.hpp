@@ -42,6 +42,11 @@ struct HingeConfig {
     DoorWeightClass weightClass = DoorWeightClass::Medium;
     std::vector<HingeCountRule> rules = defaultHingeCountRules();
     int count = 0;                   ///< 0 = from `rules`; otherwise the exact number (>= 2).
+    /// Explicit hinge centre heights measured from the door's bottom edge. When non-empty it
+    /// overrides `count`, `rules` and both offsets; it must hold >= 2 strictly ascending values
+    /// inside the door (0 < h < door height). Used by callers that must keep hinges clear of
+    /// shelves or other fittings.
+    std::vector<double> positions;
     double offsetFromTop = 100.0;    ///< Top hinge centre below the door's top edge.
     double offsetFromBottom = 100.0; ///< Bottom hinge centre above the door's bottom edge.
     /// Allowed distance between the door's inner face and the front edge of the side.
