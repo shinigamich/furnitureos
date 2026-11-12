@@ -87,3 +87,14 @@ TEST(Diagnostics, HasErrors) {
     ds.push_back({Severity::Error, "e", "err", ""});
     EXPECT_TRUE(hasErrors(ds));
 }
+
+TEST(Units, AdditionalConversions) {
+    EXPECT_DOUBLE_EQ(mmToM(2500.0), 2.5);
+    EXPECT_NEAR(radToDeg(kPi), 180.0, 1e-12);
+}
+
+TEST(Units, RoundTo) {
+    EXPECT_DOUBLE_EQ(roundTo(1.25, 1), 1.3);
+    EXPECT_DOUBLE_EQ(roundTo(-1.25, 1), -1.3);
+    EXPECT_DOUBLE_EQ(roundTo(1.234, 0), 1.0);
+}
