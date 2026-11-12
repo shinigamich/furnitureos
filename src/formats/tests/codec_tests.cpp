@@ -444,3 +444,51 @@ TEST(CodecDefaults, OptionalKeysFallBackToDomainDefaults) {
     ASSERT_TRUE(model.ok());
     EXPECT_TRUE(model.value().assemblies.empty());
 }
+
+// ---------------------------------------------------------------- damaged input
+
+TEST(CodecRobustness, RandomlyDamagedModelFilesNeverCrash) {
+    Document doc;
+    doc.format = "test-model";
+    doc.payload["model"] = toJson(richModel());
+    const std::string valid = serializeDocument(doc).value();
+    FormatSpec spec;
+    spec.kind = "test-model";
+    LoadOptions lenient;
+    lenient.allowChecksumMismatch = true; // let damaged payloads reach the codecs
+
+    // Deterministic pseudo-random damage (64-bit LCG, Knuth's MMIX constants): overwrite
+    // 1-3 bytes with structural characters, digits, or arbitrary bytes.
+    std::uint64_t state = 0x853c49e6748fea9bULL;
+    const auto next = [&state] {
+        state = state * 6364136223846793005ULL + 1442695040888963407ULL;
+        return static_cast<std::uint32_t>(state >> 33);
+    };
+    const std::string alphabet = "{}[]\",:-0159.eE tfn\\\n";
+    int loaded = 0, decoded = 0;
+    for (int round = 0; round < 3000; ++round) {
+        std::string text = valid;
+        const int edits = 1 + static_cast<int>(next() % 3);
+        for (int e = 0; e < edits; ++e) {
+            const std::size_t pos = next() % text.size();
+            text[pos] = (next() % 4 == 0) ? static_cast<char>(next() & 0xff) : alphabet[next() % alphabet.size()];
+        }
+        auto document = parseDocument(text, spec, lenient);
+        if (!document.ok()) {
+            EXPECT_FALSE(document.error().message.empty());
+            continue;
+        }
+        ++loaded;
+        const Json& payload = document.value().document.payload;
+        auto model = modelFromJson(payload.contains("model") ? payload["model"] : Json(), "/payload/model");
+        if (model.ok()) {
+            ++decoded;
+            EXPECT_TRUE(modelToJsonChecked(model.value()).ok()); // whatever decodes can be saved again
+        } else {
+            EXPECT_THAT(model.error().message, ::testing::StartsWith("/payload/model"));
+        }
+    }
+    // Sanity of the experiment itself: both outcomes occurred.
+    EXPECT_GT(loaded, 100);
+    EXPECT_LT(decoded, loaded);
+}

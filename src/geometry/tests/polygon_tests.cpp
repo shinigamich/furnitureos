@@ -22,8 +22,8 @@ TEST(Rect2, BasicsAndExpand) {
     EXPECT_TRUE(r.empty());
     EXPECT_DOUBLE_EQ(r.width(), 0.0);
     EXPECT_DOUBLE_EQ(r.area(), 0.0);
-    r.expand({3, 4});
-    r.expand({-1, 10});
+    r.expand(Vec2{3, 4});
+    r.expand(Vec2{-1, 10});
     EXPECT_FALSE(r.empty());
     EXPECT_EQ(r.min, (Vec2{-1, 4}));
     EXPECT_EQ(r.max, (Vec2{3, 10}));

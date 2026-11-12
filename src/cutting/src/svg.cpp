@@ -142,7 +142,10 @@ std::string renderSheetSvg(const Job& job, const SheetLayout& sheet, const SvgOp
                                   formatLength(sheet.utilisationOfSheetPct) + " % of sheet / " +
                                   formatLength(sheet.utilisationOfUsablePct) + " % of usable area";
         s += "<g class=\"fos-legend\">\n";
-        s += "<text font-size=\"" + num(f) + "\" x=\"0\" y=\"" + num(y0 + f) + "\">" + xmlEscape(title) + "</text>\n";
+        // Shrink the title so that it stays within the sheet length (about 0.55 em per character).
+        const double titleFont = std::min(f, L / (0.55 * static_cast<double>(codePoints(title))));
+        s += "<text font-size=\"" + num(titleFont) + "\" x=\"0\" y=\"" + num(y0 + f) + "\">" + xmlEscape(title) +
+             "</text>\n";
         const char* const entries[][2] = {{"fos-piece", "Piece (\xE2\x86\xBB = rotated)"},
                                           {"fos-kerf", "Saw kerf"},
                                           {"fos-remnant", "Reusable remnant"},
