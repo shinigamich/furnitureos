@@ -46,6 +46,24 @@ Not verified: Clang, MSVC/Windows, macOS, the CI workflow itself (never run on G
 
 ## Known bugs and technical debt
 
+### Independent review 2026-11-12 (calculation-critical modules) — fixes in progress
+Verified correct by the reviewer (probes): single cut-size formula used everywhere; machining face frames;
+parametric incremental recalculation (4,719 random edits vs. full rebuild, 0 mismatches); cutting validator
+independent of the packer; byte-identical model round trip; a 1203.5 mm / 16 mm / OverSides / grooved-back /
+3-partition cabinet checked by hand.
+
+Confirmed defects being fixed:
+* HIGH: intermediate hinges were not moved off adjustable shelves at default shelf clearance (wardrobe template:
+  plate holes inside a shelf band).
+* Fixed shelves on both sides of a partition get coincident confirmat through-holes (generation reports collisions).
+* Pinned derived parameters survive construction changes silently (back could end up inside a side).
+* Drawer fronts use the opposite face-A convention from doors.
+* Back grooves run through banded/visible ends; shelf-pin depth reduced on outer sides too.
+* Drawing text overrides and user dimensions do not follow model changes (stale numbers possible).
+* Cutting adapter does not report a missing edge band; grain/rotation rule duplicated; cutting optimiser
+  target links domain (layering).
+* Five furniture test files were empty (fronts, interior, edit API, templates).
+
 * `core::Error` has no stable machine code / source position field; `core::Diagnostic` has a single entity id.
 * Domain types lack `operator==` and (for Operation, HardwareInstance, Assembly, Model) a `custom` map, so
   unknown JSON keys on those types are rejected rather than preserved.
