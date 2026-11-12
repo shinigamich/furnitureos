@@ -45,7 +45,8 @@ struct SectionSize {
     bool operator==(const SectionSize&) const = default;
 };
 
-/// A front closing the opening of a section (see README "Fronts").
+/// A front closing the opening of a section (see README "Fronts"). For every generated front
+/// (door or drawer front) face A is the inner, cabinet-side face and face B the visible face.
 struct FrontSpec {
     FrontKind kind = FrontKind::Door;
     OverlayKind overlay = OverlayKind::Full;
@@ -80,7 +81,12 @@ struct ConstructionOptions {
     PlinthKind plinth = PlinthKind::None; ///< SidesToFloor requires bottomJoint == BetweenSides.
     JointFastener topFastener = JointFastener::Confirmat;     ///< Side/top (or rail) corners.
     JointFastener bottomFastener = JointFastener::Confirmat;  ///< Side/bottom corners.
-    JointFastener dividerFastener = JointFastener::Confirmat; ///< Partitions, fixed shelves, plinth panel.
+    /// Partitions, fixed shelves, plinth panel. SHARED-PANEL RULE: a joint whose face part is
+    /// itself a divider (a fixed shelf against a partition, a partition on a fixed shelf) is
+    /// always a blind dowel joint (HardwareSelection::dowel) with the face hole at most
+    /// (thickness - 2) / 2 deep, because the divider may be drilled at the same spot from its
+    /// other face; a confirmat's through hole would meet that joint (README "Shared panels").
+    JointFastener dividerFastener = JointFastener::Confirmat;
     bool shelfSupports = true; ///< Drill shelf-pin holes under adjustable shelves.
     bool operator==(const ConstructionOptions&) const = default;
 };

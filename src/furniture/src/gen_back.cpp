@@ -56,13 +56,12 @@ core::Result<void> buildBack(Gen& g) {
     addGroove(g, g.index("side.left"), domain::Face::B, s0, s1, centre, width, depth);
     addGroove(g, g.index("side.right"), domain::Face::A, s0, s1, centre, width, depth);
     // Horizontal panels: local x = assembly x - panel x.
-    const auto horizontal = [&](const char* slot, bool over, double x, double length) {
-        addGroove(g, g.index(slot), slot == std::string("bottom") ? domain::Face::A : domain::Face::B,
-                  over ? bx0 - x : 0.0, over ? bx1 - x : length, centre, width, depth);
+    const auto horizontal = [&](const char* slot, domain::Face face, bool over, double x, double length) {
+        addGroove(g, g.index(slot), face, over ? bx0 - x : 0.0, over ? bx1 - x : length, centre, width, depth);
     };
-    horizontal("bottom", bottomOver, g.v(p::kBottomX), g.v(p::kBottomLength));
+    horizontal("bottom", domain::Face::A, bottomOver, g.v(p::kBottomX), g.v(p::kBottomLength));
     if (o.top == TopKind::Panel) {
-        horizontal("top", topOver, g.v(p::kTopX), g.v(p::kTopLength));
+        horizontal("top", domain::Face::B, topOver, g.v(p::kTopX), g.v(p::kTopLength));
     } else {
         const std::size_t rail = g.index("rail.back");
         addGroove(g, rail, domain::Face::B, 0.0, g.assembly.parts[rail].length,
