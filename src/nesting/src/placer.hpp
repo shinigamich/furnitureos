@@ -27,6 +27,8 @@ struct OpenSheet {
     int stock = 0;
     double freeArea = 0;
     std::vector<PlacedItem> items;
+    /// failed[part]: an instance of this part did not fit. Sheets only fill up, so it never will.
+    std::vector<bool> failed;
 };
 
 struct Decoded {

@@ -256,8 +256,11 @@ Decoded Placer::decode(const std::vector<Instance>& order) {
         PlacedItem item;
         bool placed = false;
         for (auto& sh : d.sheets) {
-            if (sh.freeArea < a - 1e-6) continue;
-            if (tryPlace(sh, inst.part, item)) {
+            const auto pi = static_cast<std::size_t>(inst.part);
+            if (sh.failed[pi] || sh.freeArea < a - 1e-6) continue;
+            if (!tryPlace(sh, inst.part, item)) {
+                sh.failed[pi] = !cancelled_;
+            } else {
                 item.inst = inst;
                 sh.freeArea -= a;
                 sh.items.push_back(std::move(item));
@@ -270,6 +273,7 @@ Decoded Placer::decode(const std::vector<Instance>& order) {
             OpenSheet sh;
             sh.stock = static_cast<int>(t);
             sh.freeArea = areas_[t].area();
+            sh.failed.assign(shapes_.size(), false);
             if (!tryPlace(sh, inst.part, item)) continue;
             if (remaining[t] > 0) --remaining[t];
             item.inst = inst;

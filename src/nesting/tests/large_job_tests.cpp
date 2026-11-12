@@ -53,7 +53,7 @@ Job mixedJob() {
 TEST(NestLarge, MixedSixtyPartJob) {
     const Job job = mixedJob();
     NestOptions opt;
-    opt.iterations = 6;
+    opt.iterations = 10;
     const auto t0 = std::chrono::steady_clock::now();
     const NestResult r = nestValid(job, opt);
     const double secs = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
@@ -63,12 +63,15 @@ TEST(NestLarge, MixedSixtyPartJob) {
     // Placement area per sheet: (2800 - 28) x (2070 - 28) = 2772 x 2042 = 5 660 424 mm^2, so at least
     // ceil(9 631 384 / 5 660 424) = 2 sheets. Accept the lower bound + 1.
     EXPECT_LE(r.sheets.size(), 3u);
-    // Threshold: the first (full) sheet must carry >= 60% of its area. Every part is surrounded by a
-    // 4 mm half-spacing band (perimeter ~1600-2000 mm -> ~7000 mm^2, ~5% of a 120 000 mm^2 part), and
-    // triangles/hexagons/notches leave unavoidable gaps between straight-edged neighbours; plain
-    // bottom-left-fill is commonly reported at 60-80% on such mixes.
+    // Threshold: every sheet except the last (which only takes the leftovers) must carry >= 60% of its
+    // area. Losses that no layout avoids: margins + edge spacing (placement area / sheet area =
+    // 5 660 424 / 5 796 000 = 0.977), and a 4 mm half-spacing band around every part (perimeter
+    // 1600-2000 mm -> ~7000 mm^2, ~5% of a 120 000 mm^2 part). The rest is heuristic waste between
+    // triangles, hexagons and notched parts. 0.60 leaves room for that while catching regressions such
+    // as a broken candidate generator (measured with this seed: ~0.77-0.81).
     ASSERT_FALSE(r.sheets.empty());
-    EXPECT_GE(r.sheets[0].utilisation, 0.60);
+    for (std::size_t i = 0; i + 1 < r.sheets.size(); ++i) EXPECT_GE(r.sheets[i].utilisation, 0.60) << i;
+    for (const auto& sh : r.sheets) std::printf("  sheet util %.3f parts %zu\n", sh.utilisation, sh.placements.size());
     std::printf("mixed job: %zu sheets, utilisation %.3f, first sheet %.3f, last used length %.1f mm, %.2f s, %d iterations\n",
                 r.sheets.size(), r.utilisation, r.sheets[0].utilisation, r.sheets.back().usedLength, secs, r.iterationsRun);
     EXPECT_LT(secs, 5.0);
