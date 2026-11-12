@@ -9,6 +9,7 @@
 #include <array>
 #include <cstddef>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace fos::furniture::detail {
@@ -16,7 +17,20 @@ namespace fos::furniture::detail {
 using geometry::Transform;
 using geometry::Vec3;
 
-inline constexpr Vec3 kRight{1, 0, 0}, kBack{0, 1, 0}, kUp{0, 0, 1};
+inline constexpr Vec3 kRight{1, 0, 0}, kBack{0, 1, 0}, kUp{0, 0, 1}, kDown{0, 0, -1};
+
+/// SHARED-PANEL RULE. An interior divider (partition or fixed shelf) can be drilled at the
+/// same spot from both of its faces (one fitting per neighbouring compartment). Every blind
+/// hole the generator drills into a face of such a panel therefore stops before the
+/// mid-plane, leaving at least this much material (mm) between two opposite holes.
+inline constexpr double kSharedPanelWeb = 2.0;
+/// Deepest blind face hole allowed in a shared panel of thickness `t` (mm): (t - web) / 2,
+/// e.g. 8 mm in an 18 mm and 7 mm in a 16 mm board.
+inline constexpr double sharedHoleDepthLimit(double t) noexcept { return (t - kSharedPanelWeb) / 2.0; }
+/// The generator places adjustable shelves exactly `shelf_clearance` from each support; when
+/// it hands that geometry to the shelf-pin rule it allows this much extra gap (mm) so that
+/// floating-point rounding of the placements can never make the rule miss a support.
+inline constexpr double kShelfPinGapSlack = 0.5;
 
 /// Which edge band an edge of a generated part receives.
 enum class EdgeUse { Raw, Visible, Hidden, Front };
@@ -32,7 +46,10 @@ struct Job {
     std::size_t b = 0;      ///< Corner: edge part. ShelfPins: left support. Hinges: carrying panel.
     std::size_t c = 0;      ///< ShelfPins: right support.
     JointFastener fastener = JointFastener::None; ///< Corner.
-    bool sharedPanel = false; ///< A carrying panel is an interior partition (may be drilled from both faces).
+    /// Hinges: the carrying panel is a divider. Corner: the FACE part is a divider. ShelfPins:
+    /// the left (b) support is a divider. Such panels follow the shared-panel rule above.
+    bool sharedPanel = false;
+    bool sharedC = false; ///< ShelfPins: the right (c) support is a divider.
     hardware::HandleConfig handle;
 };
 
@@ -54,6 +71,10 @@ struct Gen {
     domain::Assembly assembly;
     core::Diagnostics diagnostics;
     std::vector<Job> jobs;
+    /// Every shelf (adjustable or fixed) with each vertical panel it rests against:
+    /// (shelf index, panel index). Recorded from the section tree, independent of whether
+    /// shelf pins or joint fasteners are generated; used to keep hinges clear of shelves.
+    std::vector<std::pair<std::size_t, std::size_t>> shelfCarriers;
 
     /// Value of a parameter of the resolved graph (all standard names exist).
     double v(const char* name) const { return values.at(name); }
@@ -86,5 +107,7 @@ core::Result<void> buildBack(Gen& g);
 core::Result<void> buildInterior(Gen& g, const Bounds& rootBounds);
 core::Result<void> buildFront(Gen& g, const FrontSpec& spec, const std::string& path, const Box& box, const Bounds& bounds);
 void runHardware(Gen& g);
+/// Self-check after generation: furniture.geometry.interpenetration errors (checks.hpp).
+void checkGeometry(Gen& g);
 
 } // namespace fos::furniture::detail

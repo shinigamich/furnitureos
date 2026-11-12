@@ -58,4 +58,26 @@ double edgeBandThickness(const Part& part, EdgeSide s, const Model& model) noexc
 ///   cut.width  = width  - thickness(L1) - thickness(L2)
 CutSize cutSize(const Part& part, const Model& model) noexcept;
 
+/// THE grain/rotation rule for laying a part on a stock sheet (used by `cutting` and
+/// `production`; nothing else may re-derive it). The material grain, when present, runs
+/// along Material::sheetLength.
+///
+/// Rotation by 90 degrees on the sheet is allowed iff
+///   part.grain == GrainDirection::None, or
+///   `material` is known (non-null) and material->hasGrain == false.
+/// A grained part whose material is MISSING (nullptr) is NOT rotatable: without the
+/// material the grain cannot be ruled out, so the part's own grain is respected.
+bool canRotateOnSheet(const Part& part, const Material* material) noexcept;
+
+/// How the part's LENGTH (local X) must lie relative to the sheet length (the grain).
+enum class SheetAlignment {
+    Free,             ///< canRotateOnSheet(): either orientation.
+    LengthAlongSheet, ///< Part grain AlongLength on a grained (or missing) material.
+    LengthAcrossSheet ///< Part grain AlongWidth: the part WIDTH must run along the sheet length.
+};
+
+/// Free when canRotateOnSheet(part, material); otherwise LengthAlongSheet for
+/// GrainDirection::AlongLength and LengthAcrossSheet for GrainDirection::AlongWidth.
+SheetAlignment sheetAlignment(const Part& part, const Material* material) noexcept;
+
 } // namespace fos::domain

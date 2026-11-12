@@ -21,4 +21,5 @@ fos_add_tests(drawings
         tests/dimension_tests.cpp
         tests/sheet_tests.cpp
         tests/export_tests.cpp
-        tests/part_drawing_tests.cpp)
+        tests/part_drawing_tests.cpp
+        tests/edit_anchor_tests.cpp)

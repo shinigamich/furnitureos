@@ -11,33 +11,33 @@
 namespace fos::furniture::detail {
 namespace {
 
-/// A hole drilled into a panel that may be drilled at the same spot from its other face
-/// (interior partition) must stop before the mid-plane: at most (T - 2) / 2 deep.
+/// Shared-panel rule (gen_context.hpp): `key` (a blind face-hole depth) of `def` limited to
+/// sharedHoleDepthLimit(panelThickness).
 domain::HardwareDefinition limitDepth(domain::HardwareDefinition def, const char* key, double panelThickness) {
     const auto it = def.params.find(key);
-    if (it != def.params.end()) it->second = std::min(it->second, (panelThickness - 2.0) / 2.0);
+    if (it != def.params.end()) it->second = std::min(it->second, sharedHoleDepthLimit(panelThickness));
     return def;
 }
 
 /// Intermediate hinge heights (from the door bottom) moved out of the zones occupied by
-/// shelves that rest against the carrying side panel. The top and bottom hinges keep their
+/// shelves that rest against the carrying side panel `carrier`. The shelves are taken from
+/// the generator's own record (Gen::shelfCarriers: every adjustable shelf with the two panels
+/// it is pinned to / lies between, every fixed shelf with the two panels it is joined to), so
+/// a shelf counts whatever its clearance to the panel is. The top and bottom hinges keep their
 /// rule positions. Each forbidden zone is [shelf bottom - clearance, shelf top + clearance]
 /// relative to the door bottom; a hinge inside one is moved to the nearer zone boundary
-/// that is free and keeps the hinges ascending and at least `clearance` from the end hinges.
+/// that is free and keeps the hinges ascending and at least `clearance` from the end hinges
+/// (on a tie the lower boundary is taken).
 /// Returns an empty vector when no hinge had to move (the rule positions are used as is).
-std::vector<double> hingesClearOfShelves(const std::vector<double>& rule, const domain::Part& door,
-                                         const domain::Part& side, const std::vector<domain::Part>& parts,
-                                         double clearance, bool& unresolved) {
+std::vector<double> hingesClearOfShelves(const std::vector<double>& rule, const domain::Part& door, std::size_t carrier,
+                                         const Gen& g, double clearance, bool& unresolved) {
     unresolved = false;
     if (rule.size() < 3 || clearance <= 0) return {};
-    const geometry::Aabb d = door.bounds(), s = side.bounds();
+    const geometry::Aabb d = door.bounds();
     std::vector<std::pair<double, double>> zones;
-    for (const domain::Part& p : parts) {
-        if (p.role != domain::PartRole::Shelf) continue;
-        const geometry::Aabb b = p.bounds();
-        const bool touchesSide = b.min.x <= s.max.x + 0.5 && b.max.x >= s.min.x - 0.5 && b.min.y < s.max.y &&
-                                 b.max.y > s.min.y;
-        if (!touchesSide) continue;
+    for (const auto& [shelf, panel] : g.shelfCarriers) {
+        if (panel != carrier) continue;
+        const geometry::Aabb b = g.assembly.parts[shelf].bounds();
         zones.emplace_back(b.min.z - d.min.z - clearance, b.max.z - d.min.z + clearance);
     }
     if (zones.empty()) return {};
@@ -81,7 +81,12 @@ core::Result<hardware::Placement> place(Gen& g, const Job& j, const domain::Hard
     };
     switch (j.kind) {
     case JobKind::Corner: {
-        auto def = lookup(j.fastener == JointFastener::Confirmat ? sel.confirmat : sel.dowel, "joint fastener");
+        // Shared-panel rule: a joint into the face of a divider is a blind dowel joint (a
+        // confirmat needs a through hole, which would meet a joint drilled at the same spot
+        // from the divider's other face). The face hole is limited to the shared-panel depth
+        // and the edge hole is deepened so that the two holes still take the whole dowel.
+        const bool dowel = j.sharedPanel || j.fastener == JointFastener::Dowel;
+        auto def = lookup(dowel ? sel.dowel : sel.confirmat, "joint fastener");
         if (!def) return def.error();
         auto joint = hardware::detectButtJoint(parts[j.a], parts[j.b]);
         if (!joint) return joint.error();
@@ -89,6 +94,17 @@ core::Result<hardware::Placement> place(Gen& g, const Job& j, const domain::Hard
         c.instanceId = id;
         c.minEndOffset = std::min(g.v(p::kJointEndOffset), joint.value().along.length() / 4);
         c.maxSpacing = g.v(p::kJointMaxSpacing);
+        if (j.sharedPanel) {
+            const auto& prm = def.value().params;
+            const auto face = prm.find(hardware::keys::kFaceDepth), edge = prm.find(hardware::keys::kEdgeDepth),
+                       length = prm.find(hardware::keys::kLength);
+            if (face != prm.end()) {
+                const double faceDepth = std::min(face->second, sharedHoleDepthLimit(parts[j.a].thickness));
+                c.dowelFaceDepth = faceDepth;
+                if (edge != prm.end() && length != prm.end())
+                    c.dowelEdgeDepth = std::max(edge->second, length->second - faceDepth);
+            }
+        }
         return hardware::connectCorner(parts[j.a], parts[j.b], def.value(), c);
     }
     case JobKind::ShelfPins: {
@@ -98,9 +114,23 @@ core::Result<hardware::Placement> place(Gen& g, const Job& j, const domain::Hard
         c.instanceId = id;
         c.setbackFront = g.v(p::kShelfPinFront);
         c.setbackBack = g.v(p::kShelfPinBack);
-        c.maxGap = std::max(2.0, g.v(p::kShelfClearance) + 0.5);
-        const auto pin = j.sharedPanel ? limitDepth(def.value(), hardware::keys::kHoleDepth, g.v(p::kThickness)) : def.value();
-        return hardware::placeShelfSupports(parts[j.a], parts[j.b], parts[j.c], pin, c);
+        c.maxGap = g.v(p::kShelfClearance) + kShelfPinGapSlack;
+        const domain::HardwareDefinition& pin = def.value();
+        if (!j.sharedPanel && !j.sharedC) return hardware::placeShelfSupports(parts[j.a], parts[j.b], parts[j.c], pin, c);
+        // A divider support takes holes of at most the shared-panel depth; an outer side keeps
+        // the catalogue depth. The rule takes one definition for both supports, so a mixed pair
+        // is placed twice and the outer side's operations are taken from the unlimited run
+        // (both runs number the operations identically: first side op.1-2, second op.3-4).
+        const auto limited = limitDepth(pin, hardware::keys::kHoleDepth, g.v(p::kThickness));
+        auto placed = hardware::placeShelfSupports(parts[j.a], parts[j.b], parts[j.c], limited, c);
+        if (!placed || (j.sharedPanel && j.sharedC)) return placed;
+        auto full = hardware::placeShelfSupports(parts[j.a], parts[j.b], parts[j.c], pin, c);
+        if (!full) return full.error();
+        const domain::PartId& outer = parts[j.sharedPanel ? j.c : j.b].id;
+        const auto* outerOps = full.value().operationsFor(outer);
+        for (auto& po : placed.value().operations)
+            if (po.part == outer && outerOps) po.operations = *outerOps;
+        return placed;
     }
     case JobKind::Hinges: {
         auto def = lookup(sel.hinge, "hinge");
@@ -117,8 +147,8 @@ core::Result<hardware::Placement> place(Gen& g, const Job& j, const domain::Hard
         if (auto n = hardware::hingeCount(doorHeight, c.weightClass, c.rules); n) {
             if (auto rule = hardware::hingePositions(doorHeight, n.value(), c.offsetFromTop, c.offsetFromBottom); rule) {
                 bool unresolved = false;
-                c.positions = hingesClearOfShelves(rule.value(), door, parts[j.b], parts, g.v(p::kHingeShelfClearance),
-                                                   unresolved);
+                c.positions =
+                    hingesClearOfShelves(rule.value(), door, j.b, g, g.v(p::kHingeShelfClearance), unresolved);
                 if (unresolved)
                     g.warn("furniture.hinge.near_shelf",
                            "An intermediate hinge of '" + door.name + "' could not be moved at least " +

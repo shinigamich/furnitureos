@@ -96,8 +96,8 @@ CutList cutList(const domain::Model& model, const CutListOptions& options, const
             g.length = r.length;
             g.width = r.width;
             g.grain = r.grain;
-            const auto* mat = model.findMaterial(r.materialId);
-            g.rotationAllowed = r.grain == domain::GrainDirection::None || (mat && !mat->hasGrain);
+            // THE grain rule lives in domain (shared with the cutting adapter).
+            g.rotationAllowed = domain::canRotateOnSheet(*ref.part, model.findMaterial(r.materialId));
             g.edges = r.edges;
             g.operationCount = r.operationCount;
             g.operationSignature = sig;

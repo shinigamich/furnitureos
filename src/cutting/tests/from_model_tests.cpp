@@ -169,3 +169,49 @@ TEST(FromModel, EmptyModelGivesNoJobs) {
     EXPECT_TRUE(jobsFromModel(domain::Model{}, Settings{}, ds).empty());
     EXPECT_TRUE(ds.empty());
 }
+
+TEST(FromModel, MissingEdgeBandIsReportedPerEdge) {
+    domain::Model model = domain::fixtures::basicCabinet();
+    // side.right: 720 x 560, L1 abs2, W1 + W2 abs04. W1 now references a band that does not exist,
+    // so it counts as 0 mm: cut length = 720 - 0 - 0.4 = 719.6 (instead of 719.2), width 560 - 2 = 558.
+    domain::Part* right = model.assemblies[0].findPart(domain::PartId("cab1/side.right"));
+    ASSERT_NE(right, nullptr);
+    right->edge(domain::EdgeSide::W1) = domain::EdgeBandId("eb.ghost");
+    fos::core::Diagnostics ds;
+    const std::vector<Job> jobs = jobsFromModel(model, Settings{}, ds);
+
+    ASSERT_EQ(ds.size(), 1u);
+    EXPECT_EQ(ds[0].code, "cutting.adapter.edgeband_missing");
+    EXPECT_EQ(ds[0].severity, fos::core::Severity::Warning);
+    EXPECT_EQ(ds[0].entityId, "cab1/side.right");
+    EXPECT_NE(ds[0].message.find("'Right side' (cab1/side.right)"), std::string::npos) << ds[0].message;
+    EXPECT_NE(ds[0].message.find("'eb.ghost'"), std::string::npos);
+    EXPECT_NE(ds[0].message.find("edge W1"), std::string::npos);
+
+    // The piece is still produced (oversize), now separate from the left side.
+    ASSERT_EQ(jobs.size(), 2u);
+    const Piece* oversize = nullptr;
+    for (const Piece& p : jobs[0].pieces)
+        if (p.id == "cab1/side.right") oversize = &p;
+    ASSERT_NE(oversize, nullptr);
+    EXPECT_NEAR(oversize->length, 719.6, 1e-9);
+    EXPECT_NEAR(oversize->width, 558.0, 1e-9);
+    EXPECT_EQ(oversize->quantity, 1);
+}
+
+TEST(FromModel, EveryMissingBandEdgeGetsItsOwnWarning) {
+    domain::Model model = domain::fixtures::basicCabinet();
+    domain::Part* shelf = model.assemblies[0].findPart(domain::PartId("cab1/shelf.1"));
+    ASSERT_NE(shelf, nullptr);
+    shelf->edge(domain::EdgeSide::L1) = domain::EdgeBandId("eb.x"); // replaces abs2
+    shelf->edge(domain::EdgeSide::W2) = domain::EdgeBandId("eb.y");
+    fos::core::Diagnostics ds;
+    const std::vector<Job> jobs = jobsFromModel(model, Settings{}, ds);
+    ASSERT_EQ(ds.size(), 2u); // edge order L1, L2, W1, W2
+    EXPECT_NE(ds[0].message.find("'eb.x' on edge L1"), std::string::npos) << ds[0].message;
+    EXPECT_NE(ds[1].message.find("'eb.y' on edge W2"), std::string::npos) << ds[1].message;
+    // Shelf 764 x 540 with no effective banding: cut 764 x 540 (2 mm wider than with abs2).
+    const Piece& p = jobs[0].pieces.back();
+    EXPECT_EQ(p.id, "cab1/shelf.1");
+    EXPECT_NEAR(p.width, 540.0, 1e-9);
+}

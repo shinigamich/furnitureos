@@ -75,18 +75,24 @@ core::Result<void> buildFront(Gen& g, const FrontSpec& spec, const std::string& 
         if (!heights) return core::makeError(heights.error().code, heights.error().message, g.def.id.str());
         double z = z0;
         for (std::size_t i = 0; i < n; ++i) {
-            // Drawer front: length -> +X, width -> +Z, thickness -> -Y (face A is the inner face).
+            // Drawer front: length -> +X (grain horizontal), width -> -Z (from the top edge down),
+            // thickness -> +Y. Like a door, face B (z = 0) is the visible outer face at
+            // y = yInner - ft and face A (z = T) the inner, cabinet-side face at y = yInner.
+            // L1 is the top edge, L2 the bottom edge.
             const std::string slot = joinSlot({"drawer", path, std::to_string(i + 1)});
+            const double h = heights.value()[i];
             const std::size_t part =
-                g.addPart(slot, "Drawer front " + std::to_string(i + 1), domain::PartRole::DrawerFront, role, x1 - x0,
-                          heights.value()[i], ft, Transform::fromAxes(kRight, kUp, {x0, yInner, z}), all);
+                g.addPart(slot, "Drawer front " + std::to_string(i + 1), domain::PartRole::DrawerFront, role, x1 - x0, h,
+                          ft, Transform::fromAxes(kRight, kDown, {x0, yInner - ft, z + h}), all);
             handleJob(g, part, slot, spec, false, false);
             z += heights.value()[i] + gap;
         }
         return {};
     }
 
-    // Doors: length -> +Z (grain vertical), width -> +X, thickness -> +Y (face A is the inner face).
+    // Doors: length -> +Z (grain vertical), width -> +X, thickness -> +Y (face A is the inner
+    // face, face B the visible outer face). FRONT FACE RULE: for every front (door or drawer
+    // front) face A is the inner, cabinet-side face.
     const auto addDoor = [&](const std::string& slot, const std::string& name, double xa, double xb, bool hingeLeft) {
         const std::size_t part = g.addPart(slot, name, domain::PartRole::Door, role, z1 - z0, xb - xa, ft,
                                            Transform::fromAxes(kUp, kRight, {xa, yInner - ft, z0}), all);

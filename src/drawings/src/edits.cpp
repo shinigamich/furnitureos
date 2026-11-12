@@ -1,8 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/drawings/edits.hpp"
 
+#include <cmath>
+
 namespace fos::drawings {
 namespace {
+
+using core::formatLength;
 
 struct Applier {
     const DrawingEdits& edits;
@@ -28,8 +32,28 @@ struct Applier {
         e.textShift = e.textShift + ed->textShift;
         if (ed->offset) notApplicable(e.id, "offset override", kind);
         if (ed->textOverride) notApplicable(e.id, "text override", kind);
+        if (ed->measuredAtEdit) notApplicable(e.id, "measured value of a text override", kind);
     }
 };
+
+/// Flags `d` and reports it when its override was made against another measured value.
+void checkStale(Dimension& d, const std::optional<double>& measuredAtEdit, EditTracker& tracker) {
+    if (!d.textOverride || !measuredAtEdit) return;
+    const double now = measuredValue(d);
+    if (std::fabs(now - *measuredAtEdit) <= kStaleOverrideTolerance) return;
+    d.staleOverride = true;
+    tracker.diagnostics.push_back(
+        {core::Severity::Warning, "drawings.edits.stale_override",
+         "Dimension '" + d.id + "' shows the text override '" + *d.textOverride + "', which was made when it measured " +
+             formatLength(*measuredAtEdit) + " mm; the model now measures " + formatLength(now) +
+             " mm. The sheet shows '" + *d.textOverride + kStaleOverrideMarker +
+             "'; check the override or remove it.",
+         d.id});
+}
+
+const char* subjectOf(const View& view) {
+    return view.subject == ViewSubject::Part ? "the drawn part" : "the drawn assembly";
+}
 
 bool idTaken(const ViewAnnotations& a, const std::string& id) {
     for (const auto& e : a.dimensions) if (e.id == id) return true;
@@ -41,10 +65,8 @@ bool idTaken(const ViewAnnotations& a, const std::string& id) {
     return false;
 }
 
-} // namespace
-
-void applyEditsToView(const std::string& viewId, ViewAnnotations& ann, const DrawingEdits& edits,
-                      EditTracker& tracker) {
+void applyEdits(const std::string& viewId, const View* view, const EditModelContext& model, ViewAnnotations& ann,
+                const DrawingEdits& edits, EditTracker& tracker) {
     Applier ap{edits, tracker};
     for (Dimension& d : ann.dimensions) {
         const ElementEdit* ed = ap.find(d.id);
@@ -53,6 +75,9 @@ void applyEditsToView(const std::string& viewId, ViewAnnotations& ann, const Dra
         d.textShift = d.textShift + ed->textShift;
         if (ed->offset) d.offset = *ed->offset;
         if (ed->textOverride) d.textOverride = ed->textOverride;
+        if (ed->measuredAtEdit && !ed->textOverride)
+            ap.notApplicable(d.id, "measured value of a text override", "an edit without a text override");
+        checkStale(d, ed->measuredAtEdit, tracker);
     }
     for (Note& n : ann.notes) {
         const ElementEdit* ed = ap.find(n.id);
@@ -61,6 +86,7 @@ void applyEditsToView(const std::string& viewId, ViewAnnotations& ann, const Dra
         n.textShift = n.textShift + ed->textShift;
         if (ed->textOverride) n.text = *ed->textOverride;
         if (ed->offset) ap.notApplicable(n.id, "offset override", "a note");
+        if (ed->measuredAtEdit) ap.notApplicable(n.id, "measured value of a text override", "a note");
     }
     for (LeaderNote& l : ann.leaders) ap.simple(l, "a leader");
     for (DetailMarker& m : ann.detailMarkers) ap.simple(m, "a detail marker");
@@ -83,16 +109,43 @@ void applyEditsToView(const std::string& viewId, ViewAnnotations& ann, const Dra
         return true;
     };
     for (const UserDimension& u : edits.dimensions) {
+        if (u.viewId != viewId) continue;
+        std::optional<Dimension> d;
+        if (view) {
+            std::string problem;
+            bool missingPart = false;
+            for (const auto* a : {&u.anchor1, &u.anchor2})
+                if (*a) missingPart = missingPart || resolveAnchor(**a, *view, model).missingPart;
+            d = resolveUserDimension(u, *view, model, problem);
+            if (!d) {
+                if (missingPart) {
+                    tracker.unresolvedAnnotations[u.id] = problem; // reported as an orphan
+                } else {
+                    tracker.diagnostics.push_back({core::Severity::Warning, "drawings.edits.bad_anchor",
+                                                   "User dimension '" + u.id + "' in view '" + viewId +
+                                                       "' was not drawn: " + problem + ".",
+                                                   u.id});
+                    tracker.rejectedAnnotationIds.insert(u.id);
+                }
+                continue;
+            }
+        } else if (u.anchor1 || u.anchor2) {
+            tracker.unresolvedAnnotations[u.id] =
+                "it is attached to model points, but view '" + viewId + "' was edited without model geometry";
+            continue;
+        } else {
+            d = Dimension{};
+            d->id = u.id;
+            d->orientation = u.orientation;
+            d->p1 = u.p1;
+            d->p2 = u.p2;
+            d->offset = u.offset;
+            d->textOverride = u.textOverride;
+            d->userAuthored = true;
+        }
         if (!accept(u.id, u.viewId)) continue;
-        Dimension d;
-        d.id = u.id;
-        d.orientation = u.orientation;
-        d.p1 = u.p1;
-        d.p2 = u.p2;
-        d.offset = u.offset;
-        d.textOverride = u.textOverride;
-        d.userAuthored = true;
-        ann.dimensions.push_back(std::move(d));
+        checkStale(*d, u.measuredAtEdit, tracker);
+        ann.dimensions.push_back(std::move(*d));
     }
     for (const UserText& u : edits.texts) {
         if (!accept(u.id, u.viewId)) continue;
@@ -128,6 +181,80 @@ void applyEditsToView(const std::string& viewId, ViewAnnotations& ann, const Dra
     }
 }
 
+} // namespace
+
+void setTextOverride(ElementEdit& edit, const Dimension& current, std::string text) {
+    edit.textOverride = std::move(text);
+    edit.measuredAtEdit = measuredValue(current);
+}
+
+AnchorResolution resolveAnchor(const ModelAnchor& anchor, const View& view, const EditModelContext& model) {
+    AnchorResolution r;
+    const domain::Part* part = nullptr;
+    const domain::PartId pid(anchor.partId);
+    if (view.subject == ViewSubject::Part) {
+        if (model.part && model.part->id == pid) part = model.part;
+    } else if (model.assembly) {
+        part = model.assembly->findPart(pid);
+    }
+    if (!part) {
+        r.missingPart = true;
+        r.problem = "its anchor part '" + anchor.partId + "' is not part of " + subjectOf(view) + " any more";
+        return r;
+    }
+    Vec3 local = anchor.localPoint;
+    if (anchor.corner) {
+        const int c = *anchor.corner;
+        if (c < 0 || c > 7) {
+            r.problem = "anchor corner " + std::to_string(c) + " of part '" + anchor.partId +
+                        "' does not exist (corners are numbered 0 to 7)";
+            return r;
+        }
+        local = {(c & 1) ? part->length : 0.0, (c & 2) ? part->width : 0.0, (c & 4) ? part->thickness : 0.0};
+    }
+    if (!std::isfinite(local.x) || !std::isfinite(local.y) || !std::isfinite(local.z)) {
+        r.problem = "its anchor point on part '" + anchor.partId + "' is not a finite number";
+        return r;
+    }
+    // Part views use the part frame directly; assembly views go through the placement.
+    const Vec3 p = view.subject == ViewSubject::Part ? local : part->placement.applyPoint(local);
+    r.point = projectPoint(view.basis, p);
+    return r;
+}
+
+std::optional<Dimension> resolveUserDimension(const UserDimension& u, const View& view,
+                                              const EditModelContext& model, std::string& problem) {
+    Dimension d;
+    d.id = u.id;
+    d.orientation = u.orientation;
+    d.p1 = u.p1;
+    d.p2 = u.p2;
+    d.offset = u.offset;
+    d.textOverride = u.textOverride;
+    d.userAuthored = true;
+    for (int i = 0; i < 2; ++i) {
+        const std::optional<ModelAnchor>& a = i == 0 ? u.anchor1 : u.anchor2;
+        if (!a) continue;
+        const AnchorResolution r = resolveAnchor(*a, view, model);
+        if (!r.point) {
+            problem = r.problem;
+            return std::nullopt;
+        }
+        (i == 0 ? d.p1 : d.p2) = *r.point;
+    }
+    return d;
+}
+
+void applyEditsToView(const View& view, const EditModelContext& model, ViewAnnotations& annotations,
+                      const DrawingEdits& edits, EditTracker& tracker) {
+    applyEdits(view.id, &view, model, annotations, edits, tracker);
+}
+
+void applyEditsToView(const std::string& viewId, ViewAnnotations& annotations, const DrawingEdits& edits,
+                      EditTracker& tracker) {
+    applyEdits(viewId, nullptr, EditModelContext{}, annotations, edits, tracker);
+}
+
 EditReport finishEdits(const DrawingEdits& edits, const EditTracker& tracker) {
     EditReport report;
     report.diagnostics = tracker.diagnostics;
@@ -152,6 +279,14 @@ EditReport finishEdits(const DrawingEdits& edits, const EditTracker& tracker) {
         }
         if (tracker.rejectedAnnotationIds.count(id) != 0) return;
         orphans.insert(id);
+        if (const auto it = tracker.unresolvedAnnotations.find(id); it != tracker.unresolvedAnnotations.end()) {
+            report.diagnostics.push_back({core::Severity::Warning, "drawings.edits.orphan_annotation",
+                                          std::string("The user ") + kind + " '" + id + "' in view '" + viewId +
+                                              "' was not drawn because " + it->second +
+                                              "; the edit was kept unchanged.",
+                                          id});
+            return;
+        }
         report.diagnostics.push_back({core::Severity::Warning, "drawings.edits.orphan_annotation",
                                       std::string("The user ") + kind + " '" + id + "' belongs to view '" + viewId +
                                           "', which is not part of the regenerated drawing; it was not drawn.",

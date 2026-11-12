@@ -42,7 +42,11 @@ core::Result<void> checkTree(const Gen& g, const Section& s, const std::string& 
     return {};
 }
 
-void corner(Gen& g, std::size_t facePart, std::size_t edgePart, const std::string& edgeSlot) {
+/// Joint of a divider's edge to `facePart`. `faceShared` = the face part is itself a divider
+/// (partition / fixed shelf): it may receive a joint at the same spot from its other face
+/// (e.g. fixed shelves at the same height on both sides of a partition), so the job follows
+/// the shared-panel rule (gen_hardware.cpp: blind dowels, at most half the board deep).
+void corner(Gen& g, std::size_t facePart, std::size_t edgePart, const std::string& edgeSlot, bool faceShared) {
     const JointFastener f = g.def.construction.dividerFastener;
     if (f == JointFastener::None) return;
     Job j;
@@ -51,6 +55,7 @@ void corner(Gen& g, std::size_t facePart, std::size_t edgePart, const std::strin
     j.a = facePart;
     j.b = edgePart;
     j.fastener = f;
+    j.sharedPanel = faceShared;
     g.jobs.push_back(std::move(j));
 }
 
@@ -81,6 +86,8 @@ core::Result<void> buildShelves(Gen& g, const Section& s, const std::string& pat
             g.addPart(slot, "Shelf", domain::PartRole::Shelf, MaterialRole::Carcass, length, g.v(p::kShelfDepth), T,
                       Transform::translation({box.x0 + clearance, setback, z}),
                       Edges{EdgeUse::Visible, EdgeUse::Raw, EdgeUse::Raw, EdgeUse::Raw});
+        g.shelfCarriers.emplace_back(shelf, b.left);
+        g.shelfCarriers.emplace_back(shelf, b.right);
         if (!g.def.construction.shelfSupports) continue;
         Job j;
         j.kind = JobKind::ShelfPins;
@@ -88,7 +95,9 @@ core::Result<void> buildShelves(Gen& g, const Section& s, const std::string& pat
         j.a = shelf;
         j.b = b.left;
         j.c = b.right;
-        j.sharedPanel = !b.leftOuter || !b.rightOuter;
+        // Per support: only a divider is limited to the shared-panel depth.
+        j.sharedPanel = !b.leftOuter;
+        j.sharedC = !b.rightOuter;
         g.jobs.push_back(std::move(j));
     }
     return {};
@@ -133,8 +142,8 @@ core::Result<void> buildSection(Gen& g, const Section& s, const std::string& pat
                 g.addPart(slot, "Partition", domain::PartRole::Partition, MaterialRole::Carcass, box.z1 - box.z0, depth, T,
                           Transform::fromAxes(kUp, kBack, {pos + T, 0, box.z0}),
                           Edges{EdgeUse::Visible, EdgeUse::Raw, EdgeUse::Raw, EdgeUse::Raw});
-            for (const std::size_t f : b.bottom) corner(g, f, part, slot);
-            for (const std::size_t f : b.top) corner(g, f, part, slot);
+            for (const std::size_t f : b.bottom) corner(g, f, part, slot, !b.bottomOuter);
+            for (const std::size_t f : b.top) corner(g, f, part, slot, !b.topOuter);
             dividers.push_back(part);
         } else {
             const std::string slot = joinSlot({"fixed_shelf", path, k});
@@ -142,8 +151,10 @@ core::Result<void> buildSection(Gen& g, const Section& s, const std::string& pat
                 g.addPart(slot, "Fixed shelf", domain::PartRole::Shelf, MaterialRole::Carcass, box.x1 - box.x0, depth, T,
                           Transform::translation({box.x0, 0, pos}),
                           Edges{EdgeUse::Visible, EdgeUse::Raw, EdgeUse::Raw, EdgeUse::Raw});
-            corner(g, b.left, part, slot);
-            corner(g, b.right, part, slot);
+            g.shelfCarriers.emplace_back(part, b.left);
+            g.shelfCarriers.emplace_back(part, b.right);
+            corner(g, b.left, part, slot, !b.leftOuter);
+            corner(g, b.right, part, slot, !b.rightOuter);
             dividers.push_back(part);
         }
         pos += T;

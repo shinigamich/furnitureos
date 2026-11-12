@@ -25,6 +25,7 @@ struct SheetJob {
     std::vector<ViewJob> views; ///< views[0] is Slot::Main.
     bool verticalBelow = true;
     double gap = 12.0;
+    EditModelContext model; ///< Resolves model-anchored user dimensions.
 };
 
 struct Arrangement {
@@ -41,7 +42,7 @@ Arrangement arrange(const SheetJob& job, double scale, const DrawingStyle& style
     const ViewPlacement atOrigin{{0, 0}, scale};
     for (const ViewJob& vj : job.views) {
         ViewAnnotations ann = vj.annotate(vj.view, scale);
-        applyEditsToView(vj.view.id, ann, edits, a.tracker);
+        applyEditsToView(vj.view, job.model, ann, edits, a.tracker);
         std::vector<Primitive> prims = renderView(vj.view, ann, atOrigin, style);
         Rect2 box = boundsOf(prims);
         box.expand(Rect2{vj.view.bounds.min * scale, vj.view.bounds.max * scale});
@@ -124,6 +125,7 @@ void mergeTracker(EditTracker& into, const EditTracker& from) {
     into.usedElementIds.insert(from.usedElementIds.begin(), from.usedElementIds.end());
     into.usedAnnotationIds.insert(from.usedAnnotationIds.begin(), from.usedAnnotationIds.end());
     into.rejectedAnnotationIds.insert(from.rejectedAnnotationIds.begin(), from.rejectedAnnotationIds.end());
+    into.unresolvedAnnotations.insert(from.unresolvedAnnotations.begin(), from.unresolvedAnnotations.end());
     into.diagnostics.insert(into.diagnostics.end(), from.diagnostics.begin(), from.diagnostics.end());
 }
 
@@ -180,6 +182,7 @@ core::Result<DrawingResult> generateAssemblyDrawing(const domain::Model& model, 
     mainJob.subject = "the views of " + name;
     mainJob.verticalBelow = firstAngle;
     mainJob.gap = options.viewGap;
+    mainJob.model.assembly = assembly;
     mainJob.views.push_back({generateAssemblyView(*assembly, ViewKind::Front, vo), annotate, Slot::Main});
     if (mainJob.views.front().view.bounds.empty())
         return core::makeError(core::ErrorCode::NotFound,
@@ -198,6 +201,7 @@ core::Result<DrawingResult> generateAssemblyDrawing(const domain::Model& model, 
         so.sectionPosition = sr.position;
         so.id = sr.id;
         SheetJob job;
+        job.model.assembly = assembly;
         job.subject = "the section of " + name + " at " + core::formatLength(sr.position) + " mm";
         job.views.push_back({generateAssemblyView(*assembly, sr.direction, so), annotate, Slot::Main});
         job.sheetId = assemblyId.str() + "/sheet.section." + std::to_string(i + 1);
@@ -233,6 +237,7 @@ core::Result<DrawingResult> generatePartDrawing(const domain::Model& model, cons
     SheetJob job;
     job.sheetId = partId.str() + "/sheet";
     job.subject = "the drawing of part '" + part->name + "'";
+    job.model.part = part;
     job.views.push_back({std::move(view),
                          [&model, part, dimStyle, viewOptions](const View& v, double scale) {
                              return annotatePartView(model, *part, v, scale, dimStyle, viewOptions);

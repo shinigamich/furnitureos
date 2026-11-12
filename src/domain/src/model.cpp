@@ -41,4 +41,14 @@ CutSize cutSize(const Part& part, const Model& model) noexcept {
                 edgeBandThickness(part, EdgeSide::L2, model)};
 }
 
+bool canRotateOnSheet(const Part& part, const Material* material) noexcept {
+    return part.grain == GrainDirection::None || (material != nullptr && !material->hasGrain);
+}
+
+SheetAlignment sheetAlignment(const Part& part, const Material* material) noexcept {
+    if (canRotateOnSheet(part, material)) return SheetAlignment::Free;
+    return part.grain == GrainDirection::AlongWidth ? SheetAlignment::LengthAcrossSheet
+                                                    : SheetAlignment::LengthAlongSheet;
+}
+
 } // namespace fos::domain

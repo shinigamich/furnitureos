@@ -35,11 +35,19 @@ struct Dimension {
     Vec2 textShift{}; ///< Extra paper shift of the text (user edit).
     bool hidden = false;
     bool userAuthored = false;
+    /// Set by edit application when `textOverride` was made against a different measured
+    /// value than the current one (drawings.edits.stale_override). The text is then drawn
+    /// with kStaleOverrideMarker appended so the sheet visibly flags it.
+    bool staleOverride = false;
 };
+
+/// Appended to a stale text override on the sheet ("800" -> "800 *").
+inline constexpr const char* kStaleOverrideMarker = " *";
 
 /// Distance between the anchors along the measured direction, model mm.
 double measuredValue(const Dimension& d) noexcept;
-/// `textOverride` if set, otherwise core::formatLength(measuredValue(d), decimals).
+/// `textOverride` (+ kStaleOverrideMarker when staleOverride) if set, otherwise
+/// core::formatLength(measuredValue(d), decimals).
 std::string dimensionText(const Dimension& d, int decimals = core::kDisplayDecimals);
 
 /// Text anchored to a view point.

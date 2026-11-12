@@ -48,6 +48,19 @@ std::vector<Job> jobsFromModel(const domain::Model& model, const Settings& setti
                 badSheet[mi] = 1;
                 continue;
             }
+            // A band missing from the model counts as 0 mm in cutSize(): the piece is cut
+            // oversize by the band thickness. Say so for every such edge (in edge order).
+            for (const domain::EdgeSide side : domain::kAllEdges) {
+                const auto& band = part.edge(side);
+                if (band && !model.findEdgeBand(*band))
+                    diagnostics.push_back(
+                        {core::Severity::Warning, "cutting.adapter.edgeband_missing",
+                         "Part " + partName(part) + " references edge band '" + band->str() + "' on edge " +
+                             domain::toString(side) +
+                             " which is not in the model; it is counted as 0 mm thick, so the piece is cut to "
+                             "the finished size on that edge (oversize by the real band thickness).",
+                         part.id.str()});
+            }
             const domain::CutSize cut = domain::cutSize(part, model);
             if (!(cut.length > core::kLengthEps) || !(cut.width > core::kLengthEps) || !std::isfinite(cut.length) ||
                 !std::isfinite(cut.width)) {
@@ -90,11 +103,13 @@ std::vector<Job> jobsFromModel(const domain::Model& model, const Settings& setti
             }
             Job& job = jobs[static_cast<std::size_t>(jobOfMaterial[mi])];
 
-            const bool canRotate = part.grain == domain::GrainDirection::None || !material.hasGrain;
+            // THE grain rule lives in domain (shared with production's cut list). The material
+            // grain runs along the sheet length, so a part whose width must run along the sheet
+            // length is entered with its sizes swapped.
+            const domain::SheetAlignment alignment = domain::sheetAlignment(part, &material);
+            const bool canRotate = alignment == domain::SheetAlignment::Free;
             double length = cut.length, width = cut.width;
-            // The material grain runs along the sheet length; a part whose grain runs along
-            // its width must therefore lie with its width along the sheet length.
-            if (!canRotate && part.grain == domain::GrainDirection::AlongWidth) std::swap(length, width);
+            if (alignment == domain::SheetAlignment::LengthAcrossSheet) std::swap(length, width);
 
             const auto same = std::find_if(job.pieces.begin(), job.pieces.end(), [&](const Piece& p) {
                 return p.canRotate == canRotate && core::approxEqual(p.length, length) &&

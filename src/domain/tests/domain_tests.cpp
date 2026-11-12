@@ -91,3 +91,41 @@ TEST(Model, Lookups) {
     EXPECT_STREQ(toString(PartRole::Shelf), "Shelf");
     EXPECT_STREQ(toString(EdgeSide::W2), "W2");
 }
+
+TEST(SheetRotation, TruthTableOfTheGrainRule) {
+    Material grained;
+    grained.hasGrain = true;
+    Material plain;
+    plain.hasGrain = false;
+    Part p;
+    // Part without grain: always free, whatever the material.
+    p.grain = GrainDirection::None;
+    EXPECT_TRUE(canRotateOnSheet(p, &grained));
+    EXPECT_TRUE(canRotateOnSheet(p, &plain));
+    EXPECT_TRUE(canRotateOnSheet(p, nullptr));
+    EXPECT_EQ(sheetAlignment(p, &grained), SheetAlignment::Free);
+    // Grained part on a grained material: fixed; AlongLength keeps length along the sheet.
+    p.grain = GrainDirection::AlongLength;
+    EXPECT_FALSE(canRotateOnSheet(p, &grained));
+    EXPECT_EQ(sheetAlignment(p, &grained), SheetAlignment::LengthAlongSheet);
+    // ... AlongWidth puts the part width along the sheet length.
+    p.grain = GrainDirection::AlongWidth;
+    EXPECT_FALSE(canRotateOnSheet(p, &grained));
+    EXPECT_EQ(sheetAlignment(p, &grained), SheetAlignment::LengthAcrossSheet);
+    // Material without grain: the part's grain does not matter.
+    EXPECT_TRUE(canRotateOnSheet(p, &plain));
+    EXPECT_EQ(sheetAlignment(p, &plain), SheetAlignment::Free);
+    // Missing material: the part's own grain is respected (conservative).
+    EXPECT_FALSE(canRotateOnSheet(p, nullptr));
+    EXPECT_EQ(sheetAlignment(p, nullptr), SheetAlignment::LengthAcrossSheet);
+}
+
+TEST(SheetRotation, FixtureParts) {
+    const Model m = fixtures::basicCabinet();
+    // Fixture: the side is AlongLength on grained particleboard; the back is grain None on HDF.
+    const Part& side = part(m, "cab1/side.left");
+    const Part& back = part(m, "cab1/back");
+    EXPECT_FALSE(canRotateOnSheet(side, m.findMaterial(side.material)));
+    EXPECT_EQ(sheetAlignment(side, m.findMaterial(side.material)), SheetAlignment::LengthAlongSheet);
+    EXPECT_TRUE(canRotateOnSheet(back, m.findMaterial(back.material)));
+}

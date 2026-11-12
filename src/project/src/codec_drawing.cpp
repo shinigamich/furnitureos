@@ -27,6 +27,7 @@ core::Result<drawings::ElementEdit> elementFromJson(const Json& json, std::strin
     r.vec2("textShift", e.textShift);
     r.boolean("hidden", e.hidden);
     r.optionalText("textOverride", e.textOverride, false);
+    r.optionalNumber("measuredAtEdit", e.measuredAtEdit, Num::Any);
     r.rejectUnknown();
     if (!r.ok()) return r.error();
     return e;
@@ -35,6 +36,43 @@ core::Result<drawings::ElementEdit> elementFromJson(const Json& json, std::strin
 void ids(Reader& r, std::string& id, std::string& viewId) {
     r.text("id", id, true, true);
     r.text("viewId", viewId, true, true);
+}
+
+Json anchorJson(const std::optional<drawings::ModelAnchor>& a) {
+    if (!a) return Json(nullptr);
+    Json j = Json::object();
+    j["partId"] = a->partId;
+    j["corner"] = a->corner ? Json(*a->corner) : Json(nullptr);
+    j["localPoint"] = Json::array({a->localPoint.x, a->localPoint.y, a->localPoint.z});
+    return j;
+}
+
+core::Result<drawings::ModelAnchor> anchorFromJson(const Json& json, std::string_view path) {
+    Reader r(json, path, "a model anchor");
+    drawings::ModelAnchor a;
+    r.text("partId", a.partId, true, true);
+    if (const Json* c = r.find("corner"); c != nullptr && !c->is_null()) {
+        int corner = 0;
+        r.integer("corner", corner, -1000000000);
+        a.corner = corner;
+    }
+    if (const Json* lp = r.find("localPoint"); lp != nullptr) {
+        const Json& v = *lp;
+        if (!v.is_array() || v.size() != 3) {
+            r.failAt("localPoint", "expected an array [x, y, z] of three numbers, got " + describe(v));
+        } else {
+            double c[3] = {0, 0, 0};
+            for (std::size_t i = 0; i < 3 && r.ok(); ++i) {
+                auto n = readNumber(v[i], joinPath(r.at("localPoint"), i), Num::Any);
+                if (!n) r.fail(n.error());
+                else c[i] = n.value();
+            }
+            a.localPoint = {c[0], c[1], c[2]};
+        }
+    }
+    r.rejectUnknown();
+    if (!r.ok()) return r.error();
+    return a;
 }
 
 core::Result<drawings::UserText> textFromJson(const Json& json, std::string_view path) {
@@ -72,6 +110,9 @@ core::Result<drawings::UserDimension> dimensionFromJson(const Json& json, std::s
     r.vec2("p2", d.p2, true);
     r.number("offset", d.offset, Num::Any);
     r.optionalText("textOverride", d.textOverride, false);
+    if (const Json* a = r.find("anchor1"); a != nullptr && !a->is_null()) r.nested("anchor1", d.anchor1, anchorFromJson);
+    if (const Json* a = r.find("anchor2"); a != nullptr && !a->is_null()) r.nested("anchor2", d.anchor2, anchorFromJson);
+    r.optionalNumber("measuredAtEdit", d.measuredAtEdit, Num::Any);
     r.rejectUnknown();
     if (!r.ok()) return r.error();
     return d;
@@ -100,6 +141,7 @@ Json toJson(const drawings::DrawingEdits& edits) {
         ej["textShift"] = writeVec2(e.textShift);
         ej["hidden"] = e.hidden;
         ej["textOverride"] = optText(e.textOverride);
+        ej["measuredAtEdit"] = e.measuredAtEdit ? Json(*e.measuredAtEdit) : Json(nullptr);
         elements[id] = std::move(ej);
     }
     j["elements"] = std::move(elements);
@@ -117,7 +159,9 @@ Json toJson(const drawings::DrawingEdits& edits) {
     for (const auto& d : edits.dimensions)
         dims.push_back({{"id", d.id}, {"viewId", d.viewId}, {"orientation", orientationToken(d.orientation)},
                         {"p1", writeVec2(d.p1)}, {"p2", writeVec2(d.p2)}, {"offset", d.offset},
-                        {"textOverride", optText(d.textOverride)}});
+                        {"textOverride", optText(d.textOverride)}, {"anchor1", anchorJson(d.anchor1)},
+                        {"anchor2", anchorJson(d.anchor2)},
+                        {"measuredAtEdit", d.measuredAtEdit ? Json(*d.measuredAtEdit) : Json(nullptr)}});
     j["dimensions"] = std::move(dims);
     Json markers = Json::array();
     for (const auto& m : edits.detailMarkers)

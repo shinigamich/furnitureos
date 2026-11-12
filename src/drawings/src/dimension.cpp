@@ -12,7 +12,8 @@ double measuredValue(const Dimension& d) noexcept {
 }
 
 std::string dimensionText(const Dimension& d, int decimals) {
-    return d.textOverride ? *d.textOverride : core::formatLength(measuredValue(d), decimals);
+    if (!d.textOverride) return core::formatLength(measuredValue(d), decimals);
+    return d.staleOverride ? *d.textOverride + kStaleOverrideMarker : *d.textOverride;
 }
 
 DimensionGeometry layoutDimension(const Dimension& d, const ViewPlacement& placement, const DimensionStyle& style) {

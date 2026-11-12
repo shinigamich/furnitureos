@@ -23,9 +23,10 @@ struct Settings {
 /// Model::materials (assemblies and parts are visited in model order).
 ///
 /// * Piece sizes are domain::cutSize() (saw size before edge banding), never finished sizes.
-/// * canRotate = (part.grain == None) or (material.hasGrain == false). For a non-rotatable
-///   part with grain AlongWidth the two sizes are swapped so that Piece::length is the side
-///   that must run along the sheet length (the material grain).
+/// * canRotate = domain::canRotateOnSheet(part, &material), i.e. (part.grain == None) or
+///   (material.hasGrain == false). When domain::sheetAlignment() is LengthAcrossSheet (part
+///   grain AlongWidth on a grained material) the two sizes are swapped so that Piece::length
+///   is the side that must run along the sheet length (the material grain).
 /// * Parts with equal piece length, width (within core::kLengthEps) and canRotate are merged
 ///   into one Piece: id = id of the first part, quantity = count, sourceIds = all part ids,
 ///   label = the distinct part names joined with " / ".
@@ -36,7 +37,13 @@ struct Settings {
 ///   cutting.adapter.material_missing (Error)   part references a material not in the model;
 ///   cutting.adapter.invalid_size (Error)       cut size is not positive;
 ///   cutting.adapter.invalid_sheet (Error)      material sheet size is not positive (its parts get no job);
-///   cutting.adapter.thickness_mismatch (Warning) part thickness differs from the material's.
+///   cutting.adapter.thickness_mismatch (Warning) part thickness differs from the material's;
+///   cutting.adapter.edgeband_missing (Warning)  an edge references an edge band not in the model
+///                                               (one per edge; the band counts as 0 mm, so the
+///                                               piece is cut oversize on that edge).
+///
+/// Target: this adapter is the separate CMake target fos::cutting_model (deps fos::cutting,
+/// fos::domain); the optimiser core fos::cutting depends on fos::core only.
 std::vector<Job> jobsFromModel(const domain::Model& model, const Settings& settings,
                                core::Diagnostics& diagnostics);
 
