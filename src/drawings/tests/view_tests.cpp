@@ -149,7 +149,7 @@ TEST(Hlr, FrontViewOfTheCabinet) {
         EXPECT_EQ(s->sourceId, "cab1/back");
     }
     for (const ViewSegment& s : v.segments)
-        if (s.sourceId == "cab1/back") EXPECT_EQ(s.style, LineStyle::Hidden);
+        if (s.sourceId == "cab1/back") { EXPECT_EQ(s.style, LineStyle::Hidden); }
 
     // Carcass outline: inner edge of the left side is one visible line owned by the side
     // (the coincident ends of bottom, shelf and top are merged into it).
@@ -188,7 +188,7 @@ TEST(Hlr, TopViewHidesTheShelfUnderTheTopPanel) {
     EXPECT_EQ(s->sourceId, "cab1/shelf.1");
     // No part of the shelf is visible from above.
     for (const ViewSegment& seg : v.segments)
-        if (seg.sourceId == "cab1/shelf.1") EXPECT_EQ(seg.style, LineStyle::Hidden);
+        if (seg.sourceId == "cab1/shelf.1") { EXPECT_EQ(seg.style, LineStyle::Hidden); }
     // The back panel sticks out behind the carcass: its rear edge y = 563 is visible.
     const ViewSegment* rear = findSegment(v, {2, 563}, {798, 563});
     ASSERT_TRUE(rear);
@@ -218,7 +218,7 @@ TEST(Hlr, LeftAndBackViewsUseTheirOwnAxes) {
     EXPECT_EQ(edge->sourceId, "cab1/back");
     // ... and it hides the shelf completely.
     for (const ViewSegment& seg : b.segments)
-        if (seg.sourceId == "cab1/shelf.1") EXPECT_EQ(seg.style, LineStyle::Hidden);
+        if (seg.sourceId == "cab1/shelf.1") { EXPECT_EQ(seg.style, LineStyle::Hidden); }
 }
 
 TEST(Section, VerticalPlaneThroughTheMiddleOfTheCabinet) {
