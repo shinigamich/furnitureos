@@ -83,15 +83,29 @@ TEST(Construction, GroovedBack) {
             }
         return out;
     };
-    EXPECT_THAT(groove("side.left"), ElementsAre(Groove{Face::B, 0, 548.5, 720, 548.5, 3, 8}));
-    EXPECT_THAT(groove("side.right"), ElementsAre(Groove{Face::A, 0, 548.5, 720, 548.5, 3, 8}));
+    // Groove end rule: with top and bottom between the sides, both side ends are banded
+    // (exposed), so the side grooves stop 1 mm (groove clearance) beyond the back:
+    // back z 11..709 -> u 10..710 (side_bottom = 0). Bottom and top end against the sides
+    // (hidden ends) -> through grooves 0..764.
+    EXPECT_THAT(groove("side.left"), ElementsAre(Groove{Face::B, 10, 548.5, 710, 548.5, 3, 8}));
+    EXPECT_THAT(groove("side.right"), ElementsAre(Groove{Face::A, 10, 548.5, 710, 548.5, 3, 8}));
     EXPECT_THAT(groove("bottom"), ElementsAre(Groove{Face::A, 0, 548.5, 764, 548.5, 3, 8}));
     EXPECT_THAT(groove("top"), ElementsAre(Groove{Face::B, 0, 548.5, 764, 548.5, 3, 8}));
     for (const auto& p : a.parts) EXPECT_THAT(errorsOf(machining::validateOperations(p)), IsEmpty()) << p.id.str();
     EXPECT_THAT(errorsOf(r.diagnostics), IsEmpty());
     // The back enters the grooves by exactly 7 mm and touches nothing else.
-    EXPECT_THAT(interpenetrations(a, 7.0), IsEmpty());
-    EXPECT_THAT(interpenetrations(a, 6.9), ::testing::SizeIs(4));
+    EXPECT_THAT(interpenetrations(a), IsEmpty());
+    // ... and only because of the grooves: left side x 0..18, groove 8 deep from x = 18 -> x 10..18;
+    // the back (x 11..789) shares x 11..18 = 7 mm with it. Without the grooves the 4 carriers
+    // (both sides, bottom, top) are reported.
+    const auto shared = findInterpenetrations([&] {
+        domain::Assembly copy = a;
+        for (auto& p : copy.parts) p.operations.clear();
+        return copy;
+    }());
+    ASSERT_EQ(shared.size(), 4u);
+    EXPECT_NEAR(shared[0].overlap.size().x, 7.0, 1e-9); // side.left x back: 18 - 11
+    EXPECT_NEAR(shared[0].overlap.size().y, 3.0, 1e-9); // the back thickness, y 547..550
 
     // Changing the groove parameters moves the back consistently: depth 10, clearance 0.5 -> 9.5.
     CabinetDefinition d = fixtureDefinition();
@@ -273,7 +287,7 @@ TEST(Construction, NoInterpenetrationAndValidMachiningForEveryCombination) {
                             d.interior.children = {left, right};
                             const GenerationResult r = gen(d);
                             EXPECT_THAT(errorsOf(r.diagnostics), IsEmpty());
-                            EXPECT_THAT(interpenetrations(r.assembly, back == BackMount::Grooved ? 7.0 : 0.0), IsEmpty());
+                            EXPECT_THAT(interpenetrations(r.assembly), IsEmpty());
                             std::set<std::string> ids;
                             for (const auto& p : r.assembly.parts) {
                                 EXPECT_TRUE(ids.insert(p.id.str()).second) << "duplicate id " << p.id.str();

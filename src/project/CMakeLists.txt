@@ -14,7 +14,7 @@ fos_add_module(project
         src/document.cpp
         src/outputs.cpp
     DEPS fos::core fos::geometry fos::parametric fos::domain fos::machining fos::hardware fos::furniture
-         fos::production fos::cutting fos::drawings fos::formats nlohmann_json::nlohmann_json)
+         fos::production fos::cutting fos::cutting_model fos::drawings fos::formats nlohmann_json::nlohmann_json)
 target_compile_definitions(fos_project PRIVATE FOS_PROJECT_APP_VERSION="${PROJECT_VERSION}")
 
 fos_add_tests(project

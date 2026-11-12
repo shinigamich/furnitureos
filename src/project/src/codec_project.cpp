@@ -115,10 +115,12 @@ Json toJson(const Item& item) {
     Json j = Json::object();
     if (const auto* c = item.cabinet()) {
         j["type"] = "cabinet";
-        for (auto& [k, v] : toJson(*c).items()) j[k] = v;
+        const Json body = toJson(*c);
+        for (auto it = body.begin(); it != body.end(); ++it) j[it.key()] = it.value();
     } else {
         j["type"] = "panel";
-        for (auto& [k, v] : panelJson(*item.panel()).items()) j[k] = v;
+        const Json body = panelJson(*item.panel());
+        for (auto it = body.begin(); it != body.end(); ++it) j[it.key()] = it.value();
     }
     appendExtra(j, item.extra);
     return j;

@@ -235,7 +235,7 @@ core::Result<GenerationResult> generate(const CabinetDefinition& definition, con
     core::Diagnostics diags;
     if (auto r = resolve(def, libraries, &diags); !r) return r.error();
 
-    detail::Gen g{def, libraries, {}, {}, std::move(diags), {}};
+    detail::Gen g{def, libraries, {}, {}, std::move(diags), {}, {}};
     for (const auto& name : def.parameters.names()) g.values[name] = def.parameters.value(name).valueOr(0.0);
     g.assembly.id = def.id;
     g.assembly.name = def.name;
@@ -246,6 +246,7 @@ core::Result<GenerationResult> generate(const CabinetDefinition& definition, con
     if (auto r = detail::buildInterior(g, bounds.value()); !r) return r.error();
     if (auto r = detail::buildBack(g); !r) return r.error();
     detail::runHardware(g);
+    detail::checkGeometry(g);
 
     for (const auto& part : g.assembly.parts) {
         auto found = machining::validateOperations(part);

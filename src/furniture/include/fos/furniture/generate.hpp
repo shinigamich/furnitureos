@@ -18,6 +18,13 @@ namespace fos::furniture {
 ///   furniture.front.inset_hinges            warning  inset doors get no hinges (no rule available)
 ///   furniture.plinth.feet_height            warning  plinth height outside the foot's adjustment range
 ///   furniture.parameter.*                   warning  violated Warning-severity constraints
+///   furniture.hinge.near_shelf              warning  an intermediate hinge could not be moved clear of a shelf
+///   furniture.geometry.interpenetration     error    two generated parts share volume outside a groove
+///                                                    (self-check, see checks.hpp; message names both parts
+///                                                    and the shared volume in mm)
+/// Edit functions (edit.hpp) may add:
+///   furniture.parameter.pinned_formula_changed  warning  a construction change altered the standard
+///                                                        formula of a pinned derived parameter
 ///   machining.*                             as reported by machining::validateOperations per part
 struct GenerationResult {
     domain::Assembly assembly;

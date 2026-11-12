@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include "fos/domain/fixtures.hpp"
+#include "fos/furniture/checks.hpp"
 #include "fos/furniture/edit.hpp"
 #include "fos/furniture/parameters.hpp"
 #include "fos/furniture/templates.hpp"
@@ -48,6 +49,30 @@ inline CabinetDefinition fixtureDefinition() {
     EXPECT_TRUE(d.parameters.apply(tx).ok());
     d.interior.shelfCount = 1;
     return d;
+}
+
+/// makeCabinet() at ALL DEFAULT parameter values (600 x 720 x 560, 18 mm, shelf_clearance 1)
+/// with the fixture materials; id "cab". Options may be given.
+inline CabinetDefinition defaultCabinet(const ConstructionOptions& options = {}) {
+    CabinetDefinition d = makeCabinet(domain::AssemblyId("cab"), "Default cabinet", options).value();
+    d.materials.carcass = domain::MaterialId("mat.pb18");
+    d.materials.back = domain::MaterialId("mat.hdf3");
+    d.materials.visibleEdge = domain::EdgeBandId("eb.abs2");
+    d.materials.hiddenEdge = domain::EdgeBandId("eb.abs04");
+    return d;
+}
+
+inline templates::TemplateMaterials templateMaterials() {
+    return {domain::MaterialId("mat.pb18"), domain::MaterialId("mat.hdf3"), {}, domain::EdgeBandId("eb.abs2"),
+            domain::EdgeBandId("eb.abs04")};
+}
+
+/// A section with the given size (and split / children / shelves set afterwards).
+inline Section sized(SectionSize size, int shelves = 0) {
+    Section s;
+    s.size = std::move(size);
+    s.shelfCount = shelves;
+    return s;
 }
 
 inline GenerationResult gen(const CabinetDefinition& d) {
@@ -101,32 +126,23 @@ inline std::vector<std::string> errorsOf(const core::Diagnostics& ds) {
         if (d.severity == core::Severity::Error) out.push_back(d.code + ": " + d.message);
     return out;
 }
+inline std::vector<std::string> messagesWithCode(const core::Diagnostics& ds, const std::string& code) {
+    std::vector<std::string> out;
+    for (const auto& d : ds)
+        if (d.code == code) out.push_back(d.message);
+    return out;
+}
 inline bool hasCode(const core::Diagnostics& ds, const std::string& code) {
     for (const auto& d : ds)
         if (d.code == code) return true;
     return false;
 }
 
-/// Pairs of parts whose boxes share volume, except the DELIBERATE engagement of a grooved
-/// back in its grooves: the back may enter sides / bottom / top / rear rail by at most
-/// `grooveEngagement` mm (0 = no engagement allowed at all).
-inline std::vector<std::string> interpenetrations(const domain::Assembly& a, double grooveEngagement = 0.0) {
+/// Pairs of parts whose boxes share volume, except the deliberate engagement of a grooved
+/// back in its grooves (the library self-check findInterpenetrations(), checks.hpp).
+inline std::vector<std::string> interpenetrations(const domain::Assembly& a) {
     std::vector<std::string> out;
-    const std::string backId = a.id.str() + "/back";
-    for (std::size_t i = 0; i < a.parts.size(); ++i)
-        for (std::size_t j = i + 1; j < a.parts.size(); ++j) {
-            const auto bi = a.parts[i].bounds(), bj = a.parts[j].bounds();
-            if (!bi.overlaps(bj)) continue;
-            const domain::Part& other = a.parts[i].id.str() == backId ? a.parts[j] : a.parts[i];
-            const bool backPair = a.parts[i].id.str() == backId || a.parts[j].id.str() == backId;
-            const auto role = other.role;
-            const bool carrier = role == domain::PartRole::Side || role == domain::PartRole::Top ||
-                                 role == domain::PartRole::Bottom || role == domain::PartRole::Rail;
-            const double dx = std::min(bi.max.x, bj.max.x) - std::max(bi.min.x, bj.min.x);
-            const double dz = std::min(bi.max.z, bj.max.z) - std::max(bi.min.z, bj.min.z);
-            if (backPair && carrier && grooveEngagement > 0 && std::min(dx, dz) <= grooveEngagement + 1e-9) continue;
-            out.push_back(a.parts[i].id.str() + " x " + a.parts[j].id.str());
-        }
+    for (const auto& f : findInterpenetrations(a)) out.push_back(a.parts[f.first].id.str() + " x " + a.parts[f.second].id.str());
     return out;
 }
 

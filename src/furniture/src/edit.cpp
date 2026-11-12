@@ -3,6 +3,7 @@
 
 #include "fos/furniture/parameters.hpp"
 
+#include <algorithm>
 #include <map>
 
 namespace fos::furniture {
@@ -33,6 +34,36 @@ core::Result<EditResult> editSection(CabinetDefinition& definition, const Librar
     });
 }
 
+/// Pinned derived parameters whose standard formula differs between the construction options
+/// of `before` and `after`: their pinned expression was chosen for the old construction and
+/// is NOT rewritten, so the user must review it (furniture.parameter.pinned_formula_changed).
+core::Diagnostics pinnedFormulaWarnings(const CabinetDefinition& before, const CabinetDefinition& after) {
+    core::Diagnostics out;
+    if (before.construction == after.construction) return out;
+    const auto oldList = standardParameters(before.construction), newList = standardParameters(after.construction);
+    for (const auto& np : newList) {
+        if (!np.derived || !after.pinnedParameters.count(np.name)) continue;
+        const auto op = std::find_if(oldList.begin(), oldList.end(), [&](const auto& x) { return x.name == np.name; });
+        if (op == oldList.end() || op->formula == np.formula) continue;
+        const parametric::ParameterDef* pd = after.parameters.find(np.name);
+        const std::string pinned = pd ? (pd->isExpression() ? "'" + pd->expression + "'" : core::formatLength(pd->value, 3))
+                                      : std::string("?");
+        std::string values;
+        const auto current = after.parameters.value(np.name);
+        const auto standard = after.parameters.evaluate(np.formula);
+        if (current && standard)
+            values = " (pinned value " + core::formatLength(current.value(), 3) + " mm, standard value " +
+                     core::formatLength(standard.value(), 3) + " mm)";
+        out.push_back({core::Severity::Warning, "furniture.parameter.pinned_formula_changed",
+                       "Parameter '" + np.name + "' is pinned to " + pinned +
+                           ", but with the new construction options its standard formula is '" + np.formula +
+                           "' (was '" + op->formula + "')" + values +
+                           ". The pinned value is kept; reset the parameter to follow the new construction.",
+                       after.id.str()});
+    }
+    return out;
+}
+
 } // namespace
 
 core::Result<EditResult> applyEdit(CabinetDefinition& definition, const Libraries& libraries,
@@ -53,6 +84,8 @@ core::Result<EditResult> applyEdit(CabinetDefinition& definition, const Librarie
         if (!after.count(name)) out.changedParameters.push_back(name);
     std::sort(out.changedParameters.begin(), out.changedParameters.end());
     out.generated = std::move(generated.value());
+    const auto pinned = pinnedFormulaWarnings(definition, copy);
+    out.generated.diagnostics.insert(out.generated.diagnostics.end(), pinned.begin(), pinned.end());
     definition = std::move(copy);
     return out;
 }
