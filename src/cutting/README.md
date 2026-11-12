@@ -13,9 +13,13 @@ search for and never claims an optimal one (`CuttingResult::isProvenOptimal` is 
 | `fos/cutting/optimizer.hpp` | `optimize()`, `validateJob()`, `usableArea()`, `isReusableRemnant()`, `areaLowerBoundOnSheetCount()` | core |
 | `fos/cutting/validate.hpp` | `validateLayout()` — independent checker | core |
 | `fos/cutting/svg.hpp` | `renderSheetSvg()`, `xmlEscape()` | core |
-| `fos/cutting/from_model.hpp` | `jobsFromModel()` — adapter from `domain::Model` | core, domain |
+| `fos/cutting/from_model.hpp` | `jobsFromModel()` — adapter from `domain::Model` (target **`fos::cutting_model`**) | cutting, domain |
 
-Only `from_model` touches `fos::domain`; everything else works on the plain structs.
+Two CMake targets: `fos::cutting` (optimiser core, links **fos::core only**) and
+`fos::cutting_model` (`from_model.cpp`; links `fos::cutting` + `fos::domain`). Code that calls
+`jobsFromModel()` must link `fos::cutting_model`. The grain/rotation rule comes from
+`domain::canRotateOnSheet()` / `domain::sheetAlignment()` (shared with `production`). An edge that
+references an edge band missing from the model yields `cutting.adapter.edgeband_missing` (Warning).
 
 ## Model
 

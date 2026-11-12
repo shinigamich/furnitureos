@@ -102,6 +102,17 @@ re-applied on every regeneration. `EditReport` lists applied ids and **orphans**
 one warning each (`drawings.edits.orphan`, `drawings.edits.orphan_annotation`); orphaned edits are never
 deleted by this module. Other codes: `drawings.edits.not_applicable`, `drawings.edits.duplicate_id`.
 
+**Stale overrides.** `ElementEdit::measuredAtEdit` / `UserDimension::measuredAtEdit` store the measured value a
+text override was made against (`setTextOverride()` fills it). When the regenerated value differs by more than
+`kStaleOverrideTolerance`, the Warning `drawings.edits.stale_override` names the dimension and both values, and
+the text is drawn with `kStaleOverrideMarker` appended (`"800"` -> `"800 *"`). Overrides without the stored value
+(legacy data) cannot be checked.
+
+**Model-anchored user dimensions.** `UserDimension::anchor1/anchor2` (`ModelAnchor{partId, corner 0..7 | localPoint}`,
+part frame; corner bits: 1 -> x = L, 2 -> y = W, 4 -> z = T) are resolved in view coordinates at every generation, so
+the dimension follows the model. A missing part makes it an orphan; a bad corner gives `drawings.edits.bad_anchor`.
+The fixed `p1`/`p2` view points still work but do **not** follow the model.
+
 ## Sheets and scale
 
 A4/A3/A2/A1/custom, portrait/landscape, margins (default 20/10/10/10), border frame, 180 × 28 mm title block
