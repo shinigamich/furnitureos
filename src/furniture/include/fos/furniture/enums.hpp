@@ -46,8 +46,8 @@ enum class HandlePosition { None, Center, Top, Bottom };
 enum class MaterialRole { Carcass, Back, Front };
 enum class PanelOrientation {
     Horizontal,    ///< length -> +X, width -> +Y, thickness -> +Z (shelf, worktop).
-    VerticalSide,  ///< length -> +Z, width -> +Y, thickness -> +X (side, filler seen from the side).
-    VerticalFront, ///< length -> +X, width -> +Z, thickness -> +Y (front filler, plinth strip).
+    VerticalSide,  ///< length -> +Z, width -> +Y, thickness -> -X (like a cabinet side).
+    VerticalFront, ///< length -> +X, width -> +Z, thickness -> -Y (like a back panel / filler strip).
 };
 
 const char* toString(JointKind) noexcept;
