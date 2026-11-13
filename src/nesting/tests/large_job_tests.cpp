@@ -71,7 +71,6 @@ TEST(NestLarge, MixedSixtyPartJob) {
     // as a broken candidate generator (measured with this seed: ~0.77-0.81).
     ASSERT_FALSE(r.sheets.empty());
     for (std::size_t i = 0; i + 1 < r.sheets.size(); ++i) EXPECT_GE(r.sheets[i].utilisation, 0.60) << i;
-    for (const auto& sh : r.sheets) std::printf("  sheet util %.3f parts %zu\n", sh.utilisation, sh.placements.size());
     std::printf("mixed job: %zu sheets, utilisation %.3f, first sheet %.3f, last used length %.1f mm, %.2f s, %d iterations\n",
                 r.sheets.size(), r.utilisation, r.sheets[0].utilisation, r.sheets.back().usedLength, secs, r.iterationsRun);
     EXPECT_LT(secs, 5.0);
