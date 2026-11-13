@@ -23,7 +23,8 @@ const char* kCamHelp =
     "Operations on edges (horizontal drilling) and pockets are listed as UNSUPPORTED, and\n"
     "operations on the other face as needing the other setup - never silently dropped.\n"
     "THE OUTPUT IS UNVERIFIED: no profile, tool or dialect has been proven on any machine.\n"
-    "Never run it without review and proof by a qualified operator on the actual control.\n";
+    "Never run it without review and proof by a qualified operator on the actual control.\n"
+    "Exit code 1 also when the project has model errors (stderr lists the items that are missing).\n";
 
 const domain::Part* findPart(const domain::Model& model, const std::string& id) {
     for (const auto& a : model.assemblies)
@@ -59,8 +60,12 @@ int cmdCam(const std::vector<std::string>& args, Io& io) {
     auto loaded = loadProjectOrReport(io, "cam", a.positional[0]);
     if (!loaded) return kExitUsageOrIo;
     const std::string& partId = a.positional[1];
+    const std::string incomplete = resolveErrorNotice("cam", *loaded);
     const domain::Part* part = findPart(loaded->resolved.model, partId);
-    if (!part) return usageError(io, "cam", "no generated part '" + partId + "' in the project.");
+    if (!part) {
+        io.err << incomplete;
+        return usageError(io, "cam", "no generated part '" + partId + "' in the project.");
+    }
 
     auto& out = io.out;
     const cam::MachineProfile machine = demoMachineProfile();
@@ -78,6 +83,7 @@ int cmdCam(const std::vector<std::string>& args, Io& io) {
     auto generated = cam::generateProgram(*part, setup, machine, tools, options);
     if (!generated) {
         io.err << "fos cam: refused: " << generated.error().message << "\nNo program was written.\n";
+        io.err << incomplete;
         return kExitValidationErrors;
     }
     const auto& g = generated.value();
@@ -95,6 +101,7 @@ int cmdCam(const std::vector<std::string>& args, Io& io) {
     if (g.plan.machinableNow.empty()) {
         io.err << "fos cam: nothing to machine on face " << faceText << " of " << partId
                << "; no program was written.\n";
+        io.err << incomplete;
         return kExitValidationErrors;
     }
 
@@ -109,6 +116,7 @@ int cmdCam(const std::vector<std::string>& args, Io& io) {
     auto emitted = post.generate(cam::PostInput{g.program, *part, setup, machine, tools});
     if (!emitted) {
         io.err << "fos cam: refused by the postprocessor: " << emitted.error().message << "\nNo program was written.\n";
+        io.err << incomplete;
         return kExitValidationErrors;
     }
     const auto& e = emitted.value();
@@ -120,7 +128,8 @@ int cmdCam(const std::vector<std::string>& args, Io& io) {
         out << "Review before use:\n";
         for (const auto& w : e.reviewWarnings) out << "  - " << w << "\n";
     }
-    return kExitOk;
+    io.err << incomplete;
+    return incomplete.empty() ? kExitOk : kExitValidationErrors;
 }
 
 } // namespace fos::cli::detail

@@ -148,11 +148,17 @@ TEST(ScenarioE, PostprocessorRefusesASimulationError) {
     const domain::Part* side = findPart(r, "cab1/side.left");
     ASSERT_NE(side, nullptr);
     auto machine = cli::demoMachineProfile();
-    machine.envelopeX = {0, 300}; // the 720 mm side does not fit -> cam.sim.envelope errors
     const auto tools = cli::demoToolLibrary();
     const cam::Setup setup{domain::Face::A, cli::demoStockOrigin()};
+    // Generated for the full demo envelope ...
     auto g = cam::generateProgram(*side, setup, machine, tools);
     ASSERT_TRUE(g.ok()) << g.error().message;
+    // ... then checked against a machine whose X envelope the 720 mm side does not fit
+    // -> cam.sim.envelope errors. generateProgram itself refuses that machine.
+    machine.envelopeX = {0, 300};
+    auto refused = cam::generateProgram(*side, setup, machine, tools);
+    ASSERT_FALSE(refused.ok());
+    EXPECT_TRUE(contains(refused.error().message, "outside the envelope"));
     const auto sim = cam::simulate(g.value().program, *side, setup, machine, tools);
     EXPECT_TRUE(sim.hasErrors());
     const cam::GenericIsoPostprocessor post;

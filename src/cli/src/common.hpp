@@ -50,6 +50,13 @@ int usageError(Io& io, std::string_view command, std::string_view message);
 /// Loads and resolves a project; prints the error and returns nullopt on failure.
 std::optional<project::LoadedProject> loadProjectOrReport(Io& io, std::string_view command, const std::string& path);
 
+/// Empty when `loaded.resolved.diagnostics` has no errors. Otherwise a multi-line notice for
+/// output command `command`: "INCOMPLETE OUTPUT", the ids of the items that could not be
+/// generated (and are therefore missing from every output) or a statement that all items were
+/// generated but the model has errors, followed by every error diagnostic. Output commands print
+/// it to stderr, still write the output of the good items, and exit kExitValidationErrors.
+std::string resolveErrorNotice(std::string_view command, const project::LoadedProject& loaded);
+
 /// Atomically writes a text file (no backups); prints the error on failure.
 bool writeOutputFile(Io& io, std::string_view command, const std::filesystem::path& path, std::string_view content);
 

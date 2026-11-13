@@ -149,6 +149,13 @@ SimulationReport simulate(const Program& program, const domain::Part& part, cons
     const double spoilLimit = frame.bottomZ - machine.maxSpoilboardPenetration;
     const Rect stock{frame.stock.min.x, frame.stock.min.y, frame.stock.max.x, frame.stock.max.y};
     detail::Heightmap hm(stock.x0, stock.y0, frame.length, frame.width, options.cellSize, frame.topZ);
+    // Safe Z is where the tool travels from an unknown XY and where tool changes happen; it is
+    // only safe when it clears this stock (validateProfile cannot know the stock).
+    if (machine.safeZ < clearZ - kEps)
+        error("cam.sim.safe_z_below_clearance",
+              "Safe Z " + mm(machine.safeZ) + " mm of machine '" + machine.name + "' is below the clearance plane Z " +
+                  mm(clearZ) + " mm of '" + part.name + "' (stock top " + mm(frame.topZ) + " mm + clearance " +
+                  mm(machine.clearance) + " mm); travel at safe Z would collide with the stock.");
 
     Vec3 pos;
     bool xyKnown = false, zKnown = false, spindle = false;
@@ -175,6 +182,11 @@ SimulationReport simulate(const Program& program, const domain::Part& part, cons
                         error("cam.sim.position_unknown", at(i) + " retracts from an unknown position to Z " +
                                                               mm(m.target.z) + " mm, below safe Z " +
                                                               mm(machine.safeZ) + " mm.");
+                    // The unknown XY may be anywhere over the table, i.e. over the stock.
+                    if (m.target.z < clearZ - kEps)
+                        error("cam.sim.rapid_below_clearance",
+                              at(i) + " moves from an unknown X/Y (possibly over the stock) to Z " + mm(m.target.z) +
+                                  " mm, below the clearance plane Z " + mm(clearZ) + " mm.");
                     if (zKnown) rep.rapidLength += std::fabs(m.target.z - pos.z);
                     pos.z = m.target.z;
                     zKnown = true;
@@ -189,6 +201,13 @@ SimulationReport simulate(const Program& program, const domain::Part& part, cons
                     error("cam.sim.position_unknown",
                           at(i) + " moves in X/Y before the tool position is known; first retract to safe Z with a "
                                   "Z-only move, then travel horizontally at that height.");
+                // The path from an unknown X/Y is unknown: treat the whole table (and so the stock
+                // footprint) as swept.
+                if (std::min(m.target.z, zKnown ? pos.z : m.target.z) < clearZ - kEps)
+                    error("cam.sim.rapid_below_clearance",
+                          at(i) + " travels from an unknown X/Y, so its path may cross the stock, at Z " +
+                              mm(std::min(m.target.z, zKnown ? pos.z : m.target.z)) +
+                              " mm, below the clearance plane Z " + mm(clearZ) + " mm.");
                 pos = m.target;
                 xyKnown = zKnown = true;
                 break;
@@ -240,6 +259,14 @@ SimulationReport simulate(const Program& program, const domain::Part& part, cons
             if (!tool)
                 error("cam.sim.unknown_tool", at(i) + " selects T" + std::to_string(m.toolNumber) +
                                                   ", which is not in the tool library.");
+            // With d >= 2h every cut (a disc of radius >= h, or a swept strip of width >= 2h) contains
+            // at least one cell centre (lattice covering radius h / sqrt 2), so no cut goes unseen.
+            else if (tool->diameter < 2 * options.cellSize - kEps)
+                error("cam.sim.tool_below_resolution",
+                      at(i) + " loads tool '" + tool->id + "' of diameter " + mm(tool->diameter) +
+                          " mm, smaller than twice the simulation cell size " + mm(options.cellSize) +
+                          " mm; its cuts cannot be verified. Simulate with cells of at most " +
+                          mm(tool->diameter / 2) + " mm.");
             break;
         }
         case MotionKind::SpindleOn:

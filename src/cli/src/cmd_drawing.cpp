@@ -22,7 +22,9 @@ const char* kDrawingHelp =
     "--dxf: the first view (front view / face A) in model space at 1:1 in mm (DXF R12).\n"
     "Defaults: --paper A3, landscape, --scale fit (largest of 1:1 1:2 1:5 1:10 1:20 1:50 1:100\n"
     "that fits). An explicit scale that does not fit is an error. --date is printed in the\n"
-    "title block (default: the date of the project's last modification).\n";
+    "title block (default: the date of the project's last modification).\n"
+    "Exit code 1 when the drawing has errors or the project has model errors (e.g. an item that\n"
+    "cannot be generated is missing from the drawings; stderr says which items).\n";
 
 std::optional<drawings::PaperFormat> paperByName(const std::string& s) {
     if (s == "A4") return drawings::PaperFormat::A4;
@@ -71,6 +73,7 @@ int cmdDrawing(const std::vector<std::string>& args, Io& io) {
     const auto& project = loaded->project;
     const auto& resolved = loaded->resolved;
     const std::string& id = a.positional[1];
+    const std::string incomplete = resolveErrorNotice("drawing", *loaded);
 
     drawings::SheetOptions sheet;
     sheet.format = *paper;
@@ -94,7 +97,7 @@ int cmdDrawing(const std::vector<std::string>& args, Io& io) {
         drawing = project::partDrawing(project, resolved, id, options);
     }
     if (!drawing) {
-        io.err << "fos drawing: " << drawing.error().message << "\n";
+        io.err << "fos drawing: " << drawing.error().message << "\n" << incomplete;
         return kExitValidationErrors;
     }
     const auto& d = drawing.value();
@@ -111,7 +114,7 @@ int cmdDrawing(const std::vector<std::string>& args, Io& io) {
     }
     if (auto dxfPath = a.value("dxf")) {
         if (d.views.empty()) {
-            io.err << "fos drawing: the drawing has no view to export.\n";
+            io.err << "fos drawing: the drawing has no view to export.\n" << incomplete;
             return kExitValidationErrors;
         }
         const auto& v = d.views.front();
@@ -123,7 +126,8 @@ int cmdDrawing(const std::vector<std::string>& args, Io& io) {
         io.out << "Diagnostics:\n";
         printDiagnostics(io.out, d.diagnostics);
     }
-    return core::hasErrors(d.diagnostics) ? kExitValidationErrors : kExitOk;
+    io.err << incomplete;
+    return core::hasErrors(d.diagnostics) || !incomplete.empty() ? kExitValidationErrors : kExitOk;
 }
 
 } // namespace fos::cli::detail

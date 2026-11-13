@@ -48,8 +48,12 @@ struct CamResult {
 /// Errors (Result): invalid setup or profile, machining validation errors on the part,
 /// missing/unsuitable tool (message from ToolLibrary), tool rpm/feed above machine limits,
 /// safe Z below the clearance plane, breakthrough allowance beyond the spoilboard limit,
-/// invalid options, closed groove shorter than the tool diameter.
-/// The program is NOT checked here; run simulate() (postprocessors do so themselves).
+/// invalid options, closed groove shorter than the tool diameter, stock origin Z < 0
+/// (makeSetupFrame), and any generated position outside the machine envelope (ConstraintViolation
+/// naming the operation, the position and the envelope; e.g. a groove lead-out past an open end
+/// with the stock clamped close to the envelope limit).
+/// Apart from the envelope the program is NOT checked here; run simulate() (postprocessors do so
+/// themselves).
 core::Result<CamResult> generateProgram(const domain::Part& part, const Setup& setup, const MachineProfile& machine,
                                         const ToolLibrary& tools, const CamOptions& options = {});
 

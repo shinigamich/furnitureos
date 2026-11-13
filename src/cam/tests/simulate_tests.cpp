@@ -76,10 +76,17 @@ TEST(CamSimulate, PlungeTwoMillimetresTooDeepIsCaught) {
 
 TEST(CamSimulate, EnvelopeViolation) {
     // Stock at X 2200: front pin at X 2200 + 346 = 2546 > 2500.
+    // generateProgram refuses such a setup itself, so the program generated at X 10 is shifted by
+    // 2190 mm in X by hand to give the simulator an out-of-envelope program.
     const cam::Setup far{Face::B, {2200, 20, 0}};
-    auto g = generateProgram(test::leftSide(), far, test::testProfile(), test::testTools());
-    ASSERT_TRUE(g);
-    auto r = run(g.value().program, test::testTools(), test::testProfile(), far);
+    auto refused = generateProgram(test::leftSide(), far, test::testProfile(), test::testTools());
+    ASSERT_FALSE(refused);
+    EXPECT_NE(refused.error().message.find("machine X 2546, Y 543, Z 50 mm"), std::string::npos)
+        << refused.error().message;
+    auto p = leftSideProgram();
+    for (auto& m : p.motions)
+        if ((m.kind == MotionKind::Rapid || m.kind == MotionKind::Linear) && !m.zOnly) m.target.x += 2190;
+    auto r = run(p, test::testTools(), test::testProfile(), far);
     const auto* env = find(r, "cam.sim.envelope");
     ASSERT_NE(env, nullptr);
     EXPECT_NE(env->message.find("(2546, 543, 50)"), std::string::npos) << env->message;

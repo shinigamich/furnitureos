@@ -19,7 +19,9 @@ const char* kCutHelp =
     "(1 SVG user unit = 1 mm) and DIR/cutting-summary.txt (also printed). DIR defaults to the\n"
     "current directory and is created if needed.\n"
     "The optimiser is a HEURISTIC: utilisation figures describe the layout found, which is in\n"
-    "general not optimal. Exit code 1 when the validator or the optimiser reports an error.\n";
+    "general not optimal. Exit code 1 when the validator or the optimiser reports an error, or\n"
+    "when the project has model errors (e.g. an item that cannot be generated: its parts are\n"
+    "missing from the plans; the summary and stderr say which items).\n";
 
 std::string pct(double v) { return core::formatLength(v, 2) + " %"; }
 std::string m2(double mm2) { return core::formatLength(mm2 / 1e6, 4) + " m2"; }
@@ -45,6 +47,8 @@ int cmdCut(const std::vector<std::string>& args, Io& io) {
     s << "Cutting plans of '" << loaded->project.metadata.name << "'\n"
       << "Layouts are produced by a HEURISTIC optimiser; utilisation is that of the layout found, which is in "
          "general not optimal.\n";
+    const std::string incomplete = resolveErrorNotice("cut", *loaded);
+    if (!incomplete.empty()) s << incomplete;
     if (plans.plans.empty()) s << "No parts to cut.\n";
     std::vector<std::pair<std::filesystem::path, std::string>> files;
     for (const auto& plan : plans.plans) {
@@ -100,7 +104,8 @@ int cmdCut(const std::vector<std::string>& args, Io& io) {
     const std::string summary = s.str();
     if (!writeOutputFile(io, "cut", dir / "cutting-summary.txt", summary)) return kExitUsageOrIo;
     io.out << summary << "Wrote " << files.size() << " sheet SVG(s) and cutting-summary.txt to " << dir.string() << "\n";
-    return core::hasErrors(plans.diagnostics) ? kExitValidationErrors : kExitOk;
+    io.err << incomplete;
+    return core::hasErrors(plans.diagnostics) || !incomplete.empty() ? kExitValidationErrors : kExitOk;
 }
 
 } // namespace fos::cli::detail

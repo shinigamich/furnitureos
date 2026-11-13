@@ -26,7 +26,8 @@ namespace fos::cam {
 struct Setup {
     domain::Face faceUp = domain::Face::A; ///< Only A or B are valid.
     /// Machine coordinates of the clamped stock's minimum corner (front-left-bottom as
-    /// seen on the table): the fixture offset. o.z is the stock bottom (normally 0).
+    /// seen on the table): the fixture offset. o.z is the stock bottom (normally 0); it must
+    /// not be negative because Z = 0 is the spoilboard top (makeSetupFrame refuses it).
     geometry::Vec3 stockOrigin;
 };
 
@@ -43,7 +44,8 @@ struct SetupFrame {
     geometry::Vec3 partToMachine(geometry::Vec3 partPoint) const noexcept;
 };
 
-/// Errors: faceUp not A/B (Unsupported), non-positive part dimensions (InvalidArgument).
+/// Errors: faceUp not A/B (Unsupported), non-positive part dimensions (InvalidArgument),
+/// stockOrigin.z < 0, i.e. stock bottom below the spoilboard top Z = 0 (InvalidArgument; NaN too).
 core::Result<SetupFrame> makeSetupFrame(const domain::Part& part, const Setup& setup);
 
 /// Machine XY of a point (u, v) on the UPWARD face, computed with the machining flip

@@ -75,6 +75,29 @@ std::optional<project::LoadedProject> loadProjectOrReport(Io& io, std::string_vi
     return std::move(loaded).value();
 }
 
+std::string resolveErrorNotice(std::string_view command, const project::LoadedProject& loaded) {
+    const auto& resolved = loaded.resolved;
+    if (!core::hasErrors(resolved.diagnostics)) return {};
+    std::vector<std::string> missing;
+    for (const auto& item : resolved.items)
+        if (!item.generated) missing.push_back(item.itemId);
+    std::ostringstream s;
+    s << "fos " << command << ": INCOMPLETE OUTPUT: the project has " << errorCount(resolved.diagnostics)
+      << " model error(s).";
+    if (missing.empty()) {
+        s << " All items were generated, but the output is built from a model with errors.\n";
+    } else {
+        s << " Item(s) that could not be generated and are MISSING from this output:";
+        for (std::size_t i = 0; i < missing.size(); ++i) s << (i ? ", " : " ") << missing[i];
+        s << ".\n";
+    }
+    core::Diagnostics errors;
+    for (const auto& d : resolved.diagnostics)
+        if (d.severity == core::Severity::Error) errors.push_back(d);
+    printDiagnostics(s, errors);
+    return s.str();
+}
+
 bool writeOutputFile(Io& io, std::string_view command, const std::filesystem::path& path, std::string_view content) {
     formats::SaveOptions options;
     options.backupCount = 0;

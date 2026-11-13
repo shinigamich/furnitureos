@@ -10,8 +10,10 @@
 
 namespace fos::cam::detail {
 
-/// Square cells of size h over the stock rectangle [x0, x0 + nx*h] x [y0, y0 + ny*h]; a cell is
-/// represented by its centre. Each touched cell stores the lowest tool-tip Z that reached it.
+/// Square cells of size h covering the WHOLE stock rectangle [x0, x0 + lx] x [y0, y0 + ly]:
+/// nx = ceil(lx / h) columns, the last one clipped to the stock edge when lx is not a multiple
+/// of h (likewise for y). A cell is represented by the centre of its (clipped) area. Each
+/// touched cell stores the lowest tool-tip Z that reached it.
 class Heightmap {
 public:
     struct Cell {
@@ -25,7 +27,9 @@ public:
     /// Lowest Z at cell (i, j); +inf when untouched.
     double minZ(int i, int j) const;
     const Cell* cell(int i, int j) const;
-    geometry::Vec2 centre(int i, int j) const noexcept { return {x0_ + (i + 0.5) * h_, y0_ + (j + 0.5) * h_}; }
+    geometry::Vec2 centre(int i, int j) const noexcept { return {centreCoord(i, x0_, lx_), centreCoord(j, y0_, ly_)}; }
+    int columns() const noexcept { return nx_; }
+    int rows() const noexcept { return ny_; }
     /// Index range of cells whose centre may lie in [lo, hi] (clamped; empty when lo > hi).
     void range(double lo, double hi, bool xAxis, int& first, int& last) const noexcept;
     /// Touched cells with minZ below the stock top, sorted by (j, i).
@@ -34,7 +38,8 @@ public:
 
 private:
     static std::int64_t key(int i, int j) noexcept { return (static_cast<std::int64_t>(j) << 32) | static_cast<std::uint32_t>(i); }
-    double x0_, y0_, h_, top_;
+    double centreCoord(int i, double origin, double extent) const noexcept;
+    double x0_, y0_, lx_, ly_, h_, top_;
     int nx_, ny_;
     std::unordered_map<std::int64_t, Cell> cells_;
 };

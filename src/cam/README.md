@@ -21,7 +21,8 @@ generateProgram (generate.hpp) ── Program: ordered Motion IR, absolute machi
       │
       ▼
 simulate (simulate.hpp) ── independent checks + heightmap material verification
-      │      (expectations come from the domain operations, never from the generator)
+      │      (expectations come from the domain operations, never from the generator's motions;
+      │       the face mapping in setup.cpp is shared — see Safety model)
       ▼
 Postprocessor::generate (postprocessor.hpp) ── re-runs simulate(), REFUSES on any error
       │
@@ -77,14 +78,27 @@ Unsupported — always reported explicitly in `SetupPlan::unsupported`, never si
 ## Safety model
 
 1. `generateProgram` refuses parts with machining validation errors, invalid profiles/options,
-   missing tools, tools above machine rpm/feed limits, safe Z below the clearance plane.
-2. `simulate` checks independently: envelope, unknown start position, rapids below the clearance plane
-   over the stock (pure upward retracts allowed), spoilboard penetration, cutting with no tool / spindle off,
+   missing tools, tools above machine rpm/feed limits, safe Z below the clearance plane, a stock origin
+   below Z = 0 (`makeSetupFrame`: Z = 0 is the spoilboard top), and any generated position outside the
+   machine envelope (e.g. a groove lead-out past an open end with the stock clamped near the envelope
+   origin) — with a message naming the operation, the position and the envelope.
+2. `simulate` checks: safe Z against this stock's clearance plane (top + clearance; `validateProfile` cannot,
+   it does not know the stock), envelope, unknown start position, rapids below the clearance plane
+   over the stock (pure upward retracts allowed; a move from an UNKNOWN X/Y counts as sweeping the whole
+   table, so it must be at or above the clearance plane), spoilboard penetration, cutting with no tool / spindle off,
    feed and rpm limits, flute length vs. depth, tool changes with spindle on or below safe Z, and a sparse
-   heightmap (default 0.5 mm cells, flat-bottomed cylinder tool) verifying that every hole/groove is cut to its
+   heightmap (default 0.5 mm cells over the whole stock, the last row/column clipped to the stock edge;
+   flat-bottomed cylinder tool; tools thinner than 2 cells are refused with `cam.sim.tool_below_resolution`
+   because their cuts could miss every cell centre) verifying that every hole/groove is cut to its
    floor and that nothing is removed outside an operation volume (`cam.sim.gouge`) or below its floor
    (`cam.sim.too_deep`). It is coarse: features smaller than a cell are only warned about (`cam.sim.unresolved`),
    drill tips and tool deflection are ignored. Time is an estimate (no acceleration).
+   **Not independent on face mapping:** the simulator derives its expected hole/groove volumes with the
+   same setup mapping as the generator (`holeTarget`, `grooveTarget`, `faceToMachineXY` in `setup.cpp`).
+   A wrong face-B flip would move generator and expectations together and pass the simulation. The mapping
+   is therefore tested separately against first principles: `CamHardening.FaceBHoleMachineXYFromFirstPrinciples`
+   recomputes the machine XY of every face-B hole of the left side from the domain face definition
+   (B = z 0 plane, u = x, v = y) and a rotation of π about the length axis, without calling `setup.cpp`.
 3. `Postprocessor::generate` always re-simulates and refuses when any error is reported. `PostOutput::verifiedForMachine`
    is `verified() && profile.verified`, i.e. always false here, and `reviewWarnings` lists dialect assumptions.
 4. The output starts with a comment block stating the dialect is unverified and describing origin, face up,

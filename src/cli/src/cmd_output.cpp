@@ -20,19 +20,25 @@ const char* kReportHelp =
     "table followed by its diagnostics. --csv writes RFC 4180 CSV (UTF-8, CRLF) with the given\n"
     "one-character separator (default ','). --html writes the printable production sheet of one\n"
     "item (part list, cut list, edge banding, hardware, warnings).\n"
+    "Exit code 1 when the report has errors or the project has model errors (e.g. an item that\n"
+    "cannot be generated: it is missing from the report; stderr says which items).\n"
     "Cut sizes are saw sizes (finished size minus edge banding). Material sheet counts in the\n"
     "materials report are AREA LOWER BOUNDS; real sheet counts come from 'fos cut'.\n";
 
 const char* kLabelsHelp =
     "Usage: fos labels <file.fosp> --svg-dir DIR\n\n"
     "Writes one label per part instance on A4 pages (70 x 37 mm labels, 3 x 8 per page) as\n"
-    "DIR/labels-1.svg, DIR/labels-2.svg, ... (1 SVG user unit = 1 mm). DIR is created if needed.\n";
+    "DIR/labels-1.svg, DIR/labels-2.svg, ... (1 SVG user unit = 1 mm). DIR is created if needed.\n"
+    "Exit code 1 when the project has model errors (items that cannot be generated are missing\n"
+    "from the output; stderr says which items).\n";
 
 const char* kObjHelp =
     "Usage: fos export-obj <file.fosp> <out.obj>\n\n"
     "Writes the resolved model as Wavefront OBJ (every part a box at its finished size, project\n"
     "frame, mm, Z up) and the companion <out>.mtl with one material per board material.\n"
-    "Not exported: machining, edge bands, hardware, textures.\n";
+    "Not exported: machining, edge bands, hardware, textures.\n"
+    "Exit code 1 when the project has model errors (items that cannot be generated are missing\n"
+    "from the output; stderr says which items).\n";
 
 struct ReportTable {
     production::Table table;
@@ -100,6 +106,7 @@ int cmdReport(const std::vector<std::string>& args, Io& io) {
     if (!loaded) return kExitUsageOrIo;
     const auto& project = loaded->project;
     const auto& resolved = loaded->resolved;
+    const std::string incomplete = resolveErrorNotice("report", *loaded);
 
     if (html) {
         const std::string& itemId = a.positional[1];
@@ -110,12 +117,13 @@ int cmdReport(const std::vector<std::string>& args, Io& io) {
         options.cutList.groupAcrossAssemblies = project.settings.cutListGroupAcrossAssemblies;
         auto sheet = production::productionSheetHtml(resolved.model, domain::AssemblyId(itemId), options);
         if (!sheet) {
-            io.err << "fos report: " << sheet.error().message << "\n";
+            io.err << "fos report: " << sheet.error().message << "\n" << incomplete;
             return kExitValidationErrors; // the item exists but was not generated (see fos info)
         }
         if (!writeOutputFile(io, "report", *a.value("html"), sheet.value())) return kExitUsageOrIo;
         io.out << "Wrote production sheet of " << itemId << " to " << *a.value("html") << "\n";
-        return kExitOk;
+        io.err << incomplete;
+        return incomplete.empty() ? kExitOk : kExitValidationErrors;
     }
 
     const auto reports = project::productionReports(resolved, project::productionOptions(project));
@@ -140,7 +148,8 @@ int cmdReport(const std::vector<std::string>& args, Io& io) {
         io.out << "Diagnostics:\n";
         printDiagnostics(io.out, table->diagnostics);
     }
-    return core::hasErrors(table->diagnostics) ? kExitValidationErrors : kExitOk;
+    io.err << incomplete;
+    return core::hasErrors(table->diagnostics) || !incomplete.empty() ? kExitValidationErrors : kExitOk;
 }
 
 int cmdLabels(const std::vector<std::string>& args, Io& io) {
@@ -176,7 +185,9 @@ int cmdLabels(const std::vector<std::string>& args, Io& io) {
         io.out << "Diagnostics:\n";
         printDiagnostics(io.out, set.diagnostics);
     }
-    return core::hasErrors(set.diagnostics) ? kExitValidationErrors : kExitOk;
+    const std::string incomplete = resolveErrorNotice("labels", *loaded);
+    io.err << incomplete;
+    return core::hasErrors(set.diagnostics) || !incomplete.empty() ? kExitValidationErrors : kExitOk;
 }
 
 int cmdExportObj(const std::vector<std::string>& args, Io& io) {
@@ -203,7 +214,9 @@ int cmdExportObj(const std::vector<std::string>& args, Io& io) {
     for (const auto& asmb : loaded->resolved.model.assemblies) parts += asmb.parts.size();
     io.out << "Wrote " << parts << " parts to " << out.string() << " (+ MTL beside it)\n";
     if (!r.value().diagnostics.empty()) printDiagnostics(io.out, r.value().diagnostics);
-    return kExitOk;
+    const std::string incomplete = resolveErrorNotice("export-obj", *loaded);
+    io.err << incomplete;
+    return incomplete.empty() ? kExitOk : kExitValidationErrors;
 }
 
 } // namespace fos::cli::detail

@@ -10,8 +10,14 @@ draws a UUID and reads the clock, and saves stamp `savedAt`). Lengths are millim
 | Exit code | Meaning |
 |---|---|
 | 0 | success (warnings may have been printed) |
-| 1 | the command ran and found errors: validation errors, a refused parameter, a refused CAM program, a drawing that does not fit at the requested scale, a cutting layout with validator errors |
+| 1 | the command ran and found errors: validation errors, a refused parameter, a refused CAM program, a drawing that does not fit at the requested scale, a cutting layout with validator errors, an output command run on a project with model errors (incomplete output) |
 | 2 | usage or I/O error: unknown command/option, missing argument, unknown item/part id, unreadable/corrupt project file, unwritable output |
+
+**Incomplete output is never silent.** Every output command (`report`, `cut`, `drawing`, `labels`, `cam`,
+`export-obj`) checks the resolve diagnostics of the project: when they contain errors (e.g. an item the
+generator refuses, so it has no parts) it still writes the output of the good items, but prints
+`fos <command>: INCOMPLETE OUTPUT: … Item(s) that could not be generated and are MISSING from this output: <ids>.`
+followed by every error diagnostic to stderr (`fos cut` also puts it into `cutting-summary.txt`) and exits 1.
 
 Every command prints its usage with `--help`; `fos --help` lists the commands. `fos nest` does not exist:
 projects contain no polygon (true-shape) parts yet.

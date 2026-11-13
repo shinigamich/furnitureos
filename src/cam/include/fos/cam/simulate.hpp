@@ -10,12 +10,19 @@
 
 /// Manufacturing simulation of a Program, INDEPENDENT of the generators: expectations are
 /// derived from the domain operations (setup.hpp targets), never from generator output.
+/// NOT independent on face mapping: the targets use the same setup.hpp mapping
+/// (holeTarget / grooveTarget / faceToMachineXY) as the generator; that mapping is tested
+/// against first principles separately (see README).
 ///
 /// Motion checks (error unless noted; `entityId` = part id):
 ///   cam.sim.setup_mismatch         program face-up differs from the setup / invalid setup
+///   cam.sim.setup_mismatch         also: invalid cell size, negative stock origin Z (makeSetupFrame)
+///   cam.sim.safe_z_below_clearance machine safe Z below stock top + clearance (checked once per run)
 ///   cam.sim.position_unknown       XY move before the position is known, or first retract below safe Z
 ///   cam.sim.envelope               target outside the machine envelope
-///   cam.sim.rapid_below_clearance  rapid below the clearance plane over the stock (pure upward retracts allowed)
+///   cam.sim.rapid_below_clearance  rapid below the clearance plane over the stock (pure upward retracts
+///                                  allowed); a move from an UNKNOWN X/Y counts as crossing the stock
+///   cam.sim.tool_below_resolution  tool diameter < 2 x cellSize (its cuts could miss every cell centre)
 ///   cam.sim.spoilboard_limit       tool tip below stock bottom - maxSpoilboardPenetration
 ///   cam.sim.no_tool                linear move with no tool loaded
 ///   cam.sim.spindle_off_cut        linear move while the spindle is off
@@ -26,8 +33,8 @@
 ///   cam.sim.flute_length           cutting deeper below the stock top than the flute length
 ///   cam.sim.spindle_on_at_end      program ends with the spindle running
 ///   cam.sim.invalid_dwell          negative dwell
-/// Material checks (coarse heightmap of cell centres over the stock; flat-bottomed
-/// cylindrical tool):
+/// Material checks (coarse heightmap of cell centres over the WHOLE stock, last row/column
+/// clipped to the stock edge; flat-bottomed cylindrical tool):
 ///   cam.sim.hole_not_cut / cam.sim.groove_not_cut   expected cells not cut to the floor
 ///   cam.sim.too_deep               cut inside an operation footprint below its floor
 ///   cam.sim.gouge                  material removed outside every operation footprint

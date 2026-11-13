@@ -146,6 +146,35 @@ core::Result<void> groove(Builder& b, const GrooveTarget& g, const Tool& t, cons
     return {};
 }
 
+/// Every generated position must be reachable; a program that leaves the envelope (e.g. a groove
+/// lead-out past the panel edge with the stock clamped near the envelope limit) is refused here
+/// instead of being produced for the simulator / postprocessor to reject.
+core::Result<void> checkEnvelope(const Program& prog, const MachineProfile& m, const domain::Part& part,
+                                 const CamOptions& o) {
+    for (std::size_t i = 0; i < prog.motions.size(); ++i) {
+        const Motion& mo = prog.motions[i];
+        if (mo.kind != MotionKind::Rapid && mo.kind != MotionKind::Linear) continue;
+        const bool xyOut = !mo.zOnly && (!m.envelopeX.contains(mo.target.x) || !m.envelopeY.contains(mo.target.y));
+        if (!xyOut && m.envelopeZ.contains(mo.target.z)) continue;
+        const std::string src = mo.source.str();
+        const std::string what = src.empty() ? std::string("A set-up move") : "Operation '" + src + "'";
+        std::string hint = "Move the stock (Setup::stockOrigin) further into the envelope";
+        for (const auto& op : part.operations)
+            if (op.id.str() == src && std::holds_alternative<domain::Groove>(op.shape))
+                hint += " or shorten the groove lead-out (" + mm(o.grooveLeadOut) +
+                        " mm plus the tool radius beyond each open end)";
+        return makeError(ErrorCode::ConstraintViolation,
+                         what + " of '" + part.name + "' needs the tool at machine X " + mm(mo.target.x) + ", Y " +
+                             mm(mo.target.y) + ", Z " + mm(mo.target.z) + " mm (motion #" + std::to_string(i) +
+                             "), outside the envelope of machine '" + m.name + "' (X [" + mm(m.envelopeX.min) + ", " +
+                             mm(m.envelopeX.max) + "], Y [" + mm(m.envelopeY.min) + ", " + mm(m.envelopeY.max) +
+                             "], Z [" + mm(m.envelopeZ.min) + ", " + mm(m.envelopeZ.max) + "] mm). " + hint +
+                             ". No program is generated.",
+                         part.id.str());
+    }
+    return {};
+}
+
 } // namespace
 
 core::Result<CamResult> generateProgram(const domain::Part& part, const Setup& setup, const MachineProfile& machine,
@@ -242,6 +271,7 @@ core::Result<CamResult> generateProgram(const domain::Part& part, const Setup& s
         }
     }
     b.finish();
+    if (auto env = checkEnvelope(prog, machine, part, o); !env) return env.error();
     return res;
 }
 

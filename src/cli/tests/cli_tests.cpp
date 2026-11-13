@@ -278,16 +278,18 @@ TEST_F(Cli, CamReportsEdgeHolesAsUnsupportedAndWritesNothing) {
     EXPECT_FALSE(std::filesystem::exists(nc));
 }
 
-TEST_F(Cli, CamRefusesWhenTheSimulatorFindsErrors) {
-    // A 3300 mm tall side at machine X 20 .. 3320 exceeds the demo envelope X 0 .. 3200: the
-    // independent simulation reports cam.sim.envelope and the postprocessor refuses.
+TEST_F(Cli, CamRefusesAProgramOutsideTheEnvelope) {
+    // A 3300 mm tall side at machine X 20 .. 3320 exceeds the demo envelope X 0 .. 3200:
+    // generateProgram refuses it (envelope check) and nothing is written. (The postprocessor's own
+    // refusal of simulation errors is tested in src/cam/tests and tests/scenario_e.)
     const std::string tall = dir.file("tall.fosp");
     ASSERT_EQ(fos({"new", tall, "--template", "tall", "--height", "3300"}).code, kExitOk);
     const std::string nc = dir.file("tall.nc");
     const auto r = fos({"cam", tall, "cab1/side.left", "--face", "A", "--out", nc});
     EXPECT_EQ(r.code, kExitValidationErrors);
-    EXPECT_TRUE(contains(r.out, "cam.sim.envelope"));
-    EXPECT_TRUE(contains(r.err, "refused by the postprocessor"));
+    EXPECT_TRUE(contains(r.err, "fos cam: refused: "));
+    EXPECT_TRUE(contains(r.err, "outside the envelope of machine 'FurnitureOS demo profile"));
+    EXPECT_TRUE(contains(r.err, "No program was written."));
     EXPECT_FALSE(std::filesystem::exists(nc));
 }
 
@@ -309,6 +311,69 @@ TEST_F(Cli, ExportObjWritesObjAndMtl) {
     EXPECT_TRUE(std::filesystem::exists(dir.file("model.mtl")));
     EXPECT_EQ(fos({"export-obj", project}).code, kExitUsageOrIo);
     EXPECT_EQ(fos({"export-obj", project, dir.file("no/dir/m.obj")}).code, kExitUsageOrIo);
+}
+
+// Project with the good reference cabinet cab1 and a copy cab2 whose pinned bottom_length is
+// -100 mm: the generator refuses cab2 (furniture.geometry.invalid_size, reported as
+// project.item.generation_failed) and its parts are missing from every output. Each output command must still write cab1's output, say
+// which item is missing, list the error and exit 1.
+TEST_F(Cli, OutputCommandsReportItemsThatFailedToGenerate) {
+    auto loaded = project::loadProject(project);
+    ASSERT_TRUE(loaded.ok());
+    project::Project p = loaded.value().project;
+    project::Item broken = p.items[0];
+    broken.cabinet()->id = domain::AssemblyId("cab2");
+    // The parameter graph accepts the value (no constraint on it); the generator refuses it.
+    const auto pinned = broken.cabinet()->parameters.setValue("bottom_length", -100);
+    ASSERT_TRUE(pinned.ok()) << pinned.error().message;
+    broken.cabinet()->pinnedParameters.insert("bottom_length");
+    p.items.push_back(broken);
+    const std::string file = dir.file("broken.fosp");
+    ASSERT_TRUE(project::saveProject(file, p).ok());
+    const auto check = project::loadProject(file);
+    ASSERT_TRUE(check.ok());
+    ASSERT_EQ(check.value().resolved.items.size(), 2u);
+    ASSERT_TRUE(check.value().resolved.items[0].generated);
+    ASSERT_FALSE(check.value().resolved.items[1].generated);
+
+    auto expectIncomplete = [&](const RunResult& r, const std::string& command) {
+        EXPECT_EQ(r.code, kExitValidationErrors) << command << "\n" << r.out << r.err;
+        EXPECT_TRUE(contains(r.err, "fos " + command + ": INCOMPLETE OUTPUT: the project has 1 model error(s)."))
+            << command << "\n" << r.err;
+        EXPECT_TRUE(contains(r.err, "MISSING from this output: cab2.")) << command << "\n" << r.err;
+        EXPECT_TRUE(contains(r.err, "[error] project.item.generation_failed")) << command << "\n" << r.err;
+    };
+    // report: cab1's 10 parts are still listed.
+    const auto rep = fos({"report", file, "--type", "summary"});
+    expectIncomplete(rep, "report");
+    EXPECT_TRUE(contains(rep.out, "Total: 10 parts"));
+    const auto csv = fos({"report", file, "--type", "parts", "--csv", dir.file("parts.csv")});
+    expectIncomplete(csv, "report");
+    EXPECT_TRUE(contains(readFile(dir.file("parts.csv")), "cab1/bottom"));
+    expectIncomplete(fos({"report", file, "--html", dir.file("s.html"), "cab1"}), "report");
+    EXPECT_TRUE(std::filesystem::exists(dir.file("s.html")));
+    // cut: the same 9 pieces as the reference project; the summary file carries the notice too.
+    const std::string out = dir.file("cut");
+    const auto cut = fos({"cut", file, "--out-dir", out});
+    expectIncomplete(cut, "cut");
+    EXPECT_TRUE(contains(cut.out, "pieces: 9 required, 9 placed, 0 unplaced"));
+    EXPECT_TRUE(contains(readFile(out + "/cutting-summary.txt"), "MISSING from this output: cab2."));
+    // drawing, labels, cam, export-obj.
+    expectIncomplete(fos({"drawing", file, "cab1", "--svg", dir.file("d.svg")}), "drawing");
+    EXPECT_TRUE(std::filesystem::exists(dir.file("d.svg")));
+    const auto labels = fos({"labels", file, "--svg-dir", dir.file("labels")});
+    expectIncomplete(labels, "labels");
+    EXPECT_TRUE(contains(labels.out, "Wrote 10 labels"));
+    const auto cam = fos({"cam", file, "cab1/side.left", "--face", "A", "--out", dir.file("a.nc")});
+    expectIncomplete(cam, "cam");
+    EXPECT_TRUE(std::filesystem::exists(dir.file("a.nc")));
+    const auto obj = fos({"export-obj", file, dir.file("m.obj")});
+    expectIncomplete(obj, "export-obj");
+    EXPECT_TRUE(contains(obj.out, "Wrote 10 parts"));
+    // The reference project itself has no such notice.
+    const auto good = fos({"report", project, "--type", "summary"});
+    EXPECT_EQ(good.code, kExitOk);
+    EXPECT_FALSE(contains(good.err, "INCOMPLETE"));
 }
 
 TEST_F(Cli, OutputIsDeterministic) {

@@ -39,6 +39,14 @@ core::Result<SetupFrame> makeSetupFrame(const domain::Part& part, const Setup& s
                              " x " + core::formatLength(part.width, 3) + " x " + core::formatLength(part.thickness, 3) +
                              " mm.",
                          part.id.str());
+    if (!(setup.stockOrigin.z >= -core::kLengthEps))
+        return makeError(ErrorCode::InvalidArgument,
+                         "Setup of '" + part.name + "' puts the stock bottom at machine Z " +
+                             core::formatLength(setup.stockOrigin.z, 3) +
+                             " mm, below Z = 0. The machine frame requires Z = 0 at the spoilboard top and the stock "
+                             "resting on or above it (the spoilboard limit is measured from the stock bottom); set the "
+                             "work zero on the spoilboard.",
+                         part.id.str());
     SetupFrame f;
     f.faceUp = setup.faceUp;
     f.origin = setup.stockOrigin;

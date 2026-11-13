@@ -8,13 +8,24 @@
 namespace fos::cam::detail {
 
 Heightmap::Heightmap(double x0, double y0, double lx, double ly, double h, double topZ)
-    : x0_(x0), y0_(y0), h_(h), top_(topZ), nx_(static_cast<int>(std::floor(lx / h + 1e-9))),
-      ny_(static_cast<int>(std::floor(ly / h + 1e-9))) {}
+    : x0_(x0), y0_(y0), lx_(lx), ly_(ly), h_(h), top_(topZ),
+      // ceil: a partial last strip (e.g. 0.4 mm of a 600.4 mm panel with 0.5 mm cells) is a
+      // clipped cell of its own instead of being dropped.
+      nx_(std::max(1, static_cast<int>(std::ceil(lx / h - 1e-9)))),
+      ny_(std::max(1, static_cast<int>(std::ceil(ly / h - 1e-9)))) {}
+
+double Heightmap::centreCoord(int i, double origin, double extent) const noexcept {
+    const double lo = i * h_;
+    const double hi = std::min((i + 1) * h_, extent); // the last cell is clipped to the stock
+    return origin + 0.5 * (lo + hi);
+}
 
 void Heightmap::range(double lo, double hi, bool xAxis, int& first, int& last) const noexcept {
     const double o = xAxis ? x0_ : y0_;
     const int n = xAxis ? nx_ : ny_;
-    const double a = std::ceil((lo - o) / h_ - 0.5 - 1e-9), b = std::floor((hi - o) / h_ - 0.5 + 1e-9);
+    // Regular centres are o + (k + 0.5) h; the clipped last centre lies left of its regular
+    // position, so the upper bound gets one extra cell (callers test every centre exactly).
+    const double a = std::ceil((lo - o) / h_ - 0.5 - 1e-9), b = std::floor((hi - o) / h_ - 0.5 + 1e-9) + 1;
     first = static_cast<int>(std::max(0.0, std::min(a, static_cast<double>(n))));
     last = static_cast<int>(std::min(static_cast<double>(n - 1), std::max(b, -1.0)));
 }
