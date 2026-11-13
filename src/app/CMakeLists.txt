@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # Module `app`: the desktop application `furnitureos` plus the widget-free, testable
 # view-model library `fos_app_core` (see README.md).
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGLWidgets PrintSupport Svg LinguistTools)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGLWidgets PrintSupport Svg Test LinguistTools)
 
 set(FOS_APP_SOURCE_URL "https://github.com/furnitureos/furnitureos" CACHE STRING
     "Public location of the corresponding source code, shown in Help > About (AGPL-3.0 section 13)")
@@ -38,7 +38,7 @@ if(FOS_BUILD_TESTS)
         tests/core/session_tests.cpp
         tests/core/parameter_tests.cpp
         tests/core/views_tests.cpp)
-    target_link_libraries(fos_app_core_tests PRIVATE fos::app_core GTest::gtest GTest::gmock)
+    target_link_libraries(fos_app_core_tests PRIVATE fos::app_core Qt6::Test GTest::gtest GTest::gmock)
     fos_set_warnings(fos_app_core_tests PRIVATE)
     gtest_discover_tests(fos_app_core_tests DISCOVERY_TIMEOUT 60
         PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
@@ -114,7 +114,7 @@ if(FOS_BUILD_TESTS)
     # GUI smoke test: needs an X display; run under xvfb-run when available. Without a
     # display the test skips itself (label `gui`).
     add_executable(fos_app_gui_tests tests/gui/gui_smoke_tests.cpp)
-    target_link_libraries(fos_app_gui_tests PRIVATE fos_app_gui GTest::gtest)
+    target_link_libraries(fos_app_gui_tests PRIVATE fos_app_gui Qt6::Test GTest::gtest)
     fos_set_warnings(fos_app_gui_tests PRIVATE)
     # The test loads the compiled Ukrainian catalogue from the build tree.
     target_compile_definitions(fos_app_gui_tests PRIVATE

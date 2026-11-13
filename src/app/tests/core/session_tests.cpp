@@ -6,6 +6,8 @@
 
 #include <QSignalSpy>
 
+#include <fstream>
+
 namespace fos::app::test {
 namespace {
 
@@ -101,7 +103,9 @@ TEST(Session, ExpressionInputAndEngineErrors) {
     for (const char* bad : {"no_such_parameter * 2", "width +", "-5", "width"}) {
         auto r = applyParameterInput(s, "cab1", "width", QString::fromUtf8(bad));
         EXPECT_FALSE(r.ok()) << bad;
-        if (!r.ok()) EXPECT_FALSE(r.error().message.empty()) << bad;
+        if (!r.ok()) {
+            EXPECT_FALSE(r.error().message.empty()) << bad;
+        }
         EXPECT_EQ(s.revision(), rev) << bad;
         EXPECT_EQ(s.document().undoCount(), undoCount) << bad;
         EXPECT_DOUBLE_EQ(shelfLength(s), 662) << bad;

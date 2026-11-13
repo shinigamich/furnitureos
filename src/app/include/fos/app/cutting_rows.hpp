@@ -3,6 +3,7 @@
 /// \file
 /// Cutting workspace view-model. Every number is taken from project::cuttingPlans()
 /// (cutting module, a HEURISTIC optimiser); nothing is computed here.
+#include "fos/project/commands.hpp"
 #include "fos/project/outputs.hpp"
 
 #include <optional>

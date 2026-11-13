@@ -36,6 +36,7 @@ QString mm(double v) { return QString::fromStdString(core::formatLength(v)); }
 InspectorPanel::InspectorPanel(Session& session, QWidget* parent) : QScrollArea(parent), session_(session) {
     setObjectName(QStringLiteral("inspector"));
     setWidgetResizable(true);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     connect(&session_, &Session::projectChanged, this, &InspectorPanel::rebuild);
     connect(&session_, &Session::selectionChanged, this, &InspectorPanel::rebuild);
     rebuild();

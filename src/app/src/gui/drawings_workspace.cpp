@@ -34,7 +34,7 @@ QString filesText(const WrittenFiles& files) {
 DrawingsWorkspace::DrawingsWorkspace(Session& session, QWidget* parent) : QWidget(parent), session_(session) {
     setObjectName(QStringLiteral("drawingsWorkspace"));
     target_ = new QComboBox(this);
-    target_->setMinimumContentsLength(24);
+    target_->setMinimumContentsLength(18);
     target_->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     paper_ = new QComboBox(this);
     for (auto [text, f] : {std::pair{"A4", drawings::PaperFormat::A4}, std::pair{"A3", drawings::PaperFormat::A3},
@@ -49,27 +49,31 @@ DrawingsWorkspace::DrawingsWorkspace(Session& session, QWidget* parent) : QWidge
     for (double d : {1.0, 2.0, 5.0, 10.0, 20.0, 50.0}) scale_->addItem(QStringLiteral("1:%1").arg(d), d);
     sheet_ = new QComboBox(this);
     zoom_ = new QComboBox(this);
+    zoom_->addItem(tr("Fit width"), 0);
     for (int z : {25, 50, 75, 100, 150, 200, 400}) zoom_->addItem(QStringLiteral("%1 %").arg(z), z);
-    zoom_->setCurrentIndex(1);
+    zoom_->setCurrentIndex(0);
     zoom_->setToolTip(tr("100 % = real paper size on a correctly calibrated screen"));
 
+    // Two rows so that long (translated) captions never force the window wider.
     auto* bar = new QHBoxLayout;
-    auto addLabeled = [&](const QString& text, QWidget* w) {
-        bar->addWidget(new QLabel(text, this));
-        bar->addWidget(w);
+    auto* bar2 = new QHBoxLayout;
+    auto addLabeled = [&](QHBoxLayout* row, const QString& text, QWidget* w) {
+        row->addWidget(new QLabel(text, this));
+        row->addWidget(w);
     };
-    addLabeled(tr("Drawing:"), target_);
-    addLabeled(tr("Paper:"), paper_);
-    bar->addWidget(orientation_);
-    addLabeled(tr("Scale:"), scale_);
-    addLabeled(tr("Sheet:"), sheet_);
-    addLabeled(tr("Zoom:"), zoom_);
+    addLabeled(bar, tr("Drawing:"), target_);
     bar->addStretch(1);
+    addLabeled(bar, tr("Paper:"), paper_);
+    bar->addWidget(orientation_);
+    addLabeled(bar, tr("Scale:"), scale_);
+    addLabeled(bar2, tr("Sheet:"), sheet_);
+    addLabeled(bar2, tr("Zoom:"), zoom_);
+    bar2->addStretch(1);
     auto* pdf = new QPushButton(tr("PDF…"), this);
     auto* svg = new QPushButton(tr("SVG…"), this);
     auto* dxf = new QPushButton(tr("DXF…"), this);
     auto* print = new QPushButton(tr("Print…"), this);
-    for (QPushButton* b : {pdf, svg, dxf, print}) bar->addWidget(b);
+    for (QPushButton* b : {pdf, svg, dxf, print}) bar2->addWidget(b);
 
     status_ = new QLabel(this);
     status_->setWordWrap(true);
@@ -83,6 +87,7 @@ DrawingsWorkspace::DrawingsWorkspace(Session& session, QWidget* parent) : QWidge
 
     auto* layout = new QVBoxLayout(this);
     layout->addLayout(bar);
+    layout->addLayout(bar2);
     layout->addWidget(status_);
     layout->addWidget(scroll_, 1);
 
@@ -141,11 +146,11 @@ void DrawingsWorkspace::refillTargets() {
 }
 
 std::optional<DrawingRequest> DrawingsWorkspace::request() const {
-    const QString data = target_->currentData().toString();
-    if (data.isEmpty()) return std::nullopt;
+    const QString selected = target_->currentData().toString();
+    if (selected.isEmpty()) return std::nullopt;
     DrawingRequest r;
-    r.kind = data.startsWith(QLatin1String(kPartPrefix)) ? DrawingRequest::Kind::Part : DrawingRequest::Kind::Assembly;
-    r.id = data.mid(2).toStdString();
+    r.kind = selected.startsWith(QLatin1String(kPartPrefix)) ? DrawingRequest::Kind::Part : DrawingRequest::Kind::Assembly;
+    r.id = selected.mid(2).toStdString();
     r.format = static_cast<drawings::PaperFormat>(paper_->currentData().toInt());
     r.orientation = static_cast<drawings::PaperOrientation>(orientation_->currentData().toInt());
     const double denominator = scale_->currentData().toDouble();
@@ -197,8 +202,11 @@ void DrawingsWorkspace::renderSheet() {
     preview_ = QImage();
     const int index = sheet_->currentIndex();
     if (drawing_ && index >= 0 && index < static_cast<int>(drawing_->sheets.size())) {
-        const double pxPerMm = zoom_->currentData().toInt() / 100.0 * logicalDpiX() / 25.4;
-        preview_ = printing::renderPreview(drawing_->sheets[static_cast<std::size_t>(index)], pxPerMm);
+        const auto& sheet = drawing_->sheets[static_cast<std::size_t>(index)];
+        const int zoom = zoom_->currentData().toInt();
+        const double fit = std::max(1, scroll_->viewport()->width() - 24) / sheet.width;
+        const double pxPerMm = zoom > 0 ? zoom / 100.0 * logicalDpiX() / 25.4 : fit;
+        preview_ = printing::renderPreview(sheet, pxPerMm);
     }
     image_->setPixmap(preview_.isNull() ? QPixmap() : QPixmap::fromImage(preview_));
 }

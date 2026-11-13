@@ -14,9 +14,17 @@
 namespace fos::app::gui {
 namespace {
 
+/// Combo box that does not force the inspector wider than the dock (long translated texts).
+QComboBox* narrowCombo(QWidget* parent) {
+    auto* box = new QComboBox(parent);
+    box->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+    box->setMinimumContentsLength(12);
+    return box;
+}
+
 template <class E>
 QComboBox* choiceBox(const Choices<E>& choices, E current, QWidget* parent) {
-    auto* box = new QComboBox(parent);
+    auto* box = narrowCombo(parent);
     for (const auto& [text, value] : choices) {
         box->addItem(text, static_cast<int>(value));
         if (value == current) box->setCurrentIndex(box->count() - 1);
@@ -100,7 +108,7 @@ void InspectorPanel::buildMaterials(QVBoxLayout* layout, const std::string& item
     auto* error = makeErrorLabel(box);
 
     auto materialBox = [&](const std::string& current, const QString& emptyText) {
-        auto* c = new QComboBox(box);
+        auto* c = narrowCombo(box);
         if (!emptyText.isEmpty()) c->addItem(emptyText, QString());
         for (const auto& mat : project.libraries.materials) {
             c->addItem(tr("%1 (%2 mm)").arg(QString::fromStdString(mat.name),
@@ -112,7 +120,7 @@ void InspectorPanel::buildMaterials(QVBoxLayout* layout, const std::string& item
     };
     // Edge boxes: first entry = "" (meaning given by `emptyText`), then the library.
     auto edgeBox = [&](const std::optional<std::string>& current, const QString& emptyText) {
-        auto* c = new QComboBox(box);
+        auto* c = narrowCombo(box);
         c->addItem(emptyText, QString());
         for (const auto& eb : project.libraries.edgeBands)
             c->addItem(QString::fromStdString(eb.name), QString::fromStdString(eb.id.str()));

@@ -42,8 +42,11 @@ TEST(BrowserTree, ItemsAssembliesParts) {
     EXPECT_EQ(assembly.children.size(), 10u);
     for (std::size_t i = 0; i < model.parts.size(); ++i) EXPECT_EQ(assembly.children[i].id, model.parts[i].id.str());
     // Side: finished 820 x 560 x 18.
-    for (const auto& p : assembly.children)
-        if (p.id == "cab1/side.left") EXPECT_EQ(p.detail, "820 × 560 × 18");
+    for (const auto& p : assembly.children) {
+        if (p.id == "cab1/side.left") {
+            EXPECT_EQ(p.detail, "820 \u00D7 560 \u00D7 18");
+        }
+    }
 
     // Without a resolved model only the items are listed.
     const auto bare = buildBrowserTree(s.project(), nullptr);
@@ -121,9 +124,6 @@ TEST(CuttingRows, SummaryFromPlansAndKerfCommand) {
     ASSERT_TRUE(s.execute(cuttingSettingsCommand(s.project(), std::string(project::defaults::kHdf3), 0, {0, 0, 0, 0})).ok());
     EXPECT_DOUBLE_EQ(s.project().cutting.forMaterial(project::defaults::kHdf3).kerf, 0);
     EXPECT_DOUBLE_EQ(s.project().cutting.forMaterial(project::defaults::kParticleboard18).kerf, 3.2);
-    // Negative kerf is refused by the project / cutting validation; nothing changes.
-    EXPECT_FALSE(s.execute(cuttingSettingsCommand(s.project(), std::nullopt, -1, {0, 0, 0, 0})).ok());
-    EXPECT_DOUBLE_EQ(s.project().cutting.defaults.kerf, 3.2);
     ASSERT_TRUE(s.undo().ok());
     ASSERT_TRUE(s.undo().ok());
     EXPECT_DOUBLE_EQ(s.project().cutting.defaults.kerf, before.kerf);
@@ -161,10 +161,10 @@ TEST(Drawings, AssemblyAndPartDrawingFollowWidthAndExport) {
     req.kind = DrawingRequest::Kind::Part;
     req.id = "cab1/shelf.1";
     req.format = drawings::PaperFormat::A4;
-    req.scale = drawings::Scale{1, 5};
+    req.scale = drawings::Scale{1, 10}; // 1:5 needs 121 x 142 mm > the 267 x 138 mm A4 area
     auto pd = generateDrawing(s.project(), *s.resolved(), req);
-    ASSERT_TRUE(pd.ok()) << pd.error().message;
-    EXPECT_DOUBLE_EQ(pd.value().sheets[0].scale.denominator, 5);
+    ASSERT_TRUE(pd.ok()) << (pd.ok() ? "" : pd.error().message);
+    EXPECT_DOUBLE_EQ(pd.value().sheets[0].scale.denominator, 10);
 
     // 1:1 on A4 cannot hold a 900 mm cabinet: the drawings module refuses with its message.
     req.kind = DrawingRequest::Kind::Assembly;

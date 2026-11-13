@@ -83,7 +83,7 @@ void Session::newProject() { replaceDocument(project::newProject(freshMetadata()
 
 core::Result<void> Session::newFromTemplate(TemplateKind kind, const std::optional<TemplateSize>& size) {
     project::Project p = project::newProject(freshMetadata());
-    auto item = makeTemplateItem(kind, nextItemId(p), "", p.libraries, size);
+    auto item = makeTemplateItem(kind, nextItemId(p), templateTitle(kind).toStdString(), p.libraries, size);
     if (!item) return item.error();
     p.items.push_back(std::move(item).value());
     const std::string id = p.items.back().id();
