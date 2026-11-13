@@ -1,0 +1,19 @@
+{
+  "manifestVersion": 1,
+  "id": "org.furnitureos.example-materials",
+  "name": "Example generic boards and edge bands",
+  "version": "1.0.0",
+  "description": "Example declarative data plugin: five generic sheet materials and four generic ABS edge bands. Not real products; dimensions are typical values, costs are unknown (0).",
+  "author": "FurnitureOS contributors",
+  "license": "CC0-1.0",
+  "compatibility": {
+    "minAppVersion": "0.1.0"
+  },
+  "permissions": ["data"],
+  "contributes": {
+    "libraries": ["libraries/generic-boards.foslib"]
+  },
+  "localizedNames": {
+    "uk": "Приклад: типові плити та крайки"
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "format": "furnitureos-library",
+  "formatVersion": 1,
+  "app": {
+    "name": "FurnitureOS",
+    "version": "0.1.0"
+  },
+  "savedAt": "2025-11-12T00:00:00Z",
+  "checksum": {
+    "algorithm": "sha256",
+    "value": "e028fba6a8721200e1179a9bb898b80c0fa7787e4d8a6cb2cfe4bc461d189189"
+  },
+  "payload": {
+    "materials": [
+      {
+        "id": "org.furnitureos.example-materials:white-pb-18",
+        "name": "Generic white melamine particleboard 18 mm",
+        "manufacturer": "",
+        "code": "",
+        "supplier": "",
+        "kind": "particleboard",
+        "thickness": 18.0,
+        "sheetLength": 2800.0,
+        "sheetWidth": 2070.0,
+        "hasGrain": false,
+        "color": "#F5F5F2",
+        "texture": "",
+        "costPerSheet": 0.0,
+        "available": true,
+        "custom": {
+          "source": "FurnitureOS example plugin (generic, not a real product)"
+        }
+      },
+      {
+        "id": "org.furnitureos.example-materials:grey-pb-18",
+        "name": "Generic light grey melamine particleboard 18 mm",
+        "manufacturer": "",
+        "code": "",
+        "supplier": "",
+        "kind": "particleboard",
+        "thickness": 18.0,
+        "sheetLength": 2800.0,
+        "sheetWidth": 2070.0,
+        "hasGrain": false,
+        "color": "#C8C9CB",
+        "texture": "",
+        "costPerSheet": 0.0,
+        "available": true,
+        "custom": {
+          "source": "FurnitureOS example plugin (generic, not a real product)"
+        }
+      },
+      {
+        "id": "org.furnitureos.example-materials:oak-decor-pb-18",
+        "name": "Generic oak-decor melamine particleboard 18 mm",
+        "manufacturer": "",
+        "code": "",
+        "supplier": "",
+        "kind": "particleboard",
+        "thickness": 18.0,
+        "sheetLength": 2800.0,
+        "sheetWidth": 2070.0,
+        "hasGrain": true,
+        "color": "#C4A070",
+        "texture": "",
+        "costPerSheet": 0.0,
+        "available": true,
+        "custom": {
+          "source": "FurnitureOS example plugin (generic, not a real product)"
+        }
+      },
+      {
+        "id": "org.furnitureos.example-materials:raw-mdf-19",
+        "name": "Generic raw MDF 19 mm",
+        "manufacturer": "",
+        "code": "",
+        "supplier": "",
+        "kind": "mdf",
+        "thickness": 19.0,
+        "sheetLength": 2800.0,
+        "sheetWidth": 2070.0,
+        "hasGrain": false,
+        "color": "#B59773",
+        "texture": "",
+        "costPerSheet": 0.0,
+        "available": true,
+        "custom": {
+          "source": "FurnitureOS example plugin (generic, not a real product)"
+        }
+      },
+      {
+        "id": "org.furnitureos.example-materials:white-hdf-3",
+        "name": "Generic white HDF back panel 3 mm",
+        "manufacturer": "",
+        "code": "",
+        "supplier": "",
+        "kind": "hdf",
+        "thickness": 3.0,
+        "sheetLength": 2800.0,
+        "sheetWidth": 2070.0,
+        "hasGrain": false,
+        "color": "#F0F0EE",
+        "texture": "",
+        "costPerSheet": 0.0,
+        "available": true,
+        "custom": {
+          "source": "FurnitureOS example plugin (generic, not a real product)"
+        }
+      }
+    ],
+    "edgeBands": [
+      {
+        "id": "org.furnitureos.example-materials:white-abs-22x2",
+        "name": "Generic white ABS edge band 22 x 2 mm",
+        "manufacturer": "",
+        "code": "",
+        "kind": "abs",
+        "thickness": 2.0,
+        "width": 22.0,
+        "color": "#F5F5F2",
+        "costPerMeter": 0.0
+      },
+      {
+        "id": "org.furnitureos.example-materials:white-abs-22x0.8",
+        "name": "Generic white ABS edge band 22 x 0.8 mm",
+        "manufacturer": "",
+        "code": "",
+        "kind": "abs",
+        "thickness": 0.8,
+        "width": 22.0,
+        "color": "#F5F5F2",
+        "costPerMeter": 0.0
+      },
+      {
+        "id": "org.furnitureos.example-materials:grey-abs-22x2",
+        "name": "Generic light grey ABS edge band 22 x 2 mm",
+        "manufacturer": "",
+        "code": "",
+        "kind": "abs",
+        "thickness": 2.0,
+        "width": 22.0,
+        "color": "#C8C9CB",
+        "costPerMeter": 0.0
+      },
+      {
+        "id": "org.furnitureos.example-materials:oak-decor-abs-22x1",
+        "name": "Generic oak-decor ABS edge band 22 x 1 mm",
+        "manufacturer": "",
+        "code": "",
+        "kind": "abs",
+        "thickness": 1.0,
+        "width": 22.0,
+        "color": "#C4A070",
+        "costPerMeter": 0.0
+      }
+    ],
+    "hardware": []
+  }
+}
