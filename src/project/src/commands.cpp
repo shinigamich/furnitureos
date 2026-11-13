@@ -4,6 +4,7 @@
 #include "fos/furniture/edit.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <charconv>
 
 namespace fos::project {
@@ -449,11 +450,45 @@ Command setElementEdit(std::string drawingId, std::string elementId, std::option
 
 // ------------------------------------------------------------------ settings
 
+namespace {
+/// Rejects settings the cutting optimiser would refuse later, with a message naming the field.
+core::Result<void> checkCuttingSettings(const CuttingSettings& s) {
+    const auto bad = [](const std::string& what, double v) {
+        return core::makeError(core::ErrorCode::InvalidArgument,
+                               "Cutting setting '" + what + "' must be a finite number >= 0 mm, got " +
+                                   core::formatLength(v, 3) + ".");
+    };
+    const std::pair<const char*, double> lengths[] = {
+        {"kerf", s.kerf},           {"trim left", s.trim.left},         {"trim right", s.trim.right},
+        {"trim top", s.trim.top},   {"trim bottom", s.trim.bottom},     {"minimum remnant length", s.minRemnantLength},
+        {"minimum remnant width", s.minRemnantWidth}};
+    for (const auto& [what, v] : lengths)
+        if (!std::isfinite(v) || v < 0) return bad(what, v);
+    if (s.maxStages != 0 && s.maxStages < 2)
+        return core::makeError(core::ErrorCode::InvalidArgument,
+                               "Cutting setting 'maximum stages' must be 0 (unlimited) or at least 2, got " +
+                                   std::to_string(s.maxStages) + ".");
+    for (const Remnant& r : s.remnants) {
+        if (!std::isfinite(r.length) || !std::isfinite(r.width) || r.length <= 0 || r.width <= 0)
+            return core::makeError(core::ErrorCode::InvalidArgument,
+                                   "Remnant '" + r.id + "' must have a positive length and width, got " +
+                                       core::formatLength(r.length, 3) + " x " + core::formatLength(r.width, 3) + " mm.");
+        if (r.quantity < 1)
+            return core::makeError(core::ErrorCode::InvalidArgument,
+                                   "Remnant '" + r.id + "' must have a quantity of at least 1, got " +
+                                       std::to_string(r.quantity) + ".");
+    }
+    return {};
+}
+} // namespace
+
 Command setCuttingSettings(std::optional<std::string> materialId, std::optional<CuttingSettings> settings) {
     Command c;
     c.label = label(materialId ? "Change cutting settings of {0}" : "Change default cutting settings",
                     {materialId.value_or("")});
     c.apply = [materialId, settings](Project& p) -> core::Result<Affected> {
+        if (settings)
+            if (auto ok = checkCuttingSettings(*settings); !ok) return ok.error();
         if (!materialId) {
             if (!settings)
                 return core::makeError(core::ErrorCode::InvalidArgument, "The default cutting settings cannot be removed.");

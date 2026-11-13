@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "test_support.hpp"
 
+#include <cmath>
+
 #include "fos/project/codec.hpp"
 
 namespace fos::project::test {
@@ -59,6 +61,35 @@ TEST(Document, FailedCommandLeavesDocumentUnchanged) {
     EXPECT_EQ(doc.isDirty(), dirty);
     EXPECT_EQ(doc.undoCount(), 1u);
     EXPECT_EQ(notices, 2); // add panel + its undo; no notice for failures
+}
+
+TEST(Document, InvalidCuttingSettingsAreRejected) {
+    Document doc = docWithCabinet();
+    const std::string before = state(doc);
+    CuttingSettings s;
+    s.kerf = -1;
+    auto r = doc.execute(commands::setCuttingSettings(std::nullopt, s));
+    ASSERT_FALSE(r.ok());
+    EXPECT_NE(r.error().message.find("'kerf'"), std::string::npos) << r.error().message;
+    s = {};
+    s.trim.left = std::nan("");
+    r = doc.execute(commands::setCuttingSettings(std::string(defaults::kParticleboard18), s));
+    ASSERT_FALSE(r.ok());
+    EXPECT_NE(r.error().message.find("'trim left'"), std::string::npos) << r.error().message;
+    s = {};
+    s.maxStages = 1;
+    EXPECT_FALSE(doc.execute(commands::setCuttingSettings(std::nullopt, s)).ok());
+    s = {};
+    s.remnants.push_back(Remnant{"r1", "Offcut", 500, 0, 1});
+    EXPECT_FALSE(doc.execute(commands::setCuttingSettings(std::nullopt, s)).ok());
+    s.remnants = {Remnant{"r1", "Offcut", 500, 300, 0}};
+    EXPECT_FALSE(doc.execute(commands::setCuttingSettings(std::nullopt, s)).ok());
+    EXPECT_EQ(state(doc), before); // nothing changed
+    // Zero kerf and zero trim are valid (e.g. a laser or a pre-trimmed sheet).
+    s = {};
+    s.kerf = 0;
+    s.trim = {0, 0, 0, 0};
+    EXPECT_TRUE(doc.execute(commands::setCuttingSettings(std::nullopt, s)).ok());
 }
 
 TEST(Document, DirtyFlagSemantics) {

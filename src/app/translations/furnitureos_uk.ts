@@ -449,7 +449,7 @@
     </message>
     <message>
         <source>Cut list</source>
-        <translation>Карта розкрою</translation>
+        <translation>Перелік розкрою</translation>
     </message>
     <message>
         <source>Warnings</source>
@@ -723,7 +723,7 @@
     </message>
     <message>
         <source>Sheet:</source>
-        <translation>Аркуш:</translation>
+        <translation>Лист:</translation>
     </message>
     <message>
         <source>%1 (%2 mm)</source>
@@ -972,6 +972,10 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     <message>
         <source>Printed</source>
         <translation>Надруковано</translation>
+    </message>
+    <message>
+        <source>Fit width</source>
+        <translation>За шириною</translation>
     </message>
 </context>
 <context>
@@ -1492,11 +1496,11 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
     <message>
         <source>Export cut list</source>
-        <translation>Експорт карти розкрою</translation>
+        <translation>Експорт переліку розкрою</translation>
     </message>
     <message>
         <source>-cut-list.csv</source>
-        <translation>-karta-rozkroiu.csv</translation>
+        <translation>-perelik-rozkroiu.csv</translation>
     </message>
     <message>
         <source>CSV files (*.csv)</source>
@@ -1584,7 +1588,7 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
     <message>
         <source>Cut list (CSV)…</source>
-        <translation>Карта розкрою (CSV)…</translation>
+        <translation>Перелік розкрою (CSV)…</translation>
     </message>
     <message>
         <source>Production sheet (HTML)…</source>
@@ -1762,7 +1766,7 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     <name>fos::app::gui::ProductionWorkspace</name>
     <message>
         <source>Cut list</source>
-        <translation>Карта розкрою</translation>
+        <translation>Перелік розкрою</translation>
     </message>
     <message>
         <source>Parts</source>

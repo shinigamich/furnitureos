@@ -3,7 +3,7 @@
 # view-model library `fos_app_core` (see README.md).
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGLWidgets PrintSupport Svg Test LinguistTools)
 
-set(FOS_APP_SOURCE_URL "https://github.com/furnitureos/furnitureos" CACHE STRING
+set(FOS_APP_SOURCE_URL "https://github.com/shinigamich/furnitureos" CACHE STRING
     "Public location of the corresponding source code, shown in Help > About (AGPL-3.0 section 13)")
 
 # ---------------------------------------------------------------- fos_app_core

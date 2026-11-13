@@ -39,9 +39,9 @@ template <class E> E valueOf(const QComboBox* box) { return static_cast<E>(box->
 void InspectorPanel::buildCabinet(QVBoxLayout* layout, const std::string& itemId) {
     buildNameEditor(layout, itemId);
     const auto* cabinet = session_.project().findItem(itemId)->cabinet();
+    buildParameters(layout, itemId, parameterGroups(*cabinet), true);
     buildConstruction(layout, itemId);
     buildMaterials(layout, itemId);
-    buildParameters(layout, itemId, parameterGroups(*cabinet), true);
 }
 
 void InspectorPanel::buildConstruction(QVBoxLayout* layout, const std::string& itemId) {

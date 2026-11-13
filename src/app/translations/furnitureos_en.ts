@@ -968,6 +968,10 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Printed</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Fit width</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::EnumText</name>
