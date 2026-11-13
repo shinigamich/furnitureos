@@ -42,8 +42,6 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
     tree_->header()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     tree_->header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     tree_->header()->setStretchLastSection(true);
-    tree_->setMinimumHeight(150);
-    tree_->setMaximumHeight(230);
     tree_->setWordWrap(true);
     layout->addWidget(tree_);
 
@@ -72,6 +70,8 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
     actions->addLayout(parts, 1, 0);
     actions->addWidget(removeSplit_, 1, 1);
     actions->addWidget(reset, 2, 1);
+    actions->setColumnStretch(0, 1);
+    actions->setColumnStretch(1, 1);
     layout->addLayout(actions);
     error_ = makeErrorLabel(this);
     error_->setObjectName(QStringLiteral("interiorError"));
@@ -206,6 +206,10 @@ void InteriorEditor::fill() {
         if (row.path == selectedPath_) current = node;
     }
     tree_->expandAll();
+    // Height for the rows (at least 4, at most 10), no empty block below a short tree.
+    const int rowHeight = std::max(tree_->sizeHintForRow(0), fontMetrics().height() + 4);
+    const int visibleRows = std::clamp(static_cast<int>(rows_.size()), 4, 10);
+    tree_->setFixedHeight(tree_->header()->sizeHint().height() + visibleRows * rowHeight + 2 * tree_->frameWidth() + 4);
     if (current) tree_->setCurrentItem(current);
     tree_->blockSignals(false);
     showSelected();

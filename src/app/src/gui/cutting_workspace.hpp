@@ -9,6 +9,7 @@ class QComboBox;
 class QDoubleSpinBox;
 class QLabel;
 class QListWidget;
+class QPushButton;
 class QSvgRenderer;
 class QTableWidget;
 
@@ -39,6 +40,12 @@ class CuttingWorkspace : public QWidget {
 public:
     explicit CuttingWorkspace(Session& session, QWidget* parent = nullptr);
     int materialCount() const;
+    /// Scope combo, objective combo and remnant table of the settings editor (for tests).
+    QComboBox* settingsScope() const noexcept { return scope_; }
+    QComboBox* objective() const noexcept { return objective_; }
+    QTableWidget* remnants() const noexcept { return remnants_; }
+    /// Same as pressing "Apply and re-optimise".
+    void apply() { applySettings(); }
 
 protected:
     void showEvent(QShowEvent* event) override;
@@ -49,6 +56,8 @@ private:
     void showSheet();
     void loadSettings();
     void applySettings();
+    void addRemnant();
+    void removeRemnant();
 
     Session& session_;
     QTableWidget* summary_;
@@ -61,6 +70,12 @@ private:
     QDoubleSpinBox* trimRight_;
     QDoubleSpinBox* trimTop_;
     QDoubleSpinBox* trimBottom_;
+    QComboBox* objective_;
+    QTableWidget* remnants_;
+    QPushButton* addRemnant_;
+    QPushButton* removeRemnant_;
+    QPushButton* useDefaults_;
+    QLabel* remnantHint_;
     QLabel* error_;
     bool stale_ = true;
 };

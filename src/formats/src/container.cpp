@@ -365,29 +365,4 @@ core::Result<LoadedDocument> parseDocument(std::string_view text, const FormatSp
     return out;
 }
 
-// ---------------------------------------------------------------- files
-
-core::Result<std::string> readFile(const std::filesystem::path& path) {
-    const std::string name = path.string();
-    std::error_code ec;
-    const auto status = std::filesystem::status(path, ec);
-    if (ec || !std::filesystem::exists(status))
-        return makeError(ErrorCode::IoError, "File '" + name + "' does not exist.", name);
-    if (std::filesystem::is_directory(status))
-        return makeError(ErrorCode::IoError, "'" + name + "' is a directory, not a file.", name);
-    std::ifstream in(path, std::ios::binary);
-    if (!in) return makeError(ErrorCode::IoError, "File '" + name + "' cannot be opened for reading.", name);
-    std::string data{std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()};
-    if (in.bad())
-        return makeError(ErrorCode::IoError, "File '" + name + "' could not be read completely.", name);
-    return data;
-}
-
-core::Result<LoadedDocument> loadDocument(const std::filesystem::path& path, const FormatSpec& spec,
-                                          const LoadOptions& options) {
-    auto text = readFile(path);
-    if (!text) return text.error();
-    return parseDocument(text.value(), spec, options, path.filename().string());
-}
-
 } // namespace fos::formats

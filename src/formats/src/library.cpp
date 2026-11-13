@@ -74,19 +74,32 @@ core::Result<SaveReport> exportLibrary(const std::filesystem::path& path, const 
     return saveDocument(path, std::move(document), options);
 }
 
-core::Result<Library> importLibrary(const std::filesystem::path& path, const LoadOptions& options,
-                                    core::Diagnostics* warnings) {
-    auto loaded = loadDocument(path, libraryFormatSpec(), options);
+core::Result<Library> importLibraryText(std::string_view text, std::string_view sourceName,
+                                        const LoadOptions& options, core::Diagnostics* warnings) {
+    const std::string name(sourceName);
+    if (text.size() > options.maxFileBytes)
+        return core::makeError(core::ErrorCode::ConstraintViolation,
+                               "Library '" + name + "' is " + std::to_string(text.size()) + " bytes; the limit is " +
+                                   std::to_string(options.maxFileBytes) + " bytes. It was not parsed.",
+                               name);
+    auto loaded = parseDocument(text, libraryFormatSpec(), options, name);
     if (!loaded) return loaded.error();
     auto library = libraryFromJson(loaded.value().document.payload, "/payload");
     if (!library) {
         core::Error error = library.error();
-        error.message = "'" + path.filename().string() + "' is not a valid library: " + error.message;
+        error.message = "'" + name + "' is not a valid library: " + error.message;
         return error;
     }
     if (warnings != nullptr)
         warnings->insert(warnings->end(), loaded.value().diagnostics.begin(), loaded.value().diagnostics.end());
     return library;
+}
+
+core::Result<Library> importLibrary(const std::filesystem::path& path, const LoadOptions& options,
+                                    core::Diagnostics* warnings) {
+    auto text = readFile(path, ReadLimits{options.maxFileBytes});
+    if (!text) return text.error();
+    return importLibraryText(text.value(), path.filename().string(), options, warnings);
 }
 
 const char* toString(MergeAction action) noexcept {

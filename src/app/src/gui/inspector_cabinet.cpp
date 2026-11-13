@@ -15,15 +15,38 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QPushButton>
+#include <QTabBar>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
 namespace fos::app::gui {
+namespace {
+/// Tab widget as tall as its CURRENT page (QTabWidget's own size hint is that of the tallest
+/// page, which would leave the short tabs with a large empty block in the scrolling inspector).
+class CurrentPageTabs : public QTabWidget {
+public:
+    using QTabWidget::QTabWidget;
+    QSize sizeHint() const override {
+        QSize s = QTabWidget::sizeHint();
+        if (const QWidget* page = currentWidget())
+            s.setHeight(tabBar()->sizeHint().height() + page->sizeHint().height() + 8);
+        return s;
+    }
+    // Word-wrapped labels make the pages height-for-width; QTabWidget would again take the
+    // tallest page.
+    int heightForWidth(int width) const override {
+        const QWidget* page = currentWidget();
+        if (!page) return QTabWidget::heightForWidth(width);
+        const int h = page->hasHeightForWidth() ? page->heightForWidth(width) : page->sizeHint().height();
+        return tabBar()->sizeHint().height() + h + 8;
+    }
+};
+} // namespace
 
 void InspectorPanel::buildCabinet(QVBoxLayout* layout, const std::string& itemId) {
     buildNameEditor(layout, itemId);
     const auto* cabinet = session_.project().findItem(itemId)->cabinet();
-    auto* tabs = new QTabWidget(layout->parentWidget());
+    auto* tabs = new CurrentPageTabs(layout->parentWidget());
     tabs->setObjectName(QStringLiteral("cabinetTabs"));
     tabs->setDocumentMode(true);
     auto page = [tabs](const QString& title) {
@@ -47,8 +70,19 @@ void InspectorPanel::buildCabinet(QVBoxLayout* layout, const std::string& itemId
     interior_ = new InteriorEditor(session_, itemId, interiorPath_, tabs);
     interior->addWidget(interior_);
     for (QVBoxLayout* l : {parameters, construction, interior}) l->addStretch(1);
+    // Hidden pages get the Ignored policy so that their minimum height does not count either.
+    auto sizeToCurrent = [tabs](int current) {
+        for (int i = 0; i < tabs->count(); ++i)
+            tabs->widget(i)->setSizePolicy(QSizePolicy::Preferred,
+                                           i == current ? QSizePolicy::Preferred : QSizePolicy::Ignored);
+        tabs->updateGeometry();
+    };
     tabs->setCurrentIndex(std::clamp(cabinetTab_, 0, tabs->count() - 1));
-    connect(tabs, &QTabWidget::currentChanged, this, [this](int index) { cabinetTab_ = index; });
+    sizeToCurrent(tabs->currentIndex());
+    connect(tabs, &QTabWidget::currentChanged, this, [this, sizeToCurrent](int index) {
+        cabinetTab_ = index;
+        sizeToCurrent(index);
+    });
     cabinetTabs_ = tabs;
     layout->addWidget(tabs);
 }

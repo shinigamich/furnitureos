@@ -9,6 +9,7 @@
 #include <array>
 #include <cstddef>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -75,6 +76,9 @@ struct Gen {
     /// (shelf index, panel index). Recorded from the section tree, independent of whether
     /// shelf pins or joint fasteners are generated; used to keep hinges clear of shelves.
     std::vector<std::pair<std::size_t, std::size_t>> shelfCarriers;
+    /// Slot -> index into assembly.parts, maintained by addPart() (O(1) index(); lookups
+    /// only, never iterated, so the hash order cannot affect the output).
+    std::unordered_map<std::string, std::size_t> slotIndex;
 
     /// Value of a parameter of the resolved graph (all standard names exist).
     double v(const char* name) const { return values.at(name); }
@@ -107,6 +111,10 @@ core::Result<void> buildBack(Gen& g);
 core::Result<void> buildInterior(Gen& g, const Bounds& rootBounds);
 core::Result<void> buildFront(Gen& g, const FrontSpec& spec, const std::string& path, const Box& box, const Bounds& bounds);
 void runHardware(Gen& g);
+/// Refuses an assembly with more than limits::kMaxPartsPerAssembly parts or a part whose
+/// length / width / thickness is not finite, not > 0 or above limits::kMaxDimension
+/// (message starts with "furniture.geometry.invalid_size").
+core::Result<void> checkPartSizes(const Gen& g);
 /// Self-check after generation: furniture.geometry.interpenetration errors (checks.hpp).
 void checkGeometry(Gen& g);
 

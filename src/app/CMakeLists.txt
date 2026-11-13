@@ -77,6 +77,8 @@ set(FOS_APP_GUI_SOURCES
     src/gui/diagnostics_panel.cpp
     src/gui/drawings_workspace.hpp
     src/gui/drawings_workspace.cpp
+    src/gui/drawing_annotations.hpp
+    src/gui/drawing_annotations.cpp
     src/gui/production_workspace.hpp
     src/gui/production_workspace.cpp
     src/gui/cutting_workspace.hpp

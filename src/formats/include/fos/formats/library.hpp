@@ -39,10 +39,18 @@ core::Result<Library> libraryFromJson(const Json& payload, std::string_view path
 core::Result<SaveReport> exportLibrary(const std::filesystem::path& path, const Library& library,
                                        const AppInfo& app, const SaveOptions& options = {});
 
-/// Reads a `.foslib` file. Container warnings (e.g. accepted checksum mismatch) are
+/// Reads a `.foslib` file (readFile: regular files only, at most options.maxFileBytes) and
+/// parses it with importLibraryText(). Container warnings (e.g. accepted checksum mismatch) are
 /// appended to `warnings` when given.
 core::Result<Library> importLibrary(const std::filesystem::path& path, const LoadOptions& options = {},
                                     core::Diagnostics* warnings = nullptr);
+
+/// Parses `.foslib` container text already in memory (e.g. read once through a bounded
+/// reader) exactly as importLibrary() parses a file; `sourceName` names it in messages.
+/// Fails (ConstraintViolation, nothing parsed) when `text` is longer than
+/// options.maxFileBytes, so callers get the same size limit as for files.
+core::Result<Library> importLibraryText(std::string_view text, std::string_view sourceName,
+                                        const LoadOptions& options = {}, core::Diagnostics* warnings = nullptr);
 
 /// What to do when an incoming entry has the id of an existing entry of the same category.
 enum class ConflictPolicy {

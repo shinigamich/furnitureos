@@ -12,9 +12,14 @@ namespace fos::formats {
 enum class SaveStage { WriteTemp, Verify, RotateBackups, Replace };
 const char* toString(SaveStage stage) noexcept;
 
+/// Largest SaveOptions::backupCount accepted (atomicWriteFile refuses more).
+inline constexpr int kMaxBackupCount = 100;
+
 struct SaveOptions {
     /// Number of rotating backups `<name>.bak1` (newest) .. `<name>.bakN` kept beside the
-    /// target. 0 = no backups are made (existing backup files are left untouched).
+    /// target, 0 ..= kMaxBackupCount (anything else is an InvalidArgument error). 0 = no
+    /// backups are made (existing backup files are left untouched). Existing backups are
+    /// found by one directory listing, so the cost of a save does not grow with the count.
     int backupCount = 3;
     /// Clock for `savedAt` when Document::savedAt is empty. Null = system clock.
     std::function<std::chrono::system_clock::time_point()> clock;

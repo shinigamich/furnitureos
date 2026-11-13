@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "cutting_workspace.hpp"
 
+#include "enum_text.hpp"
+#include "form_widgets.hpp"
 #include "fos/app/cutting_rows.hpp"
 #include "fos/app/session.hpp"
 #include "fos/core/units.hpp"
@@ -16,6 +18,8 @@
 #include <QLabel>
 #include <QPainter>
 #include <QPushButton>
+#include <QScrollArea>
+#include <QSpinBox>
 #include <QSvgRenderer>
 #include <QTableWidget>
 #include <QVBoxLayout>
@@ -93,8 +97,29 @@ CuttingWorkspace::CuttingWorkspace(Session& session, QWidget* parent) : QWidget(
     trimRight_ = mmSpin(this);
     trimTop_ = mmSpin(this);
     trimBottom_ = mmSpin(this);
+    objective_ = choiceBox(objectiveChoices(), cutting::Objective::MinimizeSheets, this);
+    objective_->setObjectName(QStringLiteral("cuttingObjective"));
+    objective_->setToolTip(tr("What the heuristic optimiser compares candidate layouts by."));
+    remnants_ = new QTableWidget(0, 4, this);
+    remnants_->setObjectName(QStringLiteral("remnantTable"));
+    remnants_->setHorizontalHeaderLabels({tr("Label"), tr("Length"), tr("Width"), tr("Qty")});
+    remnants_->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    remnants_->setSelectionBehavior(QAbstractItemView::SelectRows);
+    remnants_->setMinimumHeight(110);
+    remnants_->setToolTip(tr("Leftover boards of this material, used before full sheets. Length along the grain, mm."));
+    addRemnant_ = new QPushButton(tr("Add remnant"), this);
+    addRemnant_->setObjectName(QStringLiteral("addRemnant"));
+    removeRemnant_ = new QPushButton(tr("Remove remnant"), this);
+    removeRemnant_->setObjectName(QStringLiteral("removeRemnant"));
+    remnantHint_ = new QLabel(this);
+    remnantHint_->setWordWrap(true);
+    remnantHint_->setStyleSheet(QStringLiteral("color: palette(mid);"));
+    useDefaults_ = new QPushButton(tr("Use project defaults for this material"), this);
+    useDefaults_->setObjectName(QStringLiteral("useDefaultCutting"));
     error_ = makeErrorLabel(this);
+    error_->setObjectName(QStringLiteral("cuttingError"));
     auto* apply = new QPushButton(tr("Apply and re-optimise"), this);
+    apply->setObjectName(QStringLiteral("applyCutting"));
     auto* settings = new QGroupBox(tr("Saw settings"), this);
     auto* form = new QFormLayout(settings);
     form->addRow(tr("Applies to:"), scope_);
@@ -103,12 +128,25 @@ CuttingWorkspace::CuttingWorkspace(Session& session, QWidget* parent) : QWidget(
     form->addRow(tr("Trim right:"), trimRight_);
     form->addRow(tr("Trim top:"), trimTop_);
     form->addRow(tr("Trim bottom:"), trimBottom_);
+    form->addRow(tr("Objective:"), objective_);
+    form->addRow(new QLabel(tr("Remnants (extra stock):"), settings));
+    form->addRow(remnants_);
+    auto* remnantButtons = new QHBoxLayout;
+    remnantButtons->addWidget(addRemnant_);
+    remnantButtons->addWidget(removeRemnant_);
+    form->addRow(remnantButtons);
+    form->addRow(remnantHint_);
     form->addRow(apply);
+    form->addRow(useDefaults_);
     form->addRow(error_);
 
     // Summary across the full width; below it the saw settings and the selected sheet.
-    summary_->setMaximumHeight(170);
-    settings->setMaximumWidth(380);
+    auto* settingsScroll = new QScrollArea(this);
+    settingsScroll->setWidget(settings);
+    settingsScroll->setWidgetResizable(true);
+    settingsScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    settingsScroll->setFrameShape(QFrame::NoFrame);
+    settingsScroll->setFixedWidth(390);
     auto* right = new QWidget(this);
     auto* rightLayout = new QVBoxLayout(right);
     rightLayout->setContentsMargins(0, 0, 0, 0);
@@ -120,10 +158,7 @@ CuttingWorkspace::CuttingWorkspace(Session& session, QWidget* parent) : QWidget(
     rightLayout->addWidget(sheetInfo_);
     rightLayout->addWidget(view_, 1);
     auto* lower = new QHBoxLayout;
-    auto* settingsColumn = new QVBoxLayout;
-    settingsColumn->addWidget(settings);
-    settingsColumn->addStretch(1);
-    lower->addLayout(settingsColumn);
+    lower->addWidget(settingsScroll);
     lower->addWidget(right, 1);
 
     auto* layout = new QVBoxLayout(this);
@@ -139,6 +174,14 @@ CuttingWorkspace::CuttingWorkspace(Session& session, QWidget* parent) : QWidget(
     connect(sheet_, qOverload<int>(&QComboBox::currentIndexChanged), this, &CuttingWorkspace::showSheet);
     connect(scope_, qOverload<int>(&QComboBox::activated), this, &CuttingWorkspace::loadSettings);
     connect(apply, &QPushButton::clicked, this, &CuttingWorkspace::applySettings);
+    connect(addRemnant_, &QPushButton::clicked, this, &CuttingWorkspace::addRemnant);
+    connect(removeRemnant_, &QPushButton::clicked, this, &CuttingWorkspace::removeRemnant);
+    connect(useDefaults_, &QPushButton::clicked, this, [this] {
+        const std::string id = scope_->currentData().toString().toStdString();
+        if (id.empty()) return;
+        auto r = session_.execute(useDefaultCuttingSettingsCommand(id));
+        if (!r) showError(error_, QString::fromStdString(r.error().message));
+    });
 }
 
 void CuttingWorkspace::showEvent(QShowEvent* event) {
@@ -172,6 +215,10 @@ void CuttingWorkspace::refresh() {
         set(6, r.layoutValid ? tr("valid") : tr("ERRORS"));
     }
     summary_->resizeColumnsToContents();
+    // As tall as its rows (no empty block below two materials), at most 170 px.
+    int tableHeight = summary_->horizontalHeader()->height() + 2 * summary_->frameWidth() + 2;
+    for (int r = 0; r < summary_->rowCount(); ++r) tableHeight += summary_->rowHeight(r);
+    summary_->setFixedHeight(std::min(std::max(tableHeight, 60), 170));
 
     // Settings scope: defaults + materials of the library.
     const QString scope = scope_->currentData().toString();
@@ -219,23 +266,106 @@ void CuttingWorkspace::showSheet() {
                                  num(sheet.cutLength / 1000.0, 2)));
 }
 
+namespace {
+/// Remnant table columns: label, length, width, quantity; the id is kept in the label's data.
+constexpr int kRemnantIdRole = Qt::UserRole;
+
+QDoubleSpinBox* remnantSpin(QWidget* parent, double value) {
+    auto* s = new QDoubleSpinBox(parent);
+    s->setRange(0, 10000);
+    s->setDecimals(1);
+    s->setValue(value);
+    s->setFrame(false);
+    return s;
+}
+} // namespace
+
 void CuttingWorkspace::loadSettings() {
     const std::string id = scope_->currentData().toString().toStdString();
-    const auto& c = session_.project().cutting;
-    const project::CuttingSettings& s = id.empty() ? c.defaults : c.forMaterial(id);
+    const std::optional<std::string> material = id.empty() ? std::nullopt : std::optional<std::string>(id);
+    const CuttingSettingsInput s = cuttingSettingsInput(session_.project(), material);
     kerf_->setValue(s.kerf);
     trimLeft_->setValue(s.trim.left);
     trimRight_->setValue(s.trim.right);
     trimTop_->setValue(s.trim.top);
     trimBottom_->setValue(s.trim.bottom);
+    selectData(objective_, static_cast<int>(s.objective));
+    remnants_->setRowCount(0);
+    for (const auto& r : s.remnants) {
+        const int row = remnants_->rowCount();
+        remnants_->insertRow(row);
+        auto* label = new QTableWidgetItem(QString::fromStdString(r.label));
+        label->setData(kRemnantIdRole, QString::fromStdString(r.id));
+        label->setToolTip(tr("Remnant id %1").arg(QString::fromStdString(r.id)));
+        remnants_->setItem(row, 0, label);
+        remnants_->setCellWidget(row, 1, remnantSpin(remnants_, r.length));
+        remnants_->setCellWidget(row, 2, remnantSpin(remnants_, r.width));
+        auto* qty = new QSpinBox(remnants_);
+        qty->setRange(0, 999);
+        qty->setValue(r.quantity);
+        qty->setFrame(false);
+        remnants_->setCellWidget(row, 3, qty);
+    }
+    remnants_->resizeColumnToContents(1);
+    remnants_->resizeColumnToContents(2);
+    // Remnants are boards of one material: edited per material, not in the project defaults.
+    const bool perMaterial = material.has_value();
+    remnants_->setEnabled(perMaterial);
+    addRemnant_->setEnabled(perMaterial);
+    removeRemnant_->setEnabled(perMaterial && remnants_->rowCount() > 0);
+    remnantHint_->setText(perMaterial ? tr("Changes take effect with “Apply and re-optimise”.")
+                                      : tr("Choose a material under “Applies to” to edit its remnants."));
+    useDefaults_->setVisible(perMaterial);
+    useDefaults_->setEnabled(perMaterial && hasOwnCuttingSettings(session_.project(), id));
     showError(error_, {});
+}
+
+void CuttingWorkspace::addRemnant() {
+    std::vector<project::Remnant> existing;
+    for (int row = 0; row < remnants_->rowCount(); ++row)
+        existing.push_back({remnants_->item(row, 0)->data(kRemnantIdRole).toString().toStdString(), {}, 0, 0, 1});
+    const int row = remnants_->rowCount();
+    remnants_->insertRow(row);
+    auto* label = new QTableWidgetItem(tr("Remnant"));
+    label->setData(kRemnantIdRole, QString::fromStdString(nextRemnantId(existing)));
+    remnants_->setItem(row, 0, label);
+    remnants_->setCellWidget(row, 1, remnantSpin(remnants_, 1000));
+    remnants_->setCellWidget(row, 2, remnantSpin(remnants_, 500));
+    auto* qty = new QSpinBox(remnants_);
+    qty->setRange(0, 999);
+    qty->setValue(1);
+    qty->setFrame(false);
+    remnants_->setCellWidget(row, 3, qty);
+    remnants_->setCurrentCell(row, 0);
+    removeRemnant_->setEnabled(true);
+}
+
+void CuttingWorkspace::removeRemnant() {
+    const int row = remnants_->currentRow();
+    if (row >= 0) remnants_->removeRow(row);
+    removeRemnant_->setEnabled(remnants_->rowCount() > 0);
 }
 
 void CuttingWorkspace::applySettings() {
     const std::string id = scope_->currentData().toString().toStdString();
     const std::optional<std::string> material = id.empty() ? std::nullopt : std::optional<std::string>(id);
-    cutting::Trim trim{trimLeft_->value(), trimRight_->value(), trimTop_->value(), trimBottom_->value()};
-    auto r = session_.execute(cuttingSettingsCommand(session_.project(), material, kerf_->value(), trim));
+    CuttingSettingsInput in = cuttingSettingsInput(session_.project(), material);
+    in.kerf = kerf_->value();
+    in.trim = cutting::Trim{trimLeft_->value(), trimRight_->value(), trimTop_->value(), trimBottom_->value()};
+    in.objective = valueOf<cutting::Objective>(objective_);
+    if (material) {
+        in.remnants.clear();
+        for (int row = 0; row < remnants_->rowCount(); ++row) {
+            project::Remnant r;
+            r.id = remnants_->item(row, 0)->data(kRemnantIdRole).toString().toStdString();
+            r.label = remnants_->item(row, 0)->text().toStdString();
+            r.length = static_cast<QDoubleSpinBox*>(remnants_->cellWidget(row, 1))->value();
+            r.width = static_cast<QDoubleSpinBox*>(remnants_->cellWidget(row, 2))->value();
+            r.quantity = static_cast<QSpinBox*>(remnants_->cellWidget(row, 3))->value();
+            in.remnants.push_back(std::move(r));
+        }
+    }
+    auto r = session_.execute(cuttingSettingsCommand(session_.project(), material, in));
     if (!r) showError(error_, QString::fromStdString(r.error().message));
 }
 

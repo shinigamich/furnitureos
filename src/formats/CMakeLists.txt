@@ -5,6 +5,7 @@ fos_add_module(formats
     SOURCES
         src/sha256.cpp
         src/container.cpp
+        src/file_read.cpp
         src/atomic_file.cpp
         src/recovery.cpp
         src/enums.cpp

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "drawings_workspace.hpp"
 
+#include "drawing_annotations.hpp"
+
 #include "fos/app/session.hpp"
 #include "fos/printing/paint.hpp"
 #include "fos/printing/print.hpp"
@@ -11,12 +13,14 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMessageBox>
+#include <QPainter>
 #include <QPixmap>
 #include <QPrintDialog>
 #include <QPrinter>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QScrollArea>
+#include <QSplitter>
 #include <QVBoxLayout>
 
 namespace fos::app::gui {
@@ -34,7 +38,7 @@ QString filesText(const WrittenFiles& files) {
 DrawingsWorkspace::DrawingsWorkspace(Session& session, QWidget* parent) : QWidget(parent), session_(session) {
     setObjectName(QStringLiteral("drawingsWorkspace"));
     target_ = new QComboBox(this);
-    target_->setMinimumContentsLength(18);
+    target_->setMinimumContentsLength(26);
     target_->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     paper_ = new QComboBox(this);
     for (auto [text, f] : {std::pair{"A4", drawings::PaperFormat::A4}, std::pair{"A3", drawings::PaperFormat::A3},
@@ -77,19 +81,34 @@ DrawingsWorkspace::DrawingsWorkspace(Session& session, QWidget* parent) : QWidge
 
     status_ = new QLabel(this);
     status_->setWordWrap(true);
-    image_ = new QLabel(this);
+    image_ = new SheetPreview(this);
     image_->setObjectName(QStringLiteral("drawingPreview"));
     image_->setAlignment(Qt::AlignCenter);
     scroll_ = new QScrollArea(this);
     scroll_->setWidget(image_);
     scroll_->setWidgetResizable(true);
     scroll_->setBackgroundRole(QPalette::Dark);
+    annotations_ = new AnnotationPanel(session_, this);
+    auto* panelScroll = new QScrollArea(this);
+    panelScroll->setWidget(annotations_);
+    panelScroll->setWidgetResizable(true);
+    panelScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    panelScroll->setMinimumWidth(280);
+    splitter_ = new QSplitter(Qt::Horizontal, this);
+    splitter_->addWidget(scroll_);
+    splitter_->addWidget(panelScroll);
+    splitter_->setStretchFactor(0, 1);
+    splitter_->setStretchFactor(1, 0);
+    splitter_->setChildrenCollapsible(false);
+    splitter_->setSizes({640, 290});
 
     auto* layout = new QVBoxLayout(this);
     layout->addLayout(bar);
     layout->addLayout(bar2);
     layout->addWidget(status_);
-    layout->addWidget(scroll_, 1);
+    layout->addWidget(splitter_, 1);
+    connect(image_, &SheetPreview::clicked, this, &DrawingsWorkspace::previewClicked);
+    connect(annotations_, &AnnotationPanel::overlayChanged, this, &DrawingsWorkspace::showOverlay);
 
     connect(&session_, &Session::projectChanged, this, [this] {
         refillTargets();
@@ -161,6 +180,7 @@ std::optional<DrawingRequest> DrawingsWorkspace::request() const {
 
 void DrawingsWorkspace::regenerate() {
     stale_ = false;
+    annotations_->setDrawing(nullptr, request(), 0); // the old result is about to be destroyed
     drawing_.reset();
     const auto req = request();
     const project::Resolved* resolved = session_.resolved();
@@ -200,15 +220,59 @@ void DrawingsWorkspace::regenerate() {
 
 void DrawingsWorkspace::renderSheet() {
     preview_ = QImage();
+    pxPerMm_ = 0;
     const int index = sheet_->currentIndex();
     if (drawing_ && index >= 0 && index < static_cast<int>(drawing_->sheets.size())) {
         const auto& sheet = drawing_->sheets[static_cast<std::size_t>(index)];
         const int zoom = zoom_->currentData().toInt();
         const double fit = std::max(1, scroll_->viewport()->width() - 24) / sheet.width;
-        const double pxPerMm = zoom > 0 ? zoom / 100.0 * logicalDpiX() / 25.4 : fit;
-        preview_ = printing::renderPreview(sheet, pxPerMm);
+        pxPerMm_ = zoom > 0 ? zoom / 100.0 * logicalDpiX() / 25.4 : fit;
+        preview_ = printing::renderPreview(sheet, pxPerMm_);
     }
-    image_->setPixmap(preview_.isNull() ? QPixmap() : QPixmap::fromImage(preview_));
+    // The panel follows the drawing and sheet shown (its overlay is drawn by showOverlay()).
+    std::optional<DrawingRequest> req = drawing_ ? request() : std::nullopt;
+    annotations_->setDrawing(drawing_ ? &*drawing_ : nullptr, req, static_cast<std::size_t>(std::max(0, index)));
+    showOverlay();
+}
+
+int DrawingsWorkspace::sheetIndex() const { return sheet_->currentIndex(); }
+
+void DrawingsWorkspace::showOverlay() {
+    if (preview_.isNull() || pxPerMm_ <= 0 || !drawing_) {
+        image_->setPixmap(preview_.isNull() ? QPixmap() : QPixmap::fromImage(preview_));
+        return;
+    }
+    const double height = drawing_->sheets[static_cast<std::size_t>(std::max(0, sheet_->currentIndex()))].height;
+    const auto toPixel = [&](geometry::Vec2 p) { return QPointF(p.x * pxPerMm_, (height - p.y) * pxPerMm_); };
+    QImage shown = preview_;
+    QPainter painter(&shown);
+    painter.setRenderHint(QPainter::Antialiasing);
+    const drawings::Rect2 box = annotations_->highlight();
+    if (!box.empty()) {
+        const QRectF r = QRectF(toPixel(box.min), toPixel(box.max)).normalized().adjusted(-3, -3, 3, 3);
+        painter.setPen(QPen(QColor(0, 102, 204), 1.5));
+        painter.setBrush(QColor(0, 102, 204, 40));
+        painter.drawRect(r);
+    }
+    painter.setPen(QPen(QColor(204, 0, 0), 2));
+    painter.setBrush(Qt::NoBrush);
+    for (const auto& m : annotations_->markers()) painter.drawEllipse(toPixel(m), 5, 5);
+    painter.end();
+    image_->setPixmap(QPixmap::fromImage(shown));
+}
+
+void DrawingsWorkspace::previewClicked(QPointF pixel) {
+    const int index = sheet_->currentIndex();
+    if (!drawing_ || pxPerMm_ <= 0 || index < 0 || index >= static_cast<int>(drawing_->sheets.size())) return;
+    const double height = drawing_->sheets[static_cast<std::size_t>(index)].height;
+    annotations_->sheetClicked({pixel.x() / pxPerMm_, height - pixel.y() / pxPerMm_});
+}
+
+void DrawingsWorkspace::clickPaper(double x, double y) {
+    if (stale_) regenerate();
+    if (pxPerMm_ <= 0 || !drawing_) return;
+    const double height = drawing_->sheets[static_cast<std::size_t>(std::max(0, sheet_->currentIndex()))].height;
+    previewClicked(QPointF(x * pxPerMm_, (height - y) * pxPerMm_));
 }
 
 QString DrawingsWorkspace::drawingName() const {

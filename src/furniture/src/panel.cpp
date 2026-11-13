@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/furniture/panel.hpp"
 
+#include "fos/furniture/limits.hpp"
+
+#include <cmath>
+
 namespace fos::furniture {
 
 PanelDefinition makePanel(domain::PartId id, std::string name, domain::MaterialId material) {
@@ -36,8 +40,20 @@ core::Result<PanelResult> generatePanel(const PanelDefinition& def, const Librar
         return fail(core::ErrorCode::ConstraintViolation,
                     "length and width must be greater than 0 (are " + core::formatLength(length, 3) + " x " +
                         core::formatLength(width, 3) + " mm).");
+    for (int i = 0; i < 5; ++i)
+        if (!std::isfinite(vals[i]) || std::fabs(vals[i]) > limits::kMaxDimension)
+            return fail(core::ErrorCode::InvalidArgument,
+                        std::string("furniture.geometry.invalid_size: parameter '") + names[i] + "' is " +
+                            (std::isfinite(vals[i]) ? core::formatLength(vals[i], 3) + " mm" : std::string("not finite")) +
+                            "; lengths and positions are limited to " + core::formatLength(limits::kMaxDimension, 3) +
+                            " mm.");
     const domain::Material* m = libs.findMaterial(def.material);
     if (!m) return fail(core::ErrorCode::NotFound, "material '" + def.material.str() + "' is not in the material library.");
+    if (!std::isfinite(m->thickness) || !(m->thickness > 0) || m->thickness > limits::kMaxDimension)
+        return fail(core::ErrorCode::InvalidArgument,
+                    "furniture.geometry.invalid_size: material '" + def.material.str() + "' has thickness " +
+                        core::formatLength(m->thickness, 3) + " mm; it must be finite, greater than 0 and at most " +
+                        core::formatLength(limits::kMaxDimension, 3) + " mm.");
 
     PanelResult out;
     domain::Part& p = out.part;

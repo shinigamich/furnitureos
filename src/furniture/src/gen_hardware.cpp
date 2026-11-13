@@ -3,10 +3,13 @@
 #include "fos/hardware/corner_joint.hpp"
 #include "fos/hardware/hinges.hpp"
 #include "fos/hardware/shelf_supports.hpp"
+#include "fos/machining/validation.hpp"
 #include "gen_context.hpp"
 
 #include <algorithm>
 #include <cmath>
+#include <set>
+#include <variant>
 
 namespace fos::furniture::detail {
 namespace {
@@ -170,15 +173,88 @@ core::Result<hardware::Placement> place(Gen& g, const Job& j, const domain::Hard
     return core::makeError(core::ErrorCode::Internal, "Unknown hardware job.");
 }
 
+/// Index of the part with id `id` (an id "<cabinet>/<slot>" made by addPart), or
+/// parts.size(). O(1) through Gen::slotIndex.
+std::size_t indexOfId(const Gen& g, const domain::PartId& id) {
+    const std::string prefix = g.partId("");
+    const std::string& s = id.str();
+    if (s.size() <= prefix.size() || s.compare(0, prefix.size(), prefix) != 0) return g.assembly.parts.size();
+    const std::size_t i = g.index(s.substr(prefix.size()));
+    return i < g.assembly.parts.size() && g.assembly.parts[i].id == id ? i : g.assembly.parts.size();
+}
+
+/// SHELF-PIN COLLISION RULE. Shelf pins are placed after the joints of the panels they are
+/// drilled into (carcass and divider joints are scheduled first, see buildInterior), and
+/// joints take precedence: when a pin hole of `placement` would intersect a hole already
+/// drilled into the same part (machining::holesCollide, e.g. the confirmat or dowel of a
+/// partition end in a low cabinet), the description of the first such pair is returned and
+/// the whole pin set of that shelf is dropped (furniture.shelf_pins.dropped). Empty = clear.
+std::string pinCollision(const Gen& g, const hardware::Placement& placement) {
+    for (const auto& po : placement.operations) {
+        const std::size_t i = indexOfId(g, po.part);
+        if (i >= g.assembly.parts.size()) continue; // reported by storePlacement
+        const domain::Part& part = g.assembly.parts[i];
+        for (const auto& added : po.operations) {
+            const auto* h = std::get_if<domain::Hole>(&added.shape);
+            if (!h) continue;
+            for (const auto& existing : part.operations) {
+                const auto* e = std::get_if<domain::Hole>(&existing.shape);
+                if (e && machining::holesCollide(part, *e, *h))
+                    return "its hole on face " + std::string(domain::toString(h->face)) + " at (" + num(h->u) + ", " +
+                           num(h->v) + ") of '" + part.name + "' (" + part.id.str() + ") would intersect '" +
+                           existing.id.str() + "' on face " + std::string(domain::toString(e->face)) + " at (" +
+                           num(e->u) + ", " + num(e->v) + ")";
+            }
+        }
+    }
+    return {};
+}
+
+/// Same result as hardware::applyPlacement for a placement whose instance ids are new to the
+/// assembly (always the case for the generator: one job per instance id), but O(size of the
+/// placement) instead of a scan of every operation and instance of the assembly. Falls back
+/// to applyPlacement when an instance id was stored before.
+core::Result<void> storePlacement(Gen& g, std::set<std::string>& stored, const hardware::Placement& placement) {
+    std::vector<std::size_t> targets;
+    for (const auto& po : placement.operations) {
+        const std::size_t i = indexOfId(g, po.part);
+        if (i >= g.assembly.parts.size()) return hardware::applyPlacement(g.assembly, placement); // NotFound
+        targets.push_back(i);
+    }
+    for (const auto& inst : placement.instances)
+        if (stored.count(inst.id.str())) return hardware::applyPlacement(g.assembly, placement);
+    for (const auto& inst : placement.instances) {
+        stored.insert(inst.id.str());
+        g.assembly.hardware.push_back(inst);
+    }
+    for (std::size_t k = 0; k < placement.operations.size(); ++k) {
+        auto& ops = g.assembly.parts[targets[k]].operations;
+        ops.insert(ops.end(), placement.operations[k].operations.begin(), placement.operations[k].operations.end());
+    }
+    return {};
+}
+
 } // namespace
 
 void runHardware(Gen& g) {
+    std::set<std::string> stored;
+    for (const auto& h : g.assembly.hardware) stored.insert(h.id.str());
     for (const Job& j : g.jobs) {
         const domain::HardwareInstanceId id(g.partId(j.instance));
         auto placement = place(g, j, id);
+        if (placement && j.kind == JobKind::ShelfPins) {
+            if (const std::string why = pinCollision(g, placement.value()); !why.empty()) {
+                const domain::Part& shelf = g.assembly.parts[j.a];
+                g.warn("furniture.shelf_pins.dropped",
+                       "The shelf pins of '" + shelf.name + "' (" + shelf.id.str() + ") were not drilled: " + why +
+                           ". The shelf has no supports; move it (fewer shelves or a taller section) or use another "
+                           "joint fastener.",
+                       shelf.id.str());
+                continue;
+            }
+        }
         if (placement) {
-            if (auto stored = hardware::applyPlacement(g.assembly, placement.value()); !stored)
-                placement = stored.error();
+            if (auto r = storePlacement(g, stored, placement.value()); !r) placement = r.error();
         }
         if (!placement)
             g.error(placement.error().code == core::ErrorCode::NotFound ? "furniture.hardware.missing_definition"

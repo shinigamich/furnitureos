@@ -5,6 +5,7 @@
 #include "fos/formats/json.hpp"
 
 #include <chrono>
+#include <cstdint>
 #include <filesystem>
 #include <functional>
 #include <map>
@@ -79,11 +80,23 @@ struct FormatSpec {
     MigrationRegistry migrations;
 };
 
+/// Default size limit of readFile() and loadDocument(): 256 MiB.
+inline constexpr std::uintmax_t kDefaultMaxFileBytes = std::uintmax_t{256} * 1024 * 1024;
+
+/// What readFile() accepts.
+struct ReadLimits {
+    /// Largest file read, in bytes. Checked on the file size before reading and enforced
+    /// while reading (a file that grows past it is refused).
+    std::uintmax_t maxBytes = kDefaultMaxFileBytes;
+};
+
 struct LoadOptions {
     /// Recovery switch. When true, a missing or wrong checksum does not fail the load;
     /// the payload is returned together with a Warning diagnostic
     /// ("formats.container.checksum_mismatch" / "formats.container.checksum_missing").
     bool allowChecksumMismatch = false;
+    /// Size limit of the file read by loadDocument() / importLibrary() (see ReadLimits).
+    std::uintmax_t maxFileBytes = kDefaultMaxFileBytes;
 };
 
 struct LoadedDocument {
@@ -118,10 +131,14 @@ core::Result<std::string> serializeDocument(const Document& document);
 core::Result<LoadedDocument> parseDocument(std::string_view text, const FormatSpec& spec,
                                            const LoadOptions& options = {}, std::string_view sourceName = "document");
 
-/// Whole file as bytes. IoError when it is missing, a directory or unreadable.
-core::Result<std::string> readFile(const std::filesystem::path& path);
+/// Whole file as bytes. Only REGULAR files are read (symlinks to one are followed).
+/// Errors: IoError when it is missing, a directory, not a regular file (FIFO, character or
+/// block device, socket: refused without reading, so `/dev/zero` or a pipe never blocks or
+/// exhausts memory) or unreadable; ConstraintViolation when it is larger than
+/// `limits.maxBytes` (checked before reading, and again while reading).
+core::Result<std::string> readFile(const std::filesystem::path& path, const ReadLimits& limits = {});
 
-/// readFile + parseDocument.
+/// readFile (limit options.maxFileBytes) + parseDocument.
 core::Result<LoadedDocument> loadDocument(const std::filesystem::path& path, const FormatSpec& spec,
                                           const LoadOptions& options = {});
 

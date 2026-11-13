@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/formats/atomic_file.hpp"
 
+#include <algorithm>
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
 #include <random>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -64,6 +66,30 @@ void syncDirectory(const fs::path& directory) {
 #endif
 }
 
+/// Indices N (1 <= N <= maxIndex) of the existing backup files `<target name>.bakN`, found by
+/// ONE listing of the target's directory (not by probing every index, which costs
+/// `backupCount` file-system calls per save). Names with leading zeros or other suffixes are
+/// not backups. Ascending.
+std::vector<int> existingBackups(const fs::path& target, int maxIndex) {
+    std::vector<int> out;
+    const fs::path directory = target.parent_path().empty() ? fs::path(".") : target.parent_path();
+    const std::string prefix = target.filename().string() + ".bak";
+    std::error_code ec;
+    fs::directory_iterator it(directory, ec), end;
+    for (; !ec && it != end; it.increment(ec)) {
+        const std::string name = it->path().filename().string();
+        if (name.size() <= prefix.size() || name.compare(0, prefix.size(), prefix) != 0) continue;
+        const std::string digits = name.substr(prefix.size());
+        if (digits.size() > 9 || digits[0] == '0' ||
+            digits.find_first_not_of("0123456789") != std::string::npos)
+            continue;
+        const int index = std::stoi(digits);
+        if (index >= 1 && index <= maxIndex) out.push_back(index);
+    }
+    std::sort(out.begin(), out.end());
+    return out;
+}
+
 /// State of a backup rotation, able to undo itself.
 class BackupRotation {
 public:
@@ -71,9 +97,10 @@ public:
 
     core::Result<void> perform() {
         std::error_code ec;
+        const std::vector<int> existing = existingBackups(target_, count_);
         // The oldest backup is parked, not deleted, until the save has succeeded.
         const fs::path oldest = backupPath(target_, count_);
-        if (fs::exists(oldest, ec)) {
+        if (!existing.empty() && existing.back() == count_) {
             parked_ = withSuffix(oldest, ".discard-" + randomSuffix());
             fs::rename(oldest, parked_, ec);
             if (ec) {
@@ -81,9 +108,11 @@ public:
                 return ioError(oldest, "Cannot rotate backup '" + oldest.string() + "': " + ec.message());
             }
         }
-        for (int i = count_ - 1; i >= 1; --i) {
+        // Newest last in `existing`: move .bak(count-1) .. .bak1 up by one, highest first.
+        for (auto it = existing.rbegin(); it != existing.rend(); ++it) {
+            const int i = *it;
+            if (i >= count_) continue;
             const fs::path from = backupPath(target_, i);
-            if (!fs::exists(from, ec)) continue;
             const fs::path to = backupPath(target_, i + 1);
             fs::rename(from, to, ec);
             if (ec) return ioError(from, "Cannot rotate backup '" + from.string() + "': " + ec.message());
@@ -183,9 +212,11 @@ core::Result<void> writeFileDurably(const std::filesystem::path& file, std::stri
 core::Result<void> atomicWriteFile(const std::filesystem::path& target, std::string_view bytes,
                                    const SaveOptions& options, const ContentVerifier& verify) {
     const std::string name = target.string();
-    if (options.backupCount < 0)
+    if (options.backupCount < 0 || options.backupCount > kMaxBackupCount)
         return makeError(ErrorCode::InvalidArgument,
-                         "backupCount must be >= 0, got " + std::to_string(options.backupCount) + ".", name);
+                         "backupCount must be between 0 and " + std::to_string(kMaxBackupCount) + ", got " +
+                             std::to_string(options.backupCount) + ".",
+                         name);
     std::error_code ec;
     if (target.filename().empty() || fs::is_directory(target, ec))
         return makeError(ErrorCode::IoError, "Cannot save to '" + name + "': it is not a file name.", name);
@@ -210,7 +241,8 @@ core::Result<void> atomicWriteFile(const std::filesystem::path& target, std::str
 
     // 2. read back and verify
     if (auto r = runHook(options, SaveStage::Verify); !r) return fail(r.error(), SaveStage::Verify);
-    auto readBack = readFile(temp);
+    // Bounded like every read; the limit only has to admit the bytes just written.
+    auto readBack = readFile(temp, ReadLimits{std::uintmax_t{bytes.size()} + 4096});
     if (!readBack) return fail(readBack.error(), SaveStage::Verify);
     if (readBack.value() != bytes)
         return fail(makeError(ErrorCode::CorruptData,

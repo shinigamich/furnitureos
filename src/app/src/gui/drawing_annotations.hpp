@@ -69,6 +69,7 @@ private:
     void refreshEdits();
     bool run(const core::Result<project::Command>& command);
     std::string drawingId() const;
+    void setPickStatus(const QString& text);
 
     Session& session_;
     const drawings::DrawingResult* drawing_ = nullptr;

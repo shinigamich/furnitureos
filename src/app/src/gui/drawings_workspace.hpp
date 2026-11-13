@@ -13,12 +13,16 @@
 class QComboBox;
 class QLabel;
 class QScrollArea;
+class QSplitter;
 
 namespace fos::app {
 class Session;
 }
 
 namespace fos::app::gui {
+
+class AnnotationPanel;
+class SheetPreview;
 
 class DrawingsWorkspace : public QWidget {
     Q_OBJECT
@@ -31,6 +35,12 @@ public:
     const QImage& preview() const noexcept { return preview_; }
     /// Name used for file names and the PDF title.
     QString drawingName() const;
+    /// Annotation editor next to the preview.
+    AnnotationPanel* annotations() const noexcept { return annotations_; }
+    /// Index of the sheet shown.
+    int sheetIndex() const;
+    /// Same as a left click on the preview at paper point (x, y) mm of the current sheet.
+    void clickPaper(double x, double y);
 
     void exportPdf();
     void exportSvg();
@@ -44,6 +54,8 @@ private:
     void refillTargets();
     void regenerate();
     void renderSheet();
+    void showOverlay();
+    void previewClicked(QPointF pixel);
     std::optional<DrawingRequest> request() const;
     bool ensureDrawing();
 
@@ -55,8 +67,11 @@ private:
     QComboBox* sheet_;
     QComboBox* zoom_;
     QLabel* status_;
-    QLabel* image_;
+    SheetPreview* image_;
     QScrollArea* scroll_;
+    QSplitter* splitter_;
+    AnnotationPanel* annotations_;
+    double pxPerMm_ = 0;
     std::optional<drawings::DrawingResult> drawing_;
     QImage preview_;
     bool stale_ = true;

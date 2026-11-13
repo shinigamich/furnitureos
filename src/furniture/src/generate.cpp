@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/furniture/generate.hpp"
 
+#include "fos/furniture/limits.hpp"
 #include "fos/machining/validation.hpp"
 #include "gen_context.hpp"
 
@@ -24,10 +25,8 @@ std::string joinSlot(std::initializer_list<std::string_view> segments) {
 std::string sectionLabel(const std::string& path) { return path.empty() ? "root" : path; }
 
 std::size_t Gen::index(const std::string& slot) const {
-    const std::string id = partId(slot);
-    for (std::size_t i = 0; i < assembly.parts.size(); ++i)
-        if (assembly.parts[i].id.str() == id) return i;
-    return assembly.parts.size();
+    const auto it = slotIndex.find(slot);
+    return it == slotIndex.end() ? assembly.parts.size() : it->second;
 }
 void Gen::warn(std::string code, std::string message, std::string entity) {
     diagnostics.push_back({core::Severity::Warning, std::move(code), std::move(message), std::move(entity)});
@@ -103,6 +102,7 @@ std::size_t Gen::addPart(const std::string& slot, std::string name, domain::Part
         p.edge(side) = band;
     }
     assembly.parts.push_back(std::move(p));
+    slotIndex.emplace(slot, assembly.parts.size() - 1);
     return assembly.parts.size() - 1;
 }
 
@@ -132,6 +132,10 @@ core::Result<std::vector<double>> distribute(const Gen& g, double available, con
         if (!(mm > 0) || !std::isfinite(mm))
             return core::makeError(core::ErrorCode::InvalidArgument,
                                    item + ": the size must be greater than 0 mm (is " + num(mm) + " mm).");
+        if (mm > limits::kMaxDimension)
+            return core::makeError(core::ErrorCode::InvalidArgument,
+                                   item + ": the size is " + num(mm) + " mm; sizes are limited to " +
+                                       num(limits::kMaxDimension) + " mm.");
         out[i] = mm;
         fixedSum += mm;
     }
@@ -155,6 +159,27 @@ core::Result<std::vector<double>> distribute(const Gen& g, double available, con
                                    " mm unassigned. Make one entry proportional (Weight) to absorb the rest.");
     }
     return out;
+}
+
+core::Result<void> checkPartSizes(const Gen& g) {
+    const auto& parts = g.assembly.parts;
+    if (parts.size() > limits::kMaxPartsPerAssembly)
+        return core::makeError(core::ErrorCode::ConstraintViolation,
+                               "Cabinet '" + g.def.id.str() + "' generates " + std::to_string(parts.size()) +
+                                   " parts; the limit is " + std::to_string(limits::kMaxPartsPerAssembly) +
+                                   " parts per assembly.",
+                               g.def.id.str());
+    const auto bad = [](double v) { return !std::isfinite(v) || !(v > 0) || v > limits::kMaxDimension; };
+    for (const auto& p : parts)
+        if (bad(p.length) || bad(p.width) || bad(p.thickness))
+            return core::makeError(core::ErrorCode::InvalidArgument,
+                                   "furniture.geometry.invalid_size: part '" + p.name + "' (" + p.id.str() +
+                                       ") would be " + num(p.length) + " x " + num(p.width) + " x " + num(p.thickness) +
+                                       " mm; every part dimension must be finite, greater than 0 and at most " +
+                                       num(limits::kMaxDimension) + " mm. Check the cabinet dimensions and the "
+                                       "expressions of pinned or custom parameters.",
+                                   p.id.str());
+    return {};
 }
 
 } // namespace detail
@@ -235,7 +260,9 @@ core::Result<GenerationResult> generate(const CabinetDefinition& definition, con
     core::Diagnostics diags;
     if (auto r = resolve(def, libraries, &diags); !r) return r.error();
 
-    detail::Gen g{def, libraries, {}, {}, std::move(diags), {}, {}};
+    if (auto r = checkDefinitionLimits(def); !r) return r.error();
+
+    detail::Gen g{def, libraries, {}, {}, std::move(diags), {}, {}, {}};
     for (const auto& name : def.parameters.names()) g.values[name] = def.parameters.value(name).valueOr(0.0);
     g.assembly.id = def.id;
     g.assembly.name = def.name;
@@ -245,6 +272,7 @@ core::Result<GenerationResult> generate(const CabinetDefinition& definition, con
     if (!bounds) return bounds.error();
     if (auto r = detail::buildInterior(g, bounds.value()); !r) return r.error();
     if (auto r = detail::buildBack(g); !r) return r.error();
+    if (auto r = detail::checkPartSizes(g); !r) return r.error();
     detail::runHardware(g);
     detail::checkGeometry(g);
 
