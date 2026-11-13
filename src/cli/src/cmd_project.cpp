@@ -40,7 +40,8 @@ const char* kSetHelp =
     "A plain number sets a constant; anything else is stored as an expression, e.g.\n"
     "  fos set kitchen.fosp cab1 width 900\n"
     "  fos set kitchen.fosp cab1 depth \"height / 2\"\n"
-    "Exit code 1 when the model rules refuse the value (nothing is saved).\n";
+    "Exit code 1 when the model rules refuse the value (nothing is saved) or when the value is\n"
+    "accepted but the model then has errors (saved; the previous value is printed).\n";
 
 const char* kValidateHelp =
     "Usage: fos validate <file.fosp> [--format text|markdown]\n\n"
@@ -260,6 +261,8 @@ int cmdSet(const std::vector<std::string>& args, Io& io) {
     const auto* g = graphOf(*item);
     if (!g->contains(name)) return usageError(io, "set", "item '" + itemId + "' has no parameter '" + name + "'.");
     const std::string before = valueText(*g, name);
+    const auto* def = g->find(name);
+    const std::string restore = def && def->isExpression() ? "\"" + def->expression + "\"" : before;
 
     project::Document doc(loaded->project);
     const auto number = parseNumber(text);
@@ -284,6 +287,14 @@ int cmdSet(const std::vector<std::string>& args, Io& io) {
     if (resolved && !resolved.value().diagnostics.empty()) {
         io.out << "Diagnostics after the change:\n";
         printDiagnostics(io.out, resolved.value().diagnostics);
+    }
+    if (resolved && core::hasErrors(resolved.value().diagnostics)) {
+        // The document accepted the edit (the item still generates), but the model now has
+        // errors; the file is saved so the user can continue editing, and the exit code says so.
+        io.err << "fos set: saved, but the model now has " << errorCount(resolved.value().diagnostics)
+               << " error(s); 'fos set " << file << " " << itemId << " " << name << " " << restore
+               << "' restores the previous value.\n";
+        return kExitValidationErrors;
     }
     return kExitOk;
 }

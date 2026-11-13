@@ -84,9 +84,13 @@ int cmdCam(const std::vector<std::string>& args, Io& io) {
     printPlanned(out, "Machinable in this setup", g.plan.machinableNow);
     printPlanned(out, "Needs the other face up", g.plan.needsOtherSetup);
     printPlanned(out, "UNSUPPORTED (not in this program)", g.plan.unsupported);
-    if (!g.diagnostics.empty()) {
+    // The per-operation setup warnings are the lists above; print the remaining ones.
+    core::Diagnostics other;
+    for (const auto& d : g.diagnostics)
+        if (d.code != "cam.setup.needs_other_setup" && d.code != "cam.setup.unsupported") other.push_back(d);
+    if (!other.empty()) {
         out << "CAM diagnostics:\n";
-        printDiagnostics(out, g.diagnostics);
+        printDiagnostics(out, other);
     }
     if (g.plan.machinableNow.empty()) {
         io.err << "fos cam: nothing to machine on face " << faceText << " of " << partId
