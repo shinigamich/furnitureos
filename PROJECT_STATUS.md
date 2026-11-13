@@ -20,7 +20,7 @@ Verified on 2026-11-13 (after the second review), Ubuntu 24.04, Qt 6.4.2, from c
 |---|---|
 | Default (all 20 modules incl. Qt app), GCC 13.3, Release, `-DFOS_WERROR=ON`, tests under `xvfb-run` | builds; **852/852 tests pass** (1 skipped: read-only-folder save test cannot run as root) |
 | Headless (`-DFOS_BUILD_GUI=OFF`), GCC 13.3, `-DFOS_WERROR=ON` | builds; 761/761 pass |
-| Headless, Clang 18, Debug, `-DFOS_WERROR=ON` | builds; 730/730 pass (before the second-review fixes; re-run pending) |
+| Headless, Clang 18, Debug, `-DFOS_WERROR=ON` | builds; 761/761 pass |
 | CLI end to end (`fos new` → `set width 900` → `report` → `validate` → `cut` → `drawing` → `cam`) | run by hand; results checked against hand-computed sizes |
 
 Not verified: Windows, macOS, the GitHub Actions workflow itself (it has not run on GitHub yet), physical
@@ -122,7 +122,7 @@ envelope checks, CLI exit 1 on incomplete output, single bounded plugin read, pi
 
 ## Next priorities
 
-1. Re-run the Clang configuration; first CI run on GitHub once `main` exists.
+1. First CI run on GitHub once `main` exists.
 2. Remove the remaining quadratic costs (pairwise hole validation, hardware placement scans) so model limits can be raised.
 3. Windows build (T-025) and packaging; then a first tagged pre-release with checksums.
 4. Verified data: one real hinge/connector system and one controller (e.g. LinuxCNC simulation) end to end.
