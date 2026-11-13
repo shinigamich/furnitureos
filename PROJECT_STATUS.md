@@ -1,88 +1,109 @@
 # Project Status
 
-_Last updated: 2026-11-12._ This file is the authoritative statement of what exists. Update it only with
-facts that were verified by building and running tests.
+_Last updated: 2026-11-13._ This file is the authoritative statement of what exists. It is updated only
+with facts verified by building and running tests.
 
 ## Overall
 
-Early development. **Current phase: 2–3** (foundation and geometry/parametric done; furniture CAD in
-progress). Engineering libraries for phases 5–6 were developed in parallel and are tested in isolation.
-There is no desktop application, no native project file and no release.
+Early development, **no release**. The engineering core (phases 1–8 of [`ROADMAP.md`](ROADMAP.md)) exists as
+tested libraries; a command-line tool and a first desktop application sit on top. Nothing has been used in
+real production, no hardware data is verified against a manufacturer, and no CNC machine is supported.
 
-## Build and test status (Linux, GCC 13.3, Ubuntu 24.04)
+Current phase: **3–4 (furniture CAD and Drawing Studio in the desktop UI)** plus phase 11-style hardening of
+the libraries. Code size: ~61,000 lines of C++ in 20 modules (`src/`), plus `tests/` scenarios.
 
-Verified together in one build on 2026-11-12:
-`core, geometry, parametric, domain, machining, hardware, production, cutting, formats` — all tests pass
-(one test skipped when run as root: read-only-folder save test).
+## Build and test status
 
-Not verified: Clang, MSVC/Windows, macOS, the CI workflow itself (never run on GitHub yet), Qt modules.
+Verified on 2026-11-13, Ubuntu 24.04, Qt 6.4.2, from clean build directories:
+
+| Configuration | Result |
+|---|---|
+| Default (all 20 modules incl. Qt app), GCC 13.3, Release, `-DFOS_WERROR=ON`, tests under `xvfb-run` | builds; **806/806 tests pass** (1 skipped: read-only-folder save test cannot run as root) |
+| Headless (`-DFOS_BUILD_GUI=OFF`), GCC 13.3, `-DFOS_WERROR=ON` | builds; 730/730 pass |
+| Headless, Clang 18, Debug, `-DFOS_WERROR=ON` | builds; 730/730 pass |
+| CLI end to end (`fos new` → `set width 900` → `report` → `validate` → `cut` → `drawing` → `cam`) | run by hand; results checked against hand-computed sizes |
+
+Not verified: Windows, macOS, the GitHub Actions workflow itself (it has not run on GitHub yet), physical
+printers, any real CNC machine or controller.
+
+## Tests per module (GoogleTest cases)
+
+core 10 · geometry 77 · parametric 56 · domain 8 · machining 33 · hardware 31 · furniture 52 · validation 43 ·
+production 41 · cutting 50 + 7 (model adapter) · nesting 23 · drawings 51 · printing 30 · cam 40 · formats 99 ·
+plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cli 26 · end-to-end scenarios A–E 16.
 
 ## Task registry
 
-| ID | Module / task | Owner role | Status | Verification | Review |
-|---|---|---|---|---|---|
-| T-001 | Build system, core, geometry base, domain model | Chief Architect | Done | 19 tests | Self |
-| T-002 | ADRs, licence inventory, research surveys | Research + Licensing | Done | n/a (several facts marked unverified) | Pending |
-| T-003 | Parametric engine | Parametric Engineer | Done | 56 tests incl. 10k-parameter graph | Pending independent review |
-| T-004 | Geometry extensions | Geometry Engineer | Done | 72 tests | Pending |
-| T-005 | Machining model | Machining Engineer | Done | 33 tests | Pending |
-| T-006 | Hardware catalogue + placement rules | Hardware Engineer | Done (generic, unverified data) | 29 tests | Pending |
-| T-007 | Production documents | Production Docs Engineer | Done | 44 tests | Pending |
-| T-008 | Cutting optimiser | Cutting Engineer | Done (heuristic) | 55 tests, independent layout validator | Pending |
-| T-009 | Formats: container, codecs, atomic save, libraries | Persistence Engineer | Done | 99 tests (1 skipped as root) | Pending |
-| T-010 | Drawings | Drawing Studio Engineer | In progress | — | — |
-| T-011 | Furniture definitions | Furniture CAD Engineer | In progress | — | — |
-| T-012 | Validation | Validation Engineer | Not started | — | — |
-| T-013 | Nesting | Nesting Engineer | Not started | — | — |
-| T-014 | CAM foundation | CAM Engineer | Not started | — | — |
-| T-015 | Plugins (declarative) | Plugin Engineer | Not started | — | — |
-| T-016 | Project document, `.fosp`, commands/undo | App Architect | Not started (blocked by T-011) | — | — |
-| T-017 | CLI + end-to-end scenarios A–E | Integration / QA | Not started (blocked by T-016) | — | — |
-| T-018 | PDF export and exact-scale printing (Qt) | Printing Engineer | Not started (blocked by T-010) | — | — |
-| T-019 | Desktop application (Qt) | Desktop UI Engineers | Not started (blocked by T-016) | Technical proof only: Qt OpenGL widget and PDF writer run in the dev environment | — |
-| T-020 | Website (separate repo) | Website Engineers | Done (v1) | lint, type check, 11 tests, build | Statuses need refresh |
-| T-021 | Website backend (separate repo) | Backend Engineers | Done (v1) | 167 tests | Docker image never built |
-| T-022 | Independent architecture / code / security review | Reviewers | Not started | — | — |
+| ID | Module / task | Status | Verification | Review |
+|---|---|---|---|---|
+| T-001 | Build system, core, geometry base, domain model | Done | tests above | — |
+| T-002 | ADRs, licence inventory, research surveys | Done | several facts marked unverified in the documents | — |
+| T-003 | Parametric engine | Done | 56 tests; reviewer fuzzed 4,719 random edits vs full rebuild, 0 mismatches | Independent review: no defects |
+| T-004 | Geometry kernel | Done | 77 tests | — |
+| T-005 | Machining model | Done | 33 tests | Review: face frames verified |
+| T-006 | Hardware catalogue + placement rules | Done (generic, unverified data) | 31 tests | — |
+| T-007 | Production documents | Done | 41 tests | Review: grouping and areas verified |
+| T-008 | Cutting optimiser (heuristic) + model adapter | Done | 57 tests; independent layout validator | Review: kerf/validator verified; layering fixed |
+| T-009 | Formats: container, codecs, atomic save, libraries | Done | 99 tests | Review: byte-identical round trip verified |
+| T-010 | Drawings | Done | 51 tests | Review finding fixed (stale overrides, model-anchored dimensions) |
+| T-011 | Parametric furniture definitions | Done | 52 tests | 8 review findings fixed (see below) |
+| T-012 | Model validation | Done | 43 tests; all 6 templates validate with 0 errors | — |
+| T-013 | Nesting (heuristic) | Done | 23 tests; independent validator | — |
+| T-014 | CAM foundation (unverified generic G-code) | Done | 40 tests; simulator catches corrupted programs | — |
+| T-015 | Plugins (declarative data only) | Done | 35 tests | — |
+| T-016 | Project document, `.fosp`, undo/redo | Done | 33 tests | — |
+| T-017 | CLI + end-to-end scenarios A–E | Done | 26 + 16 tests | — |
+| T-018 | PDF export and exact-scale printing | Done (experimental) | 30 tests; raster and PDF MediaBox measured | Not verified on a physical printer |
+| T-019 | 3D viewport | Done (experimental) | 18 tests incl. OpenGL render test | — |
+| T-020 | Desktop application | Done (experimental) | 27 tests + GUI smoke test; screenshots reviewed (en, uk) | — |
+| T-021 | Website (separate repo) | Done (v1, statuses updated 2026-11-13) | lint, type check, 14 tests, build | Ukrainian text needs native review |
+| T-022 | Website backend (separate repo) | Done (v1) | 167 tests | Docker image never built |
+| T-023 | Independent review of calculation-critical modules | Done | findings below | — |
+| T-024 | Desktop UI: interior/fronts/hardware/drawing-edit editors | Not started | — | — |
+| T-025 | Windows build bring-up | Not started | — | — |
+| T-026 | Review of viewport, app, CAM, nesting, plugins, project | Not started | — | — |
+
+## Independent review 2026-11-12 (calculation-critical modules)
+
+Verified correct by probes: single cut-size formula everywhere; machining face frames; parametric incremental
+recalculation; cutting validator independence; byte-identical model round trip; a 1203.5 mm / 16 mm /
+OverSides / grooved-back / 3-partition cabinet checked by hand.
+
+Confirmed defects — all **fixed** with regression tests:
+intermediate hinges not moved off adjustable shelves at default clearance · coincident confirmat
+through-holes in shared partitions (now blind dowels) · pinned derived parameters surviving construction
+changes silently (now a warning plus a generator interpenetration check) · drawer fronts with the opposite
+face-A convention · back grooves notching banded ends · shelf-pin depth reduced on outer sides · drawing
+text overrides going stale silently · missing edge bands not reported by the cutting adapter · duplicated
+grain rule · cutting optimiser layering · five empty furniture test files.
 
 ## Known bugs and technical debt
 
-### Independent review 2026-11-12 (calculation-critical modules) — fixes in progress
-Verified correct by the reviewer (probes): single cut-size formula used everywhere; machining face frames;
-parametric incremental recalculation (4,719 random edits vs. full rebuild, 0 mismatches); cutting validator
-independent of the packer; byte-identical model round trip; a 1203.5 mm / 16 mm / OverSides / grooved-back /
-3-partition cabinet checked by hand.
-
-Confirmed defects being fixed:
-* HIGH: intermediate hinges were not moved off adjustable shelves at default shelf clearance (wardrobe template:
-  plate holes inside a shelf band).
-* Fixed shelves on both sides of a partition get coincident confirmat through-holes (generation reports collisions).
-* Pinned derived parameters survive construction changes silently (back could end up inside a side).
-* Drawer fronts use the opposite face-A convention from doors.
-* Back grooves run through banded/visible ends; shelf-pin depth reduced on outer sides too.
-* Drawing text overrides and user dimensions do not follow model changes (stale numbers possible).
-* Cutting adapter does not report a missing edge band; grain/rotation rule duplicated; cutting optimiser
-  target links domain (layering).
-* Five furniture test files were empty (fronts, interior, edit API, templates).
-
-* `core::Error` has no stable machine code / source position field; `core::Diagnostic` has a single entity id.
-* Domain types lack `operator==` and (for Operation, HardwareInstance, Assembly, Model) a `custom` map, so
-  unknown JSON keys on those types are rejected rather than preserved.
-* Geometry: no curves, no booleans, holes only partly supported; brute-force complexity.
-* Cutting: adjacent non-sibling offcuts are not merged; no stack cutting; cost is only a tie-breaker.
-* Default CMake configuration has no build type (unoptimised); packaging presets missing.
-* ARCHITECTURE.md §3 lists `cutting` as core-only; the model adapter makes it depend on geometry and domain.
-* Earlier commits on the development branch labelled "WIP" contain intermediate, non-integrated states.
+* Documents may be saved while the generator reports errors (deliberate, to allow intermediate states);
+  front ends must show the diagnostics (the app and `fos set` do).
+* Interference depth is reported as minimum separation distance in validation but as overlap extent in the
+  furniture self-check — both correct, worded differently.
+* Part names from the generator are English only; the app cannot translate them yet.
+* `formats::importLibrary` has no size limit of its own (plugins check size before reading).
+* `core::Error` has no stable machine code field; `core::Diagnostic` carries a single entity id.
+* Geometry: no curves or booleans; holes only partly supported; brute-force complexity.
+* Several WIP snapshot commits exist on the development branch from parallel work; they contain intermediate states.
 
 ## Decisions requiring owner input
 
-1. **Default branch.** The repositories were empty; the development branch is currently the only branch.
-   Create `main` (and branch protection) when you are ready to accept the work.
-2. **Open CASCADE + AGPL-3.0-only** compatibility needs legal review before any OCCT backend is shipped.
-3. **Website**: production domain, licence of the website source, review of Ukrainian text by a native speaker.
+1. **Default branch.** The development branch is the only branch. Create `main` (and branch protection)
+   when you are ready to accept the work; then CI will run on pull requests.
+2. **Open CASCADE + AGPL-3.0-only** compatibility needs legal review before any OCCT backend ships.
+3. **Website**: production domain, licence of the website source, native review of the Ukrainian text.
 4. **Backend**: hosting target, allowed CORS origins, release asset naming and checksum file convention.
 5. **LICENSE text** was taken from the SPDX licence list (gnu.org unreachable from the build environment);
-   compare with the canonical gnu.org text.
+   compare it with the canonical gnu.org text.
+6. **Real hardware and machine data**: which manufacturers' fittings and which CNC controllers to verify
+   first. This needs data sheets and, for CAM, access to the actual machine or its simulator.
 
 ## Next priorities
 
-See [`ROADMAP.md`](ROADMAP.md) "Near-term priorities".
+1. Desktop UI editors for the section tree, fronts, hardware selection and drawing annotations (T-024).
+2. Independent review of the newer modules (T-026).
+3. Windows build (T-025) and packaging; then a first tagged pre-release with checksums.
+4. Verified data: one real hinge/connector system and one controller (e.g. LinuxCNC simulation) end to end.

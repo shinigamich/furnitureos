@@ -18,12 +18,21 @@ Current state per phase is tracked in [`PROJECT_STATUS.md`](PROJECT_STATUS.md).
 | 10 | Plugins and interoperability | Declarative plugins, SDK docs, documented exchange formats |
 | 11 | Production hardening | QA, performance, security and licence audits, packaging for Linux/Windows/macOS |
 
+## Current state (2026-11-13)
+
+| Phase | State |
+|---|---|
+| 0–2 | Done |
+| 3 Furniture CAD | Engine done; desktop UI edits parameters, construction and materials — interior/front editors pending |
+| 4 Drawing Studio | Generation, edits, SVG/DXF/PDF and print planning done; drawing-edit UI pending; physical print verification pending |
+| 5 Production documentation | Done (libraries, CLI, app) |
+| 6 Cutting optimisation | Done (heuristic, validated layouts) |
+| 7 Drilling, machining, nesting | Done for the documented scope; nesting not yet fed by projects |
+| 8 CAM foundation | Done; no machine-specific adapter verified |
+| 9 Website and backend | v1 done |
+| 10 Plugins and interoperability | Data plugins done; interoperability adapters not started |
+| 11 Production hardening | Partly (independent review, warnings-as-errors builds, GCC + Clang); Windows/macOS and packaging not started |
+
 ## Near-term priorities
 
-1. Finish drawings and parametric furniture definitions; integrate.
-2. `project` module: `.fosp` save/load, undoable commands, resolve to the engineering model.
-3. Headless CLI covering the full chain (create cabinet → change width → reports → cutting → drawings → save/reopen)
-   with end-to-end scenario tests A–E.
-4. Desktop application shell with 3D viewport and property editing.
-5. Validation, nesting, CAM foundation, plugins; PDF/print module.
-6. Windows build bring-up.
+See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) "Next priorities".

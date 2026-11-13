@@ -4,9 +4,10 @@ Free, open-source furniture CAD/CAM: parametric cabinet design, technical drawin
 sheet cutting optimisation and (later) machine-specific manufacturing output — in one offline desktop
 application, with no account and no paid features.
 
-> **Status: early development.** The engineering libraries below exist and are tested. There is **no
-> desktop application and no release yet.** See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for the exact
-> state; nothing in this repository should be read as more finished than that file says.
+> **Status: early development — no release yet.** The engineering libraries, a command-line tool and a
+> first desktop application exist and are covered by ~800 automated tests on Linux. Nothing has been used in
+> real production yet. [`PROJECT_STATUS.md`](PROJECT_STATUS.md) is the authoritative statement of what works;
+> nothing here should be read as more finished than that file says.
 
 ## Why
 
@@ -18,43 +19,53 @@ and a drill, and for a factory with CNC machines.
 
 ## Feature status
 
-Statuses: **Implemented** (works, tested) · **Partial** · **Experimental** · **Planned** · **Not started**.
+**Implemented** (works, tested) · **Partial** (works for the documented scope, gaps listed) ·
+**Experimental** (works, but not validated for production use) · **Planned** · **Not started**.
 
-| Area | Status | Notes |
+| Area | Status | Scope and limits |
 |---|---|---|
-| Core (units, ids, errors, diagnostics) | Implemented | `src/core` |
-| Geometry kernel (transforms, polygons, offset, triangulation, meshes, ray picking) | Implemented | Panel-furniture scope; no curves/booleans |
 | Parametric engine (expressions, dependency graph, incremental recalculation, constraints, undo snapshots) | Implemented | `src/parametric` |
-| Domain model (materials, edge bands, parts, operations, hardware) | Implemented | `src/domain` |
-| Machining model (faces, validation, drilling patterns, ordering) | Implemented | Hole–hole collisions only |
-| Hardware placement rules (confirmat/dowel joints, shelf pins, hinges, handles) | Partial | Generic, **unverified** fitting dimensions |
-| Production documents (part list, cut list, materials, edge banding, hardware, labels, cost; CSV/HTML/SVG) | Implemented | `src/production` |
-| Cutting optimisation (guillotine, kerf, trim, grain, remnants, validator) | Implemented | Heuristic — not optimal |
-| File container, JSON codecs, atomic save + backups, libraries, OBJ export | Implemented | `src/formats` |
-| Drawing generation (views, hidden lines, dimensions, sheets, SVG/DXF) | Partial | In progress |
-| Parametric furniture definitions (cabinets, sections, fronts, templates) | Partial | In progress |
-| Native project file (`.fosp`), undoable commands | Not started | |
-| Model validation (interference, completeness) | Not started | |
-| Nesting of non-rectangular parts | Not started | |
-| CAM (toolpaths, machine profiles, postprocessors) | Not started | No machine is supported |
-| Plugins (declarative data plugins) | Not started | |
-| PDF export / exact-scale printing | Not started | |
-| Desktop application (Qt 6) | Not started | |
-| Import/export with other furniture CAD products | Not started | Research only (`docs/research/`) |
-| Windows / macOS builds | Not started | Only Linux has been built and tested |
+| Parametric cabinets (carcass variants, grooved/overlay/inset backs, section tree, shelves, partitions, doors, drawer fronts, 6 templates) | Partial | No drawer boxes; no corner or angled units |
+| Materials, edge banding, finished vs cut size | Implemented | Libraries in `.foslib`; generic placeholder data only |
+| Hardware placement (confirmat/dowel joints, shelf pins, hinges, handles) | Partial | Generic fittings, **unverified dimensions** |
+| Drilling / machining model and validation | Implemented | Hole–hole collisions; grooves/pockets bounds only |
+| Model validation (interference with groove engagement, mating holes, completeness) | Implemented | Parts treated as solid boxes |
+| Production documents (part/cut lists, materials, edge banding, hardware, labels, cost; CSV/HTML/SVG) | Implemented | |
+| Sheet cutting optimisation (guillotine, kerf, trim, grain, remnants, independent validator) | Implemented | Heuristic — not optimal |
+| True-shape nesting (non-rectangular parts) | Partial | Heuristic; no part-in-hole; projects do not create shaped parts yet |
+| Drawings (views, hidden lines, sections, dimensions, editable annotations, sheets; SVG/DXF) | Partial | Exact hidden lines only for axis-aligned panels |
+| PDF export and exact-scale printing with calibration mark | Experimental | Not yet verified on physical printers |
+| Native project file `.fosp` (versioned, checksummed, atomic save, backups, autosave, undo/redo) | Implemented | No migrations needed yet (format v1) |
+| 3D viewport (orbit/pan/zoom, presets, picking, selection) | Experimental | Box display only (no holes/edge colours) |
+| Desktop application (Qt 6; English and Ukrainian) | Experimental | Edits parameters, construction and materials; interior/front/drawing editing not in the UI yet |
+| Command-line tool `fos` | Implemented | `src/cli/README.md` |
+| CAM: toolpaths, simulator, generic G-code | Experimental | **No machine is verified.** Output must be proven by a qualified operator |
+| Plugins | Partial | Declarative data plugins only (materials, edge bands, hardware); no code plugins |
+| Import from other furniture CAD products | Not started | Research only (`docs/research/`) |
+| Windows / macOS builds, installers, releases | Not started | Only Linux (GCC 13, Clang 18) is built and tested |
 
 ## Build and test
 
-Prerequisites: C++20 compiler (GCC 13+ / Clang 16+), CMake 3.24+, Ninja, nlohmann/json 3.11+, GoogleTest.
-Qt 6.4+ will be required for the desktop application once it exists.
+Prerequisites: C++20 compiler (GCC 13+ / Clang 16+), CMake 3.24+, Ninja, nlohmann/json 3.11+, GoogleTest,
+and for the desktop application Qt 6.4+ (Widgets, OpenGLWidgets, PrintSupport, Svg, LinguistTools).
+
+On Ubuntu 24.04:
 
 ```bash
-cmake -S . -B build -G Ninja -DFOS_BUILD_GUI=OFF
+sudo apt install g++ cmake ninja-build nlohmann-json3-dev libgtest-dev libgmock-dev qt6-base-dev libqt6opengl6-dev libqt6svg6-dev qt6-tools-dev qt6-l10n-tools libgl1-mesa-dev
+```
+
+Build everything and run the tests (GUI tests need a display; use `xvfb-run -a` on a headless machine):
+
+```bash
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-On Ubuntu 24.04: `sudo apt install g++ cmake ninja-build nlohmann-json3-dev libgtest-dev libgmock-dev`.
+Start the desktop application with `./build/src/app/furnitureos`, or use the command-line tool, e.g.
+`./build/src/cli/fos new kitchen.fosp --template base --width 800`. Headless build without Qt:
+add `-DFOS_BUILD_GUI=OFF`. See [`docs/user-guide/getting-started.md`](docs/user-guide/getting-started.md).
 
 ## Documentation
 
