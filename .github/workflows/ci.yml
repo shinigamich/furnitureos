@@ -25,6 +25,13 @@ jobs:
         run: cmake --build build
       - name: Test
         run: xvfb-run -a ctest --test-dir build --output-on-failure
+      - name: CLI smoke test
+        run: |
+          ./build/src/cli/fos --version
+          ./build/src/cli/fos new "$RUNNER_TEMP/ci.fosp" --template base --id 00000000-0000-4000-8000-000000000000 --date 2026-01-01T00:00:00Z
+          ./build/src/cli/fos set "$RUNNER_TEMP/ci.fosp" cab1 width 900
+          ./build/src/cli/fos validate "$RUNNER_TEMP/ci.fosp"
+          ./build/src/cli/fos cut "$RUNNER_TEMP/ci.fosp" --out-dir "$RUNNER_TEMP/cut"
 
   linux-headless-clang:
     name: Linux headless core (Clang)
@@ -37,7 +44,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends ninja-build clang cmake \
             nlohmann-json3-dev libgtest-dev libgmock-dev
       - name: Configure
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=clang++ -DFOS_BUILD_GUI=OFF
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=clang++ -DFOS_BUILD_GUI=OFF -DFOS_WERROR=ON
       - name: Build
         run: cmake --build build
       - name: Test
