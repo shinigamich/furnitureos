@@ -13,7 +13,7 @@ namespace fos::plugins::example {
 inline constexpr std::string_view kPluginId = "org.furnitureos.example-materials";
 inline constexpr std::string_view kLibraryRelativePath = "libraries/generic-boards.foslib";
 inline constexpr std::string_view kAppVersion = "0.1.0";
-/// Fixed `savedAt` (2026-11-12T00:00:00Z = 1762905600 + 365 * 86400 = 1794441600 s since the epoch) so that the
+/// Fixed `savedAt` (2026-11-12T00:00:00Z: 2025-11-12 is 1762905600 s since the epoch, plus 365 days * 86400 s = 1794441600) so that the
 /// export is reproducible byte for byte.
 inline constexpr std::chrono::seconds kSavedAt{1794441600};
 
