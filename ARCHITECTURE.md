@@ -19,7 +19,7 @@ contracts are specified in `docs/architecture/cross-repo-contracts.md`.
 * C++20, CMake >= 3.24, Ninja. Compilers: GCC 13+, Clang 16+, MSVC 2022.
 * Engineering core: standard library only (+ nlohmann/json inside `formats`, `plugins`, `project`).
   The core is headless and fully testable without a display.
-* Desktop UI: Qt 6 Widgets + QOpenGLWidget (LGPL-3.0, dynamically linked). Only `app` and `printing` may use Qt.
+* Desktop UI: Qt 6 Widgets + QOpenGLWidget (LGPL-3.0, dynamically linked). Only `printing`, `viewport` and `app` may use Qt.
 * Tests: GoogleTest.
 * Geometry: FurnitureOS' own kernel for panel furniture (boxes, 2D contours, prisms). Open CASCADE is a
   planned *optional* backend behind `geometry` for STEP exchange and free-form solids (ADR-0002); nothing depends on it.
@@ -51,7 +51,8 @@ on the ones listed for it.
 | 16 | `project` | `Project` document (furniture definitions + libraries + drawing edits + settings), native `.fosp` (de)serialisation, undoable commands | all of the above |
 | 17 | `cli` | Headless command-line front end (`fos`) | project and below |
 | 18 | `printing` (Qt) | PDF export and exact-scale printing of drawing sheets | drawings, QtGui/QtPrintSupport |
-| 19 | `app` (Qt) | Desktop application: windows, viewport, inspectors, workspaces | everything |
+| 19 | `viewport` (Qt) | 3D display and picking of a resolved model (display only, never authoritative geometry) | geometry, domain, Qt Widgets/OpenGL |
+| 20 | `app` (Qt) | Desktop application: windows, viewport, inspectors, workspaces | everything |
 
 Rules:
 * UI code contains no manufacturing calculations. Rendering never defines authoritative geometry.

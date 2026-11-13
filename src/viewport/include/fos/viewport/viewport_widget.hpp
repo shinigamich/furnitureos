@@ -21,6 +21,8 @@
 ///   setSelection().
 namespace fos::viewport {
 
+class Camera;
+
 enum class ViewPreset { Front, Back, Left, Right, Top, Bottom, Isometric };
 enum class Projection { Perspective, Orthographic };
 enum class DisplayMode { Shaded, ShadedWithEdges, Wireframe };
@@ -51,6 +53,13 @@ public:
     /// Part id under the widget-local pixel position, empty if none (CPU ray picking on
     /// the part boxes; independent of the GL state, usable in tests).
     std::string partAt(const QPoint& position) const;
+
+    // --- Additions by module `viewport` (not part of the original contract) ---------------
+    /// Current camera (Qt-free math, see fos/viewport/camera.hpp), viewport size synced to
+    /// the widget's logical size. Useful for tests and for saving/restoring views.
+    const Camera& camera() const;
+    /// Replace the camera (orientation, target, distance, projection).
+    void setCamera(const Camera& camera);
 
 signals:
     /// Left click on a part (empty id = click on empty space). `additive` = Ctrl/Shift held.

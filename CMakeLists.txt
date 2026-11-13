@@ -54,7 +54,7 @@ set(FOS_ALL_MODULES
     project
     cli
 )
-set(FOS_GUI_MODULES printing app)
+set(FOS_GUI_MODULES printing viewport app)
 
 if(FOS_MODULES)
     set(_fos_modules ${FOS_MODULES})
