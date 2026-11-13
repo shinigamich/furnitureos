@@ -16,8 +16,9 @@ namespace fos::app {
 
 /// The fittings of furniture::HardwareSelection, in editor order.
 enum class HardwareRole { Hinge, Handle, ShelfPin, Confirmat, Dowel, Foot };
-inline constexpr HardwareRole kHardwareRoles[] = {HardwareRole::Hinge,     HardwareRole::Handle, HardwareRole::ShelfPin,
-                                                   HardwareRole::Confirmat, HardwareRole::Dowel,  HardwareRole::Foot};
+inline constexpr HardwareRole kHardwareRoles[] = {HardwareRole::Hinge,    HardwareRole::Handle,
+                                                  HardwareRole::ShelfPin, HardwareRole::Confirmat,
+                                                  HardwareRole::Dowel,    HardwareRole::Foot};
 
 /// Catalogue kind a role takes (Hinge, Handle, ShelfSupport, Confirmat, Dowel, Foot).
 domain::HardwareKind hardwareKind(HardwareRole role);
@@ -60,6 +61,7 @@ project::Command partMaterialCommand(const furniture::CabinetDefinition& cabinet
 project::Command partEdgeCommand(const furniture::CabinetDefinition& cabinet, const std::string& slot,
                                  domain::EdgeSide side, const EdgeOverrideChoice& choice);
 /// commands::setPartOverride(..., std::nullopt).
-project::Command clearPartOverrideCommand(const furniture::CabinetDefinition& cabinet, const std::string& slot);
+project::Command clearPartOverrideCommand(const furniture::CabinetDefinition& cabinet,
+                                          const std::string& slot);
 
 } // namespace fos::app

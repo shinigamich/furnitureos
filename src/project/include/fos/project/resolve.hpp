@@ -28,8 +28,9 @@ struct Resolved {
 };
 
 /// Structural checks that make a project unusable (not mere generation findings): empty or
-/// duplicate item ids, empty or duplicate library ids, a panel item whose part id is empty.
-/// InvalidArgument error naming the offending id.
+/// duplicate item ids, empty or duplicate library ids, a panel item whose part id is empty
+/// (InvalidArgument error naming the offending id), and the project limits of limits.hpp
+/// (checkProjectLimits: item count, estimated parts, backup count).
 core::Result<void> validateStructure(const Project& project);
 
 /// Generates every item with the furniture generator (furniture::generate / generatePanel)

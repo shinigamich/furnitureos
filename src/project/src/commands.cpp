@@ -2,6 +2,7 @@
 #include "fos/project/commands.hpp"
 
 #include "fos/furniture/edit.hpp"
+#include "fos/project/limits.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -473,10 +474,11 @@ core::Result<void> checkCuttingSettings(const CuttingSettings& s) {
             return core::makeError(core::ErrorCode::InvalidArgument,
                                    "Remnant '" + r.id + "' must have a positive length and width, got " +
                                        core::formatLength(r.length, 3) + " x " + core::formatLength(r.width, 3) + " mm.");
-        if (r.quantity < 1)
+        constexpr int kMaxRemnantQuantity = 10000;
+        if (r.quantity < 1 || r.quantity > kMaxRemnantQuantity)
             return core::makeError(core::ErrorCode::InvalidArgument,
-                                   "Remnant '" + r.id + "' must have a quantity of at least 1, got " +
-                                       std::to_string(r.quantity) + ".");
+                                   "Remnant '" + r.id + "' must have a quantity from 1 to " +
+                                       std::to_string(kMaxRemnantQuantity) + ", got " + std::to_string(r.quantity) + ".");
     }
     return {};
 }
@@ -523,9 +525,10 @@ Command setSettings(ProjectSettings settings) {
     Command c;
     c.label = label("Change project settings", {});
     c.apply = [settings](Project& p) -> core::Result<Affected> {
-        if (settings.backupCount < 0)
+        if (settings.backupCount < 0 || settings.backupCount > limits::kMaxBackupCount)
             return core::makeError(core::ErrorCode::InvalidArgument,
-                                   "The backup count must be 0 or more (is " + std::to_string(settings.backupCount) + ").");
+                                   "The backup count must be from 0 to " + std::to_string(limits::kMaxBackupCount) +
+                                       " (is " + std::to_string(settings.backupCount) + ").");
         p.settings = settings;
         Affected a;
         a.settings = true;

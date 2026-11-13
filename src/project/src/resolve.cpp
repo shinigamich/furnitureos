@@ -2,6 +2,7 @@
 #include "fos/project/resolve.hpp"
 
 #include "fos/furniture/generate.hpp"
+#include "fos/project/limits.hpp"
 
 #include <set>
 
@@ -49,6 +50,7 @@ core::Result<domain::Assembly> generateOne(const Item& item, const furniture::Li
 } // namespace
 
 core::Result<void> validateStructure(const Project& project) {
+    if (auto r = checkProjectLimits(project); !r) return r;
     if (auto r = uniqueIds(project.libraries.materials, "material"); !r) return r;
     if (auto r = uniqueIds(project.libraries.edgeBands, "edge band"); !r) return r;
     if (auto r = uniqueIds(project.libraries.hardware, "hardware definition"); !r) return r;

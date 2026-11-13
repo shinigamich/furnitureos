@@ -80,8 +80,8 @@ TEST_F(DrawingFixture, HitTestFindsTheDimensionUnderTheCursor) {
     ASSERT_TRUE(onLine.has_value());
     EXPECT_EQ(dimensionAt(drawing, 0, *onLine), kWidthDim);
     EXPECT_EQ(dimensionAt(drawing, 0, *onLine + Vec2{0.5, 0.5}), kWidthDim); // within 1.5 mm
-    EXPECT_EQ(dimensionAt(drawing, 0, Vec2{-50, -50}), "");                   // off the sheet
-    EXPECT_EQ(dimensionAt(drawing, 7, *onLine), "");                          // no such sheet
+    EXPECT_EQ(dimensionAt(drawing, 0, Vec2{-50, -50}), "");                  // off the sheet
+    EXPECT_EQ(dimensionAt(drawing, 7, *onLine), "");                         // no such sheet
     const auto box = elementBounds(sheet, kWidthDim);
     EXPECT_TRUE(box.contains(*onLine));
     // The click is inside the front view's annotated box.
@@ -116,11 +116,13 @@ TEST_F(DrawingFixture, OffsetHideTextAndUndo) {
     ASSERT_EQ(rows.size(), 1u);
     EXPECT_TRUE(rows[0].stale);
     EXPECT_FALSE(rows[0].orphan);
-    EXPECT_EQ(editRowText(rows[0]), QStringLiteral("offset -40 mm, text “approx. 600”, STALE: the model value changed"));
+    EXPECT_EQ(editRowText(rows[0]),
+              QStringLiteral("offset -40 mm, text “approx. 600”, STALE: the model value changed"));
     // Re-entering the text records the new value 700: no longer stale.
     run(dimensionTextCommand(s.project(), drawingId, dim(kWidthDim), QStringLiteral("approx. 700")));
     EXPECT_FALSE(dim(kWidthDim).dimension.staleOverride);
-    EXPECT_EQ(s.project().drawingEdits.at(drawingId).elements.at(kWidthDim).measuredAtEdit, std::optional<double>(700));
+    EXPECT_EQ(s.project().drawingEdits.at(drawingId).elements.at(kWidthDim).measuredAtEdit,
+              std::optional<double>(700));
 
     // Hide: not drawn, not pickable, listed as hidden.
     run(hideDimensionCommand(s.project(), drawingId, dim(kWidthDim)));
@@ -165,8 +167,8 @@ TEST_F(DrawingFixture, UserDimensionBetweenCornersFollowsTheModel) {
     EXPECT_DOUBLE_EQ(a->distance, std::hypot(3.0, 2.0));
     EXPECT_EQ(a->partName, "Left side");
 
-    run(addUserDimensionCommand(s.project(), drawingId, front, ctx, drawings::DimensionOrientation::Vertical, a->anchor,
-                                b->anchor, 15));
+    run(addUserDimensionCommand(s.project(), drawingId, front, ctx, drawings::DimensionOrientation::Vertical,
+                                a->anchor, b->anchor, 15));
     auto u = dim("user.dim.1");
     EXPECT_TRUE(u.user);
     EXPECT_DOUBLE_EQ(drawings::measuredValue(u.dimension), 820);
@@ -181,7 +183,8 @@ TEST_F(DrawingFixture, UserDimensionBetweenCornersFollowsTheModel) {
     run(dimensionOffsetCommand(s.project(), drawingId, dim("user.dim.1"), 25));
     EXPECT_DOUBLE_EQ(dim("user.dim.1").dimension.offset, 25);
     run(dimensionTextCommand(s.project(), drawingId, dim("user.dim.1"), QStringLiteral("820 total")));
-    EXPECT_EQ(s.project().drawingEdits.at(drawingId).dimensions.at(0).measuredAtEdit, std::optional<double>(820));
+    EXPECT_EQ(s.project().drawingEdits.at(drawingId).dimensions.at(0).measuredAtEdit,
+              std::optional<double>(820));
     EXPECT_FALSE(hideDimensionCommand(s.project(), drawingId, dim("user.dim.1")).ok());
 
     // Height 900: the anchors follow the model, the override is stale.
@@ -195,8 +198,8 @@ TEST_F(DrawingFixture, UserDimensionBetweenCornersFollowsTheModel) {
     // A second user dimension gets the next id; the horizontal 0..600 between the same corners.
     const auto& front2 = drawing.views[dim(kWidthDim).viewIndex];
     const auto ctx2 = editContext(*s.resolved(), request);
-    run(addUserDimensionCommand(s.project(), drawingId, front2, ctx2, drawings::DimensionOrientation::Horizontal,
-                                a->anchor, b->anchor, 10));
+    run(addUserDimensionCommand(s.project(), drawingId, front2, ctx2,
+                                drawings::DimensionOrientation::Horizontal, a->anchor, b->anchor, 10));
     EXPECT_DOUBLE_EQ(drawings::measuredValue(dim("user.dim.2").dimension), 600);
 
     // Removing it deletes only that user dimension.
@@ -211,26 +214,29 @@ TEST_F(DrawingFixture, RefusedUserDimensionsAndOrphans) {
     const drawings::ModelAnchor corner0{"cab1/side.left", 0, {}};
     const auto revision = s.revision();
     // Missing part, bad corner, same point twice: refused before reaching the document.
-    auto missing = addUserDimensionCommand(s.project(), drawingId, front, ctx, drawings::DimensionOrientation::Horizontal,
-                                           corner0, {"cab1/nope", 1, {}}, 10);
+    auto missing = addUserDimensionCommand(s.project(), drawingId, front, ctx,
+                                           drawings::DimensionOrientation::Horizontal, corner0,
+                                           {"cab1/nope", 1, {}}, 10);
     ASSERT_FALSE(missing.ok());
     EXPECT_NE(missing.error().message.find("cab1/nope"), std::string::npos) << missing.error().message;
-    EXPECT_FALSE(addUserDimensionCommand(s.project(), drawingId, front, ctx, drawings::DimensionOrientation::Horizontal,
-                                         corner0, {"cab1/side.right", 9, {}}, 10)
+    EXPECT_FALSE(addUserDimensionCommand(s.project(), drawingId, front, ctx,
+                                         drawings::DimensionOrientation::Horizontal, corner0,
+                                         {"cab1/side.right", 9, {}}, 10)
                      .ok());
-    EXPECT_FALSE(addUserDimensionCommand(s.project(), drawingId, front, ctx, drawings::DimensionOrientation::Horizontal,
-                                         corner0, corner0, 10)
+    EXPECT_FALSE(addUserDimensionCommand(s.project(), drawingId, front, ctx,
+                                         drawings::DimensionOrientation::Horizontal, corner0, corner0, 10)
                      .ok());
     EXPECT_EQ(s.revision(), revision);
     EXPECT_EQ(s.project().drawingEdits.count(drawingId), 0u);
 
     // A user dimension on the shelf becomes an orphan when the shelf is removed.
     const drawings::ModelAnchor shelfA{"cab1/shelf.1", 0, {}}, shelfB{"cab1/shelf.1", 1, {}};
-    run(addUserDimensionCommand(s.project(), drawingId, front, ctx, drawings::DimensionOrientation::Horizontal, shelfA,
-                                shelfB, 10));
+    run(addUserDimensionCommand(s.project(), drawingId, front, ctx,
+                                drawings::DimensionOrientation::Horizontal, shelfA, shelfB, 10));
     EXPECT_DOUBLE_EQ(drawings::measuredValue(dim("user.dim.1").dimension), 562);
     // And an element edit for an id the drawing does not have.
-    run(project::commands::setElementEdit(drawingId, "cab1/view.front/dim.bogus", drawings::ElementEdit{{}, {}, true, {}, {}}));
+    run(project::commands::setElementEdit(drawingId, "cab1/view.front/dim.bogus",
+                                          drawings::ElementEdit{{}, {}, true, {}, {}}));
     run(project::commands::setShelfCount("cab1", "", 0));
     auto rows = drawingEditRows(s.project(), drawingId, &drawing);
     ASSERT_EQ(rows.size(), 2u);

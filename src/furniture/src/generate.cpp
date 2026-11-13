@@ -6,11 +6,18 @@
 #include "gen_context.hpp"
 
 #include <cmath>
+#include <cstdio>
 
 namespace fos::furniture {
 namespace detail {
 
-std::string num(double value) { return core::formatLength(value, 3); }
+std::string num(double value) {
+    // formatLength is meant for lengths; huge or non-finite values (hostile input) use %g.
+    if (std::isfinite(value) && std::fabs(value) < 1e12) return core::formatLength(value, 3);
+    char buf[32];
+    std::snprintf(buf, sizeof buf, "%g", value);
+    return buf;
+}
 
 std::string joinSlot(std::initializer_list<std::string_view> segments) {
     std::string out;

@@ -26,9 +26,9 @@ drawings::EditModelContext editContext(const project::Resolved& resolved, const 
 
 /// A dimension of a generated drawing, as drawn (edits applied).
 struct DimensionRef {
-    std::size_t viewIndex = 0;     ///< Index in DrawingResult::views.
+    std::size_t viewIndex = 0; ///< Index in DrawingResult::views.
     drawings::Dimension dimension;
-    bool user = false;             ///< A user dimension (stored in DrawingEdits::dimensions).
+    bool user = false; ///< A user dimension (stored in DrawingEdits::dimensions).
 };
 std::optional<DimensionRef> findDimension(const drawings::DrawingResult& drawing, const std::string& id);
 
@@ -47,12 +47,12 @@ drawings::Rect2 elementBounds(const drawings::Sheet& sheet, const std::string& e
 /// part of the drawn assembly (or the drawn part) with drawings::resolveAnchor.
 struct CornerPick {
     drawings::ModelAnchor anchor;
-    geometry::Vec2 viewPoint;  ///< Resolved corner, view coordinates (model mm).
-    double distance = 0;       ///< From the query point, model mm.
+    geometry::Vec2 viewPoint; ///< Resolved corner, view coordinates (model mm).
+    double distance = 0;      ///< From the query point, model mm.
     std::string partName;
 };
-std::optional<CornerPick> nearestCorner(const drawings::GeneratedView& view, const drawings::EditModelContext& model,
-                                        geometry::Vec2 viewPoint);
+std::optional<CornerPick> nearestCorner(const drawings::GeneratedView& view,
+                                        const drawings::EditModelContext& model, geometry::Vec2 viewPoint);
 
 // --- commands --------------------------------------------------------------------------
 /// New paper offset (mm, signed as drawings::Dimension::offset) of the dimension.
@@ -60,7 +60,8 @@ project::Command dimensionOffsetCommand(const project::Project& project, const s
                                         const DimensionRef& dimension, double offset);
 /// Hides a generated dimension (ElementEdit::hidden). A user dimension cannot be hidden, only
 /// removed (InvalidArgument).
-core::Result<project::Command> hideDimensionCommand(const project::Project& project, const std::string& drawingId,
+core::Result<project::Command> hideDimensionCommand(const project::Project& project,
+                                                    const std::string& drawingId,
                                                     const DimensionRef& dimension);
 /// Text override (empty text = remove the override). The measured value at the time of the
 /// edit is recorded (drawings::setTextOverride / UserDimension::measuredAtEdit).
@@ -68,17 +69,16 @@ project::Command dimensionTextCommand(const project::Project& project, const std
                                       const DimensionRef& dimension, const QString& text);
 /// Removes the stored edit `id` of the drawing: an element edit, or a user annotation.
 /// NotFound when the drawing has no such edit.
-core::Result<project::Command> removeEditCommand(const project::Project& project, const std::string& drawingId,
-                                                 const std::string& id);
+core::Result<project::Command> removeEditCommand(const project::Project& project,
+                                                 const std::string& drawingId, const std::string& id);
 /// Adds a user dimension between two model anchors in `view` (id "user.dim.<n>", the
 /// smallest unused n). Refused (InvalidArgument, the drawings module's reason) when an
 /// anchor cannot be resolved, or when both points coincide along the measured direction.
-core::Result<project::Command> addUserDimensionCommand(const project::Project& project, const std::string& drawingId,
-                                                       const drawings::GeneratedView& view,
-                                                       const drawings::EditModelContext& model,
-                                                       drawings::DimensionOrientation orientation,
-                                                       const drawings::ModelAnchor& first,
-                                                       const drawings::ModelAnchor& second, double offset);
+core::Result<project::Command>
+addUserDimensionCommand(const project::Project& project, const std::string& drawingId,
+                        const drawings::GeneratedView& view, const drawings::EditModelContext& model,
+                        drawings::DimensionOrientation orientation, const drawings::ModelAnchor& first,
+                        const drawings::ModelAnchor& second, double offset);
 
 // --- edit list and findings --------------------------------------------------------------
 struct DrawingEditRow {

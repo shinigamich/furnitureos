@@ -37,7 +37,7 @@ and a drill, and for a factory with CNC machines.
 | PDF export and exact-scale printing with calibration mark | Experimental | Not yet verified on physical printers |
 | Native project file `.fosp` (versioned, checksummed, atomic save, backups, autosave, undo/redo) | Implemented | No migrations needed yet (format v1) |
 | 3D viewport (orbit/pan/zoom, presets, picking, selection) | Experimental | Box display only (no holes/edge colours) |
-| Desktop application (Qt 6; English and Ukrainian) | Experimental | Edits parameters, construction and materials; interior/front/drawing editing not in the UI yet |
+| Desktop application (Qt 6; English and Ukrainian) | Experimental | Parameters, construction, interior sections, fronts, hardware, part overrides, drawing annotations, cutting settings |
 | Command-line tool `fos` | Implemented | `src/cli/README.md` |
 | CAM: toolpaths, simulator, generic G-code | Experimental | **No machine is verified.** Output must be proven by a qualified operator |
 | Plugins | Partial | Declarative data plugins only (materials, edge bands, hardware); no code plugins |

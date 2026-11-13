@@ -119,6 +119,26 @@ void Reader::integer(std::string_view key, int& out, int minimum, bool required)
     failAt(key, "expected an integer >= " + std::to_string(minimum) + ", got " + describe(*v));
 }
 
+void Reader::integerInRange(std::string_view key, int& out, int minimum, int maximum, bool required) {
+    const Json* v = find(key, required);
+    if (v == nullptr) return;
+    if (v->is_number_integer()) {
+        const auto i = v->get<long long>();
+        if (i >= minimum && i <= maximum) {
+            out = static_cast<int>(i);
+            return;
+        }
+    }
+    failAt(key, "expected an integer from " + std::to_string(minimum) + " to " + std::to_string(maximum) + ", got " +
+                    describe(*v));
+}
+
+void Reader::limitArray(std::string_view key, std::size_t maxSize, const std::string& what) {
+    const Json* v = find(key);
+    if (v == nullptr || !v->is_array() || v->size() <= maxSize) return;
+    failAt(key, "has " + std::to_string(v->size()) + " " + what + "; the limit is " + std::to_string(maxSize));
+}
+
 void Reader::boolean(std::string_view key, bool& out) {
     const Json* v = find(key);
     if (v == nullptr) return;

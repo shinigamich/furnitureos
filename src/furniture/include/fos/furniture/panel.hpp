@@ -43,7 +43,9 @@ struct PanelResult {
 ///   Horizontal:    length along X, width along Y, thickness along Z
 ///   VerticalSide:  thickness along X, width along Y, length along Z
 ///   VerticalFront: length along X, thickness along Y, width along Z
-/// Errors: a standard parameter is missing, length/width not > 0, material not in the library.
+/// Errors: a standard parameter is missing, length/width not > 0, a parameter not finite or
+/// above limits::kMaxDimension in magnitude, material not in the library or of a non-finite /
+/// non-positive / absurd thickness (messages start with "furniture.geometry.invalid_size:").
 core::Result<PanelResult> generatePanel(const PanelDefinition& definition, const Libraries& libraries);
 
 } // namespace fos::furniture

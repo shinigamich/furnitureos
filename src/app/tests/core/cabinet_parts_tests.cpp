@@ -9,19 +9,23 @@ namespace {
 
 using domain::EdgeSide;
 
-const furniture::CabinetDefinition& cabinet(const Session& s) { return *s.project().items.at(0).cabinet(); }
+const furniture::CabinetDefinition& cabinet(const Session& s) {
+    return *s.project().items.at(0).cabinet();
+}
 
 int hingesWith(const Session& s, const std::string& definition) {
     int n = 0;
     for (const auto& h : s.resolved()->model.assemblies.at(0).hardware)
-        if (h.definition.str() == definition) n += h.quantity;
+        if (h.definition.str() == definition)
+            n += h.quantity;
     return n;
 }
 
 TEST(CabinetHardware, ChoicesFromTheLibraryAndSelection) {
     Session s;
     ASSERT_TRUE(s.newFromTemplate(TemplateKind::BaseCabinet).ok());
-    const auto hinges = hardwareChoices(s.project().libraries, HardwareRole::Hinge, cabinet(s).hardware.hinge.str());
+    const auto hinges =
+        hardwareChoices(s.project().libraries, HardwareRole::Hinge, cabinet(s).hardware.hinge.str());
     ASSERT_EQ(hinges.size(), 1u); // the built-in catalogue has one hinge
     EXPECT_EQ(hinges[0].id, hardware::ids::kHingeCup35);
     EXPECT_FALSE(hinges[0].missing);
@@ -33,7 +37,8 @@ TEST(CabinetHardware, ChoicesFromTheLibraryAndSelection) {
     EXPECT_TRUE(odd[1].missing);
 
     // A second hinge in the library (copy of the generic one under a new id) becomes selectable.
-    domain::HardwareDefinition copy = *s.project().libraries.findHardware(domain::HardwareId(hardware::ids::kHingeCup35));
+    domain::HardwareDefinition copy =
+        *s.project().libraries.findHardware(domain::HardwareId(hardware::ids::kHingeCup35));
     copy.id = domain::HardwareId("hw.test.hinge_b");
     copy.name = "Test hinge B";
     ASSERT_TRUE(s.execute(project::commands::upsertHardware(copy)).ok());
@@ -50,7 +55,8 @@ TEST(CabinetHardware, ChoicesFromTheLibraryAndSelection) {
     // as a generation finding naming the id (the editor only offers library entries).
     ASSERT_TRUE(s.execute(hardwareCommand(cabinet(s), HardwareRole::Hinge, "hw.nope")).ok());
     bool reported = false;
-    for (const auto& d : s.resolved()->diagnostics) reported = reported || d.message.find("hw.nope") != std::string::npos;
+    for (const auto& d : s.resolved()->diagnostics)
+        reported = reported || d.message.find("hw.nope") != std::string::npos;
     EXPECT_TRUE(reported);
     ASSERT_TRUE(s.undo().ok());
 
@@ -83,12 +89,15 @@ TEST(PartOverride, SlotMaterialEdgesClearUndo) {
     EXPECT_EQ(shelf->material.str(), project::defaults::kParticleboard18);
     ASSERT_TRUE(shelf->edge(EdgeSide::L1).has_value()); // front edge banded (visible edge)
 
-    ASSERT_TRUE(s.execute(partMaterialCommand(cabinet(s), "shelf.1", std::string(project::defaults::kMdf18))).ok());
+    ASSERT_TRUE(
+        s.execute(partMaterialCommand(cabinet(s), "shelf.1", std::string(project::defaults::kMdf18))).ok());
     EXPECT_EQ(part(s, "cab1/shelf.1")->material.str(), project::defaults::kMdf18);
     EXPECT_EQ(part(s, "cab1/side.left")->material.str(), project::defaults::kParticleboard18);
 
     // Raw front edge, thin band on W1; the material override is kept.
-    ASSERT_TRUE(s.execute(partEdgeCommand(cabinet(s), "shelf.1", EdgeSide::L1, {EdgeOverrideChoice::Kind::Raw, {}})).ok());
+    ASSERT_TRUE(
+        s.execute(partEdgeCommand(cabinet(s), "shelf.1", EdgeSide::L1, {EdgeOverrideChoice::Kind::Raw, {}}))
+            .ok());
     ASSERT_TRUE(s.execute(partEdgeCommand(cabinet(s), "shelf.1", EdgeSide::W1,
                                           {EdgeOverrideChoice::Kind::Band, project::defaults::kAbs04}))
                     .ok());
@@ -99,7 +108,8 @@ TEST(PartOverride, SlotMaterialEdgesClearUndo) {
     EXPECT_EQ(p->material.str(), project::defaults::kMdf18);
     const auto o = currentOverride(cabinet(s), "shelf.1");
     EXPECT_EQ(edgeChoice(o, EdgeSide::L1).kind, EdgeOverrideChoice::Kind::Raw);
-    EXPECT_EQ(edgeChoice(o, EdgeSide::W1), (EdgeOverrideChoice{EdgeOverrideChoice::Kind::Band, project::defaults::kAbs04}));
+    EXPECT_EQ(edgeChoice(o, EdgeSide::W1),
+              (EdgeOverrideChoice{EdgeOverrideChoice::Kind::Band, project::defaults::kAbs04}));
     EXPECT_EQ(edgeChoice(o, EdgeSide::L2).kind, EdgeOverrideChoice::Kind::CabinetRule);
 
     // Refused: a material that is not in the library. Nothing changes.
@@ -112,11 +122,13 @@ TEST(PartOverride, SlotMaterialEdgesClearUndo) {
     EXPECT_EQ(s.revision(), revision);
     // An edge band missing from the library is accepted with the warning
     // furniture.edge.missing_band and the edge left raw (furniture generate.cpp).
-    ASSERT_TRUE(
-        s.execute(partEdgeCommand(cabinet(s), "shelf.1", EdgeSide::L2, {EdgeOverrideChoice::Kind::Band, "eb.nope"})).ok());
+    ASSERT_TRUE(s.execute(partEdgeCommand(cabinet(s), "shelf.1", EdgeSide::L2,
+                                          {EdgeOverrideChoice::Kind::Band, "eb.nope"}))
+                    .ok());
     EXPECT_FALSE(part(s, "cab1/shelf.1")->edge(EdgeSide::L2).has_value());
     bool warned = false;
-    for (const auto& d : s.resolved()->diagnostics) warned = warned || d.code == "furniture.edge.missing_band";
+    for (const auto& d : s.resolved()->diagnostics)
+        warned = warned || d.code == "furniture.edge.missing_band";
     EXPECT_TRUE(warned);
     ASSERT_TRUE(s.undo().ok());
 
@@ -128,7 +140,8 @@ TEST(PartOverride, SlotMaterialEdgesClearUndo) {
     ASSERT_TRUE(part(s, "cab1/shelf.1")->edge(EdgeSide::L1).has_value());
 
     // Undo three steps -> the full override again; clear removes it in one step.
-    for (int i = 0; i < 3; ++i) ASSERT_TRUE(s.undo().ok());
+    for (int i = 0; i < 3; ++i)
+        ASSERT_TRUE(s.undo().ok());
     EXPECT_EQ(part(s, "cab1/shelf.1")->material.str(), project::defaults::kMdf18);
     ASSERT_TRUE(s.execute(clearPartOverrideCommand(cabinet(s), "shelf.1")).ok());
     EXPECT_EQ(part(s, "cab1/shelf.1")->material.str(), project::defaults::kParticleboard18);

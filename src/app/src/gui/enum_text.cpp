@@ -80,30 +80,45 @@ Choices<furniture::JointFastener> fastenerChoices() {
 
 Choices<FrontInput::Choice> frontChoices() {
     using C = FrontInput::Choice;
-    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "No front")), C::None}, {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Single door")), C::Door}, {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Door pair")), C::DoorPair}, {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Drawer stack")), C::DrawerStack}};
+    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "No front")), C::None},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Single door")), C::Door},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Door pair")), C::DoorPair},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Drawer stack")), C::DrawerStack}};
 }
 
 Choices<furniture::OverlayKind> overlayChoices() {
     using O = furniture::OverlayKind;
-    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Full overlay")), O::Full}, {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Half overlay")), O::Half}, {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Inset")), O::Inset}};
+    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Full overlay")), O::Full},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Half overlay")), O::Half},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Inset (inside the opening)")), O::Inset}};
 }
 
 Choices<furniture::HingeSide> hingeSideChoices() {
-    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Hinged left")), furniture::HingeSide::Left}, {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Hinged right")), furniture::HingeSide::Right}};
+    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Hinged left")), furniture::HingeSide::Left},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Hinged right")), furniture::HingeSide::Right}};
 }
 
 Choices<furniture::HandlePosition> handleChoices() {
     using H = furniture::HandlePosition;
-    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "No handle")), H::None}, {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Handle centred")), H::Center}, {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Handle at the top")), H::Top}, {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Handle at the bottom")), H::Bottom}};
+    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "No handle")), H::None},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Handle centred")), H::Center},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Handle at the top")), H::Top},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Handle at the bottom")), H::Bottom}};
 }
 
 Choices<cutting::Objective> objectiveChoices() {
     using O = cutting::Objective;
-    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Fewest sheets")), O::MinimizeSheets}, {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Least waste")), O::MinimizeWaste}, {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Use remnants first")), O::PreferRemnants}, {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Fewest cuts")), O::MinimizeCuts}};
+    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Fewest sheets")), O::MinimizeSheets},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Least waste")), O::MinimizeWaste},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Use remnants first")), O::PreferRemnants},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Fewest cuts")), O::MinimizeCuts}};
 }
 
 Choices<drawings::DimensionOrientation> orientationChoices() {
-    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Horizontal")), drawings::DimensionOrientation::Horizontal}, {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Vertical")), drawings::DimensionOrientation::Vertical}};
+    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Horizontal")),
+             drawings::DimensionOrientation::Horizontal},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Vertical")),
+             drawings::DimensionOrientation::Vertical}};
 }
 
 } // namespace fos::app::gui

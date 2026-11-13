@@ -153,10 +153,11 @@ defaults = the generic built-in ids).
 **Constraint** — closed: `name` (R), `expression` (R), `message`, `severity` (`error` | `warning`).
 
 **Section** — closed: `size` (`{kind, value, expression}`; Fixed/Weight need `value > 0`, Expression a
-non-empty `expression`), `split`, `shelfCount` (integer ≥ 0), `front` (Front, absent/null = none),
-`children` (array of Section). Front — closed: `kind` (R), `overlay`, `hingeSide`, `hinges` (bool), `handle`,
-`drawerHeights` (array of size objects, bottom to top). Section-tree rules (child counts, sizes) are checked by the
-generator and reported as item diagnostics.
+non-empty `expression`), `split`, `shelfCount` (integer 0 … 100), `front` (Front, absent/null = none),
+`children` (array of Section, at most 50). Front — closed: `kind` (R), `overlay`, `hingeSide`, `hinges` (bool),
+`handle`, `drawerHeights` (array of size objects, bottom to top, at most 30). Section-tree rules (child counts,
+sizes) are checked by the generator and reported as item diagnostics, except the hard limits of §2.8, which reject
+the file.
 
 **Edges** — closed: `l1`, `l2`, `w1`, `w2` → edge band id or `null` (raw).
 
@@ -186,9 +187,36 @@ length runs along the sheet length / grain).
 
 ### 2.7 Settings *(extensible)*
 
-`backupCount` (integer ≥ 0, default 3: backups kept on save), `edgeBanding` (closed:
+`backupCount` (integer 0 … 100, default 3: backups kept on save), `edgeBanding` (closed:
 `{overhangPerEnd ≥ 0 (25), wastePercent ≥ 0 (0)}` for the edge banding report),
 `cutListGroupAcrossAssemblies` (bool, default true).
+
+### 2.8 Hard limits
+
+A hostile or corrupted file must not hang loading, generation or saving. Files beyond these limits are **rejected
+on load** with a ParseError naming the JSON path and the numbers (e.g. `/payload/items/0/interior/shelfCount:
+expected an integer from 0 to 100, got 2000`); the same limits refuse Document commands (`validateStructure`) and
+furniture edits (`furniture::generate`). Counts of arrays are checked before their entries are decoded.
+
+| Limit | Value | Where defined | Checked |
+|---|---|---|---|
+| file size | 256 MiB (`formats::kDefaultMaxFileBytes`, `LoadOptions::maxFileBytes`) | formats | before reading, regular files only |
+| items per project | 500 | `project::limits::kMaxItems` | array length on load, `validateStructure` |
+| estimated parts per project | 20 000 (sum of `furniture::estimatePartCount`, panels 1) | `project::limits::kMaxEstimatedParts` | after decoding, `validateStructure` |
+| `settings.backupCount` | 0 … 100 | `project::limits::kMaxBackupCount` = `formats::kMaxBackupCount` | on load, `setSettings`, `saveDocument` |
+| shelves per section | 100 | `furniture::limits::kMaxShelvesPerSection` | on load (`shelfCount`), generator |
+| adjustable shelves per cabinet | 200 | `furniture::limits::kMaxShelvesPerCabinet` | after decoding the cabinet, generator |
+| children per split section | 50 | `furniture::limits::kMaxSectionChildren` | array length on load, generator |
+| sections per cabinet (root included) | 250 | `furniture::limits::kMaxSections` | after decoding, generator |
+| section nesting depth (root = 0) | 16 | `furniture::limits::kMaxSectionDepth` | after decoding, generator |
+| drawer fronts per stack | 30 | `furniture::limits::kMaxDrawerHeights` | array length on load, generator |
+| parts per cabinet | 2 000 (estimate: 8 + dividers + shelves + fronts; and the generated count) | `furniture::limits::kMaxPartsPerAssembly` | after decoding, generator |
+| standard (length) parameters, Fixed sizes | finite, \|value\| ≤ 100 000 mm | `furniture::limits::kMaxDimension` | after decoding (constant and evaluable values), generator |
+| Weight sizes | ≤ 1 000 000 | `furniture::limits::kMaxWeight` | after decoding, generator |
+| generated part length / width / thickness | finite, > 0, ≤ 100 000 mm | generator (`furniture.geometry.invalid_size`) | item diagnostic `project.item.generation_failed` |
+| panel item parameters | finite, \|value\| ≤ 100 000 mm | `furniture::generatePanel` | item diagnostic |
+
+The JSON nesting of the whole file is limited to 128 levels by the container (formats §1.2).
 
 ## 3. Commands and undo
 
@@ -228,6 +256,10 @@ length runs along the sheet length / grain).
 
 ## 5. Limitations
 
+* The per-project parts limit is checked on the estimate (`estimatePartCount`), an upper bound; custom parameter
+  values are not limited (sizes derived from them are checked on the generated parts).
+* Rejecting a file at the 500-item limit still parses the whole (≤ 256 MiB) JSON text first.
+
 * Undo snapshots cost memory proportional to the project size per step (bounded by the undo limit).
 * Labels carry item ids, not display names.
 * `recoverProject` returns the newest autosave/backup that passes the container checks; if its payload then fails
@@ -245,4 +277,6 @@ remnants; save → load → save byte-identical with every schema feature (incl.
 `measuredAtEdit`); unknown-key preservation; closed-object rejection with paths; strict validation messages;
 newer version / other kind refused; truncation at many offsets; checksum mismatch and recovery opt-in; unsavable
 project not written; autosave + recovery; failed commands leave the document unchanged; dirty flag; merging;
-undo limit.
+undo limit. `limits_tests.cpp`: the reviewer's hostile files (shelfCount 2000 / 10000, 51 children, 3 × 100 shelves,
+31 drawers, height 1e308, backupCount 1e6, 501 items) are rejected on load in well under a second with the exact
+messages; commands refuse the same limits; backup rotation through `saveProject`.

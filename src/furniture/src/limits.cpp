@@ -5,6 +5,7 @@
 #include "fos/furniture/parameters.hpp"
 
 #include <cmath>
+#include <cstdio>
 #include <string>
 #include <utility>
 #include <vector>
@@ -16,7 +17,14 @@ std::string pathLabel(const std::string& path) { return path.empty() ? "root" : 
 std::string childPath(const std::string& parent, std::size_t index) {
     return parent.empty() ? std::to_string(index + 1) : parent + "." + std::to_string(index + 1);
 }
-std::string num(double v) { return core::formatLength(v, 3); }
+/// Message form of a number: formatLength for ordinary magnitudes, %g for huge or
+/// non-finite values (formatLength is meant for lengths and cannot show 1e308).
+std::string num(double v) {
+    if (std::isfinite(v) && std::fabs(v) < 1e12) return core::formatLength(v, 3);
+    char buf[32];
+    std::snprintf(buf, sizeof buf, "%g", v);
+    return buf;
+}
 
 std::size_t frontCount(const Section& s) {
     if (!s.front) return 0;
@@ -137,8 +145,13 @@ core::Result<void> checkSectionLimits(const Section& root, const std::string& ow
 core::Result<void> checkDefinitionLimits(const CabinetDefinition& definition) {
     const std::string owner = definition.id.str();
     if (auto r = checkSectionLimits(definition.interior, owner); !r) return r;
-    for (const auto& name : definition.parameters.names()) {
-        if (!isStandardParameter(name)) continue;
+    // Inputs first (in the standard order), then derived parameters: a too large input is
+    // reported under its own name rather than under a formula that uses it.
+    std::vector<std::string> names;
+    for (const bool derived : {false, true})
+        for (const auto& name : definition.parameters.names())
+            if (isStandardParameter(name) && isDerivedParameter(name) == derived) names.push_back(name);
+    for (const auto& name : names) {
         const auto v = definition.parameters.value(name);
         if (!v) continue; // reported by generate()
         if (!std::isfinite(v.value()) || std::fabs(v.value()) > limits::kMaxDimension)

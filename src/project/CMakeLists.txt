@@ -13,6 +13,7 @@ fos_add_module(project
         src/commands.cpp
         src/document.cpp
         src/outputs.cpp
+        src/limits.cpp
     DEPS fos::core fos::geometry fos::parametric fos::domain fos::machining fos::hardware fos::furniture
          fos::production fos::cutting fos::cutting_model fos::drawings fos::formats nlohmann_json::nlohmann_json)
 target_compile_definitions(fos_project PRIVATE FOS_PROJECT_APP_VERSION="${PROJECT_VERSION}")
@@ -22,4 +23,5 @@ fos_add_tests(project
         tests/resolve_tests.cpp
         tests/file_tests.cpp
         tests/document_tests.cpp
-        tests/scenario_tests.cpp)
+        tests/scenario_tests.cpp
+        tests/limits_tests.cpp)

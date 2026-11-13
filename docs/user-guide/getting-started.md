@@ -41,25 +41,54 @@ shaded / shaded with edges / wireframe, Fit all (F). Mouse handling is that of t
 
 ## 3. Editing parameters
 
-Select the cabinet (not a part). The **Properties** panel shows:
+Select the cabinet (not a part). The **Properties** panel shows the cabinet name and three tabs:
 
 * **Parameters**, grouped by kind (lengths in mm, counts, angles, …). Type a number (`900`, `812.5`, `812,5`)
   or an expression over other parameters (`depth + 140`, `width / 2`) and press **Enter**.
   Derived parameters (in italics) are normally computed from others; typing a value **pins** them, and
   **Reset** restores the standard formula. Use the filter box to find a parameter by name.
-* **Construction**: top and bottom joints, top panel or rails, back mounting, plinth, fasteners, shelf-pin holes.
-* **Materials**: carcass, back and front materials and the edge bands of visible, hidden and front edges, chosen
-  from the project library.
+* **Construction**: top and bottom joints, top panel or rails, back mounting, plinth, fasteners, shelf-pin holes;
+  **Materials**: carcass, back and front materials and the edge bands of visible, hidden and front edges, chosen
+  from the project library; **Hardware**: the hinge, handle, shelf pin, confirmat screw, dowel and foot used by
+  the cabinet, each chosen from the fittings of that kind in the project's hardware library.
+* **Interior**: sections, shelves and fronts (next section).
 
 If an input is not accepted (unknown name, syntax error, a size the cabinet cannot be built with), the reason is
 shown in red under the field and **nothing changes**. Every accepted change is one step in **Edit ▸ Undo /
 Redo** (Ctrl+Z / Ctrl+Shift+Z); the menu names the step, e.g. "Undo Set width of Base cabinet to 900".
 All views — 3D, browser, drawings, production and cutting — are regenerated after each change and after undo.
 
-Selecting a part shows read-only facts: finished size, cut size (finished size minus edge band thickness),
-material, grain, the four edges and the number of machining operations.
+## 4. Interior: sections, shelves and fronts
 
-## 4. Drawings and exact-scale printing
+The **Interior** tab shows the cabinet's sections as a tree: "Whole interior" at the top, below it the sections
+of each split ("Section 1 (left)", "Section 2 (right)" for a vertical split, "(bottom)" / "(top)" for a
+horizontal one), with each section's size and content. Select a section, then:
+
+* **Split vertically** (side-by-side sections separated by partitions) or **Split horizontally** (stacked
+  sections separated by fixed shelves) into the number of sections chosen under "Into sections" (2–9). The
+  sections get equal shares; shelves of the split section move into its first section, its front stays.
+* **Remove split** turns a split section back into one empty section (its front is kept). **Empty interior**
+  replaces everything by one empty section without shelves or front.
+* **Size** of a section within its split, then **Set size** (or Enter): `300` = fixed 300 mm, `1*`, `2*` =
+  share of the remaining space, anything else = an expression over the parameters (`width / 3`). A size that
+  does not fit is refused with the available space.
+* **Shelves**: the number of adjustable shelves of a section that is not split (evenly distributed).
+* **Front of the section**: no front, single door (hinged left or right), door pair or drawer stack; overlay
+  (full, half, inset), cup hinges, handle position. For a drawer stack enter the drawer front heights from
+  bottom to top separated by `;` with the same size syntax, e.g. `140; 1*; 1*`. Press **Apply front**.
+
+Example: split the base cabinet vertically, give section 1 two shelves and keep the door pair on the whole
+interior — the browser then lists a partition (684 mm long) and two 271 × 540 mm shelves in the left section.
+
+## 5. A single part: facts and overrides
+
+Selecting a part shows read-only facts: finished size, cut size (finished size minus edge band thickness),
+material, grain, the four edges and the number of machining operations. For a cabinet part, **Override for this
+part** sets its material (or "Cabinet material") and each edge L1, L2, W1, W2 ("Cabinet rule", raw, or an edge
+band from the library). **Remove override** returns the part to the cabinet's rules. Part sizes themselves
+always follow from the cabinet parameters and interior.
+
+## 6. Drawings, annotations and exact-scale printing
 
 The **Drawings** workspace shows the assembly drawing of each cabinet and, for the selected cabinet, a part
 drawing of each part. Choose paper (A4–A1), orientation and scale ("Fit to sheet" picks the largest standard
@@ -69,13 +98,25 @@ are listed under "Sheet". Zoom 100 % shows real paper size on a correctly calibr
 Export: **PDF** (vector, exact scale, one page per sheet), **SVG** (one file per sheet), **DXF** (one file per
 view, model space 1:1 in millimetres).
 
+**Annotations** (panel to the right of the sheet). Click a dimension on the sheet to select it (it is
+highlighted in blue). You can then change its **Offset** (paper mm; negative = below / to the left), replace its
+**Text** (leave empty for the measured value), **Hide** it, or **Reset** it to the generated state. To add a
+dimension, choose the direction, press **Pick two corners** and click near two part corners in the same view: the
+dimension is attached to those parts and follows later size changes. All edits are stored in the project and
+re-applied whenever the drawing is regenerated; they are undoable like any other change.
+
+The panel lists the stored edits of the drawing. A replaced text whose dimension has changed since it was typed
+is marked **STALE** and drawn with `*` on the sheet (e.g. "800 *"); an edit whose element no longer exists (for
+example a dimension of a removed shelf) is marked **ORPHAN**. Both are explained under "Findings"; select an
+entry and press **Remove edit** to delete it, or re-enter the text to confirm it.
+
 **Print…** prints at exact scale (1 mm on the sheet = 1 mm on paper). If the sheet does not fit the printable
 area, you are asked whether to print it fitted to the page instead; such a printout is stamped "not to scale"
 with the factor. Every sheet carries a **100 mm calibration mark**: after printing, measure it with a ruler.
 If it is not exactly 100 mm, the printer driver scaled the page (switch off "fit to page" in the driver); the
 application cannot detect driver scaling.
 
-## 5. Production documents
+## 7. Production documents
 
 The **Production** workspace lists cut list, parts, materials, edge banding, hardware and machining, regenerated
 from the current model. **Export table as CSV…** writes the shown table (UTF-8). Material sheet counts in this
@@ -85,16 +126,20 @@ workspace are area lower bounds; real sheet counts come from the Cutting workspa
 cabinet), part labels SVG (A4 sheets of 70 × 37 mm labels) and the 3D model as OBJ (millimetres, Z up, parts as
 boxes, no machining).
 
-## 6. Cutting
+## 8. Cutting
 
 The **Cutting** workspace shows one row per material: pieces, sheets used, the area-based lower bound, the
 utilisation and the result of the independent layout check. The layouts come from a **heuristic** optimiser:
 they are valid (checked) but generally not optimal. Select a material and a sheet to see its layout.
 
-**Saw settings**: choose "Project defaults" or a single material, set the kerf (blade width) and the edge trim
-on each side, and press **Apply and re-optimise**. This is an undoable project change.
+**Saw settings**: choose "Project defaults" or a single material, set the kerf (blade width), the edge trim
+on each side and the **objective** the optimiser compares layouts by (fewest sheets, least waste, use remnants
+first, fewest cuts). For a single material you can also list **remnants** — leftover boards used before full
+sheets (label, length along the grain, width, quantity): **Add remnant** / **Remove remnant**. Press **Apply and
+re-optimise**; invalid values (e.g. a remnant of width 0) are refused with the reason. **Use project defaults for
+this material** removes the material's own settings. Each of these is an undoable project change.
 
-## 7. Saving, backups and recovery
+## 9. Saving, backups and recovery
 
 * **File ▸ Save / Save As** write a `.fosp` file atomically (a crash never leaves a half-written file) and keep
   rotating backups `<file>.bak1` … (3 by default). The window title shows `*` while there are unsaved changes;

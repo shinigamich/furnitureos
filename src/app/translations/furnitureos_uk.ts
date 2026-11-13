@@ -2,6 +2,61 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="uk_UA">
 <context>
+    <name>DrawingEditText</name>
+    <message>
+        <source>A user dimension cannot be hidden; remove it instead.</source>
+        <translation>Користувацький розмір не можна приховати; видаліть його.</translation>
+    </message>
+    <message>
+        <source>The drawing has no stored edit “%1”.</source>
+        <translation>Креслення не має збереженої зміни «%1».</translation>
+    </message>
+    <message>
+        <source>The dimension cannot be attached: %1</source>
+        <translation>Розмір не можна прив’язати: %1</translation>
+    </message>
+    <message>
+        <source>Both corners lie at the same position in the measured direction; pick two corners that are apart.</source>
+        <translation>Обидва кути лежать в одному положенні в напрямку вимірювання; виберіть два рознесені кути.</translation>
+    </message>
+    <message>
+        <source>user dimension</source>
+        <translation>користувацький розмір</translation>
+    </message>
+    <message>
+        <source>user text</source>
+        <translation>користувацький текст</translation>
+    </message>
+    <message>
+        <source>user leader</source>
+        <translation>користувацька виноска</translation>
+    </message>
+    <message>
+        <source>detail marker</source>
+        <translation>позначка виносного елемента</translation>
+    </message>
+    <message>
+        <source>hidden</source>
+        <translation>приховано</translation>
+    </message>
+    <message>
+        <source>offset %1 mm</source>
+        <translation>відступ %1 мм</translation>
+    </message>
+    <message>
+        <source>text “%1”</source>
+        <translation>текст «%1»</translation>
+    </message>
+    <message>
+        <source>STALE: the model value changed</source>
+        <translation>ЗАСТАРІЛО: значення моделі змінилося</translation>
+    </message>
+    <message>
+        <source>ORPHAN: not in the drawing any more</source>
+        <translation>СИРОТА: елемента більше немає на кресленні</translation>
+    </message>
+</context>
+<context>
     <name>DrawingText</name>
     <message>
         <source>Project</source>
@@ -38,6 +93,116 @@
     <message>
         <source>Check with a ruler: the mark above must measure exactly the size stated.</source>
         <translation>Перевірте лінійкою: позначка вище має точно відповідати вказаному розміру.</translation>
+    </message>
+</context>
+<context>
+    <name>HardwareText</name>
+    <message>
+        <source>Hinge:</source>
+        <translation>Завіса:</translation>
+    </message>
+    <message>
+        <source>Handle:</source>
+        <translation>Ручка:</translation>
+    </message>
+    <message>
+        <source>Shelf pin:</source>
+        <translation>Полицетримач:</translation>
+    </message>
+    <message>
+        <source>Confirmat screw:</source>
+        <translation>Конфірмат:</translation>
+    </message>
+    <message>
+        <source>Dowel:</source>
+        <translation>Шкант:</translation>
+    </message>
+    <message>
+        <source>Foot:</source>
+        <translation>Опора:</translation>
+    </message>
+</context>
+<context>
+    <name>InteriorText</name>
+    <message>
+        <source>Whole interior</source>
+        <translation>Увесь простір</translation>
+    </message>
+    <message>
+        <source>Section %1</source>
+        <translation>Секція %1</translation>
+    </message>
+    <message>
+        <source>(left)</source>
+        <translation>(ліва)</translation>
+    </message>
+    <message>
+        <source>(right)</source>
+        <translation>(права)</translation>
+    </message>
+    <message>
+        <source>(bottom)</source>
+        <translation>(нижня)</translation>
+    </message>
+    <message>
+        <source>(top)</source>
+        <translation>(верхня)</translation>
+    </message>
+    <message>
+        <source>%1 mm (fixed)</source>
+        <translation>%1 мм (фіксовано)</translation>
+    </message>
+    <message>
+        <source>share %1</source>
+        <translation>частка %1</translation>
+    </message>
+    <message>
+        <source>%1 side by side</source>
+        <translation>%1 по ширині</translation>
+    </message>
+    <message>
+        <source>%1 stacked</source>
+        <translation>%1 по висоті</translation>
+    </message>
+    <message>
+        <source>shelves: %1</source>
+        <translation>полиць: %1</translation>
+    </message>
+    <message>
+        <source>empty</source>
+        <translation>порожньо</translation>
+    </message>
+    <message>
+        <source>door, hinged left</source>
+        <translation>двері, завіси ліворуч</translation>
+    </message>
+    <message>
+        <source>door, hinged right</source>
+        <translation>двері, завіси праворуч</translation>
+    </message>
+    <message>
+        <source>door pair</source>
+        <translation>двостулкові двері</translation>
+    </message>
+    <message>
+        <source>drawers: %1</source>
+        <translation>шухляд: %1</translation>
+    </message>
+    <message>
+        <source>Enter a size: a number of millimetres (300), a share (1*) or an expression.</source>
+        <translation>Введіть розмір: кількість міліметрів (300), частку (1*) або вираз.</translation>
+    </message>
+    <message>
+        <source>“%1” is not a share: write a number followed by * (e.g. 2*).</source>
+        <translation>«%1» не є часткою: напишіть число із * після нього (наприклад, 2*).</translation>
+    </message>
+    <message>
+        <source>Entry %1 of the list is empty; separate the sizes with “;”.</source>
+        <translation>Елемент %1 списку порожній; розділяйте розміри знаком «;».</translation>
+    </message>
+    <message>
+        <source>Section “%1” is not split.</source>
+        <translation>Секцію «%1» не поділено.</translation>
     </message>
 </context>
 <context>
@@ -574,6 +739,30 @@
         <source>Recover {0} from autosave or backup</source>
         <translation>Відновити {0} з автозбереження або резервної копії</translation>
     </message>
+    <message>
+        <source>Change default cutting settings</source>
+        <translation>Змінити типові налаштування розкрою</translation>
+    </message>
+    <message>
+        <source>Change the whole interior of {0}</source>
+        <translation>Змінити весь внутрішній простір «{0}»</translation>
+    </message>
+    <message>
+        <source>Set shelf count of the whole interior of {0} to {2}</source>
+        <translation>Кількість полиць усього внутрішнього простору «{0}»: {2}</translation>
+    </message>
+    <message>
+        <source>Set front of the whole interior of {0}</source>
+        <translation>Встановити фасад усього внутрішнього простору «{0}»</translation>
+    </message>
+    <message>
+        <source>Remove front of the whole interior of {0}</source>
+        <translation>Видалити фасад усього внутрішнього простору «{0}»</translation>
+    </message>
+    <message>
+        <source>Split the whole interior of {0} into {2}</source>
+        <translation>Поділити весь внутрішній простір «{0}» на {2}</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::Parameters</name>
@@ -649,6 +838,125 @@
     <message>
         <source>Untitled</source>
         <translation>Без назви</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::AnnotationPanel</name>
+    <message>
+        <source> mm</source>
+        <translation> мм</translation>
+    </message>
+    <message>
+        <source>Paper distance of the dimension line from the measured points: negative = below / to the left.</source>
+        <translation>Відстань розмірної лінії від виміряних точок на папері: від’ємна = нижче / ліворуч.</translation>
+    </message>
+    <message>
+        <source>Click a dimension on the sheet to select it. Edits are stored with the project and re-applied whenever the drawing is regenerated.</source>
+        <translation>Клацніть розмір на аркуші, щоб вибрати його. Зміни зберігаються в проєкті й застосовуються знову щоразу, коли креслення перегенеровується.</translation>
+    </message>
+    <message>
+        <source>Selected dimension</source>
+        <translation>Вибраний розмір</translation>
+    </message>
+    <message>
+        <source>Apply</source>
+        <translation>Застосувати</translation>
+    </message>
+    <message>
+        <source>Offset:</source>
+        <translation>Відступ:</translation>
+    </message>
+    <message>
+        <source>measured value</source>
+        <translation>виміряне значення</translation>
+    </message>
+    <message>
+        <source>Replaces the displayed text. The value it was made against is stored; when the model changes, the sheet marks the text with * and a warning is listed below.</source>
+        <translation>Замінює показаний текст. Значення, для якого його введено, зберігається; коли модель змінюється, аркуш позначає текст знаком *, а нижче з’являється попередження.</translation>
+    </message>
+    <message>
+        <source>Text:</source>
+        <translation>Текст:</translation>
+    </message>
+    <message>
+        <source>Hide</source>
+        <translation>Приховати</translation>
+    </message>
+    <message>
+        <source>Reset</source>
+        <translation>Скинути</translation>
+    </message>
+    <message>
+        <source>Add a dimension</source>
+        <translation>Додати розмір</translation>
+    </message>
+    <message>
+        <source>Pick two corners</source>
+        <translation>Вибрати два кути</translation>
+    </message>
+    <message>
+        <source>Then click near two part corners in the same view. The dimension is attached to the parts and follows the model.</source>
+        <translation>Потім клацніть біля двох кутів деталей в одному виді. Розмір прив’язується до деталей і змінюється разом із моделлю.</translation>
+    </message>
+    <message>
+        <source>Direction:</source>
+        <translation>Напрямок:</translation>
+    </message>
+    <message>
+        <source>Stored edits of this drawing</source>
+        <translation>Збережені зміни цього креслення</translation>
+    </message>
+    <message>
+        <source>Remove edit</source>
+        <translation>Видалити зміну</translation>
+    </message>
+    <message>
+        <source>Findings (stale overrides, orphans):</source>
+        <translation>Зауваження (застарілі тексти, сироти):</translation>
+    </message>
+    <message>
+        <source>Click near the first corner.</source>
+        <translation>Клацніть біля першого кута.</translation>
+    </message>
+    <message>
+        <source>Nothing selected.</source>
+        <translation>Нічого не вибрано.</translation>
+    </message>
+    <message>
+        <source>User dimension attached to part corners.</source>
+        <translation>Користувацький розмір, прив’язаний до кутів деталей.</translation>
+    </message>
+    <message>
+        <source>The text override is STALE: the model value changed.</source>
+        <translation>Замінений текст ЗАСТАРІВ: значення моделі змінилося.</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Видалити</translation>
+    </message>
+    <message>
+        <source>None.</source>
+        <translation>Немає.</translation>
+    </message>
+    <message>
+        <source>Click inside a view.</source>
+        <translation>Клацніть усередині виду.</translation>
+    </message>
+    <message>
+        <source>No part corner in this view.</source>
+        <translation>У цьому виді немає кутів деталей.</translation>
+    </message>
+    <message>
+        <source>First corner: %1, corner %2. Click near the second corner.</source>
+        <translation>Перший кут: %1, кут %2. Клацніть біля другого кута.</translation>
+    </message>
+    <message>
+        <source>Horizontal dimension, measures %1 mm</source>
+        <translation>Горизонтальний розмір, виміряно %1 мм</translation>
+    </message>
+    <message>
+        <source>Vertical dimension, measures %1 mm</source>
+        <translation>Вертикальний розмір, виміряно %1 мм</translation>
     </message>
 </context>
 <context>
@@ -760,6 +1068,66 @@
     <message>
         <source>Sheet %1 × %2 mm, %3 parts; utilisation %4 % of the sheet (%5 % of the usable area); cut length %6 m.</source>
         <translation>Лист %1 × %2 мм, деталей: %3; використання %4 % листа (%5 % корисної площі); довжина різів %6 м.</translation>
+    </message>
+    <message>
+        <source>What the heuristic optimiser compares candidate layouts by.</source>
+        <translation>За чим евристичний оптимізатор порівнює варіанти розкладки.</translation>
+    </message>
+    <message>
+        <source>Label</source>
+        <translation>Позначка</translation>
+    </message>
+    <message>
+        <source>Length</source>
+        <translation>Довжина</translation>
+    </message>
+    <message>
+        <source>Width</source>
+        <translation>Ширина</translation>
+    </message>
+    <message>
+        <source>Qty</source>
+        <translation>К-сть</translation>
+    </message>
+    <message>
+        <source>Leftover boards of this material, used before full sheets. Length along the grain, mm.</source>
+        <translation>Залишки плит цього матеріалу, що використовуються раніше за цілі листи. Довжина — вздовж волокон, мм.</translation>
+    </message>
+    <message>
+        <source>Add remnant</source>
+        <translation>Додати залишок</translation>
+    </message>
+    <message>
+        <source>Remove remnant</source>
+        <translation>Видалити залишок</translation>
+    </message>
+    <message>
+        <source>Use project defaults for this material</source>
+        <translation>Використовувати для матеріалу типові налаштування проєкту</translation>
+    </message>
+    <message>
+        <source>Objective:</source>
+        <translation>Критерій:</translation>
+    </message>
+    <message>
+        <source>Remnants (extra stock):</source>
+        <translation>Залишки (додатковий запас):</translation>
+    </message>
+    <message>
+        <source>Remnant id %1</source>
+        <translation>Ідентифікатор залишку %1</translation>
+    </message>
+    <message>
+        <source>Changes take effect with “Apply and re-optimise”.</source>
+        <translation>Зміни набувають чинності після «Застосувати й переоптимізувати».</translation>
+    </message>
+    <message>
+        <source>Choose a material under “Applies to” to edit its remnants.</source>
+        <translation>Виберіть матеріал у полі «Застосувати до», щоб редагувати його залишки.</translation>
+    </message>
+    <message>
+        <source>Remnant</source>
+        <translation>Залишок</translation>
     </message>
 </context>
 <context>
@@ -1120,6 +1488,82 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Dowels</source>
         <translation>Шканти</translation>
     </message>
+    <message>
+        <source>No front</source>
+        <translation>Без фасаду</translation>
+    </message>
+    <message>
+        <source>Single door</source>
+        <translation>Одностулкові двері</translation>
+    </message>
+    <message>
+        <source>Door pair</source>
+        <translation>Двостулкові двері</translation>
+    </message>
+    <message>
+        <source>Drawer stack</source>
+        <translation>Блок шухляд</translation>
+    </message>
+    <message>
+        <source>Full overlay</source>
+        <translation>Накладний повністю</translation>
+    </message>
+    <message>
+        <source>Half overlay</source>
+        <translation>Напівнакладний</translation>
+    </message>
+    <message>
+        <source>Hinged left</source>
+        <translation>Завіси ліворуч</translation>
+    </message>
+    <message>
+        <source>Hinged right</source>
+        <translation>Завіси праворуч</translation>
+    </message>
+    <message>
+        <source>No handle</source>
+        <translation>Без ручки</translation>
+    </message>
+    <message>
+        <source>Handle centred</source>
+        <translation>Ручка посередині</translation>
+    </message>
+    <message>
+        <source>Handle at the top</source>
+        <translation>Ручка вгорі</translation>
+    </message>
+    <message>
+        <source>Handle at the bottom</source>
+        <translation>Ручка внизу</translation>
+    </message>
+    <message>
+        <source>Fewest sheets</source>
+        <translation>Найменше листів</translation>
+    </message>
+    <message>
+        <source>Least waste</source>
+        <translation>Найменше відходів</translation>
+    </message>
+    <message>
+        <source>Use remnants first</source>
+        <translation>Спершу залишки</translation>
+    </message>
+    <message>
+        <source>Fewest cuts</source>
+        <translation>Найменше різів</translation>
+    </message>
+    <message>
+        <source>Horizontal</source>
+        <translation>Горизонтальний</translation>
+    </message>
+    <message>
+        <source>Vertical</source>
+        <translation>Вертикальний</translation>
+    </message>
+    <message>
+        <source>Inset (inside the opening)</source>
+        <translation>Вкладний (у прорізі)</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::InspectorPanel</name>
@@ -1310,6 +1754,161 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     <message>
         <source>Front edges:</source>
         <translation>Кромки фасадів:</translation>
+    </message>
+    <message>
+        <source>Parameters</source>
+        <translation>Параметри</translation>
+    </message>
+    <message>
+        <source>Interior</source>
+        <translation>Наповнення</translation>
+    </message>
+    <message>
+        <source>Hardware</source>
+        <translation>Фурнітура</translation>
+    </message>
+    <message>
+        <source>%1 (not in the library)</source>
+        <translation>%1 (немає в бібліотеці)</translation>
+    </message>
+    <message>
+        <source>Only fittings of the matching kind from the project&apos;s hardware library are offered.</source>
+        <translation>Пропонується лише фурнітура відповідного типу з бібліотеки фурнітури проєкту.</translation>
+    </message>
+    <message>
+        <source>Override for this part</source>
+        <translation>Перевизначення для цієї деталі</translation>
+    </message>
+    <message>
+        <source>Cabinet material</source>
+        <translation>Матеріал шафи</translation>
+    </message>
+    <message>
+        <source>Cabinet rule</source>
+        <translation>За правилом шафи</translation>
+    </message>
+    <message>
+        <source>Remove override</source>
+        <translation>Видалити перевизначення</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::InteriorEditor</name>
+    <message>
+        <source>Section</source>
+        <translation>Секція</translation>
+    </message>
+    <message>
+        <source>Size</source>
+        <translation>Розмір</translation>
+    </message>
+    <message>
+        <source>Content</source>
+        <translation>Вміст</translation>
+    </message>
+    <message>
+        <source>Split vertically</source>
+        <translation>Поділити вертикально</translation>
+    </message>
+    <message>
+        <source>Side-by-side sections separated by partitions (left to right).</source>
+        <translation>Секції поруч, розділені перегородками (зліва направо).</translation>
+    </message>
+    <message>
+        <source>Split horizontally</source>
+        <translation>Поділити горизонтально</translation>
+    </message>
+    <message>
+        <source>Stacked sections separated by fixed shelves (bottom to top).</source>
+        <translation>Секції одна над одною, розділені нерухомими полицями (знизу вгору).</translation>
+    </message>
+    <message>
+        <source>Remove split</source>
+        <translation>Скасувати поділ</translation>
+    </message>
+    <message>
+        <source>The section becomes one empty section again; its front is kept.</source>
+        <translation>Секція знову стає однією порожньою секцією; її фасад зберігається.</translation>
+    </message>
+    <message>
+        <source>Empty interior</source>
+        <translation>Очистити наповнення</translation>
+    </message>
+    <message>
+        <source>Replaces the whole interior by one empty section without shelves or front.</source>
+        <translation>Замінює весь внутрішній простір однією порожньою секцією без полиць і фасаду.</translation>
+    </message>
+    <message>
+        <source>Into sections:</source>
+        <translation>На секцій:</translation>
+    </message>
+    <message>
+        <source>300 = fixed size in mm, 1* or 2* = share of the remaining space, anything else = expression over the parameters (e.g. width / 3).</source>
+        <translation>300 = фіксований розмір у мм, 1* або 2* = частка решти простору, інше = вираз над параметрами (наприклад, width / 3).</translation>
+    </message>
+    <message>
+        <source>Set size</source>
+        <translation>Задати розмір</translation>
+    </message>
+    <message>
+        <source>Size:</source>
+        <translation>Розмір:</translation>
+    </message>
+    <message>
+        <source>Adjustable shelves, evenly distributed (sections that are not split).</source>
+        <translation>Переставні полиці, розподілені рівномірно (лише в неподілених секціях).</translation>
+    </message>
+    <message>
+        <source>Shelves:</source>
+        <translation>Полиці:</translation>
+    </message>
+    <message>
+        <source>Sizes: 300 = millimetres, 1* = share of the rest, or an expression.</source>
+        <translation>Розміри: 300 = міліметри, 1* = частка решти або вираз.</translation>
+    </message>
+    <message>
+        <source>Front of the section</source>
+        <translation>Фасад секції</translation>
+    </message>
+    <message>
+        <source>Cup hinges</source>
+        <translation>Чашкові завіси</translation>
+    </message>
+    <message>
+        <source>One size per drawer front, bottom to top, separated by “;” (e.g. 140; 1*; 1*).</source>
+        <translation>Один розмір на фасад шухляди, знизу вгору, через «;» (наприклад, 140; 1*; 1*).</translation>
+    </message>
+    <message>
+        <source>Apply front</source>
+        <translation>Застосувати фасад</translation>
+    </message>
+    <message>
+        <source>Type:</source>
+        <translation>Тип:</translation>
+    </message>
+    <message>
+        <source>Overlay:</source>
+        <translation>Накладання:</translation>
+    </message>
+    <message>
+        <source>Single door:</source>
+        <translation>Одностулкові:</translation>
+    </message>
+    <message>
+        <source>Handle:</source>
+        <translation>Ручка:</translation>
+    </message>
+    <message>
+        <source>Drawer heights:</source>
+        <translation>Висоти шухляд:</translation>
+    </message>
+    <message>
+        <source>Selected: %1</source>
+        <translation>Вибрано: %1</translation>
+    </message>
+    <message>
+        <source>the whole interior has no size of its own</source>
+        <translation>увесь внутрішній простір не має власного розміру</translation>
     </message>
 </context>
 <context>

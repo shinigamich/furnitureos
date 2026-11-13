@@ -29,7 +29,8 @@ class InteriorEditor : public QWidget {
     Q_OBJECT
 public:
     /// `selectedPath` is owned by the inspector so the selection survives its rebuilds.
-    InteriorEditor(Session& session, std::string itemId, std::string& selectedPath, QWidget* parent = nullptr);
+    InteriorEditor(Session& session, std::string itemId, std::string& selectedPath,
+                   QWidget* parent = nullptr);
 
     /// Selects the section row with `path` ("" = whole interior). False when there is none.
     bool selectSection(const QString& path);

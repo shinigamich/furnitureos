@@ -29,7 +29,8 @@ QLabel* hintLabel(const QString& text, QWidget* parent) {
 }
 } // namespace
 
-InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string& selectedPath, QWidget* parent)
+InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string& selectedPath,
+                               QWidget* parent)
     : QWidget(parent), session_(session), itemId_(std::move(itemId)), selectedPath_(selectedPath) {
     setObjectName(QStringLiteral("interiorEditor"));
     auto* layout = new QVBoxLayout(this);
@@ -101,7 +102,8 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
     shelves_->setKeyboardTracking(false);
     shelves_->setToolTip(tr("Adjustable shelves, evenly distributed (sections that are not split)."));
     sectionForm->addRow(tr("Shelves:"), shelves_);
-    sectionForm->addRow(hintLabel(tr("Sizes: 300 = millimetres, 1* = share of the rest, or an expression."), sectionBox));
+    sectionForm->addRow(
+        hintLabel(tr("Sizes: 300 = millimetres, 1* = share of the rest, or an expression."), sectionBox));
     layout->addWidget(sectionBox);
 
     auto* frontBox = new QGroupBox(tr("Front of the section"), this);
@@ -119,7 +121,8 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
     handle_->setObjectName(QStringLiteral("handlePosition"));
     drawerHeights_ = new QLineEdit(frontBox);
     drawerHeights_->setObjectName(QStringLiteral("drawerHeights"));
-    drawerHeights_->setToolTip(tr("One size per drawer front, bottom to top, separated by “;” (e.g. 140; 1*; 1*)."));
+    drawerHeights_->setToolTip(
+        tr("One size per drawer front, bottom to top, separated by “;” (e.g. 140; 1*; 1*)."));
     applyFront_ = new QPushButton(tr("Apply front"), frontBox);
     applyFront_->setObjectName(QStringLiteral("applyFront"));
     frontForm->addRow(tr("Type:"), frontKind_);
@@ -132,7 +135,8 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
     layout->addWidget(frontBox);
 
     connect(tree_, &QTreeWidget::currentItemChanged, this, [this](QTreeWidgetItem* item) {
-        if (!item) return;
+        if (!item)
+            return;
         selectedPath_ = item->data(0, kPathRole).toString().toStdString();
         showError(error_, {});
         showSelected();
@@ -141,11 +145,13 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
         run(splitCommand(itemId_, selectedPath_, furniture::SplitDirection::Vertical, splitParts_->value()));
     });
     connect(splitHorizontal_, &QPushButton::clicked, this, [this] {
-        run(splitCommand(itemId_, selectedPath_, furniture::SplitDirection::Horizontal, splitParts_->value()));
+        run(splitCommand(itemId_, selectedPath_, furniture::SplitDirection::Horizontal,
+                         splitParts_->value()));
     });
     connect(removeSplit_, &QPushButton::clicked, this, [this] {
         const project::Item* item = session_.project().findItem(itemId_);
-        if (item && item->cabinet()) run(removeSplitCommand(*item->cabinet(), itemId_, selectedPath_));
+        if (item && item->cabinet())
+            run(removeSplitCommand(*item->cabinet(), itemId_, selectedPath_));
     });
     connect(reset, &QPushButton::clicked, this, [this] { run(clearInteriorCommand(itemId_)); });
     auto commitSize = [this] { run(sectionSizeCommand(itemId_, selectedPath_, size_->text())); };
@@ -153,8 +159,10 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
     connect(size_, &QLineEdit::returnPressed, this, commitSize);
     connect(shelves_, qOverload<int>(&QSpinBox::valueChanged), this, [this](int count) {
         const SectionRow* row = selectedRow();
-        if (!row || count == row->shelfCount) return;
-        if (!run(project::commands::setShelfCount(itemId_, selectedPath_, count))) showSelected();
+        if (!row || count == row->shelfCount)
+            return;
+        if (!run(project::commands::setShelfCount(itemId_, selectedPath_, count)))
+            showSelected();
     });
     auto updateFrontFields = [this] {
         const auto choice = valueOf<FrontInput::Choice>(frontKind_);
@@ -185,7 +193,8 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
 void InteriorEditor::fill() {
     const project::Item* item = session_.project().findItem(itemId_);
     rows_ = item && item->cabinet() ? sectionRows(item->cabinet()->interior) : std::vector<SectionRow>{};
-    if (std::none_of(rows_.begin(), rows_.end(), [this](const SectionRow& r) { return r.path == selectedPath_; }))
+    if (std::none_of(rows_.begin(), rows_.end(),
+                     [this](const SectionRow& r) { return r.path == selectedPath_; }))
         selectedPath_.clear();
     tree_->blockSignals(true);
     tree_->clear();
@@ -203,21 +212,25 @@ void InteriorEditor::fill() {
         node->setToolTip(2, contentText(row));
         stack.resize(static_cast<std::size_t>(row.depth));
         stack.push_back(node);
-        if (row.path == selectedPath_) current = node;
+        if (row.path == selectedPath_)
+            current = node;
     }
     tree_->expandAll();
     // Height for the rows (at least 4, at most 10), no empty block below a short tree.
     const int rowHeight = std::max(tree_->sizeHintForRow(0), fontMetrics().height() + 4);
     const int visibleRows = std::clamp(static_cast<int>(rows_.size()), 4, 10);
-    tree_->setFixedHeight(tree_->header()->sizeHint().height() + visibleRows * rowHeight + 2 * tree_->frameWidth() + 4);
-    if (current) tree_->setCurrentItem(current);
+    tree_->setFixedHeight(tree_->header()->sizeHint().height() + visibleRows * rowHeight +
+                          2 * tree_->frameWidth() + 4);
+    if (current)
+        tree_->setCurrentItem(current);
     tree_->blockSignals(false);
     showSelected();
 }
 
 const SectionRow* InteriorEditor::selectedRow() const {
     for (const auto& r : rows_)
-        if (r.path == selectedPath_) return &r;
+        if (r.path == selectedPath_)
+            return &r;
     return nullptr;
 }
 
@@ -241,7 +254,8 @@ void InteriorEditor::showSelected() {
     size_->setEnabled(have && !row->isRoot());
     setSize_->setEnabled(have && !row->isRoot());
     size_->setText(have && !row->isRoot() ? sizeText(row->size) : QString());
-    size_->setPlaceholderText(have && row->isRoot() ? tr("the whole interior has no size of its own") : QString());
+    size_->setPlaceholderText(have && row->isRoot() ? tr("the whole interior has no size of its own")
+                                                    : QString());
     shelves_->blockSignals(true);
     shelves_->setValue(have ? row->shelfCount : 0);
     shelves_->setEnabled(have && row->isLeaf());

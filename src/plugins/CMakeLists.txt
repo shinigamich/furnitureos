@@ -20,6 +20,7 @@ fos_add_tests(plugins
         tests/semver_tests.cpp
         tests/manifest_tests.cpp
         tests/package_tests.cpp
+        tests/package_read_tests.cpp
         tests/manager_tests.cpp
         tests/install_tests.cpp
         tests/example_plugin_tests.cpp

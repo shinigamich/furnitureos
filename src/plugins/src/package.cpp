@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/plugins/package.hpp"
 
-#include <fstream>
 #include <set>
 
 namespace fos::plugins {
@@ -69,25 +68,9 @@ core::Result<fs::path> resolveInside(const fs::path& pluginDir, std::string_view
 }
 
 core::Result<std::string> readBounded(const fs::path& file, std::uintmax_t maxBytes) {
-    std::error_code ec;
-    const auto size = fs::file_size(file, ec);
-    if (ec) return makeError(ErrorCode::IoError, "Cannot determine the size of '" + file.string() + "': " + ec.message() + ".");
-    if (size > maxBytes)
-        return makeError(ErrorCode::ConstraintViolation,
-                         "'" + file.string() + "' is " + std::to_string(size) + " bytes; the limit is " +
-                             std::to_string(maxBytes) + " bytes. It was not read.");
-    std::ifstream in(file, std::ios::binary);
-    if (!in) return makeError(ErrorCode::IoError, "Cannot open '" + file.string() + "' for reading.");
-    std::string bytes;
-    bytes.resize(static_cast<std::size_t>(maxBytes) + 1);
-    in.read(bytes.data(), static_cast<std::streamsize>(bytes.size()));
-    const auto got = static_cast<std::uintmax_t>(in.gcount());
-    if (got > maxBytes) // grew after the size check
-        return makeError(ErrorCode::ConstraintViolation,
-                         "'" + file.string() + "' is larger than the limit of " + std::to_string(maxBytes) + " bytes.");
-    if (in.bad()) return makeError(ErrorCode::IoError, "Error while reading '" + file.string() + "'.");
-    bytes.resize(static_cast<std::size_t>(got));
-    return bytes;
+    // formats::readFile: regular files only (a FIFO or device is refused before it is
+    // opened for blocking reads), size checked before reading and enforced while reading.
+    return formats::readFile(file, formats::ReadLimits{maxBytes});
 }
 
 PackageInspection inspectPackage(const fs::path& pluginDir, const PluginLimits& limits) {
@@ -170,16 +153,16 @@ core::Result<formats::Library> loadPackageLibraries(const PluginPackage& package
     for (std::size_t f = 0; f < package.libraryFiles.size(); ++f) {
         const auto& file = package.libraryFiles[f];
         const std::string& rel = package.manifest.libraries[f];
-        // Re-check the size right before reading (the directory may have changed).
-        std::error_code ec;
-        const auto size = fs::file_size(file, ec);
-        if (ec || size > limits.maxLibraryBytes)
-            return makeError(ErrorCode::ConstraintViolation,
-                             "Plugin '" + id + "': library \"" + rel + "\" is missing or exceeds the per-file limit of " +
-                                 std::to_string(limits.maxLibraryBytes) + " bytes.",
-                             id);
+        // Read the file ONCE through the bounded reader and parse exactly those bytes: there is
+        // no window between a size check and an unbounded second read (TOCTOU).
+        auto text = readBounded(file, limits.maxLibraryBytes);
+        if (!text.ok())
+            return makeError(text.error().code,
+                             "Plugin '" + id + "': library \"" + rel + "\" cannot be read: " + text.error().message, id);
         core::Diagnostics fileWarnings;
-        auto lib = formats::importLibrary(file, {}, &fileWarnings);
+        formats::LoadOptions loadOptions;
+        loadOptions.maxFileBytes = limits.maxLibraryBytes;
+        auto lib = formats::importLibraryText(text.value(), file.filename().string(), loadOptions, &fileWarnings);
         if (!lib.ok())
             return makeError(lib.error().code, "Plugin '" + id + "': library \"" + rel + "\" cannot be loaded: " + lib.error().message, id);
         if (warnings)

@@ -21,7 +21,9 @@ namespace fos::app::gui {
 namespace {
 constexpr int kIdRole = Qt::UserRole;
 
-QString mm(double v) { return QString::fromStdString(core::formatLength(v)); }
+QString mm(double v) {
+    return QString::fromStdString(core::formatLength(v));
+}
 
 QDoubleSpinBox* offsetSpin(QWidget* parent, double value) {
     auto* s = new QDoubleSpinBox(parent);
@@ -36,11 +38,14 @@ QDoubleSpinBox* offsetSpin(QWidget* parent, double value) {
 }
 } // namespace
 
-SheetPreview::SheetPreview(QWidget* parent) : QLabel(parent) { setCursor(Qt::CrossCursor); }
+SheetPreview::SheetPreview(QWidget* parent) : QLabel(parent) {
+    setCursor(Qt::CrossCursor);
+}
 
 void SheetPreview::mousePressEvent(QMouseEvent* event) {
     const QPixmap pm = pixmap();
-    if (event->button() != Qt::LeftButton || pm.isNull()) return QLabel::mousePressEvent(event);
+    if (event->button() != Qt::LeftButton || pm.isNull())
+        return QLabel::mousePressEvent(event);
     const QPointF origin((width() - pm.width()) / 2.0, (height() - pm.height()) / 2.0);
     emit clicked(event->position() - origin);
 }
@@ -49,9 +54,10 @@ AnnotationPanel::AnnotationPanel(Session& session, QWidget* parent) : QWidget(pa
     setObjectName(QStringLiteral("annotationPanel"));
     auto* layout = new QVBoxLayout(this);
     layout->setContentsMargins(4, 0, 4, 0);
-    auto* hint = new QLabel(tr("Click a dimension on the sheet to select it. Edits are stored with the project and "
-                               "re-applied whenever the drawing is regenerated."),
-                            this);
+    auto* hint =
+        new QLabel(tr("Click a dimension on the sheet to select it. Edits are stored with the project and "
+                      "re-applied whenever the drawing is regenerated."),
+                   this);
     hint->setWordWrap(true);
     layout->addWidget(hint);
 
@@ -74,8 +80,9 @@ AnnotationPanel::AnnotationPanel(Session& session, QWidget* parent) : QWidget(pa
     text_ = new QLineEdit(selectedBox_);
     text_->setObjectName(QStringLiteral("dimensionText"));
     text_->setPlaceholderText(tr("measured value"));
-    text_->setToolTip(tr("Replaces the displayed text. The value it was made against is stored; when the model "
-                         "changes, the sheet marks the text with * and a warning is listed below."));
+    text_->setToolTip(
+        tr("Replaces the displayed text. The value it was made against is stored; when the model "
+           "changes, the sheet marks the text with * and a warning is listed below."));
     applyText_ = new QPushButton(tr("Apply"), selectedBox_);
     applyText_->setObjectName(QStringLiteral("applyText"));
     auto* textRow = new QHBoxLayout;
@@ -102,8 +109,9 @@ AnnotationPanel::AnnotationPanel(Session& session, QWidget* parent) : QWidget(pa
     pick_ = new QPushButton(tr("Pick two corners"), addBox);
     pick_->setObjectName(QStringLiteral("pickCorners"));
     pick_->setCheckable(true);
-    pick_->setToolTip(tr("Then click near two part corners in the same view. The dimension is attached to the "
-                         "parts and follows the model."));
+    pick_->setToolTip(
+        tr("Then click near two part corners in the same view. The dimension is attached to the "
+           "parts and follows the model."));
     pickStatus_ = new QLabel(addBox);
     pickStatus_->setObjectName(QStringLiteral("pickStatus"));
     pickStatus_->setWordWrap(true);
@@ -152,7 +160,8 @@ AnnotationPanel::AnnotationPanel(Session& session, QWidget* parent) : QWidget(pa
     });
     connect(reset_, &QPushButton::clicked, this, [this] {
         const std::string id = selected_;
-        if (run(removeEditCommand(session_.project(), drawingId(), id)) && (!drawing_ || !findDimension(*drawing_, id))) {
+        if (run(removeEditCommand(session_.project(), drawingId(), id)) &&
+            (!drawing_ || !findDimension(*drawing_, id))) {
             selected_.clear();
             refreshSelection();
         }
@@ -164,11 +173,13 @@ AnnotationPanel::AnnotationPanel(Session& session, QWidget* parent) : QWidget(pa
     });
     connect(edits_, &QListWidget::currentItemChanged, this, [this](QListWidgetItem* item) {
         removeEdit_->setEnabled(item != nullptr);
-        if (item) selectDimension(item->data(kIdRole).toString().toStdString());
+        if (item)
+            selectDimension(item->data(kIdRole).toString().toStdString());
     });
     connect(removeEdit_, &QPushButton::clicked, this, [this] {
         if (QListWidgetItem* item = edits_->currentItem())
-            run(removeEditCommand(session_.project(), drawingId(), item->data(kIdRole).toString().toStdString()));
+            run(removeEditCommand(session_.project(), drawingId(),
+                                  item->data(kIdRole).toString().toStdString()));
     });
     setDrawing(nullptr, std::nullopt, 0);
 }
@@ -178,10 +189,12 @@ void AnnotationPanel::setPickStatus(const QString& text) {
     pickStatus_->setVisible(!text.isEmpty());
 }
 
-std::string AnnotationPanel::drawingId() const { return request_ ? drawingIdOf(*request_) : std::string(); }
+std::string AnnotationPanel::drawingId() const {
+    return request_ ? drawingIdOf(*request_) : std::string();
+}
 
-void AnnotationPanel::setDrawing(const drawings::DrawingResult* drawing, const std::optional<DrawingRequest>& request,
-                                 std::size_t sheetIndex) {
+void AnnotationPanel::setDrawing(const drawings::DrawingResult* drawing,
+                                 const std::optional<DrawingRequest>& request, std::size_t sheetIndex) {
     const bool sameDrawing = request && request_ && drawingIdOf(*request) == drawingIdOf(*request_);
     drawing_ = drawing;
     request_ = request;
@@ -192,15 +205,18 @@ void AnnotationPanel::setDrawing(const drawings::DrawingResult* drawing, const s
         pick_->setChecked(false);
     }
     // Same drawing regenerated (after an edit): keep the selection while it is still drawn.
-    if (drawing_ && !findDimension(*drawing_, selected_)) selected_.clear();
-    if (firstPick_ && drawing_ && firstPick_->viewIndex >= drawing_->views.size()) firstPick_.reset();
+    if (drawing_ && !findDimension(*drawing_, selected_))
+        selected_.clear();
+    if (firstPick_ && drawing_ && firstPick_->viewIndex >= drawing_->views.size())
+        firstPick_.reset();
     setEnabled(drawing_ != nullptr);
     refreshSelection();
     refreshEdits();
 }
 
 bool AnnotationPanel::selectDimension(const std::string& id) {
-    if (!drawing_ || !findDimension(*drawing_, id)) return false;
+    if (!drawing_ || !findDimension(*drawing_, id))
+        return false;
     selected_ = id;
     showError(error_, {});
     refreshSelection();
@@ -209,7 +225,8 @@ bool AnnotationPanel::selectDimension(const std::string& id) {
 
 void AnnotationPanel::refreshSelection() {
     const auto d = drawing_ && !selected_.empty() ? findDimension(*drawing_, selected_) : std::nullopt;
-    for (QWidget* w : std::initializer_list<QWidget*>{offset_, applyOffset_, text_, applyText_, hide_, reset_})
+    for (QWidget* w :
+         std::initializer_list<QWidget*>{offset_, applyOffset_, text_, applyText_, hide_, reset_})
         w->setEnabled(d.has_value());
     if (!d) {
         selectedInfo_->setText(tr("Nothing selected."));
@@ -218,11 +235,14 @@ void AnnotationPanel::refreshSelection() {
         return;
     }
     const auto& dim = d->dimension;
-    const QString direction = dim.orientation == drawings::DimensionOrientation::Horizontal ? tr("Horizontal")
-                                                                                            : tr("Vertical");
-    QString info = tr("%1 dimension, measures %2 mm").arg(direction, mm(drawings::measuredValue(dim)));
-    if (d->user) info += QLatin1Char('\n') + tr("User dimension attached to part corners.");
-    if (dim.staleOverride) info += QLatin1Char('\n') + tr("The text override is STALE: the model value changed.");
+    const QString value = mm(drawings::measuredValue(dim));
+    QString info = dim.orientation == drawings::DimensionOrientation::Horizontal
+                       ? tr("Horizontal dimension, measures %1 mm").arg(value)
+                       : tr("Vertical dimension, measures %1 mm").arg(value);
+    if (d->user)
+        info += QLatin1Char('\n') + tr("User dimension attached to part corners.");
+    if (dim.staleOverride)
+        info += QLatin1Char('\n') + tr("The text override is STALE: the model value changed.");
     selectedInfo_->setText(info);
     selectedInfo_->setToolTip(QString::fromStdString(dim.id));
     offset_->setValue(dim.offset);
@@ -246,7 +266,8 @@ void AnnotationPanel::refreshEdits() {
             auto* item = new QListWidgetItem(
                 QStringLiteral("%1\n%2").arg(QString::fromStdString(row.id), editRowText(row)), edits_);
             item->setData(kIdRole, QString::fromStdString(row.id));
-            if (row.stale || row.orphan) item->setForeground(QColor(0x9a, 0x67, 0x00));
+            if (row.stale || row.orphan)
+                item->setForeground(QColor(0x9a, 0x67, 0x00));
         }
     }
     if (drawing_)
@@ -255,26 +276,31 @@ void AnnotationPanel::refreshEdits() {
             item->setForeground(QColor(0x9a, 0x67, 0x00));
             item->setToolTip(QString::fromStdString(f.code));
         }
-    if (findings_->count() == 0) new QListWidgetItem(tr("None."), findings_);
+    if (findings_->count() == 0)
+        new QListWidgetItem(tr("None."), findings_);
     edits_->blockSignals(false);
     removeEdit_->setEnabled(false);
 }
 
 drawings::Rect2 AnnotationPanel::highlight() const {
-    if (!drawing_ || selected_.empty() || sheet_ >= drawing_->sheets.size()) return {};
+    if (!drawing_ || selected_.empty() || sheet_ >= drawing_->sheets.size())
+        return {};
     return elementBounds(drawing_->sheets[sheet_], selected_);
 }
 
 std::vector<geometry::Vec2> AnnotationPanel::markers() const {
-    if (!drawing_ || !firstPick_ || sheet_ >= drawing_->sheets.size()) return {};
+    if (!drawing_ || !firstPick_ || sheet_ >= drawing_->sheets.size())
+        return {};
     const auto& view = drawing_->views[firstPick_->viewIndex];
     for (const auto& placed : drawing_->sheets[sheet_].views)
-        if (placed.viewId == view.view.id) return {placed.placement.toPaper(firstPick_->corner.viewPoint)};
+        if (placed.viewId == view.view.id)
+            return {placed.placement.toPaper(firstPick_->corner.viewPoint)};
     return {};
 }
 
 void AnnotationPanel::sheetClicked(geometry::Vec2 paper) {
-    if (!drawing_ || !request_) return;
+    if (!drawing_ || !request_)
+        return;
     showError(error_, {});
     if (!pick_->isChecked()) {
         const std::string id = dimensionAt(*drawing_, sheet_, paper);
@@ -290,9 +316,11 @@ void AnnotationPanel::sheetClicked(geometry::Vec2 paper) {
     const auto& view = drawing_->views[*viewIndex];
     const drawings::PlacedView* placed = nullptr;
     for (const auto& p : drawing_->sheets[sheet_].views)
-        if (p.viewId == view.view.id) placed = &p;
+        if (p.viewId == view.view.id)
+            placed = &p;
     const project::Resolved* resolved = session_.resolved();
-    if (!placed || !resolved) return;
+    if (!placed || !resolved)
+        return;
     const auto context = editContext(*resolved, *request_);
     const auto corner = nearestCorner(view, context, placed->placement.toView(paper));
     if (!corner) {
@@ -302,16 +330,16 @@ void AnnotationPanel::sheetClicked(geometry::Vec2 paper) {
     if (!firstPick_ || firstPick_->viewIndex != *viewIndex) {
         firstPick_ = Pick{*viewIndex, *corner};
         setPickStatus(tr("First corner: %1, corner %2. Click near the second corner.")
-                                 .arg(QString::fromStdString(corner->partName))
-                                 .arg(corner->anchor.corner.value_or(0)));
+                          .arg(QString::fromStdString(corner->partName))
+                          .arg(corner->anchor.corner.value_or(0)));
         emit overlayChanged();
         return;
     }
     const Pick first = *firstPick_;
     firstPick_.reset();
     auto command = addUserDimensionCommand(session_.project(), drawingId(), view, context,
-                                           valueOf<drawings::DimensionOrientation>(orientation_), first.corner.anchor,
-                                           corner->anchor, newOffset_->value());
+                                           valueOf<drawings::DimensionOrientation>(orientation_),
+                                           first.corner.anchor, corner->anchor, newOffset_->value());
     const std::string drawing = drawingId();
     if (run(command)) {
         pick_->setChecked(false);

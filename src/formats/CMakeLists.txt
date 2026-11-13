@@ -25,4 +25,5 @@ fos_add_tests(formats
         tests/codec_tests.cpp
         tests/library_tests.cpp
         tests/obj_export_tests.cpp
-        tests/csv_materials_tests.cpp)
+        tests/csv_materials_tests.cpp
+        tests/limits_tests.cpp)

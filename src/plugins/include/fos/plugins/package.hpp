@@ -17,8 +17,9 @@ namespace fos::plugins {
 /// Errors: InvalidArgument (path shape / escape), NotFound (missing), IoError.
 core::Result<std::filesystem::path> resolveInside(const std::filesystem::path& pluginDir, std::string_view relative);
 
-/// Reads at most `maxBytes` bytes of `file`; fails (ConstraintViolation) when the file is
-/// larger — the size is checked before reading and the read itself is bounded.
+/// Reads at most `maxBytes` bytes of `file` (formats::readFile): fails (ConstraintViolation)
+/// when the file is larger — the size is checked before reading and the read itself is
+/// bounded — and (IoError) when it is not a regular file (FIFO, device, directory).
 core::Result<std::string> readBounded(const std::filesystem::path& file, std::uintmax_t maxBytes);
 
 /// A package that passed manifest validation and the path/size checks.
@@ -43,8 +44,9 @@ struct PackageInspection {
 /// and together at most limits.maxTotalBytes. Sizes are checked before anything is read.
 PackageInspection inspectPackage(const std::filesystem::path& pluginDir, const PluginLimits& limits = {});
 
-/// Loads all contributed libraries of an inspected package with formats::importLibrary
-/// (checksums verified) and combines them into one Library. Errors (all-or-nothing):
+/// Loads all contributed libraries of an inspected package and combines them into one
+/// Library. Each file is read ONCE with readBounded(limits.maxLibraryBytes) and that buffer is
+/// parsed with formats::importLibraryText (checksums verified); the file is never re-opened. Errors (all-or-nothing):
 /// a file that fails to import, an entity id not of the form "<plugin-id>:<local-id>",
 /// an id used twice within the plugin (same category), more than limits.maxEntries
 /// entries. Container warnings are appended to `warnings` when given.

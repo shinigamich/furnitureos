@@ -2,6 +2,7 @@
 // Codecs of items, cutting settings, project settings, metadata and the whole payload.
 #include "codec_common.hpp"
 #include "fos/project/codec.hpp"
+#include "fos/project/limits.hpp"
 #include "fos/project/resolve.hpp"
 
 #include <set>
@@ -248,7 +249,7 @@ core::Result<production::EdgeBandingOptions> edgeBandingFromJson(const Json& jso
 core::Result<ProjectSettings> settingsFromJson(const Json& json, std::string_view path) {
     Reader r(json, path, "project settings");
     ProjectSettings s;
-    r.integer("backupCount", s.backupCount, 0);
+    r.integerInRange("backupCount", s.backupCount, 0, limits::kMaxBackupCount);
     r.nested("edgeBanding", s.edgeBanding, edgeBandingFromJson);
     r.boolean("cutListGroupAcrossAssemblies", s.cutListGroupAcrossAssemblies);
     if (!r.ok()) return r.error();
@@ -330,6 +331,7 @@ core::Result<Project> projectFromJson(const Json& payload, std::string_view path
     Project p;
     r.nested("project", p.metadata, metadataFromJson, true);
     r.nested("libraries", p.libraries, librariesFromJson);
+    r.limitArray("items", limits::kMaxItems, "furniture items");
     r.array("items", p.items, itemFromJson);
     readKeyedObject(r, "drawingEdits", p.drawingEdits, drawingEditsFromJson, "drawing id");
     r.nested("cutting", p.cutting, projectCuttingFromJson);

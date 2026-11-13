@@ -74,7 +74,8 @@ Checks run in this order; the first failure is returned and nothing is loaded pa
 
 | # | Condition | `ErrorCode` | Message contains |
 |---|---|---|---|
-| 1 | File missing, a directory, unreadable | `IoError` | path |
+| 1 | File missing, a directory, not a regular file (FIFO, character/block device, socket — refused before it is opened for reading, so a pipe or `/dev/zero` never blocks or exhausts memory), unreadable | `IoError` | path, what it is |
+| 1a | File larger than `LoadOptions::maxFileBytes` (default `kDefaultMaxFileBytes` = 256 MiB), checked on the size before reading and enforced while reading | `ConstraintViolation` | size and limit in bytes |
 | 2 | Empty, not JSON, nesting deeper than 128 levels | `ParseError` | `line L, column C` |
 | 3 | Top level not an object; `format` missing or not a string | `CorruptData` | what was found |
 | 4 | `format` is another kind | `Unsupported` | both kinds |
@@ -129,8 +130,12 @@ Guarantees:
 * At every instant `path` holds either the complete old file or the complete new file.
 * If any stage fails, the old file, **and all backups**, are exactly as before; the temporary file is removed; the
   error names the stage (`... failed (Verify stage); the existing file was left unchanged. ...`).
-* `backupCount` (default 3): `0` creates no backups and leaves existing `.bak` files alone. `.bak1` is always the
+* `backupCount` (default 3, at most `kMaxBackupCount` = 100; anything outside 0 … 100 is an InvalidArgument error
+  before anything is written): `0` creates no backups and leaves existing `.bak` files alone. `.bak1` is always the
   most recent previous version. Lowering the count later does not delete higher-numbered old backups.
+* Existing backups are found with **one listing of the target's directory** (names `<name>.bakN`, N = 1 … count
+  without leading zeros); only those files are renamed. A save therefore costs O(entries in the directory), not
+  one file-system probe per possible index.
 * `savedAt` comes from `Document::savedAt`, or — when that is empty — from `SaveOptions::clock`
   (default: system clock), which makes output reproducible in tests.
 
@@ -331,6 +336,11 @@ Container kind `furnitureos-library`, `formatVersion` 1. Payload:
 | `hardware` | array of HardwareDefinition (3.6) | unique ids |
 | other keys | any | preserved (`Library::extra`) and written back |
 
+`importLibrary(path, options)` reads the file with `readFile` (limit `options.maxFileBytes`) and parses it with
+`importLibraryText(text, sourceName, options)`, which callers that already hold the bytes (e.g. the plugin loader,
+which reads each file exactly once through its own bounded reader) use directly; it refuses text longer than
+`options.maxFileBytes` (`ConstraintViolation`).
+
 All three arrays are optional on load (default empty). A duplicate id inside one list of one file is an error on
 import (`/payload/edgeBands/2/id: duplicate id "eb.abs2" (already used by /payload/edgeBands/0)`) and on export
 (nothing is written). The same id text may occur in different lists.
@@ -412,3 +422,8 @@ round trip and every load error; migration chains; unknown-key preservation; tru
 rotation, autosave and recovery; lossless codec round trip of `domain::fixtures::basicCabinet()` and of a model
 using every field; every validation message; library merge policies; OBJ volumes, winding and frames; CSV rules.
 Each test uses its own temporary directory and removes it.
+
+
+`limits_tests.cpp`: FIFO and `/dev/zero` refused without blocking, 300 MiB sparse file refused from its size,
+configurable limit at ±1 byte, `backupCount` 101 / 1e6 / -1 refused, listing-based rotation (foreign `.bak007`,
+`.bak4` beyond the count, gaps), `importLibraryText` equal to `importLibrary` and bounded.

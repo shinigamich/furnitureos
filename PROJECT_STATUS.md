@@ -14,13 +14,13 @@ the libraries. Code size: ~61,000 lines of C++ in 20 modules (`src/`), plus `tes
 
 ## Build and test status
 
-Verified on 2026-11-13, Ubuntu 24.04, Qt 6.4.2, from clean build directories:
+Verified on 2026-11-13 (after the second review), Ubuntu 24.04, Qt 6.4.2, from clean build directories:
 
 | Configuration | Result |
 |---|---|
-| Default (all 20 modules incl. Qt app), GCC 13.3, Release, `-DFOS_WERROR=ON`, tests under `xvfb-run` | builds; **806/806 tests pass** (1 skipped: read-only-folder save test cannot run as root) |
-| Headless (`-DFOS_BUILD_GUI=OFF`), GCC 13.3, `-DFOS_WERROR=ON` | builds; 730/730 pass |
-| Headless, Clang 18, Debug, `-DFOS_WERROR=ON` | builds; 730/730 pass |
+| Default (all 20 modules incl. Qt app), GCC 13.3, Release, `-DFOS_WERROR=ON`, tests under `xvfb-run` | builds; **852/852 tests pass** (1 skipped: read-only-folder save test cannot run as root) |
+| Headless (`-DFOS_BUILD_GUI=OFF`), GCC 13.3, `-DFOS_WERROR=ON` | builds; 761/761 pass |
+| Headless, Clang 18, Debug, `-DFOS_WERROR=ON` | builds; 730/730 pass (before the second-review fixes; re-run pending) |
 | CLI end to end (`fos new` → `set width 900` → `report` → `validate` → `cut` → `drawing` → `cam`) | run by hand; results checked against hand-computed sizes |
 
 Not verified: Windows, macOS, the GitHub Actions workflow itself (it has not run on GitHub yet), physical
@@ -59,9 +59,9 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 | T-021 | Website (separate repo) | Done (v1, statuses updated 2026-11-13) | lint, type check, 14 tests, build | Ukrainian text needs native review |
 | T-022 | Website backend (separate repo) | Done (v1) | 167 tests | Docker image never built |
 | T-023 | Independent review of calculation-critical modules | Done | findings below | — |
-| T-024 | Desktop UI: interior/fronts/hardware/drawing-edit editors | Not started | — | — |
+| T-024 | Desktop UI: interior/fronts/hardware/part-override/drawing-annotation/cutting editors | Done | 43 app-core tests + 5 GUI tests; en/uk screenshots reviewed | — |
 | T-025 | Windows build bring-up | Not started | — | — |
-| T-026 | Review of project, CAM, validation, nesting, plugins, CLI, printing | Done; fixes in progress | findings below | — |
+| T-026 | Review of project, CAM, validation, nesting, plugins, CLI, printing | Done | all findings fixed with regression tests | — |
 
 ## Independent review 2026-11-12 (calculation-critical modules)
 
@@ -77,7 +77,7 @@ face-A convention · back grooves notching banded ends · shelf-pin depth reduce
 text overrides going stale silently · missing edge bands not reported by the cutting adapter · duplicated
 grain rule · cutting optimiser layering · five empty furniture test files.
 
-## Independent review 2026-11-13 (newer modules) — fixes in progress
+## Independent review 2026-11-13 (newer modules)
 
 Verified correct by probes: undo/redo over 300 random mixed commands restores the exact model; save is
 byte-identical; malformed/truncated/newer files refused cleanly; 2,775 fuzzed CAM programs never go below the
@@ -85,7 +85,9 @@ stock bottom and output is always refused when simulation fails; validation dete
 overlaps across 72 template configurations; plugin path-escape attempts all refused; printing never scales
 silently.
 
-Confirmed defects being fixed:
+Confirmed defects — all **fixed** with regression tests (documented limits on file contents and model size,
+O(1) generator lookups, capped backups, bounded regular-file reads, simulator safe-Z/clearance, coverage and
+envelope checks, CLI exit 1 on incomplete output, single bounded plugin read, pin/joint collision rule):
 * HIGH: a crafted `.fosp` (e.g. 10,000 shelves) hangs loading/generation — no size limits; quadratic generator lookup.
 * HIGH: the CAM simulator trusted the machine's safe Z, so a hand-built program with a rapid into the stock passed
   and was post-processed (generated programs were not affected).
@@ -120,7 +122,7 @@ Confirmed defects being fixed:
 
 ## Next priorities
 
-1. Desktop UI editors for the section tree, fronts, hardware selection and drawing annotations (T-024).
-2. Independent review of the newer modules (T-026).
+1. Re-run the Clang configuration; first CI run on GitHub once `main` exists.
+2. Remove the remaining quadratic costs (pairwise hole validation, hardware placement scans) so model limits can be raised.
 3. Windows build (T-025) and packaging; then a first tagged pre-release with checksums.
 4. Verified data: one real hinge/connector system and one controller (e.g. LinuxCNC simulation) end to end.

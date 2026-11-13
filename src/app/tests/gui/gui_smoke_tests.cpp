@@ -234,7 +234,7 @@ TEST(GuiSmoke, PartOverrideHardwareDrawingEditsCutting) {
     s.selectItem("cab1");
     w.workspaces()->setCurrentWidget(w.drawingsWorkspace());
     settle();
-    const auto* drawing = w.drawingsWorkspace()->drawing();
+    const drawings::DrawingResult* drawing = w.drawingsWorkspace()->drawing();
     ASSERT_NE(drawing, nullptr);
     const std::string widthDim = "cab1/view.front/dim.overall.width";
     std::optional<geometry::Vec2> onLine;
@@ -266,6 +266,34 @@ TEST(GuiSmoke, PartOverrideHardwareDrawingEditsCutting) {
     ASSERT_GE(findings->count(), 1);
     EXPECT_TRUE(findings->item(0)->text().contains(QStringLiteral("600")));
     EXPECT_TRUE(findings->item(0)->text().contains(QStringLiteral("700")));
+
+    // Add a dimension by picking two corners in the front view: (0, 0) and (700, 820) after the
+    // width change; vertical -> it measures the height 820.
+    drawing = w.drawingsWorkspace()->drawing();
+    ASSERT_NE(drawing, nullptr);
+    const drawings::PlacedView* frontView = nullptr;
+    for (const auto& v : drawing->sheets[0].views)
+        if (v.viewId == "cab1/view.front") frontView = &v;
+    ASSERT_NE(frontView, nullptr);
+    const auto p1 = frontView->placement.toPaper({0, 0});
+    const auto p2 = frontView->placement.toPaper({700, 820});
+    auto* orientation = w.drawingsWorkspace()->findChild<QComboBox*>(QStringLiteral("newDimensionOrientation"));
+    selectCombo(orientation, static_cast<int>(drawings::DimensionOrientation::Vertical));
+    auto* pick = w.drawingsWorkspace()->findChild<QPushButton*>(QStringLiteral("pickCorners"));
+    ASSERT_NE(pick, nullptr);
+    pick->setChecked(true);
+    w.drawingsWorkspace()->clickPaper(p1.x - 0.3, p1.y - 0.3); // snaps to the nearest corner (outside: not a door corner)
+    EXPECT_EQ(w.drawingsWorkspace()->annotations()->markers().size(), 1u);
+    w.drawingsWorkspace()->clickPaper(p2.x + 0.3, p2.y + 0.3);
+    settle();
+    const auto& userDims = s.project().drawingEdits.at("cab1/drawing.assembly").dimensions;
+    ASSERT_EQ(userDims.size(), 1u);
+    EXPECT_EQ(w.drawingsWorkspace()->annotations()->selectedDimension(), "user.dim.1");
+    drawing = w.drawingsWorkspace()->drawing();
+    const auto added = findDimension(*drawing, "user.dim.1");
+    ASSERT_TRUE(added.has_value());
+    EXPECT_DOUBLE_EQ(drawings::measuredValue(added->dimension), 820);
+    EXPECT_FALSE(pick->isChecked());
 
     // Cutting: objective and a remnant for particleboard.
     w.workspaces()->setCurrentWidget(w.cuttingWorkspace());
@@ -344,13 +372,6 @@ void screenshots(const QString& language) {
         settle(100);
         w.inspector()->cabinetTabs()->setCurrentIndex(2);
         selectSection(w, "1");
-        {
-            settle(300);
-            auto* t = w.inspector()->cabinetTabs();
-            auto* c = w.inspector()->widget();
-            std::fprintf(stderr, "DEBUG content hint %d min %d h %d | tabs hint %d min %d h %d cur %d\n", c->sizeHint().height(), c->minimumSizeHint().height(), c->height(), t->sizeHint().height(), t->minimumSizeHint().height(), t->height(), t->currentIndex());
-            for (int i = 0; i < t->count(); ++i) std::fprintf(stderr, "DEBUG page %d hint %d min %d pol %d h %d\n", i, t->widget(i)->sizeHint().height(), t->widget(i)->minimumSizeHint().height(), (int)t->widget(i)->sizePolicy().verticalPolicy(), t->widget(i)->height());
-        }
         save("interior");
         scrollInspectorToEnd();
         save("interior-front");

@@ -7,4 +7,4 @@ fos_add_module(furniture
 fos_add_tests(furniture
     SOURCES tests/fixture_tests.cpp tests/parametric_tests.cpp tests/construction_tests.cpp
             tests/interior_tests.cpp tests/fronts_tests.cpp tests/edit_tests.cpp tests/templates_tests.cpp
-            tests/misc_tests.cpp)
+            tests/misc_tests.cpp tests/limits_tests.cpp tests/pin_collision_tests.cpp)

@@ -11,7 +11,8 @@ const std::string kPb = project::defaults::kParticleboard18;
 
 const project::CuttingPlan* planOf(Session& s, const std::string& materialId) {
     for (const auto& p : s.cuttingPlans().plans)
-        if (p.job.id == materialId) return &p;
+        if (p.job.id == materialId)
+            return &p;
     return nullptr;
 }
 
@@ -41,7 +42,8 @@ TEST(CuttingSettingsEditor, ObjectiveAndRemnantsPerMaterial) {
     ASSERT_NE(plan, nullptr);
     EXPECT_EQ(plan->job.objective, cutting::Objective::PreferRemnants);
     bool remnantStock = false;
-    for (const auto& sheet : plan->job.stock) remnantStock = remnantStock || sheet.id == kPb + "/remnant/R1";
+    for (const auto& sheet : plan->job.stock)
+        remnantStock = remnantStock || sheet.id == kPb + "/remnant/R1";
     EXPECT_TRUE(remnantStock);
     EXPECT_EQ(cuttingSettingsInput(s.project(), kPb).remnants.at(0).label, "Offcut shelf");
 

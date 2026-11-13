@@ -20,6 +20,7 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSpinBox>
+#include <QStyle>
 #include <QSvgRenderer>
 #include <QTableWidget>
 #include <QVBoxLayout>
@@ -91,7 +92,7 @@ CuttingWorkspace::CuttingWorkspace(Session& session, QWidget* parent) : QWidget(
     view_->setObjectName(QStringLiteral("cuttingSheetView"));
 
     // Settings: project defaults or one material; kerf and edge trim.
-    scope_ = new QComboBox(this);
+    scope_ = narrowCombo(this, 18);
     kerf_ = mmSpin(this);
     trimLeft_ = mmSpin(this);
     trimRight_ = mmSpin(this);
@@ -106,6 +107,7 @@ CuttingWorkspace::CuttingWorkspace(Session& session, QWidget* parent) : QWidget(
     remnants_->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     remnants_->setSelectionBehavior(QAbstractItemView::SelectRows);
     remnants_->setMinimumHeight(110);
+    remnants_->setMaximumHeight(150);
     remnants_->setToolTip(tr("Leftover boards of this material, used before full sheets. Length along the grain, mm."));
     addRemnant_ = new QPushButton(tr("Add remnant"), this);
     addRemnant_->setObjectName(QStringLiteral("addRemnant"));
@@ -146,7 +148,9 @@ CuttingWorkspace::CuttingWorkspace(Session& session, QWidget* parent) : QWidget(
     settingsScroll->setWidgetResizable(true);
     settingsScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     settingsScroll->setFrameShape(QFrame::NoFrame);
-    settingsScroll->setFixedWidth(390);
+    // Wide enough for the (translated) form without a horizontal scroll bar.
+    settingsScroll->setFixedWidth(std::max(390, settings->sizeHint().width() +
+                                                    style()->pixelMetric(QStyle::PM_ScrollBarExtent) + 6));
     auto* right = new QWidget(this);
     auto* rightLayout = new QVBoxLayout(right);
     rightLayout->setContentsMargins(0, 0, 0, 0);
@@ -215,10 +219,12 @@ void CuttingWorkspace::refresh() {
         set(6, r.layoutValid ? tr("valid") : tr("ERRORS"));
     }
     summary_->resizeColumnsToContents();
-    // As tall as its rows (no empty block below two materials), at most 170 px.
-    int tableHeight = summary_->horizontalHeader()->height() + 2 * summary_->frameWidth() + 2;
+    // As tall as its rows (no empty block below two materials), at most 190 px.
+    // Room for a horizontal scroll bar too (long translated column titles).
+    int tableHeight = summary_->horizontalHeader()->height() + 2 * summary_->frameWidth() + 2 +
+                      style()->pixelMetric(QStyle::PM_ScrollBarExtent);
     for (int r = 0; r < summary_->rowCount(); ++r) tableHeight += summary_->rowHeight(r);
-    summary_->setFixedHeight(std::min(std::max(tableHeight, 60), 170));
+    summary_->setFixedHeight(std::min(std::max(tableHeight, 60), 190));
 
     // Settings scope: defaults + materials of the library.
     const QString scope = scope_->currentData().toString();

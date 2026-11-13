@@ -50,7 +50,13 @@ public:
     void optionalNumber(std::string_view key, std::optional<double>& out, Num rule);
     /// Absent or null -> nullopt.
     void optionalText(std::string_view key, std::optional<std::string>& out, bool nonEmpty);
+    /// Integer in [minimum, 1e9].
     void integer(std::string_view key, int& out, int minimum, bool required = false);
+    /// Integer in [minimum, maximum]; the message names both bounds.
+    void integerInRange(std::string_view key, int& out, int minimum, int maximum, bool required = false);
+    /// Fails unless `key` is absent or an array of at most `maxSize` entries (checked BEFORE
+    /// any entry is decoded). `what` names the entries in the message, e.g. "child sections".
+    void limitArray(std::string_view key, std::size_t maxSize, const std::string& what);
     void boolean(std::string_view key, bool& out);
     void vec2(std::string_view key, geometry::Vec2& out, bool required = false);
 

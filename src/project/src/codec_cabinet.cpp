@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Codecs of parameters, constraints, the section tree, cabinets and free panels.
 #include "codec_common.hpp"
+#include "fos/furniture/limits.hpp"
 #include "fos/project/codec.hpp"
 
 namespace fos::project {
@@ -171,6 +172,7 @@ core::Result<furniture::FrontSpec> frontFromJson(const Json& json, std::string_v
     r.boolean("hinges", f.hinges);
     r.token("handle", f.handle, furnitureEnum<HandlePosition>(),
             furnitureTokens({HandlePosition::None, HandlePosition::Center, HandlePosition::Top, HandlePosition::Bottom}));
+    r.limitArray("drawerHeights", furniture::limits::kMaxDrawerHeights, "drawer heights");
     r.array("drawerHeights", f.drawerHeights, sizeFromJson);
     r.rejectUnknown();
     if (!r.ok()) return r.error();
@@ -198,8 +200,9 @@ core::Result<furniture::Section> sectionFromJson(const Json& json, std::string_v
     r.nested("size", s.size, sizeFromJson);
     r.token("split", s.split, furnitureEnum<SplitDirection>(),
             furnitureTokens({SplitDirection::None, SplitDirection::Vertical, SplitDirection::Horizontal}));
-    r.integer("shelfCount", s.shelfCount, 0);
+    r.integerInRange("shelfCount", s.shelfCount, 0, furniture::limits::kMaxShelvesPerSection);
     if (const Json* f = r.find("front"); f != nullptr && !f->is_null()) r.nested("front", s.front, frontFromJson);
+    r.limitArray("children", furniture::limits::kMaxSectionChildren, "child sections");
     r.array("children", s.children, sectionFromJson);
     r.rejectUnknown();
     if (!r.ok()) return r.error();
@@ -392,6 +395,10 @@ void readCabinetFields(Reader& r, furniture::CabinetDefinition& c) {
     });
     c.pinnedParameters = std::set<std::string>(pinned.begin(), pinned.end());
     r.nested("interior", c.interior, sectionFromJson, true);
+    // Hard limits (furniture/limits.hpp): a file the generator would refuse, or that would make
+    // it run for minutes, is rejected on load with the generator's own message.
+    if (r.ok())
+        if (auto limits = furniture::checkDefinitionLimits(c); !limits) r.fail(schemaError(r.path(), limits.error().message));
 }
 
 } // namespace detail

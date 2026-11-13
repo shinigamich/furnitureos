@@ -84,6 +84,8 @@ TEST(Document, InvalidCuttingSettingsAreRejected) {
     EXPECT_FALSE(doc.execute(commands::setCuttingSettings(std::nullopt, s)).ok());
     s.remnants = {Remnant{"r1", "Offcut", 500, 300, 0}};
     EXPECT_FALSE(doc.execute(commands::setCuttingSettings(std::nullopt, s)).ok());
+    s.remnants = {Remnant{"r1", "Offcut", 500, 300, 1000000000}};
+    EXPECT_FALSE(doc.execute(commands::setCuttingSettings(std::nullopt, s)).ok());
     EXPECT_EQ(state(doc), before); // nothing changed
     // Zero kerf and zero trim are valid (e.g. a laser or a pre-trimmed sheet).
     s = {};

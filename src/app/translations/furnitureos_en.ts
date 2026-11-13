@@ -2,6 +2,61 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US">
 <context>
+    <name>DrawingEditText</name>
+    <message>
+        <source>A user dimension cannot be hidden; remove it instead.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The drawing has no stored edit “%1”.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The dimension cannot be attached: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Both corners lie at the same position in the measured direction; pick two corners that are apart.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>user dimension</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>user text</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>user leader</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>detail marker</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>hidden</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>offset %1 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>text “%1”</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>STALE: the model value changed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>ORPHAN: not in the drawing any more</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>DrawingText</name>
     <message>
         <source>Project</source>
@@ -37,6 +92,116 @@
     </message>
     <message>
         <source>Check with a ruler: the mark above must measure exactly the size stated.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>HardwareText</name>
+    <message>
+        <source>Hinge:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Handle:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Shelf pin:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Confirmat screw:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Dowel:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Foot:</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>InteriorText</name>
+    <message>
+        <source>Whole interior</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Section %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>(left)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>(right)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>(bottom)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>(top)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 mm (fixed)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>share %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>shelves: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>empty</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>door, hinged left</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>door, hinged right</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>door pair</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>drawers: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter a size: a number of millimetres (300), a share (1*) or an expression.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>“%1” is not a share: write a number followed by * (e.g. 2*).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Entry %1 of the list is empty; separate the sizes with “;”.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Section “%1” is not split.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 side by side</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 stacked</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -574,6 +739,30 @@
         <source>Recover {0} from autosave or backup</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Change default cutting settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Change the whole interior of {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set shelf count of the whole interior of {0} to {2}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set front of the whole interior of {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove front of the whole interior of {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Split the whole interior of {0} into {2}</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::Parameters</name>
@@ -648,6 +837,125 @@
     <name>fos::app::WindowTitle</name>
     <message>
         <source>Untitled</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::AnnotationPanel</name>
+    <message>
+        <source> mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Paper distance of the dimension line from the measured points: negative = below / to the left.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Click a dimension on the sheet to select it. Edits are stored with the project and re-applied whenever the drawing is regenerated.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Selected dimension</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Apply</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Offset:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>measured value</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Replaces the displayed text. The value it was made against is stored; when the model changes, the sheet marks the text with * and a warning is listed below.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Text:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hide</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reset</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add a dimension</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pick two corners</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Then click near two part corners in the same view. The dimension is attached to the parts and follows the model.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Direction:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Stored edits of this drawing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove edit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Findings (stale overrides, orphans):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Click near the first corner.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Nothing selected.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>User dimension attached to part corners.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The text override is STALE: the model value changed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>None.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Click inside a view.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No part corner in this view.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>First corner: %1, corner %2. Click near the second corner.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Horizontal dimension, measures %1 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Vertical dimension, measures %1 mm</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -759,6 +1067,66 @@
     </message>
     <message>
         <source>Sheet %1 × %2 mm, %3 parts; utilisation %4 % of the sheet (%5 % of the usable area); cut length %6 m.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>What the heuristic optimiser compares candidate layouts by.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Label</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Length</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Width</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Qty</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Leftover boards of this material, used before full sheets. Length along the grain, mm.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add remnant</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove remnant</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use project defaults for this material</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Objective:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remnants (extra stock):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remnant id %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Changes take effect with “Apply and re-optimise”.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Choose a material under “Applies to” to edit its remnants.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remnant</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1115,6 +1483,82 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Dowels</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>No front</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Single door</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Door pair</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Drawer stack</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Full overlay</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Half overlay</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hinged left</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hinged right</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No handle</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Handle centred</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Handle at the top</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Handle at the bottom</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fewest sheets</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Least waste</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use remnants first</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fewest cuts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Horizontal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Vertical</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inset (inside the opening)</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::InspectorPanel</name>
@@ -1304,6 +1748,161 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
     <message>
         <source>Front edges:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Parameters</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Interior</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hardware</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 (not in the library)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only fittings of the matching kind from the project&apos;s hardware library are offered.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Override for this part</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cabinet material</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cabinet rule</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove override</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::InteriorEditor</name>
+    <message>
+        <source>Section</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Content</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Split vertically</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Side-by-side sections separated by partitions (left to right).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Split horizontally</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Stacked sections separated by fixed shelves (bottom to top).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove split</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The section becomes one empty section again; its front is kept.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Empty interior</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Replaces the whole interior by one empty section without shelves or front.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Into sections:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>300 = fixed size in mm, 1* or 2* = share of the remaining space, anything else = expression over the parameters (e.g. width / 3).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Size:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Adjustable shelves, evenly distributed (sections that are not split).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Shelves:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sizes: 300 = millimetres, 1* = share of the rest, or an expression.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Front of the section</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cup hinges</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>One size per drawer front, bottom to top, separated by “;” (e.g. 140; 1*; 1*).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Apply front</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Type:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Overlay:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Single door:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Handle:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Drawer heights:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Selected: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>the whole interior has no size of its own</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

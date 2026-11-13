@@ -19,8 +19,12 @@ namespace {
 using furniture::SizeKind;
 using furniture::SplitDirection;
 
-const furniture::CabinetDefinition& cabinet(const Session& s) { return *s.project().items.at(0).cabinet(); }
-std::size_t partCount(const Session& s) { return s.resolved()->model.assemblies.at(0).parts.size(); }
+const furniture::CabinetDefinition& cabinet(const Session& s) {
+    return *s.project().items.at(0).cabinet();
+}
+std::size_t partCount(const Session& s) {
+    return s.resolved()->model.assemblies.at(0).parts.size();
+}
 
 struct Fixture : ::testing::Test {
     Session s;
@@ -89,7 +93,8 @@ TEST_F(Fixture, RowsOfTheTemplate) {
 TEST_F(Fixture, SplitVerticallyThenShelvesThenUndoRedo) {
     const furniture::Section original = cabinet(s).interior;
     const auto split = splitCommand("cab1", "", SplitDirection::Vertical, 2);
-    EXPECT_EQ(commandText(split.label, s.project()), QStringLiteral("Split the whole interior of Base cabinet into 2"));
+    EXPECT_EQ(commandText(split.label, s.project()),
+              QStringLiteral("Split the whole interior of Base cabinet into 2"));
     run(split);
     const auto rows = sectionRows(cabinet(s).interior);
     ASSERT_EQ(rows.size(), 3u);
@@ -97,7 +102,7 @@ TEST_F(Fixture, SplitVerticallyThenShelvesThenUndoRedo) {
     EXPECT_EQ(rows[2].path, "2");
     EXPECT_EQ(sectionCaption(rows[1]), QStringLiteral("Section 1 (left)"));
     EXPECT_EQ(sectionCaption(rows[2]), QStringLiteral("Section 2 (right)"));
-    EXPECT_EQ(contentText(rows[0]), QStringLiteral("split vertically into 2; door pair"));
+    EXPECT_EQ(contentText(rows[0]), QStringLiteral("2 side by side; door pair"));
     // Two equal shares of 564 - 18 (partition) = 546 -> 273 each. The leaf's shelf moved into
     // section 1: 273 - 2 * 1 = 271 long, 540 deep.
     const auto* partition = part(s, "cab1/partition.1");
@@ -148,11 +153,12 @@ TEST_F(Fixture, RefusedEditsChangeNothing) {
     refused(sectionSizeCommand("cab1", "1", QStringLiteral("600")).value());
     refused(sectionSizeCommand("cab1", "1", QStringLiteral("no_such_parameter + 1")).value());
     refused(sectionSizeCommand("cab1", "1", QStringLiteral("-5")).value());
-    refused(project::commands::setSectionSize("cab1", "", furniture::SectionSize::fixed(100))); // root has no size
+    refused(project::commands::setSectionSize("cab1", "",
+                                              furniture::SectionSize::fixed(100))); // root has no size
     refused(project::commands::setShelfCount("cab1", "1", -1));
-    refused(project::commands::setShelfCount("cab1", "", 2)); // the root is split now
+    refused(project::commands::setShelfCount("cab1", "", 2));          // the root is split now
     refused(splitCommand("cab1", "1", SplitDirection::Horizontal, 1)); // at least 2 children
-    refused(splitCommand("cab1", "", SplitDirection::Horizontal, 2)); // already split
+    refused(splitCommand("cab1", "", SplitDirection::Horizontal, 2));  // already split
     refused(splitCommand("cab1", "7", SplitDirection::Horizontal, 2)); // no such section
     // Input errors never reach the document.
     EXPECT_FALSE(sectionSizeCommand("cab1", "1", QStringLiteral("")).ok());
@@ -194,7 +200,8 @@ TEST_F(Fixture, FrontsDoorDrawersNone) {
     EXPECT_DOUBLE_EQ(door->length, 716);
     EXPECT_DOUBLE_EQ(door->width, 596);
     EXPECT_EQ(part(s, "cab1/door.left"), nullptr);
-    EXPECT_EQ(contentText(sectionRows(cabinet(s).interior)[0]), QStringLiteral("shelves: 1; door, hinged right"));
+    EXPECT_EQ(contentText(sectionRows(cabinet(s).interior)[0]),
+              QStringLiteral("shelves: 1; door, hinged right"));
 
     // Drawer stack 140 + two equal shares of the rest: 716 - 2 gaps of 3 = 710; 710 - 140 = 570
     // -> 285 each. Drawer fronts: length along x = 596, width = height.
@@ -217,12 +224,14 @@ TEST_F(Fixture, FrontsDoorDrawersNone) {
     in.choice = FrontInput::Choice::None;
     const auto none = frontCommand("cab1", "", in);
     ASSERT_TRUE(none.ok());
-    EXPECT_EQ(commandText(none.value().label, s.project()), QStringLiteral("Remove front of the whole interior of Base cabinet"));
+    EXPECT_EQ(commandText(none.value().label, s.project()),
+              QStringLiteral("Remove front of the whole interior of Base cabinet"));
     run(none);
     EXPECT_FALSE(cabinet(s).interior.front.has_value());
     EXPECT_EQ(partCount(s), 8u); // 10 - 2 doors
     // Undo three times: the door pair is back.
-    for (int i = 0; i < 3; ++i) ASSERT_TRUE(s.undo().ok());
+    for (int i = 0; i < 3; ++i)
+        ASSERT_TRUE(s.undo().ok());
     EXPECT_NE(part(s, "cab1/door.left"), nullptr);
     EXPECT_DOUBLE_EQ(part(s, "cab1/door.left")->width, 296.5); // (596 - 3) / 2
 }

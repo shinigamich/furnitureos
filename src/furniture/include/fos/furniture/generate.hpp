@@ -19,6 +19,8 @@ namespace fos::furniture {
 ///   furniture.plinth.feet_height            warning  plinth height outside the foot's adjustment range
 ///   furniture.parameter.*                   warning  violated Warning-severity constraints
 ///   furniture.hinge.near_shelf              warning  an intermediate hinge could not be moved clear of a shelf
+///   furniture.shelf_pins.dropped            warning  a shelf's pins would intersect a hole already drilled
+///                                                    (joints win; the shelf gets no pins; README "Shelf pins and joints")
 ///   furniture.geometry.interpenetration     error    two generated parts share volume outside a groove
 ///                                                    (self-check, see checks.hpp; message names both parts
 ///                                                    and the shared volume in mm)
@@ -45,7 +47,10 @@ core::Result<void> resolve(CabinetDefinition& definition, const Libraries& libra
 /// definition (resolved or not) can be passed. Pure and deterministic.
 ///
 /// Errors (Result): unsupported options, parameter/constraint failures, materials missing
-/// from the libraries, an invalid section tree (messages name the section and the numbers).
+/// from the libraries, an invalid section tree (messages name the section and the numbers),
+/// a definition beyond the hard limits of limits.hpp (checkDefinitionLimits), and a generated
+/// part whose size is not finite, not > 0 or above limits::kMaxDimension (message starts with
+/// "furniture.geometry.invalid_size:").
 /// Findings that do not prevent a geometrically consistent assembly (hardware rules that
 /// refuse, machining validation) are returned as diagnostics.
 ///

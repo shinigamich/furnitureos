@@ -65,6 +65,17 @@ The generator places a shelf exactly `shelf_clearance` from its supports and han
 `hardware::placeShelfSupports` with `maxGap = shelf_clearance + kShelfPinGapSlack` (0.5 mm, only a
 rounding allowance).
 
+### Shelf pins and joints
+
+Hardware is placed in generation order: carcass joints, then per section its front, its dividers with their
+joints, then the child sections (shelves with their pins). **Joints take precedence over shelf pins**: when a pin
+hole of a shelf would intersect a hole already drilled into the same panel (`machining::holesCollide`; typically
+the confirmat or dowel edge hole at a partition end in a low cabinet, e.g. the wardrobe template at 320 or 337 mm
+height), the pins of that shelf are not drilled at all (both sides) and the warning `furniture.shelf_pins.dropped`
+names the shelf, the pin hole and the hole it would meet. The shelf is still generated (unsupported); the remedy is
+fewer shelves, a taller section or another fastener. A height sweep of every template (200 … 3000 mm) has no
+machining collision.
+
 ## Back panel and grooves
 
 Overlay (on the rear, inset `back_inset`), Grooved (in grooves `groove_depth` deep, `groove_distance`
@@ -106,6 +117,38 @@ After generation `findInterpenetrations()` (checks.hpp) compares all part boxes;
 that does not lie inside a groove of one of the two parts yields the error
 `furniture.geometry.interpenetration` naming both parts and the shared volume in mm. This catches
 e.g. pinned parameters that no longer fit a changed construction.
+
+## Limits
+
+`limits.hpp` holds hard limits, far above real furniture, so that a hostile or corrupted definition (e.g. from a
+project file) cannot make generation run for minutes or produce infinite geometry. `generate()` checks them first
+(`checkDefinitionLimits`), so every edit of edit.hpp, the project commands and the project file loader refuse the
+same definitions with the same messages (ConstraintViolation / InvalidArgument naming the section path or
+parameter, the value and the limit).
+
+| Limit | Value |
+|---|---|
+| `kMaxDimension`: every standard parameter (all are lengths), Fixed section / drawer sizes, Expression sizes as evaluated, and the length / width / thickness of every generated part | finite, \|v\| ≤ 100 000 mm (parts also > 0) |
+| `kMaxWeight`: Weight sizes | ≤ 1 000 000 |
+| `kMaxShelvesPerSection` | 100 |
+| `kMaxShelvesPerCabinet` (adjustable shelves of all sections) | 200 |
+| `kMaxSectionChildren` | 50 |
+| `kMaxSections` (root included) | 250 |
+| `kMaxSectionDepth` (root = 0) | 16 |
+| `kMaxDrawerHeights` (fronts per drawer stack) | 30 |
+| `kMaxPartsPerAssembly`: `estimatePartCount()` = 8 + dividers + shelves + fronts, and the generated count | 2 000 |
+
+A generated part that is not finite, not > 0 or longer than 100 000 mm (e.g. a pinned `top_length` of -5) fails
+generation with a message starting `furniture.geometry.invalid_size:` before any hardware is placed.
+
+Why shelves have a per-cabinet limit: all pins of the shelves resting against one panel are drilled into that
+panel, and `machining::validateOperations` compares every pair of holes of a part (quadratic in holes per part).
+With 200 shelves a side panel carries at most ~400 pin holes plus joints.
+
+Performance: part lookups by slot are O(1) (`Gen::slotIndex`), and hardware placements are stored without the
+assembly-wide scans of `hardware::applyPlacement` (equivalent result for the generator's always-new instance ids).
+The largest allowed assemblies — 50 columns of 30-drawer stacks (1554 parts) or 200 shelves on one pair of sides —
+generate in well under a second even unoptimised (`limits_tests.cpp`, bound 5 s, measured ~0.05 s).
 
 ## Diagnostics
 
