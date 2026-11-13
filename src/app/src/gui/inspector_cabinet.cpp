@@ -1,47 +1,154 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Cabinet sections of the inspector: construction options and materials by role.
+// Cabinet sections of the inspector: tabs, construction options, materials by role, hardware,
+// and the per-part override editor.
 #include "enum_text.hpp"
+#include "form_widgets.hpp"
+#include "fos/app/cabinet_parts.hpp"
 #include "fos/app/session.hpp"
 #include "fos/core/units.hpp"
 #include "inspector_panel.hpp"
+#include "interior_editor.hpp"
 
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
 #include <QGroupBox>
+#include <QLabel>
+#include <QPushButton>
+#include <QTabWidget>
 #include <QVBoxLayout>
 
 namespace fos::app::gui {
-namespace {
-
-/// Combo box that does not force the inspector wider than the dock (long translated texts).
-QComboBox* narrowCombo(QWidget* parent) {
-    auto* box = new QComboBox(parent);
-    box->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
-    box->setMinimumContentsLength(12);
-    return box;
-}
-
-template <class E>
-QComboBox* choiceBox(const Choices<E>& choices, E current, QWidget* parent) {
-    auto* box = narrowCombo(parent);
-    for (const auto& [text, value] : choices) {
-        box->addItem(text, static_cast<int>(value));
-        if (value == current) box->setCurrentIndex(box->count() - 1);
-    }
-    return box;
-}
-
-template <class E> E valueOf(const QComboBox* box) { return static_cast<E>(box->currentData().toInt()); }
-
-} // namespace
 
 void InspectorPanel::buildCabinet(QVBoxLayout* layout, const std::string& itemId) {
     buildNameEditor(layout, itemId);
     const auto* cabinet = session_.project().findItem(itemId)->cabinet();
-    buildParameters(layout, itemId, parameterGroups(*cabinet), true);
-    buildConstruction(layout, itemId);
-    buildMaterials(layout, itemId);
+    auto* tabs = new QTabWidget(layout->parentWidget());
+    tabs->setObjectName(QStringLiteral("cabinetTabs"));
+    tabs->setDocumentMode(true);
+    auto page = [tabs](const QString& title) {
+        auto* w = new QWidget(tabs);
+        auto* l = new QVBoxLayout(w);
+        l->setContentsMargins(0, 6, 0, 0);
+        tabs->addTab(w, title);
+        return l;
+    };
+    QVBoxLayout* parameters = page(tr("Parameters"));
+    QVBoxLayout* construction = page(tr("Construction"));
+    QVBoxLayout* interior = page(tr("Interior"));
+    buildParameters(parameters, itemId, parameterGroups(*cabinet), true);
+    buildConstruction(construction, itemId);
+    buildMaterials(construction, itemId);
+    buildHardware(construction, itemId);
+    if (interiorItem_ != itemId) {
+        interiorItem_ = itemId;
+        interiorPath_.clear();
+    }
+    interior_ = new InteriorEditor(session_, itemId, interiorPath_, tabs);
+    interior->addWidget(interior_);
+    for (QVBoxLayout* l : {parameters, construction, interior}) l->addStretch(1);
+    tabs->setCurrentIndex(std::clamp(cabinetTab_, 0, tabs->count() - 1));
+    connect(tabs, &QTabWidget::currentChanged, this, [this](int index) { cabinetTab_ = index; });
+    cabinetTabs_ = tabs;
+    layout->addWidget(tabs);
+}
+
+void InspectorPanel::buildHardware(QVBoxLayout* layout, const std::string& itemId) {
+    const auto& project = session_.project();
+    const furniture::HardwareSelection current = project.findItem(itemId)->cabinet()->hardware;
+    auto* box = new QGroupBox(tr("Hardware"), layout->parentWidget());
+    auto* form = new QFormLayout(box);
+    auto* error = makeErrorLabel(box);
+    for (HardwareRole role : kHardwareRoles) {
+        auto* combo = narrowCombo(box);
+        combo->setObjectName(QStringLiteral("hardware:%1").arg(static_cast<int>(role)));
+        const std::string selectedId = selected(current, role).str();
+        for (const auto& choice : hardwareChoices(project.libraries, role, selectedId)) {
+            combo->addItem(choice.missing ? tr("%1 (not in the library)").arg(QString::fromStdString(choice.id))
+                                          : QString::fromStdString(choice.name),
+                           QString::fromStdString(choice.id));
+            combo->setItemData(combo->count() - 1, QString::fromStdString(choice.id), Qt::ToolTipRole);
+        }
+        selectData(combo, QString::fromStdString(selectedId));
+        form->addRow(hardwareRoleTitle(role), combo);
+        connect(combo, qOverload<int>(&QComboBox::activated), this, [this, itemId, role, combo, error, selectedId] {
+            const std::string id = combo->currentData().toString().toStdString();
+            const project::Item* item = session_.project().findItem(itemId);
+            if (id == selectedId || !item || !item->cabinet()) return;
+            if (!run(hardwareCommand(*item->cabinet(), role, id), error)) selectData(combo, QString::fromStdString(selectedId));
+        });
+    }
+    form->addRow(error);
+    auto* note = new QLabel(tr("Only fittings of the matching kind from the project's hardware library are offered."), box);
+    note->setWordWrap(true);
+    note->setStyleSheet(QStringLiteral("color: palette(mid);"));
+    form->addRow(note);
+    layout->addWidget(box);
+}
+
+void InspectorPanel::buildPartOverride(QVBoxLayout* layout, const std::string& itemId, const std::string& partId) {
+    const auto& project = session_.project();
+    const project::Item* item = project.findItem(itemId);
+    const auto slot = partSlot(itemId, partId);
+    if (!item || !item->cabinet() || !slot) return;
+    const furniture::CabinetDefinition& cabinet = *item->cabinet();
+    const furniture::PartOverride current = currentOverride(cabinet, *slot);
+    auto* box = new QGroupBox(tr("Override for this part"), layout->parentWidget());
+    box->setObjectName(QStringLiteral("partOverride"));
+    auto* form = new QFormLayout(box);
+    auto* error = makeErrorLabel(box);
+    error->setObjectName(QStringLiteral("partOverrideError"));
+    auto* material = narrowCombo(box);
+    material->setObjectName(QStringLiteral("overrideMaterial"));
+    material->addItem(tr("Cabinet material"), QString());
+    for (const auto& m : project.libraries.materials)
+        material->addItem(tr("%1 (%2 mm)").arg(QString::fromStdString(m.name),
+                                               QString::fromStdString(core::formatLength(m.thickness))),
+                          QString::fromStdString(m.id.str()));
+    selectData(material, current.material ? QString::fromStdString(current.material->str()) : QString());
+    form->addRow(tr("Material:"), material);
+    connect(material, qOverload<int>(&QComboBox::activated), this, [this, itemId, slot, material, error] {
+        const project::Item* it = session_.project().findItem(itemId);
+        if (!it || !it->cabinet()) return;
+        const QString id = material->currentData().toString();
+        run(partMaterialCommand(*it->cabinet(), *slot,
+                                id.isEmpty() ? std::nullopt : std::optional<std::string>(id.toStdString())),
+            error);
+    });
+    // Edge entries: "" = cabinet rule, "-" = raw, otherwise the edge band id.
+    const QString raw = QStringLiteral("-");
+    for (domain::EdgeSide side : domain::kAllEdges) {
+        auto* edge = narrowCombo(box);
+        edge->setObjectName(QStringLiteral("overrideEdge:%1").arg(QString::fromLatin1(domain::toString(side))));
+        edge->addItem(tr("Cabinet rule"), QString());
+        edge->addItem(tr("Raw (no edge band)"), raw);
+        for (const auto& eb : project.libraries.edgeBands)
+            edge->addItem(QString::fromStdString(eb.name), QString::fromStdString(eb.id.str()));
+        const EdgeOverrideChoice choice = edgeChoice(current, side);
+        selectData(edge, choice.kind == EdgeOverrideChoice::Kind::CabinetRule ? QString()
+                         : choice.kind == EdgeOverrideChoice::Kind::Raw       ? raw
+                                                                              : QString::fromStdString(choice.bandId));
+        form->addRow(tr("Edge %1:").arg(QString::fromLatin1(domain::toString(side))), edge);
+        connect(edge, qOverload<int>(&QComboBox::activated), this, [this, itemId, slot, side, edge, error, raw] {
+            const project::Item* it = session_.project().findItem(itemId);
+            if (!it || !it->cabinet()) return;
+            const QString value = edge->currentData().toString();
+            EdgeOverrideChoice c;
+            if (value == raw) c.kind = EdgeOverrideChoice::Kind::Raw;
+            else if (!value.isEmpty()) c = {EdgeOverrideChoice::Kind::Band, value.toStdString()};
+            run(partEdgeCommand(*it->cabinet(), *slot, side, c), error);
+        });
+    }
+    auto* clear = new QPushButton(tr("Remove override"), box);
+    clear->setObjectName(QStringLiteral("clearOverride"));
+    clear->setEnabled(current.material || !current.edges.empty());
+    connect(clear, &QPushButton::clicked, this, [this, itemId, slot, error] {
+        const project::Item* it = session_.project().findItem(itemId);
+        if (it && it->cabinet()) run(clearPartOverrideCommand(*it->cabinet(), *slot), error);
+    });
+    form->addRow(clear);
+    form->addRow(error);
+    layout->addWidget(box);
 }
 
 void InspectorPanel::buildConstruction(QVBoxLayout* layout, const std::string& itemId) {

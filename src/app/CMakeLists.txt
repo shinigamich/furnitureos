@@ -21,7 +21,10 @@ add_library(fos_app_core STATIC
     src/core/diagnostics_rows.cpp
     src/core/cutting_rows.cpp
     src/core/production_text.cpp
-    src/core/drawing_request.cpp)
+    src/core/drawing_request.cpp
+    src/core/interior_rows.cpp
+    src/core/cabinet_parts.cpp
+    src/core/drawing_edits.cpp)
 add_library(fos::app_core ALIAS fos_app_core)
 # moc (Qt 6.4) cannot parse libstdc++ C++20 concepts with the compiler predefines (see viewport).
 set_target_properties(fos_app_core PROPERTIES AUTOMOC ON AUTOMOC_COMPILER_PREDEFINES OFF)
@@ -37,7 +40,11 @@ if(FOS_BUILD_TESTS)
         tests/core/basics_tests.cpp
         tests/core/session_tests.cpp
         tests/core/parameter_tests.cpp
-        tests/core/views_tests.cpp)
+        tests/core/views_tests.cpp
+        tests/core/interior_tests.cpp
+        tests/core/cabinet_parts_tests.cpp
+        tests/core/drawing_edit_tests.cpp
+        tests/core/cutting_settings_tests.cpp)
     target_link_libraries(fos_app_core_tests PRIVATE fos::app_core Qt6::Test GTest::gtest GTest::gmock)
     fos_set_warnings(fos_app_core_tests PRIVATE)
     gtest_discover_tests(fos_app_core_tests DISCOVERY_TIMEOUT 60
@@ -63,6 +70,9 @@ set(FOS_APP_GUI_SOURCES
     src/gui/inspector_panel.hpp
     src/gui/inspector_panel.cpp
     src/gui/inspector_cabinet.cpp
+    src/gui/interior_editor.hpp
+    src/gui/interior_editor.cpp
+    src/gui/form_widgets.hpp
     src/gui/diagnostics_panel.hpp
     src/gui/diagnostics_panel.cpp
     src/gui/drawings_workspace.hpp

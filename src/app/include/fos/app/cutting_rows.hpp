@@ -33,4 +33,26 @@ std::vector<CuttingSummaryRow> cuttingSummary(const project::CuttingPlans& plans
 project::Command cuttingSettingsCommand(const project::Project& project, const std::optional<std::string>& materialId,
                                         double kerf, const cutting::Trim& trim);
 
+/// What the cutting settings editor submits for one scope (project defaults or a material).
+struct CuttingSettingsInput {
+    double kerf = 4.0;
+    cutting::Trim trim{10.0, 10.0, 10.0, 10.0};
+    cutting::Objective objective = cutting::Objective::MinimizeSheets;
+    std::vector<project::Remnant> remnants; ///< Extra stock of the material, opened before full sheets.
+};
+/// Editor state of the scope (`materialId` nullopt = project defaults; a material without an
+/// own entry shows the defaults).
+CuttingSettingsInput cuttingSettingsInput(const project::Project& project, const std::optional<std::string>& materialId);
+/// commands::setCuttingSettings with kerf, trim, objective and remnants replaced; minimum
+/// remnant sizes, stages and first cut of the scope are kept. Validation (non-negative sizes,
+/// positive remnant sizes, quantity >= 1) is done by the command, which refuses bad values.
+project::Command cuttingSettingsCommand(const project::Project& project, const std::optional<std::string>& materialId,
+                                        const CuttingSettingsInput& input);
+/// True when the material has its own cutting settings entry (otherwise it uses the defaults).
+bool hasOwnCuttingSettings(const project::Project& project, const std::string& materialId);
+/// commands::setCuttingSettings(materialId, nullopt): the material uses the defaults again.
+project::Command useDefaultCuttingSettingsCommand(const std::string& materialId);
+/// Smallest unused remnant id "R<n>" (n = 1, 2, ...).
+std::string nextRemnantId(const std::vector<project::Remnant>& remnants);
+
 } // namespace fos::app

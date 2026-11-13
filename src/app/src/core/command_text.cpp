@@ -33,9 +33,16 @@ namespace {
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Edit {1} in drawing {0}"),
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Reset {1} in drawing {0}"),
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Change cutting settings of {0}"),
+    QT_TRANSLATE_NOOP("fos::app::CommandText", "Change default cutting settings"),
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Edit project properties"),
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Change project settings"),
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Edit custom project data"),
+    // Section commands on the root section (empty path {1}), see commandText().
+    QT_TRANSLATE_NOOP("fos::app::CommandText", "Change the whole interior of {0}"),
+    QT_TRANSLATE_NOOP("fos::app::CommandText", "Set shelf count of the whole interior of {0} to {2}"),
+    QT_TRANSLATE_NOOP("fos::app::CommandText", "Set front of the whole interior of {0}"),
+    QT_TRANSLATE_NOOP("fos::app::CommandText", "Remove front of the whole interior of {0}"),
+    QT_TRANSLATE_NOOP("fos::app::CommandText", "Split the whole interior of {0} into {2}"),
     // Commands built by the application itself (session.cpp).
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Recover {0} from autosave or backup"),
 };
@@ -43,7 +50,11 @@ namespace {
 } // namespace
 
 QString commandText(const project::CommandLabel& label, const project::Project& project) {
-    QString text = QCoreApplication::translate("fos::app::CommandText", label.key.c_str());
+    // The root section has the empty path: "section {1}" becomes "the whole interior".
+    std::string key = label.key;
+    if (const auto at = key.find("section {1}"); at != std::string::npos && label.args.size() > 1 && label.args[1].empty())
+        key.replace(at, std::string("section {1}").size(), "the whole interior");
+    QString text = QCoreApplication::translate("fos::app::CommandText", key.c_str());
     for (std::size_t i = 0; i < label.args.size(); ++i) {
         const std::string& arg = label.args[i];
         const project::Item* item = project.findItem(arg);

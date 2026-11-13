@@ -4,11 +4,13 @@
 #include "enum_text.hpp"
 #include "fos/app/session.hpp"
 #include "fos/core/units.hpp"
+#include "interior_editor.hpp"
 
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QTabWidget>
 #include <QTimer>
 #include <QVBoxLayout>
 
@@ -46,6 +48,8 @@ void InspectorPanel::rebuild() {
     // The editor that triggered a change may still be inside its signal: delete later.
     if (QWidget* old = takeWidget()) old->deleteLater();
     editors_.clear();
+    cabinetTabs_ = nullptr;
+    interior_ = nullptr;
     auto* content = new QWidget;
     auto* layout = new QVBoxLayout(content);
     const Selection& sel = session_.selection();
@@ -184,6 +188,9 @@ bool InspectorPanel::submitParameter(const QString& name, const QString& text) {
     return commitParameter(itemId, name.toStdString(), it->second.edit);
 }
 
+InteriorEditor* InspectorPanel::interiorEditor() const { return interior_; }
+QTabWidget* InspectorPanel::cabinetTabs() const { return cabinetTabs_; }
+
 QString InspectorPanel::parameterError(const QString& name) const {
     const auto it = editors_.find(name.toStdString());
     if (it == editors_.end() || !it->second.error || it->second.error->isHidden()) return {};
@@ -236,6 +243,7 @@ void InspectorPanel::buildPart(QVBoxLayout* layout, const std::string& partId) {
                             layout->parentWidget());
     hint->setWordWrap(true);
     layout->addWidget(hint);
+    buildPartOverride(layout, session_.itemOfPart(partId), partId);
 }
 
 } // namespace fos::app::gui

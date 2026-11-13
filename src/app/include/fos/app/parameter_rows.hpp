@@ -61,6 +61,10 @@ struct ParameterInput {
     std::string expression; ///< When isExpression (trimmed).
 };
 
+/// The value of a plain decimal number ("900", "0.5", "12,5", optional trailing "mm"), or
+/// std::nullopt when `text` is anything else (locale-independent).
+std::optional<double> parsePlainNumber(const QString& text);
+
 /// Plain decimal numbers (locale-independent; one decimal comma is accepted as point; an
 /// optional trailing "mm" is ignored) become values; anything else is passed on as an
 /// expression for the parametric engine to judge. Empty input -> InvalidArgument.

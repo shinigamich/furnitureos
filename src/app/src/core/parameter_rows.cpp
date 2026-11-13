@@ -107,24 +107,28 @@ QString valueText(const ParameterRow& row) {
     return unit.isEmpty() ? number : (unit == QStringLiteral("°") ? number + unit : number + QLatin1Char(' ') + unit);
 }
 
+std::optional<double> parsePlainNumber(const QString& text) {
+    QString numeric = text.trimmed();
+    if (numeric.endsWith(QLatin1String("mm"), Qt::CaseInsensitive)) numeric = numeric.chopped(2).trimmed();
+    if (numeric.count(QLatin1Char(',')) == 1 && !numeric.contains(QLatin1Char('.')))
+        numeric.replace(QLatin1Char(','), QLatin1Char('.'));
+    const std::string s = numeric.toStdString();
+    if (s.empty()) return std::nullopt;
+    double value = 0;
+    const char* begin = s.data();
+    const char* end = s.data() + s.size();
+    const auto [ptr, ec] = std::from_chars(begin, end, value);
+    if (ec == std::errc() && ptr == end) return value;
+    return std::nullopt;
+}
+
 core::Result<ParameterInput> parseParameterInput(const QString& text) {
     QString t = text.trimmed();
     if (t.isEmpty())
         return core::makeError(core::ErrorCode::InvalidArgument,
                                QCoreApplication::translate("fos::app::Parameters", "Enter a number or an expression.")
                                    .toStdString());
-    QString numeric = t;
-    if (numeric.endsWith(QLatin1String("mm"), Qt::CaseInsensitive)) numeric = numeric.chopped(2).trimmed();
-    if (numeric.count(QLatin1Char(',')) == 1 && !numeric.contains(QLatin1Char('.')))
-        numeric.replace(QLatin1Char(','), QLatin1Char('.'));
-    const std::string s = numeric.toStdString();
-    double value = 0;
-    const char* begin = s.data();
-    const char* end = s.data() + s.size();
-    if (!s.empty()) {
-        const auto [ptr, ec] = std::from_chars(begin, end, value);
-        if (ec == std::errc() && ptr == end) return ParameterInput{false, value, {}};
-    }
+    if (const auto value = parsePlainNumber(t)) return ParameterInput{false, *value, {}};
     return ParameterInput{true, 0.0, t.toStdString()};
 }
 

@@ -2,7 +2,10 @@
 #pragma once
 /// \file
 /// Translated display texts of engineering enumerations (the core keeps stable English tokens).
+#include "fos/app/interior_rows.hpp"
 #include "fos/core/diagnostic.hpp"
+#include "fos/cutting/types.hpp"
+#include "fos/drawings/annotation.hpp"
 #include "fos/domain/part.hpp"
 #include "fos/furniture/enums.hpp"
 
@@ -24,5 +27,12 @@ Choices<furniture::TopKind> topChoices();
 Choices<furniture::BackMount> backChoices();
 Choices<furniture::PlinthKind> plinthChoices();
 Choices<furniture::JointFastener> fastenerChoices();
+/// Front editor and cutting / drawing editor choices.
+Choices<FrontInput::Choice> frontChoices();
+Choices<furniture::OverlayKind> overlayChoices();
+Choices<furniture::HingeSide> hingeSideChoices();
+Choices<furniture::HandlePosition> handleChoices();
+Choices<cutting::Objective> objectiveChoices();
+Choices<drawings::DimensionOrientation> orientationChoices();
 
 } // namespace fos::app::gui
