@@ -61,7 +61,7 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 | T-023 | Independent review of calculation-critical modules | Done | findings below | — |
 | T-024 | Desktop UI: interior/fronts/hardware/drawing-edit editors | Not started | — | — |
 | T-025 | Windows build bring-up | Not started | — | — |
-| T-026 | Review of viewport, app, CAM, nesting, plugins, project | Not started | — | — |
+| T-026 | Review of project, CAM, validation, nesting, plugins, CLI, printing | Done; fixes in progress | findings below | — |
 
 ## Independent review 2026-11-12 (calculation-critical modules)
 
@@ -76,6 +76,23 @@ changes silently (now a warning plus a generator interpenetration check) · draw
 face-A convention · back grooves notching banded ends · shelf-pin depth reduced on outer sides · drawing
 text overrides going stale silently · missing edge bands not reported by the cutting adapter · duplicated
 grain rule · cutting optimiser layering · five empty furniture test files.
+
+## Independent review 2026-11-13 (newer modules) — fixes in progress
+
+Verified correct by probes: undo/redo over 300 random mixed commands restores the exact model; save is
+byte-identical; malformed/truncated/newer files refused cleanly; 2,775 fuzzed CAM programs never go below the
+stock bottom and output is always refused when simulation fails; validation detected all 1,207 injected 1 mm
+overlaps across 72 template configurations; plugin path-escape attempts all refused; printing never scales
+silently.
+
+Confirmed defects being fixed:
+* HIGH: a crafted `.fosp` (e.g. 10,000 shelves) hangs loading/generation — no size limits; quadratic generator lookup.
+* HIGH: the CAM simulator trusted the machine's safe Z, so a hand-built program with a rapid into the stock passed
+  and was post-processed (generated programs were not affected).
+* A hostile backup count makes every save hang; `readFile` accepts devices/FIFOs and has no size cap.
+* `fos cut` / `fos report` exit 0 with silently incomplete output when an item fails to generate.
+* Simulator coverage gaps (sub-cell tools, last partial cell strip, negative stock z); plugin read TOCTOU;
+  a dowel/shelf-pin hole collision in the wardrobe template at low heights.
 
 ## Known bugs and technical debt
 
