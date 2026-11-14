@@ -136,6 +136,13 @@ bool GlRenderer::initialize(std::string& error) {
         error = "Viewport: no current OpenGL context.";
         return false;
     }
+    // Initialize the function table for every valid context before checking its version.
+    // The widget still needs desktop OpenGL 3.3 for 3D rendering, but render() must be able
+    // to clear the background safely when running on an older context (e.g. software GL in CI).
+    if (!initializeOpenGLFunctions()) {
+        error = "Viewport: failed to initialize OpenGL functions.";
+        return false;
+    }
     const auto fmt = ctx->format();
     if (ctx->isOpenGLES() || fmt.version() < qMakePair(3, 3)) {
         error = "Viewport needs OpenGL 3.3 (desktop); got " + std::string(ctx->isOpenGLES() ? "OpenGL ES " : "OpenGL ") +
@@ -143,7 +150,6 @@ bool GlRenderer::initialize(std::string& error) {
                 ". The 3D view stays empty; picking and all other functions keep working.";
         return false;
     }
-    initializeOpenGLFunctions();
     if (!build(meshProgram_, kMeshVs, kMeshFs, error) || !build(lineProgram_, kLineVs, kColorFs, error) ||
         !build(colorProgram_, kColorVs, kColorFs, error))
         return false;
