@@ -2,14 +2,17 @@
 // Test entry point: widgets need a QApplication. Without any display the offscreen platform
 // is used (enough for everything except QOpenGLWidget rendering, which then skips).
 #include <QApplication>
+#include <QtGlobal>
 
 #include <gtest/gtest.h>
 
-#include <cstdlib>
-
 int main(int argc, char** argv) {
-    if (!std::getenv("QT_QPA_PLATFORM") && !std::getenv("DISPLAY") && !std::getenv("WAYLAND_DISPLAY"))
-        setenv("QT_QPA_PLATFORM", "offscreen", 1);
+#ifndef Q_OS_WIN
+    // X11/Wayland only: Windows (and macOS) always have a window system available.
+    if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM") && qEnvironmentVariableIsEmpty("DISPLAY") &&
+        qEnvironmentVariableIsEmpty("WAYLAND_DISPLAY"))
+        qputenv("QT_QPA_PLATFORM", "offscreen");
+#endif
     QApplication app(argc, argv);
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
