@@ -79,6 +79,15 @@ TEST(Install, RefusesInvalidIncompatibleAndNonNamespacedPackages) {
     EXPECT_FALSE(fs::exists(f.root / "org.example.future"));
     EXPECT_FALSE(fs::exists(f.root / "org.example.ns"));
 
+    // Library directory linked outside the package (a junction on Windows without privileges).
+    const auto escDir = makePlugin(f.source, "org.example.escdir");
+    fs::remove_all(escDir / "lib");
+    writeLibrary(f.tmp / "outside-lib/main.foslib", namespacedLibrary("org.example.escdir"));
+    if (const auto why = tryCreateLink(f.tmp / "outside-lib", escDir / "lib", true); !why.empty()) GTEST_SKIP() << why;
+    EXPECT_FALSE(f.manager.install(escDir).ok());
+    EXPECT_FALSE(fs::exists(f.root / "org.example.escdir"));
+    EXPECT_TRUE(fs::exists(f.tmp / "outside-lib/main.foslib"));
+
     const auto esc = makePlugin(f.source, "org.example.esc");
     fs::remove(esc / "lib/main.foslib");
     writeLibrary(f.tmp / "outside.foslib", namespacedLibrary("org.example.esc"));

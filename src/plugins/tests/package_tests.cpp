@@ -50,17 +50,21 @@ TEST(Package, RejectsTraversalAbsoluteAndSymlinkEscapes) {
     EXPECT_EQ(resolveInside(dir, "missing.foslib").error().code, core::ErrorCode::NotFound);
     EXPECT_EQ(resolveInside(dir, "inside").error().code, core::ErrorCode::InvalidArgument);
 
-    // 3. Link escapes: a file link and a directory link pointing outside.
-    if (const auto why = tryCreateLink(tmp / "outside.foslib", dir / "link.foslib", false); !why.empty()) GTEST_SKIP() << why;
+    // 3. Link escapes. First a directory link (on Windows a junction when symbolic links need
+    // privileges: junctions never do, so this part runs on every real Windows system).
     fs::create_directories(tmp / "elsewhere");
     writeLibrary(tmp / "elsewhere/x.foslib", namespacedLibrary("org.example.evil"));
     if (const auto why = tryCreateLink(tmp / "elsewhere", dir / "linkdir", true); !why.empty()) GTEST_SKIP() << why;
-    for (const char* rel : {"link.foslib", "linkdir/x.foslib"}) {
-        auto r = resolveInside(dir, rel);
-        ASSERT_FALSE(r.ok()) << rel;
-        EXPECT_EQ(r.error().code, core::ErrorCode::InvalidArgument);
-        EXPECT_THAT(r.error().message, HasSubstr("outside the plugin directory"));
-    }
+    auto viaDir = resolveInside(dir, "linkdir/x.foslib");
+    ASSERT_FALSE(viaDir.ok());
+    EXPECT_EQ(viaDir.error().code, core::ErrorCode::InvalidArgument);
+    EXPECT_THAT(viaDir.error().message, HasSubstr("outside the plugin directory"));
+    // Then a file symbolic link.
+    if (const auto why = tryCreateLink(tmp / "outside.foslib", dir / "link.foslib", false); !why.empty()) GTEST_SKIP() << why;
+    auto viaFile = resolveInside(dir, "link.foslib");
+    ASSERT_FALSE(viaFile.ok());
+    EXPECT_EQ(viaFile.error().code, core::ErrorCode::InvalidArgument);
+    EXPECT_THAT(viaFile.error().message, HasSubstr("outside the plugin directory"));
     // A link that stays inside is fine.
     if (const auto why = tryCreateLink(dir / "inside/real.foslib", dir / "alias.foslib", false); !why.empty()) GTEST_SKIP() << why;
     auto alias = resolveInside(dir, "alias.foslib");
@@ -114,6 +118,17 @@ TEST(Package, WindowsSpecificEscapesAreRefusedOnEveryPlatform) {
 
 TEST(Package, SymlinkEscapeInManifestMakesPackageInvalid) {
     TempDir tmp;
+    // A directory link (on Windows possibly a junction, which needs no privilege) to an
+    // outside directory that holds the library.
+    const auto dir3 = tmp / "org.example.evil3";
+    writeText(dir3 / "plugin.json", manifestJson("org.example.evil3", "1.0.0", {"lib/main.foslib"}).dump());
+    writeLibrary(tmp / "secret3/main.foslib", namespacedLibrary("org.example.evil3"));
+    if (const auto why = tryCreateLink(tmp / "secret3", dir3 / "lib", true); !why.empty()) GTEST_SKIP() << why;
+    auto i3 = inspectPackage(dir3);
+    EXPECT_FALSE(i3.ok());
+    EXPECT_TRUE(hasCode(i3.diagnostics, "plugins.package.bad_path")) << allMessages(i3.diagnostics);
+
+    // A file link to an outside library.
     writeLibrary(tmp / "secret/outside.foslib", namespacedLibrary("org.example.evil"));
     const auto dir = tmp / "org.example.evil";
     writeText(dir / "plugin.json", manifestJson("org.example.evil", "1.0.0", {"lib/main.foslib"}).dump());
@@ -133,16 +148,6 @@ TEST(Package, SymlinkEscapeInManifestMakesPackageInvalid) {
     auto i2 = inspectPackage(dir2);
     EXPECT_FALSE(i2.ok());
     EXPECT_TRUE(hasCode(i2.diagnostics, "plugins.package.bad_manifest_path")) << allMessages(i2.diagnostics);
-
-    // A directory link (on Windows possibly a junction, which needs no privilege) to an
-    // outside directory that holds the library.
-    const auto dir3 = tmp / "org.example.evil3";
-    writeText(dir3 / "plugin.json", manifestJson("org.example.evil3", "1.0.0", {"lib/main.foslib"}).dump());
-    writeLibrary(tmp / "secret3/main.foslib", namespacedLibrary("org.example.evil3"));
-    ASSERT_EQ(tryCreateLink(tmp / "secret3", dir3 / "lib", true), "");
-    auto i3 = inspectPackage(dir3);
-    EXPECT_FALSE(i3.ok());
-    EXPECT_TRUE(hasCode(i3.diagnostics, "plugins.package.bad_path")) << allMessages(i3.diagnostics);
 }
 
 TEST(Package, SizeCapsAreCheckedBeforeReading) {

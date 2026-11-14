@@ -125,10 +125,14 @@ TEST(AtomicSave, NonAsciiFileNameSavesRotatesAndRecovers) {
     EXPECT_EQ(revisionOf(backupPath(file, 1)), 2);
     EXPECT_EQ(revisionOf(backupPath(file, 2)), 1);
     // The names on disk are exactly the UTF-8 ones (no mojibake twins).
-    std::vector<std::u8string> names;
-    for (const auto& entry : fs::directory_iterator(dir.path())) names.push_back(entry.path().filename().u8string());
+    // (Compared as std::string: a prebuilt GoogleTest may lack the C++20 u8string printer.)
+    std::vector<std::string> names;
+    for (const auto& entry : fs::directory_iterator(dir.path())) {
+        const std::u8string name = entry.path().filename().u8string();
+        names.emplace_back(name.begin(), name.end());
+    }
     std::sort(names.begin(), names.end());
-    EXPECT_EQ(names, (std::vector<std::u8string>{u8"кухня.fosp", u8"кухня.fosp.bak1", u8"кухня.fosp.bak2"}));
+    EXPECT_EQ(names, (std::vector<std::string>{"кухня.fosp", "кухня.fosp.bak1", "кухня.fosp.bak2"}));
     // Backup discovery compares names: it must find both backups of the non-ASCII file.
     ASSERT_TRUE(writeAutosave(file, revision(4)).ok());
     const auto candidates = listRecoveryCandidates(file);

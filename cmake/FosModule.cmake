@@ -54,7 +54,8 @@ function(fos_add_tests name)
 endfunction()
 
 # fos_add_windows_version_resource(<target> <description>)
-# Embeds a VERSIONINFO resource (product name, version, licence) into a Windows executable.
+# Embeds a VERSIONINFO resource (product name, version, licence) and an application manifest
+# (UTF-8 process code page, long paths) into a Windows executable.
 function(fos_add_windows_version_resource target description)
     if(NOT WIN32)
         return()
@@ -62,6 +63,14 @@ function(fos_add_windows_version_resource target description)
     set(FOS_RC_NAME ${target})
     set(FOS_RC_DESCRIPTION "${description}")
     set(_rc "${CMAKE_CURRENT_BINARY_DIR}/${target}_version.rc")
+    set(_manifest "${PROJECT_SOURCE_DIR}/src/app/resources/furnitureos.manifest")
     configure_file("${PROJECT_SOURCE_DIR}/src/app/resources/furnitureos.rc.in" "${_rc}" @ONLY)
-    target_sources(${target} PRIVATE "${_rc}")
+    if(MSVC)
+        # The MSVC linker merges .manifest sources into the manifest it generates.
+        target_sources(${target} PRIVATE "${_rc}" "${_manifest}")
+    else()
+        # MinGW: embed through the resource script (RT_MANIFEST = 24, id 1 = process manifest).
+        file(APPEND "${_rc}" "\n1 24 \"${_manifest}\"\n")
+        target_sources(${target} PRIVATE "${_rc}")
+    endif()
 endfunction()
