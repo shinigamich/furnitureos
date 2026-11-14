@@ -19,6 +19,11 @@ set(FOS_MODULES "" CACHE STRING "Subset of modules to build (empty = all)")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+if(MSVC)
+    # Conforming preprocessor everywhere (also for third-party test code): the legacy one
+    # mis-parses raw string literals inside macro arguments (e.g. EXPECT_EQ(x, R"(...)")).
+    add_compile_options(/Zc:preprocessor /utf-8)
+endif()
 if(MINGW)
     # Self-contained executables: no libstdc++/libgcc/winpthread DLLs to ship.
     add_link_options(-static -static-libgcc -static-libstdc++)

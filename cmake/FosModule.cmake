@@ -3,7 +3,7 @@
 
 function(fos_set_warnings target scope)
     if(MSVC)
-        target_compile_options(${target} ${scope} /W4 /permissive- /utf-8)
+        target_compile_options(${target} ${scope} /W4 /permissive- /utf-8 /Zc:preprocessor /Zc:__cplusplus)
         if(FOS_WERROR)
             target_compile_options(${target} ${scope} /WX)
         endif()
