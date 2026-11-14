@@ -66,8 +66,8 @@ function(fos_add_windows_version_resource target description)
     set(_manifest "${PROJECT_SOURCE_DIR}/src/app/resources/furnitureos.manifest")
     configure_file("${PROJECT_SOURCE_DIR}/src/app/resources/furnitureos.rc.in" "${_rc}" @ONLY)
     if(MSVC)
-        # The MSVC linker merges .manifest sources into the manifest it generates.
-        target_sources(${target} PRIVATE "${_rc}" "${_manifest}")
+        # The manifest is passed to the MSVC linker for every executable (root CMakeLists.txt).
+        target_sources(${target} PRIVATE "${_rc}")
     else()
         # MinGW: embed through the resource script (RT_MANIFEST = 24, id 1 = process manifest).
         file(APPEND "${_rc}" "\n1 24 \"${_manifest}\"\n")

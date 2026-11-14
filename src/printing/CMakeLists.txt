@@ -22,5 +22,5 @@ if(FOS_BUILD_TESTS)
     target_link_libraries(fos_printing_tests PRIVATE fos::printing GTest::gtest GTest::gmock)
     fos_set_warnings(fos_printing_tests PRIVATE)
     gtest_discover_tests(fos_printing_tests DISCOVERY_TIMEOUT 60
-        PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+        PROPERTIES ENVIRONMENT "${FOS_QT_TEST_PLATFORM_ENV}")
 endif()

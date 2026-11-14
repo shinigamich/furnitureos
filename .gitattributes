@@ -1,0 +1,11 @@
+# Line endings are normalised to LF in the repository and in checkouts, on every platform.
+# Checksummed and byte-compared files (project/library files, test fixtures) must never be
+# converted to CRLF by Git on Windows.
+* text=auto eol=lf
+*.foslib -text
+*.fosp -text
+*.png binary
+*.ico binary
+*.pdf binary
+*.bat text eol=crlf
+*.ps1 text eol=crlf

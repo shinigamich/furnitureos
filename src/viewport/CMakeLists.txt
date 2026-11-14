@@ -24,7 +24,7 @@ if(FOS_BUILD_TESTS)
     target_link_libraries(fos_viewport_tests PRIVATE fos::viewport GTest::gtest GTest::gmock)
     fos_set_warnings(fos_viewport_tests PRIVATE)
     gtest_discover_tests(fos_viewport_tests DISCOVERY_TIMEOUT 60
-        PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+        PROPERTIES ENVIRONMENT "${FOS_QT_TEST_PLATFORM_ENV}")
 
     # GL smoke test: needs a windowing platform with OpenGL 3.3. Run under xvfb-run when
     # available; the tests GTEST_SKIP themselves when no suitable context can be created.

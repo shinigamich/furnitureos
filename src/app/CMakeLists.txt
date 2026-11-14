@@ -48,7 +48,7 @@ if(FOS_BUILD_TESTS)
     target_link_libraries(fos_app_core_tests PRIVATE fos::app_core Qt6::Test GTest::gtest GTest::gmock)
     fos_set_warnings(fos_app_core_tests PRIVATE)
     gtest_discover_tests(fos_app_core_tests DISCOVERY_TIMEOUT 60
-        PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+        PROPERTIES ENVIRONMENT "${FOS_QT_TEST_PLATFORM_ENV}")
 endif()
 
 # ---------------------------------------------------------------- furnitureos (GUI)

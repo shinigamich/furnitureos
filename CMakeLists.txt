@@ -23,10 +23,22 @@ if(MSVC)
     # Conforming preprocessor everywhere (also for third-party test code): the legacy one
     # mis-parses raw string literals inside macro arguments (e.g. EXPECT_EQ(x, R"(...)")).
     add_compile_options(/Zc:preprocessor /utf-8)
+    # Every executable (applications AND test binaries) gets the application manifest:
+    # UTF-8 process code page, so std::filesystem::path(std::string) treats strings as
+    # UTF-8 exactly like on Linux and in the shipped programs; long paths.
+    add_link_options("/MANIFESTINPUT:${CMAKE_CURRENT_SOURCE_DIR}/src/app/resources/furnitureos.manifest")
 endif()
 if(MINGW)
     # Self-contained executables: no libstdc++/libgcc/winpthread DLLs to ship.
     add_link_options(-static -static-libgcc -static-libstdc++)
+endif()
+# Qt tests without a window: the offscreen platform on X11/Wayland systems. On Windows (and
+# macOS) the native platform is used — Qt's offscreen platform has no font database there,
+# so text would not render.
+if(WIN32 OR APPLE)
+    set(FOS_QT_TEST_PLATFORM_ENV "FOS_QT_NATIVE_PLATFORM=1")
+else()
+    set(FOS_QT_TEST_PLATFORM_ENV "QT_QPA_PLATFORM=offscreen")
 endif()
 if(CMAKE_CROSSCOMPILING)
     # Test binaries cannot run on the build host; discover tests when ctest runs

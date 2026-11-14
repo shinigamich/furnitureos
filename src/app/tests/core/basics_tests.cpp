@@ -7,6 +7,7 @@
 #include "fos/app/window_title.hpp"
 #include "test_support.hpp"
 
+#include <QDir>
 #include <QSettings>
 
 #include <fstream>
@@ -33,7 +34,8 @@ TEST(Version, MatchesProject) {
 TEST(RecentFiles, OrderDedupeLimitAndPersistence) {
     TempDir dir;
     RecentFiles recent(3);
-    const QString d = QString::fromStdString(dir.path.string());
+    // Qt's canonical form uses forward slashes on every platform (C:/Users/... on Windows).
+    const QString d = QDir::cleanPath(QString::fromStdString(dir.path.generic_string()));
     recent.add(d + "/a.fosp");
     recent.add(d + "/b.fosp");
     recent.add(d + "/./a.fosp"); // same file -> moved to the front, not duplicated
