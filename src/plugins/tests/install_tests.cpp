@@ -75,15 +75,16 @@ TEST(Install, RefusesInvalidIncompatibleAndNonNamespacedPackages) {
     ASSERT_FALSE(c.ok());
     EXPECT_THAT(c.error().message, HasSubstr("must start with \"org.example.ns:\""));
 
-    const auto esc = makePlugin(f.source, "org.example.esc");
-    fs::remove(esc / "lib/main.foslib");
-    writeLibrary(f.tmp / "outside.foslib", namespacedLibrary("org.example.esc"));
-    fs::create_symlink(f.tmp / "outside.foslib", esc / "lib/main.foslib");
-    EXPECT_FALSE(f.manager.install(esc).ok());
-
     EXPECT_FALSE(fs::exists(f.root / "org.example.perm"));
     EXPECT_FALSE(fs::exists(f.root / "org.example.future"));
     EXPECT_FALSE(fs::exists(f.root / "org.example.ns"));
+
+    const auto esc = makePlugin(f.source, "org.example.esc");
+    fs::remove(esc / "lib/main.foslib");
+    writeLibrary(f.tmp / "outside.foslib", namespacedLibrary("org.example.esc"));
+    if (const auto why = tryCreateLink(f.tmp / "outside.foslib", esc / "lib/main.foslib", false); !why.empty())
+        GTEST_SKIP() << why;
+    EXPECT_FALSE(f.manager.install(esc).ok());
     EXPECT_FALSE(fs::exists(f.root / "org.example.esc"));
 }
 
@@ -123,18 +124,13 @@ TEST(Remove, DeletesOnlyVerifiedPluginDirectoriesInsideTheRoot) {
     // A directory outside the root that must survive every attempt below.
     const auto victim = makePlugin(f.tmp / "elsewhere", "org.example.victim");
 
-    for (const char* bad : {"../elsewhere/org.example.victim", "/etc", "", "org", "org.example.rm/../x"}) {
+    for (const char* bad : {"../elsewhere/org.example.victim", "/etc", "", "org", "org.example.rm/../x", "C:\\Windows",
+                            "C:org.example.rm", "..\\elsewhere\\org.example.victim", "\\\\server\\share\\org.example.rm",
+                            "ORG.EXAMPLE.RM", "nul.example"}) {
         auto r = f.manager.remove(bad);
         ASSERT_FALSE(r.ok()) << bad;
         EXPECT_EQ(r.error().code, core::ErrorCode::InvalidArgument) << bad;
     }
-    // Symlink inside the root pointing at an outside plugin: refused, target untouched.
-    fs::create_directory_symlink(victim, f.root / "org.example.victim");
-    auto link = f.manager.remove("org.example.victim");
-    ASSERT_FALSE(link.ok());
-    EXPECT_THAT(link.error().message, HasSubstr("not a plain directory"));
-    EXPECT_TRUE(fs::exists(victim / "plugin.json"));
-    fs::remove(f.root / "org.example.victim");
     // Directory without plugin.json, and directory whose manifest names another plugin.
     fs::create_directories(f.root / "org.example.notaplugin/data");
     EXPECT_THAT(f.manager.remove("org.example.notaplugin").error().message, HasSubstr("has no plugin.json"));
@@ -142,14 +138,27 @@ TEST(Remove, DeletesOnlyVerifiedPluginDirectoriesInsideTheRoot) {
     EXPECT_THAT(f.manager.remove("org.example.other").error().message, HasSubstr("contains plugin 'org.example.different'"));
     EXPECT_EQ(f.manager.remove("org.example.absent").error().code, core::ErrorCode::NotFound);
 
-    // A symlink inside the plugin directory is removed as a link; its target survives.
-    fs::create_directory_symlink(victim, f.root / "org.example.rm/link");
+    // Link inside the root pointing at an outside plugin: refused, target untouched. (On
+    // Windows a junction is used when symbolic links need privileges; libstdc++ reports
+    // neither as is_symlink(), which is what the product code must not rely on.)
+    const std::string noLinks = tryCreateLink(victim, f.root / "org.example.victim", true);
+    if (noLinks.empty()) {
+        auto link = f.manager.remove("org.example.victim");
+        ASSERT_FALSE(link.ok());
+        EXPECT_THAT(link.error().message, HasSubstr("not a plain directory"));
+        EXPECT_TRUE(fs::exists(victim / "plugin.json"));
+        fs::remove(f.root / "org.example.victim"); // removes the link (RemoveDirectoryW for a junction)
+        EXPECT_TRUE(fs::exists(victim / "plugin.json"));
+        // A link inside the plugin directory is removed as a link; its target survives.
+        ASSERT_EQ(tryCreateLink(victim, f.root / "org.example.rm/link", true), "");
+    }
     auto ok = f.manager.remove("org.example.rm");
     ASSERT_TRUE(ok.ok()) << ok.error().message;
     EXPECT_FALSE(fs::exists(f.root / "org.example.rm"));
     EXPECT_TRUE(fs::exists(victim / "plugin.json"));
     EXPECT_TRUE(fs::exists(victim / "lib/main.foslib"));
     EXPECT_TRUE(fs::exists(f.root / "org.example.notaplugin"));
+    if (!noLinks.empty()) GTEST_SKIP() << "the link checks were not run: " << noLinks;
 }
 
 TEST(Install, NoInstallDirConfigured) {

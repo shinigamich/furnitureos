@@ -66,8 +66,17 @@ int usageError(Io& io, std::string_view command, std::string_view message) {
     return kExitUsageOrIo;
 }
 
+std::filesystem::path pathFromUtf8(std::string_view utf8) {
+    return std::filesystem::path(std::u8string(utf8.begin(), utf8.end()));
+}
+
+std::string pathToUtf8(const std::filesystem::path& path) {
+    const std::u8string text = path.u8string();
+    return std::string(text.begin(), text.end());
+}
+
 std::optional<project::LoadedProject> loadProjectOrReport(Io& io, std::string_view command, const std::string& path) {
-    auto loaded = project::loadProject(path);
+    auto loaded = project::loadProject(pathFromUtf8(path));
     if (!loaded) {
         io.err << "fos " << command << ": cannot load '" << path << "': " << loaded.error().message << "\n";
         return std::nullopt;
@@ -104,13 +113,13 @@ bool writeOutputFile(Io& io, std::string_view command, const std::filesystem::pa
     std::error_code ec;
     const auto parent = path.parent_path();
     if (!parent.empty() && !std::filesystem::is_directory(parent, ec)) {
-        io.err << "fos " << command << ": cannot write '" << path.string() << "': directory '" << parent.string()
+        io.err << "fos " << command << ": cannot write '" << pathToUtf8(path) << "': directory '" << pathToUtf8(parent)
                << "' does not exist.\n";
         return false;
     }
     auto r = formats::atomicWriteFile(path, content, options);
     if (!r) {
-        io.err << "fos " << command << ": cannot write '" << path.string() << "': " << r.error().message << "\n";
+        io.err << "fos " << command << ": cannot write '" << pathToUtf8(path) << "': " << r.error().message << "\n";
         return false;
     }
     return true;

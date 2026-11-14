@@ -8,16 +8,27 @@ namespace fos::formats {
 
 namespace fs = std::filesystem;
 
+namespace {
+
+/// UTF-8 file name, for comparing directory entries by name. path::string() is the ANSI
+/// code page with MSVC (lossy for e.g. "кухня.fosp"); u8string() is UTF-8 everywhere.
+std::string utf8Name(const fs::path& path) {
+    const std::u8string name = path.filename().u8string();
+    return std::string(name.begin(), name.end());
+}
+
+} // namespace
+
 std::vector<RecoveryCandidate> listRecoveryCandidates(const std::filesystem::path& path) {
     std::vector<RecoveryCandidate> out;
     std::error_code ec;
     const fs::path directory = path.parent_path().empty() ? fs::path(".") : path.parent_path();
-    const std::string base = path.filename().string();
+    const std::string base = utf8Name(path);
     if (base.empty()) return out;
 
     // Scan the folder instead of probing .bak1, .bak2, ... so that gaps do not hide backups.
     for (fs::directory_iterator it(directory, ec), end; !ec && it != end; it.increment(ec)) {
-        const std::string name = it->path().filename().string();
+        const std::string name = utf8Name(it->path());
         if (name.size() <= base.size() || name.compare(0, base.size(), base) != 0) continue;
         const std::string_view suffix = std::string_view(name).substr(base.size());
         RecoveryCandidate candidate;

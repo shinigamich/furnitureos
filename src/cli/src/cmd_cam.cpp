@@ -120,7 +120,7 @@ int cmdCam(const std::vector<std::string>& args, Io& io) {
         return kExitValidationErrors;
     }
     const auto& e = emitted.value();
-    if (!writeOutputFile(io, "cam", *a.value("out"), e.text)) return kExitUsageOrIo;
+    if (!writeOutputFile(io, "cam", pathFromUtf8(*a.value("out")), e.text)) return kExitUsageOrIo;
     out << "Wrote " << *a.value("out") << " (" << e.postprocessorName << ")\n"
         << "verifiedForMachine: " << (e.verifiedForMachine ? "true" : "false")
         << " - UNVERIFIED output for a fictional demo machine; review before any use.\n";

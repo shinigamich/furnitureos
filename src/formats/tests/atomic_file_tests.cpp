@@ -6,7 +6,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <map>
+#include <vector>
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -108,6 +110,33 @@ TEST(AtomicSave, RotatesBackupsUpToTheConfiguredCount) {
     EXPECT_FALSE(fs::exists(backupPath(file, 3)));
     EXPECT_EQ(snapshot(dir.path()).size(), 3u); // no temporary or parked files left behind
     EXPECT_EQ(backupPath(file, 1).filename().string(), "kitchen.fosp.bak1");
+}
+
+TEST(AtomicSave, NonAsciiFileNameSavesRotatesAndRecovers) {
+    // "кухня.fosp" (Ukrainian "kitchen"), built from char8_t so that the name is UTF-8 with
+    // every standard library: a std::string would be read in the ANSI code page by MSVC.
+    TempDir dir;
+    if (const auto why = fos::formats::test::nonAsciiFileNameSupport(dir.path()); !why.empty()) GTEST_SKIP() << why;
+    const fs::path file = dir.path() / fs::path(u8"кухня.fosp");
+    SaveOptions options;
+    options.backupCount = 2;
+    for (int n = 1; n <= 3; ++n) ASSERT_TRUE(saveDocument(file, revision(n), options).ok()) << n;
+    EXPECT_EQ(revisionOf(file), 3);
+    EXPECT_EQ(revisionOf(backupPath(file, 1)), 2);
+    EXPECT_EQ(revisionOf(backupPath(file, 2)), 1);
+    // The names on disk are exactly the UTF-8 ones (no mojibake twins).
+    std::vector<std::u8string> names;
+    for (const auto& entry : fs::directory_iterator(dir.path())) names.push_back(entry.path().filename().u8string());
+    std::sort(names.begin(), names.end());
+    EXPECT_EQ(names, (std::vector<std::u8string>{u8"кухня.fosp", u8"кухня.fosp.bak1", u8"кухня.fosp.bak2"}));
+    // Backup discovery compares names: it must find both backups of the non-ASCII file.
+    ASSERT_TRUE(writeAutosave(file, revision(4)).ok());
+    const auto candidates = listRecoveryCandidates(file);
+    ASSERT_EQ(candidates.size(), 3u);
+    auto recovered = loadNewestValid(file, spec());
+    ASSERT_TRUE(recovered.ok()) << recovered.error().message;
+    EXPECT_EQ(recovered.value().source.kind, RecoveryKind::Autosave);
+    EXPECT_EQ(recovered.value().loaded.document.payload["revision"], 4);
 }
 
 TEST(AtomicSave, FirstBackupsAppearOneByOne) {

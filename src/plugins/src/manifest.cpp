@@ -203,34 +203,6 @@ std::optional<ExtensionKind> extensionKindFromKey(std::string_view key) noexcept
     return std::nullopt;
 }
 
-std::string checkPluginId(std::string_view id) {
-    if (id.size() < 3) return "a plugin id must be at least 3 characters long";
-    if (id.size() > 128) return "a plugin id must be at most 128 characters long";
-    std::size_t segments = 0;
-    std::size_t i = 0;
-    while (true) {
-        // segment: [a-z][a-z0-9]*(-[a-z0-9]+)*
-        if (i >= id.size() || !isLower(id[i]))
-            return "each dot-separated segment must start with a lower-case letter a-z";
-        ++i;
-        while (i < id.size() && id[i] != '.') {
-            const char c = id[i];
-            if (c == '-') {
-                if (i + 1 >= id.size() || !(isLower(id[i + 1]) || isDigit(id[i + 1])))
-                    return "a hyphen must be followed by a lower-case letter or digit";
-            } else if (!isLower(c) && !isDigit(c)) {
-                return std::string("character '") + c + "' is not allowed (use a-z, 0-9, '-' and '.')";
-            }
-            ++i;
-        }
-        ++segments;
-        if (i >= id.size()) break;
-        ++i; // skip '.'
-    }
-    if (segments < 2) return "a plugin id needs at least two dot-separated segments (reverse-DNS, e.g. \"org.example.oak-boards\")";
-    return {};
-}
-
 namespace {
 
 char asciiUpper(char c) { return (c >= 'a' && c <= 'z') ? static_cast<char>(c - 'a' + 'A') : c; }
@@ -261,6 +233,38 @@ bool isWindowsDeviceName(std::string_view component) {
 }
 
 } // namespace
+
+std::string checkPluginId(std::string_view id) {
+    if (id.size() < 3) return "a plugin id must be at least 3 characters long";
+    if (id.size() > 128) return "a plugin id must be at most 128 characters long";
+    std::size_t segments = 0;
+    std::size_t i = 0;
+    while (true) {
+        // segment: [a-z][a-z0-9]*(-[a-z0-9]+)*
+        if (i >= id.size() || !isLower(id[i]))
+            return "each dot-separated segment must start with a lower-case letter a-z";
+        ++i;
+        while (i < id.size() && id[i] != '.') {
+            const char c = id[i];
+            if (c == '-') {
+                if (i + 1 >= id.size() || !(isLower(id[i + 1]) || isDigit(id[i + 1])))
+                    return "a hyphen must be followed by a lower-case letter or digit";
+            } else if (!isLower(c) && !isDigit(c)) {
+                return std::string("character '") + c + "' is not allowed (use a-z, 0-9, '-' and '.')";
+            }
+            ++i;
+        }
+        ++segments;
+        if (i >= id.size()) break;
+        ++i; // skip '.'
+    }
+    if (segments < 2) return "a plugin id needs at least two dot-separated segments (reverse-DNS, e.g. \"org.example.oak-boards\")";
+    // The id is the install directory name; "nul.example" would name the NUL device on Windows.
+    if (isWindowsDeviceName(id))
+        return "the first segment is a reserved Windows device name (con, prn, aux, nul, com0-9, lpt0-9), "
+               "which cannot be a directory name on Windows";
+    return {};
+}
 
 // The rules are the same on every platform: a package that is valid on Linux must not mean
 // something else (or escape the plugin directory) when it is installed on Windows.

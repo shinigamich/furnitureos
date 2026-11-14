@@ -39,7 +39,7 @@ int cmdCut(const std::vector<std::string>& args, Io& io) {
     if (a.positional.size() != 1) return usageError(io, "cut", "expected exactly one project file.");
     auto loaded = loadProjectOrReport(io, "cut", a.positional[0]);
     if (!loaded) return kExitUsageOrIo;
-    const std::filesystem::path dir = a.value("out-dir").value_or(".");
+    const std::filesystem::path dir = pathFromUtf8(a.value("out-dir").value_or("."));
     if (!ensureOutputDirectory(io, "cut", dir)) return kExitUsageOrIo;
 
     const auto plans = project::cuttingPlans(loaded->resolved, loaded->project.cutting);
@@ -103,7 +103,7 @@ int cmdCut(const std::vector<std::string>& args, Io& io) {
         if (!writeOutputFile(io, "cut", path, content)) return kExitUsageOrIo;
     const std::string summary = s.str();
     if (!writeOutputFile(io, "cut", dir / "cutting-summary.txt", summary)) return kExitUsageOrIo;
-    io.out << summary << "Wrote " << files.size() << " sheet SVG(s) and cutting-summary.txt to " << dir.string() << "\n";
+    io.out << summary << "Wrote " << files.size() << " sheet SVG(s) and cutting-summary.txt to " << pathToUtf8(dir) << "\n";
     io.err << incomplete;
     return core::hasErrors(plans.diagnostics) || !incomplete.empty() ? kExitValidationErrors : kExitOk;
 }

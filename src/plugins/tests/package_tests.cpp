@@ -16,7 +16,8 @@ TEST(Package, ValidPackageResolvesAndLoads) {
     ASSERT_TRUE(inspection.ok()) << allMessages(inspection.diagnostics);
     const auto& pkg = *inspection.package;
     ASSERT_EQ(pkg.libraryFiles.size(), 1u);
-    EXPECT_EQ(pkg.libraryFiles[0], fs::canonical(dir / "lib/main.foslib"));
+    EXPECT_TRUE(fs::equivalent(pkg.libraryFiles[0], dir / "lib/main.foslib"));
+    EXPECT_TRUE(pkg.libraryFiles[0].is_absolute());
     EXPECT_EQ(pkg.totalBytes, fs::file_size(dir / "lib/main.foslib"));
     auto lib = loadPackageLibraries(pkg);
     ASSERT_TRUE(lib.ok()) << lib.error().message;
@@ -38,30 +39,77 @@ TEST(Package, RejectsTraversalAbsoluteAndSymlinkEscapes) {
     EXPECT_THAT(traversal.error().message, HasSubstr("contains '..'"));
     EXPECT_FALSE(resolveInside(dir, "inside/../../outside.foslib").ok());
 
-    // 2. Absolute path to an existing file.
+    // 2. Absolute path to an existing file ("/tmp/..." on POSIX, "C:/Users/..." on Windows).
     auto absolute = resolveInside(dir, (tmp / "outside.foslib").generic_string());
     ASSERT_FALSE(absolute.ok());
     EXPECT_THAT(absolute.error().message, HasSubstr("absolute"));
+    // The native spelling too ("C:\\Users\\..." on Windows).
+    EXPECT_FALSE(resolveInside(dir, (tmp / "outside.foslib").string()).ok());
 
-    // 3. Symlink escapes: a file symlink and a directory symlink pointing outside.
-    fs::create_symlink(tmp / "outside.foslib", dir / "link.foslib");
+    // Missing file and directory instead of file.
+    EXPECT_EQ(resolveInside(dir, "missing.foslib").error().code, core::ErrorCode::NotFound);
+    EXPECT_EQ(resolveInside(dir, "inside").error().code, core::ErrorCode::InvalidArgument);
+
+    // 3. Link escapes: a file link and a directory link pointing outside.
+    if (const auto why = tryCreateLink(tmp / "outside.foslib", dir / "link.foslib", false); !why.empty()) GTEST_SKIP() << why;
     fs::create_directories(tmp / "elsewhere");
     writeLibrary(tmp / "elsewhere/x.foslib", namespacedLibrary("org.example.evil"));
-    fs::create_directory_symlink(tmp / "elsewhere", dir / "linkdir");
+    if (const auto why = tryCreateLink(tmp / "elsewhere", dir / "linkdir", true); !why.empty()) GTEST_SKIP() << why;
     for (const char* rel : {"link.foslib", "linkdir/x.foslib"}) {
         auto r = resolveInside(dir, rel);
         ASSERT_FALSE(r.ok()) << rel;
         EXPECT_EQ(r.error().code, core::ErrorCode::InvalidArgument);
         EXPECT_THAT(r.error().message, HasSubstr("outside the plugin directory"));
     }
-    // A symlink that stays inside is fine.
-    fs::create_symlink(dir / "inside/real.foslib", dir / "alias.foslib");
+    // A link that stays inside is fine.
+    if (const auto why = tryCreateLink(dir / "inside/real.foslib", dir / "alias.foslib", false); !why.empty()) GTEST_SKIP() << why;
     auto alias = resolveInside(dir, "alias.foslib");
     ASSERT_TRUE(alias.ok()) << alias.error().message;
-    EXPECT_EQ(alias.value(), fs::canonical(dir / "inside/real.foslib"));
-    // Missing file and directory instead of file.
-    EXPECT_EQ(resolveInside(dir, "missing.foslib").error().code, core::ErrorCode::NotFound);
-    EXPECT_EQ(resolveInside(dir, "inside").error().code, core::ErrorCode::InvalidArgument);
+    EXPECT_TRUE(fs::equivalent(alias.value(), dir / "inside/real.foslib"));
+}
+
+TEST(Package, WindowsSpecificEscapesAreRefusedOnEveryPlatform) {
+    // These spellings are harmless file names on Linux but escape, alias or open devices on
+    // Windows; a package must mean the same everywhere, so they are refused everywhere,
+    // before the file system is touched.
+    TempDir tmp;
+    const auto dir = tmp / "org.example.win";
+    writeLibrary(dir / "lib/main.foslib", namespacedLibrary("org.example.win"));
+    struct Case {
+        const char* path;
+        const char* reason;
+    };
+    for (const Case& c : {Case{"C:/Windows/win.ini", "absolute"},
+                          Case{"c:\\Windows\\win.ini", "absolute"},
+                          Case{"C:lib/main.foslib", "drive-relative"},
+                          Case{"\\\\server\\share\\x.foslib", "UNC"},
+                          Case{"//server/share/x.foslib", "absolute"},
+                          Case{"\\lib\\main.foslib", "absolute"},
+                          Case{"lib\\..\\..\\outside.foslib", "backslash"},
+                          Case{"lib/main.foslib:hidden", "alternate data streams"},
+                          Case{"lib/main.foslib::$DATA", "alternate data streams"},
+                          Case{"lib./main.foslib", "ends with a dot or a space"},
+                          Case{"lib/main.foslib.", "ends with a dot or a space"},
+                          Case{"lib/main.foslib ", "ends with a dot or a space"},
+                          Case{"CON", "reserved Windows device name"},
+                          Case{"lib/nul.foslib", "reserved Windows device name"},
+                          Case{"Com1.foslib", "reserved Windows device name"},
+                          Case{"lpt9/x.foslib", "reserved Windows device name"},
+                          Case{"aux .foslib", "reserved Windows device name"},
+                          Case{"CONOUT$.foslib", "reserved Windows device name"},
+                          Case{"COM\xC2\xB9.foslib", "reserved Windows device name"},
+                          Case{"lib/ma?n.foslib", "not allowed in Windows file names"},
+                          Case{"lib/*.foslib", "not allowed in Windows file names"},
+                          Case{"lib/a|b.foslib", "not allowed in Windows file names"}}) {
+        auto r = resolveInside(dir, c.path);
+        ASSERT_FALSE(r.ok()) << c.path;
+        EXPECT_EQ(r.error().code, core::ErrorCode::InvalidArgument) << c.path;
+        EXPECT_THAT(r.error().message, HasSubstr(c.reason)) << c.path;
+    }
+    // Look-alikes that are ordinary names stay allowed.
+    for (const char* ok : {"lib/main.foslib", "console.foslib", "com10.foslib", "nullable/x.foslib", "lib/.hidden.foslib"})
+        EXPECT_EQ(checkRelativePath(ok), "") << ok;
+    EXPECT_TRUE(resolveInside(dir, "lib/main.foslib").ok());
 }
 
 TEST(Package, SymlinkEscapeInManifestMakesPackageInvalid) {
@@ -70,7 +118,8 @@ TEST(Package, SymlinkEscapeInManifestMakesPackageInvalid) {
     const auto dir = tmp / "org.example.evil";
     writeText(dir / "plugin.json", manifestJson("org.example.evil", "1.0.0", {"lib/main.foslib"}).dump());
     fs::create_directories(dir / "lib");
-    fs::create_symlink(tmp / "secret/outside.foslib", dir / "lib/main.foslib");
+    if (const auto why = tryCreateLink(tmp / "secret/outside.foslib", dir / "lib/main.foslib", false); !why.empty())
+        GTEST_SKIP() << why;
     auto inspection = inspectPackage(dir);
     EXPECT_FALSE(inspection.ok());
     EXPECT_TRUE(hasCode(inspection.diagnostics, "plugins.package.bad_path"));
@@ -80,10 +129,20 @@ TEST(Package, SymlinkEscapeInManifestMakesPackageInvalid) {
     const auto dir2 = tmp / "org.example.evil2";
     fs::create_directories(dir2);
     writeText(tmp / "secret/plugin.json", manifestJson("org.example.evil2").dump());
-    fs::create_symlink(tmp / "secret/plugin.json", dir2 / "plugin.json");
+    ASSERT_EQ(tryCreateLink(tmp / "secret/plugin.json", dir2 / "plugin.json", false), "");
     auto i2 = inspectPackage(dir2);
     EXPECT_FALSE(i2.ok());
     EXPECT_TRUE(hasCode(i2.diagnostics, "plugins.package.bad_manifest_path")) << allMessages(i2.diagnostics);
+
+    // A directory link (on Windows possibly a junction, which needs no privilege) to an
+    // outside directory that holds the library.
+    const auto dir3 = tmp / "org.example.evil3";
+    writeText(dir3 / "plugin.json", manifestJson("org.example.evil3", "1.0.0", {"lib/main.foslib"}).dump());
+    writeLibrary(tmp / "secret3/main.foslib", namespacedLibrary("org.example.evil3"));
+    ASSERT_EQ(tryCreateLink(tmp / "secret3", dir3 / "lib", true), "");
+    auto i3 = inspectPackage(dir3);
+    EXPECT_FALSE(i3.ok());
+    EXPECT_TRUE(hasCode(i3.diagnostics, "plugins.package.bad_path")) << allMessages(i3.diagnostics);
 }
 
 TEST(Package, SizeCapsAreCheckedBeforeReading) {

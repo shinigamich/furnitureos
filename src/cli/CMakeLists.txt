@@ -19,6 +19,9 @@ add_executable(fos src/main.cpp)
 fos_add_windows_version_resource(fos "FurnitureOS command-line tool")
 install(TARGETS fos RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 target_link_libraries(fos PRIVATE fos::cli_core)
+if(WIN32)
+    target_link_libraries(fos PRIVATE shell32) # CommandLineToArgvW (UTF-8 arguments)
+endif()
 fos_set_warnings(fos PRIVATE)
 
 fos_add_tests(cli

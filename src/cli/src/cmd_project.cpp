@@ -125,14 +125,14 @@ int cmdNew(const std::vector<std::string>& args, Io& io) {
         return kExitOk;
     }
     if (a.positional.size() != 1) return usageError(io, "new", "expected exactly one file name.");
-    const std::filesystem::path path = a.positional[0];
+    const std::filesystem::path path = pathFromUtf8(a.positional[0]);
     std::error_code ec;
     if (std::filesystem::exists(path, ec) && !a.has("force"))
-        return usageError(io, "new", "'" + path.string() + "' already exists (use --force to overwrite).");
+        return usageError(io, "new", "'" + pathToUtf8(path) + "' already exists (use --force to overwrite).");
 
     project::Metadata meta;
     meta.id = a.value("id").value_or(randomUuidV4());
-    meta.name = a.value("name").value_or(path.stem().string());
+    meta.name = a.value("name").value_or(pathToUtf8(path.stem()));
     meta.author = a.value("author").value_or("");
     meta.createdAt = a.value("date").value_or(utcNow());
     if (!looksLikeIsoUtc(meta.createdAt))
@@ -170,10 +170,10 @@ int cmdNew(const std::vector<std::string>& args, Io& io) {
         }
     }
     if (auto r = doc.save(path); !r) {
-        io.err << "fos new: cannot write '" << path.string() << "': " << r.error().message << "\n";
+        io.err << "fos new: cannot write '" << pathToUtf8(path) << "': " << r.error().message << "\n";
         return kExitUsageOrIo;
     }
-    io.out << "Created " << path.string() << " (project '" << meta.name << "', id " << meta.id << ")\n";
+    io.out << "Created " << pathToUtf8(path) << " (project '" << meta.name << "', id " << meta.id << ")\n";
     if (!itemId.empty()) {
         auto resolved = doc.resolve();
         const auto* item = doc.project().findItem(itemId);
@@ -276,7 +276,7 @@ int cmdSet(const std::vector<std::string>& args, Io& io) {
         io.out << name << " of " << itemId << " is already " << text << "; file unchanged.\n";
         return kExitOk;
     }
-    if (auto r = doc.save(file); !r) {
+    if (auto r = doc.save(pathFromUtf8(file)); !r) {
         io.err << "fos set: cannot save '" << file << "': " << r.error().message << "\n";
         return kExitUsageOrIo;
     }

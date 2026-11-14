@@ -110,9 +110,16 @@ core::Result<ObjExport> exportObj(const domain::Model& model, const ObjExportOpt
                                   "\" which is not in the model; it is exported with a neutral grey OBJ material.",
                  part.id.str()});
         }
-        char kd[64];
-        std::snprintf(kd, sizeof kd, "Kd %.4f %.4f %.4f\n", color.r / 255.0, color.g / 255.0, color.b / 255.0);
-        mtl += "newmtl " + name + "\n" + kd + "d 1\nillum 1\n";
+        // std::to_chars, not printf("%f"): independent of LC_NUMERIC, which the GUI sets
+        // from the environment (a decimal comma, e.g. uk_UA or de_DE, would corrupt the MTL).
+        std::string kd = "Kd";
+        for (const double channel : {color.r / 255.0, color.g / 255.0, color.b / 255.0}) {
+            char buf[32];
+            const auto r = std::to_chars(buf, buf + sizeof buf, channel, std::chars_format::fixed, 4);
+            kd += ' ';
+            kd.append(buf, r.ptr);
+        }
+        mtl += "newmtl " + name + "\n" + kd + "\nd 1\nillum 1\n";
         return materialNames.emplace(id, name).first->second;
     };
 

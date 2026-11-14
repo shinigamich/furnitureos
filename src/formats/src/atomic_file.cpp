@@ -35,6 +35,13 @@ std::string randomSuffix() {
     return out;
 }
 
+/// UTF-8 file name, for comparing directory entries by name. path::string() is the ANSI
+/// code page with MSVC (lossy for e.g. "кухня.fosp"); u8string() is UTF-8 everywhere.
+std::string utf8Name(const fs::path& path) {
+    const std::u8string name = path.filename().u8string();
+    return std::string(name.begin(), name.end());
+}
+
 fs::path withSuffix(const fs::path& path, const std::string& suffix) {
     fs::path out = path;
     out += suffix;
@@ -73,11 +80,11 @@ void syncDirectory(const fs::path& directory) {
 std::vector<int> existingBackups(const fs::path& target, int maxIndex) {
     std::vector<int> out;
     const fs::path directory = target.parent_path().empty() ? fs::path(".") : target.parent_path();
-    const std::string prefix = target.filename().string() + ".bak";
+    const std::string prefix = utf8Name(target) + ".bak";
     std::error_code ec;
     fs::directory_iterator it(directory, ec), end;
     for (; !ec && it != end; it.increment(ec)) {
-        const std::string name = it->path().filename().string();
+        const std::string name = utf8Name(it->path());
         if (name.size() <= prefix.size() || name.compare(0, prefix.size(), prefix) != 0) continue;
         const std::string digits = name.substr(prefix.size());
         if (digits.size() > 9 || digits[0] == '0' ||

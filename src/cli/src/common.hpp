@@ -47,6 +47,14 @@ core::Result<ParsedArgs> parseArgs(const std::vector<std::string>& args, const s
 /// Prints "fos <command>: <message>" plus a hint to `--help` and returns kExitUsageOrIo.
 int usageError(Io& io, std::string_view command, std::string_view message);
 
+/// Path of a UTF-8 command-line argument. Goes through char8_t, which every standard library
+/// reads as UTF-8; a plain std::string is read in the ANSI code page by MSVC on Windows, so
+/// "кухня.fosp" would become "?????.fosp" there.
+std::filesystem::path pathFromUtf8(std::string_view utf8);
+
+/// UTF-8 text of `path` for messages (path::string() is not UTF-8 with every library).
+std::string pathToUtf8(const std::filesystem::path& path);
+
 /// Loads and resolves a project; prints the error and returns nullopt on failure.
 std::optional<project::LoadedProject> loadProjectOrReport(Io& io, std::string_view command, const std::string& path);
 

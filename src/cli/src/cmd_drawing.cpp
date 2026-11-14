@@ -47,7 +47,10 @@ std::optional<drawings::ScaleRequest> scaleByText(const std::string& s) {
 std::filesystem::path numbered(const std::filesystem::path& p, std::size_t index) {
     if (index == 0) return p;
     auto copy = p;
-    copy.replace_filename(p.stem().string() + "-" + std::to_string(index + 1) + p.extension().string());
+    std::filesystem::path name = p.stem(); // path arithmetic, no narrow-string round trip
+    name += "-" + std::to_string(index + 1);
+    name += p.extension();
+    copy.replace_filename(name);
     return copy;
 }
 
@@ -103,10 +106,10 @@ int cmdDrawing(const std::vector<std::string>& args, Io& io) {
     const auto& d = drawing.value();
     if (auto svgPath = a.value("svg")) {
         for (std::size_t i = 0; i < d.sheets.size(); ++i) {
-            const auto path = numbered(*svgPath, i);
+            const auto path = numbered(pathFromUtf8(*svgPath), i);
             if (!writeOutputFile(io, "drawing", path, drawings::toSvg(d.sheets[i]))) return kExitUsageOrIo;
             const auto& s = d.sheets[i];
-            io.out << "Wrote " << path.string() << ": " << drawings::toString(*paper) << " "
+            io.out << "Wrote " << pathToUtf8(path) << ": " << drawings::toString(*paper) << " "
                    << (a.has("portrait") ? "portrait" : "landscape") << " " << core::formatLength(s.width) << " x "
                    << core::formatLength(s.height) << " mm, scale " << s.scale.text() << ", " << s.views.size()
                    << " view(s)\n";
@@ -118,7 +121,7 @@ int cmdDrawing(const std::vector<std::string>& args, Io& io) {
             return kExitValidationErrors;
         }
         const auto& v = d.views.front();
-        if (!writeOutputFile(io, "drawing", *dxfPath, drawings::viewToDxf(v.view, v.annotations)))
+        if (!writeOutputFile(io, "drawing", pathFromUtf8(*dxfPath), drawings::viewToDxf(v.view, v.annotations)))
             return kExitUsageOrIo;
         io.out << "Wrote " << *dxfPath << ": view " << v.view.id << " at 1:1 (mm, DXF R12)\n";
     }

@@ -47,4 +47,23 @@ inline std::string readText(const std::filesystem::path& file) {
     return {std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()};
 }
 
+/// "" when `dir` can hold a file with a Cyrillic name, otherwise why not. Always "" on Linux
+/// (names are bytes) and on real Windows (NTFS stores UTF-16). Wine maps Windows names to
+/// Unix names through the Unix locale's character set, so with LANG unset (POSIX/ASCII) it
+/// cannot create such a file at all: a limitation of that test environment (run Wine with
+/// LANG=C.UTF-8), not of the product, so tests skip with this reason instead of failing.
+inline std::string nonAsciiFileNameSupport(const std::filesystem::path& dir) {
+    const std::filesystem::path probe = dir / std::filesystem::path(u8"\u043f\u0440\u043e\u0431\u0430.txt"); // "проба.txt"
+    {
+        std::ofstream out(probe, std::ios::binary);
+        if (!out)
+            return "this file system cannot store non-ASCII file names (Wine with a non-UTF-8 Unix locale? run it with "
+                   "LANG=C.UTF-8)";
+    }
+    std::error_code ec;
+    const bool exists = std::filesystem::exists(probe, ec);
+    std::filesystem::remove(probe, ec);
+    return exists ? std::string() : "a file with a non-ASCII name was created but cannot be found again";
+}
+
 } // namespace fos::formats::test

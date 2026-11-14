@@ -143,11 +143,17 @@ TEST(Csv, WriteTextFile) {
     Table t{{"Назва"}, {{"Полиця"}}};
     const std::string content = toCsv(t, o);
     ASSERT_TRUE(writeTextFile(path, content).ok());
-    std::ifstream f(path, std::ios::binary);
     std::stringstream ss;
-    ss << f.rdbuf();
-    EXPECT_EQ(ss.str(), content); // byte-exact, CRLF untouched
+    {
+        // Closed before the file is removed: Windows refuses to delete an open file
+        // (sharing violation), unlike POSIX.
+        std::ifstream f(path, std::ios::binary);
+        ss << f.rdbuf();
+    }
+    EXPECT_EQ(ss.str(), content); // byte-exact, CRLF untouched (no text-mode translation on Windows)
     EXPECT_EQ(ss.str().substr(0, 3), "\xEF\xBB\xBF");
+    EXPECT_NE(content.find("\r\n"), std::string::npos); // the check above really covers CRLF
+    EXPECT_EQ(std::filesystem::file_size(path), content.size());
     std::filesystem::remove(path);
 
     const auto bad = writeTextFile(dir / "no_such_dir" / "x.csv", "x");

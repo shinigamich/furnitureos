@@ -90,6 +90,10 @@ TEST(Manifest, ValidationMatrixReportsJsonPaths) {
         {"traversal library", [](Json& j) { j["contributes"]["libraries"] = Json::array({"ok.foslib", "../x.foslib"}); }, "/contributes/libraries/1: ", "plugins.manifest.bad_path"},
         {"wrong extension", [](Json& j) { j["contributes"]["libraries"] = Json::array({"lib.json"}); }, "/contributes/libraries/0: ", "plugins.manifest.bad_path"},
         {"duplicate library", [](Json& j) { j["contributes"]["libraries"] = Json::array({"a.foslib", "a.foslib"}); }, "/contributes/libraries/1: ", "plugins.manifest.duplicate"},
+        // Same file on case-insensitive file systems (Windows, macOS).
+        {"duplicate library differing in case", [](Json& j) { j["contributes"]["libraries"] = Json::array({"lib/Oak.foslib", "LIB/OAK.foslib"}); }, "/contributes/libraries/1: ", "plugins.manifest.duplicate"},
+        {"windows drive library", [](Json& j) { j["contributes"]["libraries"] = Json::array({"C:\\x.foslib"}); }, "/contributes/libraries/0: ", "plugins.manifest.bad_path"},
+        {"device name library", [](Json& j) { j["contributes"]["libraries"] = Json::array({"lib/aux.foslib"}); }, "/contributes/libraries/0: ", "plugins.manifest.bad_path"},
         {"bad language tag", [](Json& j) { j["localizedNames"] = Json{{"Ukrainian", "x"}}; }, "/localizedNames/Ukrainian: ", "plugins.manifest.bad_language"},
         {"empty localized name", [](Json& j) { j["localizedNames"] = Json{{"uk", ""}}; }, "/localizedNames/uk: ", "plugins.manifest.empty"},
     };
@@ -148,8 +152,10 @@ TEST(Manifest, PluginIdRules) {
         EXPECT_EQ(checkPluginId(good), "") << good;
     for (const char* bad : {"", "ab", "example", "Org.example", "org..example", "org.example.", ".org.example",
                             "org.-x", "org.x-", "org.x--y", "org.1x", "org.ex ample", "org/example", "org.ex:x",
-                            "org.ex_ample"})
+                            "org.ex_ample", "nul.example", "com1.example", "lpt0.x", "con.x.y"})
         EXPECT_NE(checkPluginId(bad), "") << bad;
+    for (const char* good : {"console.example", "com10.example", "org.nul", "nullsoft.x"})
+        EXPECT_EQ(checkPluginId(good), "") << good;
     EXPECT_NE(checkPluginId("org." + std::string(125, 'a')), ""); // 129 characters
     EXPECT_EQ(checkPluginId("org." + std::string(124, 'a')), ""); // 128 characters
 }
@@ -158,7 +164,9 @@ TEST(Manifest, RelativePathRules) {
     for (const char* good : {"a.foslib", "lib/a.foslib", "x/y/z.foslib", "..a.foslib", "a..b.foslib"})
         EXPECT_EQ(checkRelativePath(good), "") << good;
     for (const char* bad : {"", "/a.foslib", "../a.foslib", "lib/../../a.foslib", "lib/..", "./a.foslib", "lib//a.foslib",
-                            "lib/", "C:/a.foslib", "C:a.foslib", "lib\\a.foslib", "\\\\server\\a.foslib", "a\n.foslib"})
+                            "lib/", "C:/a.foslib", "C:a.foslib", "lib\\a.foslib", "\\\\server\\a.foslib", "a\n.foslib",
+                            "\\a.foslib", "c:\\a.foslib", "a.foslib:ads", "lib./a.foslib", "a.foslib ", "NUL.foslib",
+                            "lib/com9/a.foslib", "a?.foslib", "a<b.foslib"})
         EXPECT_NE(checkRelativePath(bad), "") << bad;
 }
 

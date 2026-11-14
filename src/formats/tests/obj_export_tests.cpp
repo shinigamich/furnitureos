@@ -6,6 +6,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <clocale>
 #include <map>
 #include <sstream>
 
@@ -201,6 +202,33 @@ TEST(ObjExport, HeaderMaterialsAndMtl) {
     EXPECT_THAT(mtl, HasSubstr("newmtl mat.hdf3\nKd 0.9412 0.9412 0.9216\n"));
     // Deterministic output.
     EXPECT_EQ(exportObj(domain::fixtures::basicCabinet(), options).value().obj, text);
+}
+
+TEST(ObjExport, NumbersIgnoreTheCLocale) {
+    // The GUI sets LC_NUMERIC from the environment; a decimal-comma locale must not leak
+    // into the files ("Kd 0,8706" is not valid MTL).
+    const std::string previous = std::setlocale(LC_NUMERIC, nullptr);
+    const char* chosen = nullptr;
+    for (const char* name : {"uk_UA.UTF-8", "de_DE.UTF-8", "fr_FR.UTF-8", "de_DE", "German_Germany.1252", "German", "Ukrainian"})
+        if (std::setlocale(LC_NUMERIC, name) && std::localeconv()->decimal_point[0] == ',') {
+            chosen = name;
+            break;
+        }
+    if (!chosen) {
+        std::setlocale(LC_NUMERIC, previous.c_str());
+        GTEST_SKIP() << "no decimal-comma locale is installed on this system";
+    }
+    auto exported = exportObj(domain::fixtures::basicCabinet(), {});
+    std::setlocale(LC_NUMERIC, previous.c_str());
+    ASSERT_TRUE(exported.ok());
+    EXPECT_THAT(exported.value().mtl, HasSubstr("Kd 0.8706 0.8000 0.6667\n")) << "locale " << chosen;
+    for (const std::string* text : {&exported.value().obj, &exported.value().mtl}) {
+        std::istringstream lines(*text);
+        for (std::string line; std::getline(lines, line);)
+            if (line.rfind("v ", 0) == 0 || line.rfind("vn ", 0) == 0 || line.rfind("Kd ", 0) == 0) {
+                EXPECT_EQ(line.find(','), std::string::npos) << line;
+            }
+    }
 }
 
 TEST(ObjExport, NamesAreSanitisedAndMadeUnique) {

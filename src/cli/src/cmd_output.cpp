@@ -62,7 +62,7 @@ bool ensureDirectory(Io& io, std::string_view command, const std::filesystem::pa
     if (std::filesystem::is_directory(dir, ec)) return true;
     std::filesystem::create_directories(dir, ec);
     if (ec || !std::filesystem::is_directory(dir)) {
-        io.err << "fos " << command << ": cannot create directory '" << dir.string() << "': " << ec.message() << "\n";
+        io.err << "fos " << command << ": cannot create directory '" << pathToUtf8(dir) << "': " << ec.message() << "\n";
         return false;
     }
     return true;
@@ -120,7 +120,7 @@ int cmdReport(const std::vector<std::string>& args, Io& io) {
             io.err << "fos report: " << sheet.error().message << "\n" << incomplete;
             return kExitValidationErrors; // the item exists but was not generated (see fos info)
         }
-        if (!writeOutputFile(io, "report", *a.value("html"), sheet.value())) return kExitUsageOrIo;
+        if (!writeOutputFile(io, "report", pathFromUtf8(*a.value("html")), sheet.value())) return kExitUsageOrIo;
         io.out << "Wrote production sheet of " << itemId << " to " << *a.value("html") << "\n";
         io.err << incomplete;
         return incomplete.empty() ? kExitOk : kExitValidationErrors;
@@ -131,7 +131,7 @@ int cmdReport(const std::vector<std::string>& args, Io& io) {
     if (auto csvPath = a.value("csv")) {
         production::CsvOptions csv;
         csv.separator = separator;
-        if (!writeOutputFile(io, "report", *csvPath, production::toCsv(table->table, csv))) return kExitUsageOrIo;
+        if (!writeOutputFile(io, "report", pathFromUtf8(*csvPath), production::toCsv(table->table, csv))) return kExitUsageOrIo;
         io.out << "Wrote " << type << " report (" << table->table.rows.size() << " rows) to " << *csvPath << "\n";
     } else {
         io.out << textTable(table->table);
@@ -173,13 +173,13 @@ int cmdLabels(const std::vector<std::string>& args, Io& io) {
         io.err << "fos labels: " << pages.error().message << "\n";
         return kExitUsageOrIo;
     }
-    const std::filesystem::path dir = *a.value("svg-dir");
+    const std::filesystem::path dir = pathFromUtf8(*a.value("svg-dir"));
     if (!ensureDirectory(io, "labels", dir)) return kExitUsageOrIo;
     for (std::size_t i = 0; i < pages.value().size(); ++i) {
         const auto file = dir / ("labels-" + std::to_string(i + 1) + ".svg");
         if (!writeOutputFile(io, "labels", file, pages.value()[i])) return kExitUsageOrIo;
     }
-    io.out << "Wrote " << set.labels.size() << " labels on " << pages.value().size() << " page(s) to " << dir.string()
+    io.out << "Wrote " << set.labels.size() << " labels on " << pages.value().size() << " page(s) to " << pathToUtf8(dir)
            << "\n";
     if (!set.diagnostics.empty()) {
         io.out << "Diagnostics:\n";
@@ -201,10 +201,10 @@ int cmdExportObj(const std::vector<std::string>& args, Io& io) {
     if (a.positional.size() != 2) return usageError(io, "export-obj", "expected <file.fosp> <out.obj>.");
     auto loaded = loadProjectOrReport(io, "export-obj", a.positional[0]);
     if (!loaded) return kExitUsageOrIo;
-    const std::filesystem::path out = a.positional[1];
+    const std::filesystem::path out = pathFromUtf8(a.positional[1]);
     std::error_code ec;
     if (!out.parent_path().empty() && !std::filesystem::is_directory(out.parent_path(), ec))
-        return usageError(io, "export-obj", "directory '" + out.parent_path().string() + "' does not exist.");
+        return usageError(io, "export-obj", "directory '" + pathToUtf8(out.parent_path()) + "' does not exist.");
     auto r = formats::writeObjFiles(out, loaded->resolved.model);
     if (!r) {
         io.err << "fos export-obj: " << r.error().message << "\n";
@@ -212,7 +212,7 @@ int cmdExportObj(const std::vector<std::string>& args, Io& io) {
     }
     std::size_t parts = 0;
     for (const auto& asmb : loaded->resolved.model.assemblies) parts += asmb.parts.size();
-    io.out << "Wrote " << parts << " parts to " << out.string() << " (+ MTL beside it)\n";
+    io.out << "Wrote " << parts << " parts to " << pathToUtf8(out) << " (+ MTL beside it)\n";
     if (!r.value().diagnostics.empty()) printDiagnostics(io.out, r.value().diagnostics);
     const std::string incomplete = resolveErrorNotice("export-obj", *loaded);
     io.err << incomplete;
