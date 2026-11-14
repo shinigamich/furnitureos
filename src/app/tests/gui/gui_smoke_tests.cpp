@@ -428,11 +428,15 @@ TEST(GuiSmoke, ScreenshotsUkrainian) { screenshots(QStringLiteral("uk")); }
 } // namespace fos::app::gui
 
 int main(int argc, char** argv) {
+#if !defined(Q_OS_WIN) && !defined(Q_OS_MACOS)
+    // X11/Wayland only: without a display server the test cannot run. Windows and macOS
+    // always provide the native window system.
     const bool offscreen = qEnvironmentVariable("QT_QPA_PLATFORM") == QLatin1String("offscreen");
     if (!offscreen && qEnvironmentVariableIsEmpty("DISPLAY") && qEnvironmentVariableIsEmpty("WAYLAND_DISPLAY")) {
         std::fprintf(stderr, "No display: GUI smoke test skipped.\n");
         return 77;
     }
+#endif
     QApplication app(argc, argv);
     // Isolated settings so the test never touches the user's preferences or recent files.
     QTemporaryDir settingsDir;
