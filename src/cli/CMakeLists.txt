@@ -16,6 +16,8 @@ fos_add_module(cli_core
 target_compile_definitions(fos_cli_core PRIVATE FOS_CLI_VERSION="${PROJECT_VERSION}")
 
 add_executable(fos src/main.cpp)
+fos_add_windows_version_resource(fos "FurnitureOS command-line tool")
+install(TARGETS fos RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 target_link_libraries(fos PRIVATE fos::cli_core)
 fos_set_warnings(fos PRIVATE)
 

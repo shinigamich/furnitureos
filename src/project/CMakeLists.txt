@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-find_package(nlohmann_json 3.11 REQUIRED)
+# nlohmann_json::nlohmann_json is provided by cmake/FosDependencies.cmake
 
 fos_add_module(project
     SOURCES

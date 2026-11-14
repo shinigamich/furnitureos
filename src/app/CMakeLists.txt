@@ -103,6 +103,10 @@ fos_set_warnings(fos_app_gui PRIVATE)
 qt_add_executable(furnitureos src/gui/main.cpp)
 target_link_libraries(furnitureos PRIVATE fos_app_gui)
 fos_set_warnings(furnitureos PRIVATE)
+# A GUI application: no console window on Windows.
+set_target_properties(furnitureos PROPERTIES WIN32_EXECUTABLE ON)
+fos_add_windows_version_resource(furnitureos "FurnitureOS furniture CAD/CAM")
+install(TARGETS furnitureos RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 # Translations: `cmake --build <dir> --target update_translations` runs lupdate over the
 # sources of fos_app_core and the GUI; the .qm files are compiled by lrelease and embedded

@@ -18,18 +18,30 @@ option(FOS_WERROR "Treat compiler warnings as errors" OFF)
 set(FOS_MODULES "" CACHE STRING "Subset of modules to build (empty = all)")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+if(MINGW)
+    # Self-contained executables: no libstdc++/libgcc/winpthread DLLs to ship.
+    add_link_options(-static -static-libgcc -static-libstdc++)
+endif()
+if(CMAKE_CROSSCOMPILING)
+    # Test binaries cannot run on the build host; discover tests when ctest runs
+    # (through CMAKE_CROSSCOMPILING_EMULATOR, e.g. wine).
+    set(CMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
+endif()
+if(WIN32)
+    # Portable Windows layout: executables at the top level next to the Qt DLLs that
+    # windeployqt places there; documentation in docs\, data in share\.
+    set(CMAKE_INSTALL_BINDIR "." CACHE STRING "Executables (relative to the prefix)")
+    set(CMAKE_INSTALL_DOCDIR "docs" CACHE STRING "Documentation")
+endif()
+include(GNUInstallDirs)
 include(FosModule)
 
 if(FOS_BUILD_TESTS)
     enable_testing()
-    find_package(GTest QUIET)
-    if(NOT GTest_FOUND)
-        include(FetchContent)
-        FetchContent_Declare(googletest
-            URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz)
-        set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-        FetchContent_MakeAvailable(googletest)
-    endif()
+endif()
+include(FosDependencies)
+if(FOS_BUILD_TESTS)
     include(GoogleTest)
 endif()
 
@@ -74,3 +86,13 @@ endforeach()
 if(FOS_BUILD_TESTS AND NOT FOS_MODULES AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/CMakeLists.txt")
     add_subdirectory(tests)
 endif()
+
+# ---------------------------------------------------------------- installation / packaging
+install(FILES LICENSE README.md THIRD_PARTY_LICENSES.md CHANGELOG.md KNOWN_LIMITATIONS.md
+        DESTINATION ${CMAKE_INSTALL_DOCDIR})
+install(DIRECTORY docs/user-guide DESTINATION ${CMAKE_INSTALL_DOCDIR})
+install(DIRECTORY examples/plugins DESTINATION ${CMAKE_INSTALL_DATADIR}/furnitureos/examples)
+if(WIN32)
+    install(FILES packaging/windows/README-portable.txt DESTINATION . RENAME README.txt)
+endif()
+include(FosPackaging)

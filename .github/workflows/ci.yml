@@ -50,5 +50,57 @@ jobs:
       - name: Test
         run: ctest --test-dir build --output-on-failure
 
-  # Windows and macOS jobs are intentionally absent until those builds have been
-  # brought up and verified; see PROJECT_STATUS.md.
+  windows:
+    name: Windows (MSVC, Qt 6) + portable ZIP
+    runs-on: windows-2022
+    env:
+      QT_OPENGL: software
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.5.3'
+          arch: win64_msvc2019_64
+          cache: true
+      - name: MSVC developer environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build build
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Install portable folder (runs windeployqt)
+        run: cmake --install build --prefix dist/FurnitureOS
+      - name: Check the folder is self-contained
+        shell: pwsh
+        run: ./packaging/windows/check-deployment.ps1 -Folder dist/FurnitureOS
+      - name: Smoke test the packaged command-line tool
+        shell: pwsh
+        run: |
+          $fos = "dist/FurnitureOS/fos.exe"
+          & $fos --version; if ($LASTEXITCODE -ne 0) { exit 1 }
+          & $fos new "$env:RUNNER_TEMP/ci.fosp" --template base --id 00000000-0000-4000-8000-000000000000 --date 2026-01-01T00:00:00Z; if ($LASTEXITCODE -ne 0) { exit 1 }
+          & $fos set "$env:RUNNER_TEMP/ci.fosp" cab1 width 900; if ($LASTEXITCODE -ne 0) { exit 1 }
+          & $fos validate "$env:RUNNER_TEMP/ci.fosp"; if ($LASTEXITCODE -ne 0) { exit 1 }
+          & $fos cut "$env:RUNNER_TEMP/ci.fosp" --out-dir "$env:RUNNER_TEMP/cut"; if ($LASTEXITCODE -ne 0) { exit 1 }
+      - name: Package ZIP (exactly the checked folder) + SHA-256
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path CMakeLists.txt -Pattern 'project\(FurnitureOS VERSION ([0-9.]+)').Matches[0].Groups[1].Value
+          $name = "FurnitureOS-$version-windows-x64-portable"
+          New-Item -ItemType Directory -Force packages | Out-Null
+          Compress-Archive -Path dist/FurnitureOS -DestinationPath "packages/$name.zip"
+          $hash = (Get-FileHash "packages/$name.zip" -Algorithm SHA256).Hash.ToLower()
+          "$hash  $name.zip" | Set-Content -NoNewline "packages/$name.zip.sha256"
+          Get-Content "packages/$name.zip.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FurnitureOS-windows-x64-portable
+          path: packages/
+          if-no-files-found: error
+
+  # macOS is intentionally absent until that build has been brought up; see PROJECT_STATUS.md.
