@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/plugins/manager.hpp"
 
+#include "fs_safety.hpp"
+
 #include <algorithm>
 #include <random>
 
@@ -44,7 +46,7 @@ public:
     ~TreeGuard() {
         if (!path_.empty()) {
             std::error_code ec;
-            fs::remove_all(path_, ec);
+            detail::removeTreeNoFollow(path_, ec);
         }
     }
     void release() { path_.clear(); }
@@ -96,20 +98,22 @@ core::Result<InstallReport> PluginManager::install(const fs::path& sourceDir, co
 
     std::error_code ec;
     fs::create_directories(options_.installDir, ec);
-    const fs::path root = fs::canonical(options_.installDir, ec);
+    const fs::path root = detail::resolvePath(options_.installDir, ec);
     if (ec)
         return makeError(ErrorCode::IoError, "Plugin install directory '" + options_.installDir.string() +
                                                  "' cannot be created or resolved: " + ec.message() + ".");
     const fs::path dest = root / id;
     report.destination = dest;
-    if (pkg.directory == dest || fs::equivalent(pkg.directory, dest, ec))
+    if (detail::samePath(pkg.directory, dest) || fs::equivalent(pkg.directory, dest, ec))
         return makeError(ErrorCode::AlreadyExists, "Plugin '" + id + "' is already installed at '" + dest.string() + "'.", id);
 
     // Existing copy: never replace a newer (or unreadable) one unless asked.
     const auto destStatus = fs::symlink_status(dest, ec);
     const bool destExists = fs::exists(destStatus);
     if (destExists) {
-        if (fs::is_symlink(destStatus) || !fs::is_directory(destStatus))
+        std::error_code linkEc;
+        const bool destIsLink = detail::isLink(dest, linkEc);
+        if (destIsLink || linkEc || fs::is_symlink(destStatus) || !fs::is_directory(destStatus))
             return makeError(ErrorCode::AlreadyExists,
                              "'" + dest.string() + "' exists but is not a plain plugin directory; it was left untouched.", id);
         std::optional<SemVer> existing;
@@ -153,6 +157,7 @@ core::Result<InstallReport> PluginManager::install(const fs::path& sourceDir, co
         std::error_code e;
         const auto st = it->symlink_status(e);
         if (e || !fs::is_regular_file(st) || !isDocumentationFile(name)) continue;
+        if (detail::isLink(it->path(), e) || e) continue; // Windows: symlink_status() follows links
         if (fs::file_size(it->path(), e) > options_.limits.maxManifestBytes * 4 || e) continue;
         if (auto r = copyOne(it->path(), name); !r.ok()) return r.error();
     }
@@ -181,7 +186,7 @@ core::Result<InstallReport> PluginManager::install(const fs::path& sourceDir, co
                                                  ". The previous installation was kept.", id);
     }
     stagingGuard.release();
-    if (!old.empty()) fs::remove_all(old, ec);
+    if (!old.empty()) detail::removeTreeNoFollow(old, ec);
     return report;
 }
 
@@ -191,21 +196,24 @@ core::Result<void> PluginManager::remove(const std::string& id) {
     if (auto why = checkPluginId(id); !why.empty())
         return makeError(ErrorCode::InvalidArgument, "\"" + id + "\" is not a valid plugin id (" + why + "); nothing was removed.", id);
     std::error_code ec;
-    const fs::path root = fs::canonical(options_.installDir, ec);
+    const fs::path root = detail::resolvePath(options_.installDir, ec);
     if (ec) return makeError(ErrorCode::NotFound, "Plugin install directory '" + options_.installDir.string() + "' does not exist.", id);
     const fs::path dir = root / id;
     const auto st = fs::symlink_status(dir, ec);
     if (!fs::exists(st))
         return makeError(ErrorCode::NotFound, "Plugin '" + id + "' is not installed in '" + root.string() + "'.", id);
-    if (fs::is_symlink(st) || !fs::is_directory(st))
+    std::error_code linkEc;
+    const bool dirIsLink = detail::isLink(dir, linkEc); // also Windows junctions
+    if (dirIsLink || linkEc || fs::is_symlink(st) || !fs::is_directory(st))
         return makeError(ErrorCode::InvalidArgument,
                          "'" + dir.string() + "' is not a plain directory (symlink or file); it was not removed.", id);
-    const fs::path resolved = fs::canonical(dir, ec);
-    if (ec || resolved.parent_path() != root)
+    const fs::path resolved = detail::resolvePath(dir, ec);
+    if (ec || !detail::samePath(resolved.parent_path(), root))
         return makeError(ErrorCode::InvalidArgument, "'" + dir.string() + "' is not directly inside the plugin directory '" +
                                                          root.string() + "'; it was not removed.", id);
     const auto manifestStatus = fs::symlink_status(resolved / kManifestFileName, ec);
-    if (!fs::is_regular_file(manifestStatus))
+    std::error_code manifestLinkEc;
+    if (!fs::is_regular_file(manifestStatus) || detail::isLink(resolved / kManifestFileName, manifestLinkEc) || manifestLinkEc)
         return makeError(ErrorCode::InvalidArgument,
                          "'" + resolved.string() + "' has no plugin.json, so it does not look like a plugin; it was not removed.", id);
     if (auto text = readBounded(resolved / kManifestFileName, options_.limits.maxManifestBytes); text.ok()) {
@@ -214,7 +222,7 @@ core::Result<void> PluginManager::remove(const std::string& id) {
             return makeError(ErrorCode::InvalidArgument, "'" + resolved.string() + "' contains plugin '" + v.manifest.id +
                                                              "', not '" + id + "'; it was not removed.", id);
     }
-    fs::remove_all(resolved, ec); // does not follow symlinks inside the tree
+    detail::removeTreeNoFollow(resolved, ec); // never follows links (or Windows junctions) inside the tree
     if (ec) return makeError(ErrorCode::IoError, "Removing '" + resolved.string() + "' failed: " + ec.message() + ".", id);
     return {};
 }

@@ -8,6 +8,7 @@ fos_add_module(plugins
         src/package.cpp
         src/manager.cpp
         src/install.cpp
+        src/fs_safety.cpp
     DEPS fos::core fos::domain fos::formats nlohmann_json::nlohmann_json)
 
 # Generator of the committed example library (examples/plugins/org.furnitureos.example-materials).

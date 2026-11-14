@@ -1,24 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/plugins/package.hpp"
 
+#include "fs_safety.hpp"
+
 #include <set>
 
 namespace fos::plugins {
 namespace fs = std::filesystem;
 using core::ErrorCode;
+using detail::isStrictlyInside;
+using detail::resolvePath;
 using core::makeError;
 
 namespace {
-
-/// True when `inner` is strictly below `outer` (both canonical), compared component-wise.
-bool isStrictlyInside(const fs::path& outer, const fs::path& inner) {
-    auto o = outer.begin();
-    auto i = inner.begin();
-    for (; o != outer.end(); ++o, ++i) {
-        if (i == inner.end() || *o != *i) return false;
-    }
-    return i != inner.end();
-}
 
 core::Diagnostic error(const std::string& entity, const std::string& code, const std::string& message) {
     return core::Diagnostic{core::Severity::Error, code, message, entity};
@@ -39,7 +33,7 @@ core::Result<fs::path> resolveInside(const fs::path& pluginDir, std::string_view
         return makeError(ErrorCode::InvalidArgument, "Path \"" + std::string(relative) + "\" is not allowed: " + why + ".",
                          std::string(relative));
     std::error_code ec;
-    const fs::path root = fs::canonical(pluginDir, ec);
+    const fs::path root = resolvePath(pluginDir, ec);
     if (ec)
         return makeError(ErrorCode::IoError, "Cannot resolve plugin directory '" + pluginDir.string() + "': " + ec.message() + ".");
     const fs::path candidate = root / fs::path(std::string(relative));
@@ -48,7 +42,7 @@ core::Result<fs::path> resolveInside(const fs::path& pluginDir, std::string_view
         return makeError(ErrorCode::NotFound,
                          "File \"" + std::string(relative) + "\" does not exist in plugin directory '" + root.string() + "'.",
                          std::string(relative));
-    const fs::path resolved = fs::canonical(candidate, ec);
+    const fs::path resolved = resolvePath(candidate, ec);
     if (ec)
         return makeError(ErrorCode::NotFound,
                          "File \"" + std::string(relative) + "\" in '" + root.string() + "' cannot be resolved (" +
@@ -106,7 +100,7 @@ PackageInspection inspectPackage(const fs::path& pluginDir, const PluginLimits& 
 
     const std::string& id = out.manifest.id;
     PluginPackage pkg;
-    pkg.directory = fs::canonical(pluginDir, ec);
+    pkg.directory = resolvePath(pluginDir, ec);
     pkg.manifest = out.manifest;
     bool failed = false;
     for (std::size_t i = 0; i < out.manifest.libraries.size(); ++i) {

@@ -82,9 +82,17 @@ struct ManifestValidation {
 std::string checkPluginId(std::string_view id);
 
 /// Checks a contributed relative path (shape only, nothing touches the file system):
-/// non-empty, forward slashes only, not absolute, no drive letter or ':', no backslash,
-/// no empty, "." or ".." component, no control characters. Empty string = valid.
+/// non-empty, forward slashes only, not absolute ('/', '\\', "\\\\server\\share", "C:/"),
+/// not drive-relative ("C:x"), no ':' (also rules out NTFS alternate data streams
+/// "file:stream"), no backslash, none of < > " | ? *, no empty, "." or ".." component, no
+/// component ending in '.' or ' ' (Windows strips them), no reserved Windows device name
+/// (CON, PRN, AUX, NUL, COM0-9, LPT0-9, CONIN$, CONOUT$, with or without extension), no
+/// control characters. The rules are identical on every platform. Empty string = valid.
 std::string checkRelativePath(std::string_view path);
+
+/// Key under which two contributed paths name the same file on a case-insensitive file
+/// system (Windows, macOS): the path with ASCII letters upper-cased.
+std::string pathIdentityKey(std::string_view path);
 
 /// Parses and validates manifest text. `sourceName` prefixes nothing; it is used as the
 /// Diagnostic::entityId when the id cannot be read. Never throws.

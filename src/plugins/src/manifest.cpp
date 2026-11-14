@@ -231,13 +231,58 @@ std::string checkPluginId(std::string_view id) {
     return {};
 }
 
+namespace {
+
+char asciiUpper(char c) { return (c >= 'a' && c <= 'z') ? static_cast<char>(c - 'a' + 'A') : c; }
+
+bool equalsIgnoreAsciiCase(std::string_view a, std::string_view b) {
+    if (a.size() != b.size()) return false;
+    for (std::size_t i = 0; i < a.size(); ++i)
+        if (asciiUpper(a[i]) != asciiUpper(b[i])) return false;
+    return true;
+}
+
+/// True when `component` names a Windows device (CON, PRN, AUX, NUL, COM0-9, LPT0-9, the
+/// superscript-digit variants COM1..3/LPT1..3 written with U+00B9/U+00B2/U+00B3, CONIN$,
+/// CONOUT$). Windows treats such a name as the device regardless of any extension
+/// ("nul.foslib" opens NUL) and of trailing spaces before the extension.
+bool isWindowsDeviceName(std::string_view component) {
+    std::string_view stem = component.substr(0, component.find('.'));
+    while (!stem.empty() && stem.back() == ' ') stem.remove_suffix(1);
+    for (const char* name : {"CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$"})
+        if (equalsIgnoreAsciiCase(stem, name)) return true;
+    for (const char* prefix : {"COM", "LPT"}) {
+        if (stem.size() < 4 || !equalsIgnoreAsciiCase(stem.substr(0, 3), prefix)) continue;
+        const std::string_view digit = stem.substr(3);
+        if (digit.size() == 1 && digit[0] >= '0' && digit[0] <= '9') return true;
+        if (digit == "\xC2\xB9" || digit == "\xC2\xB2" || digit == "\xC2\xB3") return true;
+    }
+    return false;
+}
+
+} // namespace
+
+// The rules are the same on every platform: a package that is valid on Linux must not mean
+// something else (or escape the plugin directory) when it is installed on Windows.
 std::string checkRelativePath(std::string_view path) {
     if (path.empty()) return "the path is empty";
     for (unsigned char c : path)
         if (c < 0x20 || c == 0x7f) return "the path contains control characters";
+    if (path.front() == '/' || path.front() == '\\')
+        return "the path is absolute (or a UNC / root-relative path); it must be relative to the plugin directory";
+    if (path.size() >= 2 && path[1] == ':' && ((path[0] >= 'A' && path[0] <= 'Z') || (path[0] >= 'a' && path[0] <= 'z'))) {
+        if (path.size() > 2 && (path[2] == '/' || path[2] == '\\'))
+            return "the path is absolute (it starts with the drive \"" + std::string(path.substr(0, 2)) +
+                   "\"); it must be relative to the plugin directory";
+        return "the path is drive-relative (it starts with \"" + std::string(path.substr(0, 2)) +
+               "\", which Windows resolves against that drive's current directory); it must be relative to the plugin directory";
+    }
     if (path.find('\\') != std::string_view::npos) return "the path contains a backslash; use '/' as separator";
-    if (path.front() == '/') return "the path is absolute; it must be relative to the plugin directory";
-    if (path.find(':') != std::string_view::npos) return "the path contains ':' (drive letters and URLs are not allowed)";
+    if (path.find(':') != std::string_view::npos)
+        return "the path contains ':' (drive letters, NTFS alternate data streams and URLs are not allowed)";
+    for (const char c : {'<', '>', '"', '|', '?', '*'})
+        if (path.find(c) != std::string_view::npos)
+            return std::string("the path contains '") + c + "', which is not allowed in Windows file names";
     std::size_t start = 0;
     while (true) {
         const auto end = path.find('/', start);
@@ -245,10 +290,21 @@ std::string checkRelativePath(std::string_view path) {
         if (part.empty()) return "the path contains an empty component ('//' or a trailing '/')";
         if (part == "..") return "the path contains '..'; it must stay inside the plugin directory";
         if (part == ".") return "the path contains a '.' component";
+        if (part.back() == '.' || part.back() == ' ')
+            return "the component \"" + std::string(part) +
+                   "\" ends with a dot or a space, which Windows silently removes (the file would be a different one there)";
+        if (isWindowsDeviceName(part))
+            return "the component \"" + std::string(part) + "\" is a reserved Windows device name (CON, NUL, COM1, ...)";
         if (end == std::string_view::npos) break;
         start = end + 1;
     }
     return {};
+}
+
+std::string pathIdentityKey(std::string_view path) {
+    std::string key(path);
+    for (char& c : key) c = asciiUpper(c);
+    return key;
 }
 
 bool isCompatible(const Compatibility& c, const SemVer& app) noexcept {
@@ -420,8 +476,10 @@ ManifestValidation parseManifest(std::string_view text, const PluginLimits& limi
                     ck.error(path, "plugins.manifest.bad_path", "\"" + rel + "\" must name a .foslib library file.");
                     continue;
                 }
-                if (!seen.insert(rel).second) {
-                    ck.error(path, "plugins.manifest.duplicate", "\"" + rel + "\" is listed twice.");
+                if (!seen.insert(pathIdentityKey(rel)).second) {
+                    ck.error(path, "plugins.manifest.duplicate",
+                             "\"" + rel + "\" is listed twice (names are compared ignoring ASCII case, because the "
+                             "Windows and macOS file systems do).");
                     continue;
                 }
                 m.libraries.push_back(rel);
