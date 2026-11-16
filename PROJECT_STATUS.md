@@ -23,8 +23,8 @@ Verified on 2026-11-13 (after the second review), Ubuntu 24.04, Qt 6.4.2, from c
 | Headless, Clang 18, Debug, `-DFOS_WERROR=ON` | builds; 761/761 pass |
 | CLI end to end (`fos new` → `set width 900` → `report` → `validate` → `cut` → `drawing` → `cam`) | run by hand; results checked against hand-computed sizes |
 
-Not verified: Windows, macOS, the GitHub Actions workflow itself (it has not run on GitHub yet), physical
-printers, any real CNC machine or controller.
+GitHub Actions runs on every push to the development branch (Linux GCC with Qt, Linux Clang, Windows MSVC).
+Not verified: macOS, physical printers, any real CNC machine or controller.
 
 ## Tests per module (GoogleTest cases)
 
@@ -60,8 +60,20 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 | T-022 | Website backend (separate repo) | Done (v1) | 167 tests | Docker image never built |
 | T-023 | Independent review of calculation-critical modules | Done | findings below | — |
 | T-024 | Desktop UI: interior/fronts/hardware/part-override/drawing-annotation/cutting editors | Done | 43 app-core tests + 5 GUI tests; en/uk screenshots reviewed | — |
-| T-025 | Windows build bring-up | Not started | — | — |
+| T-025 | Windows build bring-up and portable distribution | In progress | MinGW cross build: 758/764 tests pass under Wine (6 skips = Wine limits); MSVC CI: full build, 854/855 tests pass; GUI smoke test crashes on Windows (being diagnosed); packaging steps (windeployqt, self-containment check, ZIP) not yet reached in CI | — |
 | T-026 | Review of project, CAM, validation, nesting, plugins, CLI, printing | Done | all findings fixed with regression tests | — |
+
+### Phase 12 — Geometry kernel II: curves and contoured parts (ROADMAP.md)
+
+| ID | Task | Status | Depends on |
+|---|---|---|---|
+| T-027 | Contour geometry: exact line/arc contours (bulge), intersection, offset, tessellation (`fos/geometry/contour.hpp`) | In progress | — |
+| T-028 | Domain: `PartShape`, generalised cut rule (`cutContour`, ADR-0008) | In progress (interface done) | T-027 |
+| T-029 | Persistence: shapes in `formats` codec and `.fosp` (lossless) | Not started | T-028 |
+| T-030 | Furniture: parametric contours (corner radii, arched edges, cut-outs) for panels, tops, shelves | Not started | T-028 |
+| T-031 | Consumers: drawings (outline, radii), viewport (extrusion with holes), validation (exact outline interference), production (area, banding along contour) | Not started | T-028 |
+| T-032 | Manufacturing route: contoured parts to nesting with raw outline; CAM contour routing with arc moves; simulator support | Not started | T-028 |
+| T-033 | Desktop UI: contour editing, display of shaped parts in all workspaces | Not started | T-030, T-031 |
 
 ## Independent review 2026-11-12 (calculation-critical modules)
 
@@ -111,7 +123,7 @@ envelope checks, CLI exit 1 on incomplete output, single bounded plugin read, pi
 ## Decisions requiring owner input
 
 1. **Default branch.** The development branch is the only branch. Create `main` (and branch protection)
-   when you are ready to accept the work; then CI will run on pull requests.
+   when you are ready to accept the work. (CI already runs on every push to the development branch.)
 2. **Open CASCADE + AGPL-3.0-only** compatibility needs legal review before any OCCT backend ships.
 3. **Website**: production domain, licence of the website source, native review of the Ukrainian text.
 4. **Backend**: hosting target, allowed CORS origins, release asset naming and checksum file convention.

@@ -11,5 +11,6 @@ Architecture Decision Records live in `docs/decisions/`. Format: Status, Context
 | [0005](docs/decisions/ADR-0005-coordinate-systems.md) | Coordinate systems | Accepted | Right-handed frames (project, assembly, part, sheet, machine); faces A/B/L1/L2/W1/W2 with fixed (u,v) definitions. |
 | [0006](docs/decisions/ADR-0006-native-project-format.md) | Native project format | Accepted | JSON envelope `.fosp` with formatVersion, checksum, sequential migrations, unknown-key preservation, atomic save with backups. |
 | [0007](docs/decisions/ADR-0007-plugin-safety-model.md) | Plugin safety model | Proposed | Phase 1 declarative data plugins only; phase 2 sandboxed or out-of-process plugins with permission manifest; native plugins off by default. |
+| [0008](docs/decisions/ADR-0008-contoured-parts.md) | Contoured parts and curve representation | Accepted | Optional part shape: line/arc bulge contours, finished outline, raw outline by per-segment offset; rectangles unchanged |
 
 Related: `ARCHITECTURE.md`, `THIRD_PARTY_LICENSES.md`, `KNOWN_LIMITATIONS.md`, `docs/research/`.

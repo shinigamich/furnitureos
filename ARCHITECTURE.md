@@ -78,9 +78,10 @@ Millimetres (double) and degrees everywhere in the model. No rounding of interme
 * **Drawing sheet frame**: millimetres on paper, origin bottom-left, Y up. Writers flip Y for SVG/PDF.
 * **Machine frame**: defined per machine profile in `cam`; conversion from the part frame happens only there.
 
-### 4.3 Dimension convention (ADR-0004)
-`Part::length/width` are finished sizes including edge banding. Cut size is computed **only** by
-`domain::cutSize()`. Grain, when present, is stated per part (`GrainDirection`) relative to the part frame.
+### 4.3 Dimension convention (ADR-0004, ADR-0008)
+`Part::length/width` are finished sizes including edge banding (for contoured parts: the finished outline's
+exact bounding box). Cut size is computed **only** by `domain::cutSize()`, the raw outline of contoured parts
+**only** by `domain::cutContour()`. Grain, when present, is stated per part (`GrainDirection`) relative to the part frame.
 
 ### 4.4 Identity
 Typed string ids (`core::TypedId`). User-created entities: UUID v4. Generated entities: deterministic
