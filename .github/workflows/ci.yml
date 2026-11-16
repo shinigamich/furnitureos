@@ -68,12 +68,27 @@ jobs:
         with:
           arch: x64
       - name: Configure
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+        # RelWithDebInfo: optimised like Release, with PDBs for crash diagnostics (PDBs are not
+        # part of the portable package).
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - name: Build
         # -k 0: report every compile error in one run, not just the first.
         run: cmake --build build -- -k 0
       - name: Test
         run: ctest --test-dir build --output-on-failure
+      - name: Crash diagnostics for the GUI smoke test
+        if: failure()
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Recurse build -Filter fos_app_gui_tests.exe | Select-Object -First 1
+          $env:PATH = "$env:QT_ROOT_DIR\bin;$env:PATH"
+          Write-Host "== direct run"; & $exe.FullName 2>&1 | Select-Object -Last 60
+          Write-Host "== exit code $LASTEXITCODE"
+          $cdb = "${env:ProgramFiles(x86)}\Windows Kits\10\Debuggers\x64\cdb.exe"
+          if (Test-Path $cdb) {
+            Write-Host "== cdb stack"
+            & $cdb -g -G -lines -y "$($exe.DirectoryName)" -c ".ecxr;kp 40;q" $exe.FullName 2>&1 | Select-Object -Last 80
+          } else { Write-Host "cdb not found" }
       - name: Install portable folder (runs windeployqt)
         run: cmake --install build --prefix dist/FurnitureOS
       - name: Check the folder is self-contained
