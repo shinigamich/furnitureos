@@ -9,6 +9,10 @@ list(APPEND FOS_GEOMETRY_SOURCES
     src/mesh.cpp
     src/ray.cpp
     src/projection.cpp
+    src/contour.cpp
+    src/curve_intersect.cpp
+    src/contour_validate.cpp
+    src/contour_offset.cpp
 )
 list(APPEND FOS_GEOMETRY_TEST_SOURCES
     tests/segment_tests.cpp
@@ -19,4 +23,7 @@ list(APPEND FOS_GEOMETRY_TEST_SOURCES
     tests/mesh_tests.cpp
     tests/ray_tests.cpp
     tests/projection_tests.cpp
+    tests/contour_tests.cpp
+    tests/curve_intersect_tests.cpp
+    tests/contour_offset_tests.cpp
 )
