@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Parametric part contours of cabinet slots (README "Contoured parts").
 #include "fos/furniture/contour.hpp"
+#include "fos/furniture/limits.hpp"
 #include "fos/geometry/curve_intersect.hpp"
 #include "test_support.hpp"
 

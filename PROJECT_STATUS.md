@@ -60,7 +60,7 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 | T-022 | Website backend (separate repo) | Done (v1) | 167 tests | Docker image never built |
 | T-023 | Independent review of calculation-critical modules | Done | findings below | — |
 | T-024 | Desktop UI: interior/fronts/hardware/part-override/drawing-annotation/cutting editors | Done | 43 app-core tests + 5 GUI tests; en/uk screenshots reviewed | — |
-| T-025 | Windows build bring-up and portable distribution | In progress | MinGW cross build: 758/764 tests pass under Wine (6 skips = Wine limits); MSVC CI: full build, 854/855 tests pass; GUI smoke test crashes on Windows (being diagnosed); packaging steps (windeployqt, self-containment check, ZIP) not yet reached in CI | — |
+| T-025 | Windows build bring-up and portable distribution | In progress | MinGW cross build: 758/764 tests pass under Wine (6 skips = Wine limits). MSVC CI: full build; 886/887 tests pass. The remaining failure exposed a real crash (desktop app on OpenGL < 3.3) — fixed with a regression test (005d8ff). Packaging steps (windeployqt, self-containment check, ZIP) not yet reached in CI | — |
 | T-026 | Review of project, CAM, validation, nesting, plugins, CLI, printing | Done | all findings fixed with regression tests | — |
 
 ### Phase 12 — Geometry kernel II: curves and contoured parts (ROADMAP.md)
