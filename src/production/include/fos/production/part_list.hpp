@@ -27,11 +27,24 @@ struct PartRow {
     domain::GrainDirection grain = domain::GrainDirection::None;
     std::array<EdgeCell, 4> edges; ///< Indexed by domain::EdgeSide (L1, L2, W1, W2).
     int operationCount = 0;
+    /// Contoured part (ADR-0008, `domain::hasShape`). Its cut size above is the BLANK
+    /// (`domain::cutSize`, bounding box of the raw outline); `edges` are all raw because a
+    /// shaped part bands its outline segments (`outlineEdges`).
+    bool shaped = false;
+    /// Shaped parts: exact area of the finished outline minus the cut-outs, m2
+    /// (`geometry::signedArea`, arcs exact); 0 when the shape is invalid.
+    double outlineAreaM2 = 0;
+    int outlineSegments = 0, cutoutCount = 0;
+    /// Shaped parts: band of each outline segment (`PartShape::outerEdges`); empty when the
+    /// shape has no band entries.
+    std::vector<EdgeCell> outlineEdges;
 
     const EdgeCell& edge(domain::EdgeSide s) const { return edges[static_cast<std::size_t>(s)]; }
-    /// length * width in m2; 0 when either size is not a positive finite number.
+    /// length * width in m2 (shaped parts: `outlineAreaM2`); 0 when either size is not a
+    /// positive finite number.
     double finishedAreaM2() const noexcept;
-    /// cutLength * cutWidth in m2; 0 when either size is not a positive finite number.
+    /// cutLength * cutWidth in m2 - for shaped parts the rectangular BLANK cut from the sheet
+    /// before routing; 0 when either size is not a positive finite number.
     double cutAreaM2() const noexcept;
 };
 
@@ -40,8 +53,9 @@ struct PartList {
     core::Diagnostics diagnostics;
 };
 
-/// Part list (BOM of panels). Flags missing materials / edge bands and parts whose
-/// finished or cut size is not a positive finite number.
+/// Part list (BOM of panels). Flags missing materials / edge bands (also on outline
+/// segments), parts whose finished or cut size is not a positive finite number, and shaped
+/// parts whose outline is invalid (production.shape.invalid).
 PartList partList(const domain::Model& model, const Scope& scope = {});
 
 } // namespace fos::production

@@ -2,11 +2,15 @@
 #include "fos/production/part_list.hpp"
 
 #include "collect.hpp"
+#include "shape.hpp"
 #include "fos/core/units.hpp"
 
 namespace fos::production {
 
-double PartRow::finishedAreaM2() const noexcept { return detail::areaM2(length, width); }
+double PartRow::finishedAreaM2() const noexcept {
+    if (shaped) return detail::positiveFinite(outlineAreaM2) ? outlineAreaM2 : 0.0;
+    return detail::areaM2(length, width);
+}
 double PartRow::cutAreaM2() const noexcept { return detail::areaM2(cutLength, cutWidth); }
 
 PartList partList(const domain::Model& model, const Scope& scope) {
@@ -31,6 +35,19 @@ PartList partList(const domain::Model& model, const Scope& scope) {
                                  " references edge band '" + r.edge(s).name +
                                  "' which is not in the model; it is treated as 0 mm thick in the cut size.",
                              p.id.str());
+        for (std::size_t i = 0; i < r.outlineEdges.size(); ++i)
+            if (r.outlineEdges[i].missing)
+                detail::warn(out.diagnostics, "production.edgeband.missing",
+                             "Outline segment " + std::to_string(i) + " of part " + detail::describe(p) +
+                                 " references edge band '" + r.outlineEdges[i].name +
+                                 "' which is not in the model; it is treated as 0 mm thick in the cut size.",
+                             p.id.str());
+        if (p.shape && !detail::outlineAreaMm2(p))
+            detail::warn(out.diagnostics, "production.shape.invalid",
+                         "Part " + detail::describe(p) +
+                             " has an invalid outline or cut-out (see validation.shape.*); its outline area counts "
+                             "as 0 and its edge banding along the outline is not measured.",
+                         p.id.str());
         if (!detail::positiveFinite(p.length) || !detail::positiveFinite(p.width) ||
             !detail::positiveFinite(p.thickness) || !detail::positiveFinite(r.cutLength) ||
             !detail::positiveFinite(r.cutWidth))

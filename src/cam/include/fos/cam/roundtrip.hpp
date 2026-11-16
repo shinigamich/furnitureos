@@ -14,7 +14,9 @@ namespace fos::cam {
 
 /// Parses the text back into motions (sources empty). ParseError naming the line for any
 /// word outside the subset, motion before the G21/G90 preamble, missing F on G1, missing
-/// M30, or anything after M30. Modal G0/G1 and missing axes (previous value) are handled.
+/// M30, or anything after M30. Modal G0/G1/G2/G3 and missing axes (previous value) are handled.
+/// G2/G3 need I, J (incremental centre from the start point) and F; the parsed Motion::centre is
+/// start + (I, J).
 core::Result<std::vector<Motion>> parseGenericIso(std::string_view text);
 
 struct RoundTripReport {
@@ -24,7 +26,7 @@ struct RoundTripReport {
     std::vector<std::string> differences; ///< English, "motion #3: ..."; empty when matches
 };
 
-/// Compares kinds and values: coordinates/seconds within `tolerance` mm/s, feed within
+/// Compares kinds and values: coordinates, arc centres and seconds within `tolerance` mm/s, feed within
 /// 0.05, rpm within 0.5 (emission rounding). Z-only rapids compare Z only.
 RoundTripReport compareMotions(const std::vector<Motion>& expected, const std::vector<Motion>& parsed,
                                double tolerance = 0.0005 + 1e-9);

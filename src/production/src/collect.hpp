@@ -21,6 +21,9 @@ struct Collected {
 
 Collected collect(const domain::Model& model, const Scope& scope);
 
+/// Edge band reference resolved against the model (raw cell for nullopt).
+EdgeCell resolveEdge(const domain::Model& model, const std::optional<domain::EdgeBandId>& e);
+
 /// Resolved part row without diagnostics.
 PartRow makeRow(const domain::Model& model, const PartRef& ref);
 

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "collect.hpp"
 
+#include "shape.hpp"
+
 namespace fos::production::detail {
 
 Collected collect(const domain::Model& model, const Scope& scope) {
@@ -19,6 +21,20 @@ Collected collect(const domain::Model& model, const Scope& scope) {
              "Assembly '" + scope.assembly->str() + "' is not in the model; the report is empty.",
              scope.assembly->str());
     return out;
+}
+
+EdgeCell resolveEdge(const domain::Model& model, const std::optional<domain::EdgeBandId>& e) {
+    EdgeCell cell;
+    if (!e) return cell;
+    cell.id = *e;
+    if (const auto* eb = model.findEdgeBand(*e)) {
+        cell.name = eb->name;
+        cell.thickness = eb->thickness;
+    } else {
+        cell.name = e->str();
+        cell.missing = true;
+    }
+    return cell;
 }
 
 PartRow makeRow(const domain::Model& model, const PartRef& ref) {
@@ -42,20 +58,15 @@ PartRow makeRow(const domain::Model& model, const PartRef& ref) {
     r.cutLength = cut.length;
     r.cutWidth = cut.width;
     r.grain = p.grain;
-    for (auto s : domain::kAllEdges) {
-        auto& cell = r.edges[static_cast<std::size_t>(s)];
-        const auto& e = p.edge(s);
-        if (!e) continue;
-        cell.id = *e;
-        if (const auto* eb = model.findEdgeBand(*e)) {
-            cell.name = eb->name;
-            cell.thickness = eb->thickness;
-        } else {
-            cell.name = e->str();
-            cell.missing = true;
-        }
-    }
+    for (auto s : domain::kAllEdges) r.edges[static_cast<std::size_t>(s)] = resolveEdge(model, p.edge(s));
     r.operationCount = static_cast<int>(p.operations.size());
+    if (p.shape) {
+        r.shaped = true;
+        r.outlineAreaM2 = finishedAreaM2(p);
+        r.outlineSegments = static_cast<int>(p.shape->outer.size());
+        r.cutoutCount = static_cast<int>(p.shape->cutouts.size());
+        for (const auto& e : p.shape->outerEdges) r.outlineEdges.push_back(resolveEdge(model, e));
+    }
     return r;
 }
 

@@ -95,6 +95,8 @@ core::Result<PostOutput> GenericIsoPostprocessor::emit(const PostInput& in, cons
     t += "G21 G90 G17 G94\n";
 
     std::string lastSource;
+    geometry::Vec2 cur; // exact XY of the current position (arc start points)
+    bool hasArc = false;
     for (const auto& mo : in.program.motions) {
         if (!mo.source.empty() && mo.source.str() != lastSource) t += comment("OPERATION " + mo.source.str());
         lastSource = mo.source.str();
@@ -107,7 +109,19 @@ core::Result<PostOutput> GenericIsoPostprocessor::emit(const PostInput& in, cons
         case MotionKind::SpindleOn: t += "S" + fixed(mo.rpm, 0) + " M3\n"; break;
         case MotionKind::SpindleOff: t += "M5\n"; break;
         case MotionKind::Dwell: t += "G4 P" + fixed(mo.seconds, 3) + "\n"; break;
+        case MotionKind::ArcCW:
+        case MotionKind::ArcCCW: {
+            // I/J: arc centre INCREMENTAL from the arc start point, computed from the ROUNDED start
+            // and centre so that a reader adding them to the printed start gets the rounded centre.
+            const auto r3 = [](double v) { return std::round(v * 1000.0) / 1000.0; };
+            const double i = r3(mo.centre.x) - r3(cur.x), j = r3(mo.centre.y) - r3(cur.y);
+            t += std::string(mo.kind == MotionKind::ArcCW ? "G2" : "G3") + xyz(mo.target) + " I" + fixed(i, 3) +
+                 " J" + fixed(j, 3) + " F" + fixed(mo.feed, 1) + "\n";
+            hasArc = true;
+            break;
         }
+        }
+        if ((mo.kind == MotionKind::Rapid && !mo.zOnly) || isFeedMove(mo.kind)) cur = {mo.target.x, mo.target.y};
     }
     t += "M30\n";
     out.text = std::move(t);
@@ -121,6 +135,14 @@ core::Result<PostOutput> GenericIsoPostprocessor::emit(const PostInput& in, cons
         "No spindle spin-up wait is guaranteed: confirm the control waits for speed after M3.",
         "Fixtures and clamps are not modelled: check that no clamp lies under any toolpath.",
     };
+    if (hasArc) {
+        out.reviewWarnings.push_back(
+            "G2/G3 arc centres are written as I/J INCREMENTAL from the arc start point (the RS-274 default, "
+            "often G91.1); a control set to absolute arc centres (G90.1) will misread them.");
+        out.reviewWarnings.push_back(
+            "Arc end points and centres are rounded to 0.001 mm, so start and end radii may differ by about "
+            "0.0015 mm; confirm the control's arc end-point tolerance accepts this.");
+    }
     if (hasDwell)
         out.reviewWarnings.push_back("G4 P is written in seconds; some controls interpret P as milliseconds.");
     if (!m.verified) out.reviewWarnings.push_back("Machine profile '" + m.name + "' is not verified: " + m.verificationNote);

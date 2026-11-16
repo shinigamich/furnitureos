@@ -192,6 +192,13 @@ std::vector<ViewArc> removeHiddenArcs(const std::vector<HlrBox>& boxes, const st
             circleRectCrossings(arc, sweep, box.rect, cuts);
         }
         std::sort(cuts.begin(), cuts.end());
+        // Drop cuts closer than kEps (arc length) to the previous one, e.g. rounding noise of
+        // a rectangle side tangent to the circle; the arc end stays exact.
+        std::vector<double> kept{0.0};
+        for (const double c : cuts)
+            if (core::degToRad(c - kept.back()) * arc.radius > kEps) kept.push_back(c);
+        kept.back() = sweep;
+        cuts.swap(kept);
         const auto at = [&](double rel) {
             const double t = core::degToRad(arc.startDeg + rel);
             return arc.center + Vec2{std::cos(t), std::sin(t)} * arc.radius;

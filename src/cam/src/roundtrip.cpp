@@ -27,7 +27,7 @@ bool isInt(double v) { return std::fabs(v - std::round(v)) < 1e-9; }
 core::Result<std::vector<Motion>> parseGenericIso(std::string_view text) {
     std::vector<Motion> out;
     bool g21 = false, g90 = false, ended = false;
-    int modal = -1; // 0 or 1
+    int modal = -1; // 0, 1, 2 or 3
     std::optional<double> x, y, z;
     std::size_t lineNo = 0;
     std::size_t pos = 0;
@@ -70,7 +70,7 @@ core::Result<std::vector<Motion>> parseGenericIso(std::string_view text) {
         }
         if (words.empty()) continue;
         if (ended) return lineError(lineNo, "code after M30.");
-        std::optional<double> wx, wy, wz, wf, wp, ws, wt;
+        std::optional<double> wx, wy, wz, wf, wp, ws, wt, wi, wj;
         std::optional<int> motionG;
         bool m3 = false, m5 = false, m6 = false, g4 = false;
         for (auto [l, v] : words) {
@@ -81,11 +81,13 @@ core::Result<std::vector<Motion>> parseGenericIso(std::string_view text) {
                 switch (static_cast<int>(std::lround(v))) {
                 case 0: motionG = 0; break;
                 case 1: motionG = 1; break;
+                case 2: motionG = 2; break;
+                case 3: motionG = 3; break;
                 case 4: g4 = true; break;
                 case 17: case 94: break;
                 case 21: g21 = true; break;
                 case 90: g90 = true; break;
-                default: return lineError(lineNo, "'" + w + "' is outside the supported subset (G0 G1 G4 G17 G21 G90 G94).");
+                default: return lineError(lineNo, "'" + w + "' is outside the supported subset (G0 G1 G2 G3 G4 G17 G21 G90 G94).");
                 }
                 break;
             case 'M':
@@ -101,6 +103,8 @@ core::Result<std::vector<Motion>> parseGenericIso(std::string_view text) {
             case 'X': wx = v; break;
             case 'Y': wy = v; break;
             case 'Z': wz = v; break;
+            case 'I': wi = v; break;
+            case 'J': wj = v; break;
             case 'F': wf = v; break;
             case 'P': wp = v; break;
             case 'S': ws = v; break;
@@ -131,7 +135,18 @@ core::Result<std::vector<Motion>> parseGenericIso(std::string_view text) {
             return lineError(lineNo, "P word without G4.");
         }
         if (motionG) modal = *motionG;
-        if (hasAxes) {
+        if ((wi || wj) && !(hasAxes && (modal == 2 || modal == 3)))
+            return lineError(lineNo, "I/J words outside a G2/G3 move.");
+        if (hasAxes && (modal == 2 || modal == 3)) {
+            if (!wi || !wj) return lineError(lineNo, "G2/G3 without both I and J.");
+            if (!wf) return lineError(lineNo, "G2/G3 without an explicit F word.");
+            if (!x || !y || !z) return lineError(lineNo, "arc from an unknown position.");
+            const geometry::Vec2 centre{*x + *wi, *y + *wj}; // I/J incremental from the start point
+            if (wx) x = wx;
+            if (wy) y = wy;
+            if (wz) z = wz;
+            out.push_back(Motion::arc({*x, *y, *z}, centre, modal == 3, *wf));
+        } else if (hasAxes) {
             if (modal < 0) return lineError(lineNo, "coordinates without G0 or G1.");
             if (modal == 0 && wz && !wx && !wy) {
                 Motion mo = Motion::rapidZ(*wz);
@@ -195,6 +210,15 @@ RoundTripReport compareMotions(const std::vector<Motion>& expected, const std::v
         case MotionKind::SpindleOn: near(e.rpm, p.rpm, 0.5, "rpm"); break;
         case MotionKind::SpindleOff: break;
         case MotionKind::Dwell: near(e.seconds, p.seconds, tolerance, "dwell"); break;
+        case MotionKind::ArcCW:
+        case MotionKind::ArcCCW:
+            near(e.feed, p.feed, 0.05, "feed");
+            near(e.target.x, p.target.x, tolerance, "X");
+            near(e.target.y, p.target.y, tolerance, "Y");
+            near(e.target.z, p.target.z, tolerance, "Z");
+            near(e.centre.x, p.centre.x, tolerance, "arc centre X");
+            near(e.centre.y, p.centre.y, tolerance, "arc centre Y");
+            break;
         }
     }
     r.matches = r.differences.empty();

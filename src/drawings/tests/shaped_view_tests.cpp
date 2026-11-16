@@ -125,7 +125,7 @@ TEST(ShapedAssemblyView, ArcPartlyHiddenIsSplitExactly) {
             EXPECT_EQ(arc.style, LineStyle::Visible);
         }
     // Left outline line (0,50)-(0,350) lies on the box boundary x = 0: not strictly inside -> visible.
-    const ViewSegment* left = findSegment(v, {0, 50}, {0, 100});
+    const ViewSegment* left = findSegment(v, {0, 50}, {0, 350});
     ASSERT_TRUE(left);
     EXPECT_EQ(left->style, LineStyle::Visible);
     // Omit mode drops the hidden sub-arc.
