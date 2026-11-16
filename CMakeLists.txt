@@ -23,10 +23,6 @@ if(MSVC)
     # Conforming preprocessor everywhere (also for third-party test code): the legacy one
     # mis-parses raw string literals inside macro arguments (e.g. EXPECT_EQ(x, R"(...)")).
     add_compile_options(/Zc:preprocessor /utf-8)
-    # Every executable (applications AND test binaries) gets the application manifest:
-    # UTF-8 process code page, so std::filesystem::path(std::string) treats strings as
-    # UTF-8 exactly like on Linux and in the shipped programs; long paths.
-    add_link_options(/MANIFEST:EMBED "/MANIFESTINPUT:${CMAKE_CURRENT_SOURCE_DIR}/src/app/resources/furnitureos.manifest")
 endif()
 if(MINGW)
     # Self-contained executables: no libstdc++/libgcc/winpthread DLLs to ship.
@@ -113,3 +109,30 @@ if(WIN32)
     install(FILES packaging/windows/README-portable.txt DESTINATION . RENAME README.txt)
 endif()
 include(FosPackaging)
+
+# Windows: every executable (applications AND test binaries) gets the application manifest —
+# UTF-8 process code page (std::filesystem::path(std::string) then reads UTF-8 like on Linux)
+# and long paths. Listing the .manifest as a source is CMake's supported way for MSVC in every
+# configuration (it is merged with the linker-generated manifest).
+if(MSVC)
+    function(_fos_collect_executables dir out)
+        get_property(_targets DIRECTORY "${dir}" PROPERTY BUILDSYSTEM_TARGETS)
+        set(_result "")
+        foreach(_t IN LISTS _targets)
+            get_target_property(_type ${_t} TYPE)
+            if(_type STREQUAL "EXECUTABLE")
+                list(APPEND _result ${_t})
+            endif()
+        endforeach()
+        get_property(_subdirs DIRECTORY "${dir}" PROPERTY SUBDIRECTORIES)
+        foreach(_d IN LISTS _subdirs)
+            _fos_collect_executables("${_d}" _sub)
+            list(APPEND _result ${_sub})
+        endforeach()
+        set(${out} ${_result} PARENT_SCOPE)
+    endfunction()
+    _fos_collect_executables("${CMAKE_CURRENT_SOURCE_DIR}" _fos_executables)
+    foreach(_exe IN LISTS _fos_executables)
+        target_sources(${_exe} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/app/resources/furnitureos.manifest")
+    endforeach()
+endif()
