@@ -26,7 +26,7 @@ if(MSVC)
     # Every executable (applications AND test binaries) gets the application manifest:
     # UTF-8 process code page, so std::filesystem::path(std::string) treats strings as
     # UTF-8 exactly like on Linux and in the shipped programs; long paths.
-    add_link_options("/MANIFESTINPUT:${CMAKE_CURRENT_SOURCE_DIR}/src/app/resources/furnitureos.manifest")
+    add_link_options(/MANIFEST:EMBED "/MANIFESTINPUT:${CMAKE_CURRENT_SOURCE_DIR}/src/app/resources/furnitureos.manifest")
 endif()
 if(MINGW)
     # Self-contained executables: no libstdc++/libgcc/winpthread DLLs to ship.

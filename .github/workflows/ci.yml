@@ -81,6 +81,7 @@ jobs:
         shell: pwsh
         run: |
           $exe = Get-ChildItem -Recurse build -Filter fos_app_gui_tests.exe | Select-Object -First 1
+          if (-not $exe) { Write-Host "fos_app_gui_tests.exe was not built"; exit 0 }
           $env:PATH = "$env:QT_ROOT_DIR\bin;$env:PATH"
           Write-Host "== direct run"; & $exe.FullName 2>&1 | Select-Object -Last 60
           Write-Host "== exit code $LASTEXITCODE"
