@@ -129,21 +129,24 @@ std::vector<ColorVertex> makeGrid(const geometry::Aabb& parts) {
 
 GlRenderer::~GlRenderer() = default;
 
-bool GlRenderer::initialize(std::string& error) {
+bool GlRenderer::initialize(std::string& error, std::pair<int, int> minimum) {
     ready_ = false;
     QOpenGLContext* ctx = QOpenGLContext::currentContext();
     if (!ctx) {
         error = "Viewport: no current OpenGL context.";
         return false;
     }
+    // Basic entry points (glViewport, glClear, ...) exist in every OpenGL version and are used
+    // by render() even when the renderer is not ready, so resolve them before any early return.
+    initializeOpenGLFunctions();
     const auto fmt = ctx->format();
-    if (ctx->isOpenGLES() || fmt.version() < qMakePair(3, 3)) {
-        error = "Viewport needs OpenGL 3.3 (desktop); got " + std::string(ctx->isOpenGLES() ? "OpenGL ES " : "OpenGL ") +
+    if (ctx->isOpenGLES() || fmt.version() < qMakePair(minimum.first, minimum.second)) {
+        error = "Viewport needs OpenGL " + std::to_string(minimum.first) + "." + std::to_string(minimum.second) +
+                " (desktop); got " + std::string(ctx->isOpenGLES() ? "OpenGL ES " : "OpenGL ") +
                 std::to_string(fmt.majorVersion()) + "." + std::to_string(fmt.minorVersion()) +
                 ". The 3D view stays empty; picking and all other functions keep working.";
         return false;
     }
-    initializeOpenGLFunctions();
     if (!build(meshProgram_, kMeshVs, kMeshFs, error) || !build(lineProgram_, kLineVs, kColorFs, error) ||
         !build(colorProgram_, kColorVs, kColorFs, error))
         return false;

@@ -5,6 +5,8 @@
 #include "fos/viewport/viewport_widget.hpp"
 
 #include "fos/domain/fixtures.hpp"
+#include "gl_renderer.hpp"
+#include "fos/viewport/scene.hpp"
 
 #include <QCoreApplication>
 #include <QElapsedTimer>
@@ -12,6 +14,7 @@
 #include <QImage>
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
+#include <QOpenGLFramebufferObject>
 
 #include <gtest/gtest.h>
 
@@ -156,4 +159,40 @@ TEST(ViewportGl, IsometricScreenshotAndFrameTime) {
                 "orbit frame incl. readback %.1f ms\n",
                 firstMs, frameMs);
     EXPECT_FALSE(img.isNull());
+}
+
+// Regression (Windows CI, OpenGL 3.0 software context): when the context is too old the renderer
+// is not ready, yet render() is still called from paintGL(). It used to call glViewport through
+// unresolved function pointers and crash. It must only clear to the background colour. Runs with
+// ANY OpenGL context (no 3.3 requirement), forcing the fallback with an impossible minimum.
+TEST(ViewportGl, UnsupportedContextRendersBackgroundWithoutCrashing) {
+    const QString platform = QGuiApplication::platformName();
+    if (platform == "offscreen" || platform == "minimal")
+        GTEST_SKIP() << "Qt platform '" << platform.toStdString() << "' has no OpenGL; run under xvfb-run.";
+    QOpenGLContext ctx;
+    if (!ctx.create()) GTEST_SKIP() << "Could not create any OpenGL context.";
+    QOffscreenSurface surface;
+    surface.setFormat(ctx.format());
+    surface.create();
+    ASSERT_TRUE(ctx.makeCurrent(&surface));
+    {
+        QOpenGLFramebufferObject fbo(64, 48);
+        ASSERT_TRUE(fbo.bind());
+        viewport::detail::GlRenderer renderer;
+        std::string error;
+        EXPECT_FALSE(renderer.initialize(error, {99, 0}));
+        EXPECT_NE(error.find("needs OpenGL 99.0"), std::string::npos) << error;
+        EXPECT_FALSE(renderer.ready());
+        viewport::Scene scene;
+        scene.setModel(domain::fixtures::basicCabinet());
+        renderer.uploadGeometry(scene); // no-ops when not ready
+        renderer.uploadState(scene);
+        viewport::Camera camera;
+        camera.setViewportSize(64, 48);
+        renderer.render(camera, viewport::DisplayMode::ShadedWithEdges, 64, 48, 1.0);
+        const QImage img = fbo.toImage().convertToFormat(QImage::Format_RGB32);
+        EXPECT_LE(colourDistance(img.pixelColor(32, 24), kBackground), 3);
+        fbo.release();
+    }
+    ctx.doneCurrent();
 }

@@ -11,6 +11,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 /// OpenGL 3.3 core renderer of a Scene (private to the viewport module). All methods require
 /// the widget's GL context to be current.
@@ -31,7 +32,10 @@ public:
     /// Compiles the shaders and creates the GL objects. Returns false (and fills `error`) when
     /// the context is older than OpenGL 3.3 / GLSL 330 or a shader fails; the renderer then
     /// draws nothing but the background.
-    bool initialize(std::string& error);
+    /// Sets up shaders and buffers. Returns false (renderer not ready, error explains why) when
+    /// the context is older than `minimum` or a shader fails; render() then only clears to the
+    /// background colour. `minimum` exists so tests can force the fallback on any machine.
+    bool initialize(std::string& error, std::pair<int, int> minimum = {3, 3});
     bool ready() const noexcept { return ready_; }
 
     /// Uploads part geometry and the ground grid (on model change only).

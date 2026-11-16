@@ -31,6 +31,8 @@ if(FOS_BUILD_TESTS)
     # available; the tests GTEST_SKIP themselves when no suitable context can be created.
     add_executable(fos_viewport_gl_tests tests/test_main.cpp tests/gl_tests.cpp)
     target_link_libraries(fos_viewport_gl_tests PRIVATE fos::viewport fos::domain GTest::gtest Qt6::OpenGL)
+    # The GL tests also exercise the private renderer directly (fallback path).
+    target_include_directories(fos_viewport_gl_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     fos_set_warnings(fos_viewport_gl_tests PRIVATE)
     find_program(FOS_XVFB_RUN xvfb-run)
     if(FOS_XVFB_RUN)
