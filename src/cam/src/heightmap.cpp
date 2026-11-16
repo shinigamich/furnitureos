@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "heightmap.hpp"
 
+#include "arc_math.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <numbers>
 
 namespace fos::cam::detail {
 
@@ -56,10 +59,57 @@ void Heightmap::cut(geometry::Vec3 a, geometry::Vec3 b, double r, std::size_t mo
                 t1 = std::min(1.0, (-bq + s) / dd);
                 if (t0 > t1) continue;
             }
-            const double z = std::min(a.z + (b.z - a.z) * t0, a.z + (b.z - a.z) * t1);
-            if (z >= top_ - 1e-9) continue;
-            auto [it, inserted] = cells_.try_emplace(key(i, j), Cell{z, motion});
-            if (!inserted && z < it->second.minZ) it->second = Cell{z, motion};
+            lower(i, j, std::min(a.z + (b.z - a.z) * t0, a.z + (b.z - a.z) * t1), motion);
+        }
+}
+
+void Heightmap::lower(int i, int j, double z, std::size_t motion) {
+    if (z >= top_ - 1e-9) return;
+    auto [it, inserted] = cells_.try_emplace(key(i, j), Cell{z, motion});
+    if (!inserted && z < it->second.minZ) it->second = Cell{z, motion};
+}
+
+void Heightmap::cutArc(geometry::Vec3 a, geometry::Vec3 b, geometry::Vec2 c, double sweep, double r,
+                       std::size_t motion) {
+    if (std::min(a.z, b.z) >= top_ - 1e-9 || r <= 0 || sweep == 0) return;
+    const ArcGeom arc{c, geometry::length(geometry::Vec2{a.x, a.y} - c), std::atan2(a.y - c.y, a.x - c.x), sweep};
+    double bx0, by0, bx1, by1;
+    arcBounds(arc, bx0, by0, bx1, by1);
+    int i0, i1, j0, j1;
+    range(bx0 - r, bx1 + r, true, i0, i1);
+    range(by0 - r, by1 + r, false, j0, j1);
+    const double R = arc.radius, S = std::fabs(sweep), rr = r + 1e-9;
+    constexpr double kTwoPi = 2 * std::numbers::pi;
+    for (int j = j0; j <= j1; ++j)
+        for (int i = i0; i <= i1; ++i) {
+            const geometry::Vec2 p = centre(i, j);
+            const geometry::Vec2 v = p - c;
+            const double d = geometry::length(v);
+            double alpha; // half-width of the covered angular window around phi_p
+            if (d < 1e-12) {
+                if (R > rr) continue;
+                alpha = std::numbers::pi;
+            } else {
+                const double k = (d * d + R * R - rr * rr) / (2 * d * R);
+                if (k > 1) continue;
+                alpha = k <= -1 ? std::numbers::pi : std::acos(k);
+            }
+            // Angle from the arc start to phi_p, measured in the direction of travel, in [0, 2 pi).
+            double delta = sweep > 0 ? std::atan2(v.y, v.x) - arc.startAngle : arc.startAngle - std::atan2(v.y, v.x);
+            delta = std::fmod(delta, kTwoPi);
+            if (delta < 0) delta += kTwoPi;
+            double best = std::numeric_limits<double>::infinity();
+            if (alpha >= std::numbers::pi) {
+                best = std::min(a.z, b.z);
+            } else {
+                for (double shift : {-kTwoPi, 0.0, kTwoPi}) {
+                    const double u0 = std::max(0.0, delta - alpha + shift), u1 = std::min(S, delta + alpha + shift);
+                    if (u0 > u1) continue;
+                    // Z is linear in the angle: the lowest point of the window is at one of its ends.
+                    best = std::min({best, a.z + (b.z - a.z) * (u0 / S), a.z + (b.z - a.z) * (u1 / S)});
+                }
+            }
+            if (best < std::numeric_limits<double>::infinity()) lower(i, j, best, motion);
         }
 }
 

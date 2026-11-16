@@ -4,10 +4,12 @@
 
 #include "fos/machining/face.hpp"
 #include "fos/validation/obb.hpp"
+#include "shape_interference.hpp"
 
 #include <algorithm>
 #include <cmath>
 #include <numeric>
+#include <optional>
 
 namespace fos::validation::detail {
 namespace {
@@ -22,7 +24,37 @@ struct Item {
     Obb obb;
     Aabb box;
     bool aligned;
+    geometry::Transform frame;     ///< Part frame -> the frame of the test.
+    const ShapeSolid* solid = nullptr; ///< Contoured part prepared for the exact test.
 };
+
+/// Prepared shapes of `parts` (index-aligned), empty when exact shape tests are off.
+std::vector<std::optional<ShapeSolid>> prepareShapes(const std::vector<const domain::Part*>& parts, bool enabled) {
+    std::vector<std::optional<ShapeSolid>> out(parts.size());
+    if (!enabled) return out;
+    for (std::size_t i = 0; i < parts.size(); ++i)
+        if (parts[i]->shape) out[i] = makeShapeSolid(*parts[i]);
+    return out;
+}
+
+/// Exact-outline verdict for a box-interfering pair (README, check 3). Returns nullopt when
+/// neither part is contoured or the test is undecided (box result stands).
+std::optional<ShapeOverlap> refine(const Item& x, const Item& y, double tol, const ObbOverlap& r,
+                                   ValidationStats& st) {
+    if (!x.solid && !y.solid) return std::nullopt;
+    ++st.shapedPairsRefined;
+    const ShapeOverlap s = refineShapeOverlap(*x.part, x.frame, x.solid, *y.part, y.frame, y.solid, tol, r.depth);
+    if (!s.decided) return std::nullopt;
+    if (!s.intersects) ++st.shapedPairsCleared;
+    return s;
+}
+
+/// "by 10 mm (largest material thickness ...; box test: 118 mm along Z)".
+std::string byShape(const ShapeOverlap& s, const ObbOverlap& r) {
+    return std::string(s.depthIsLowerBound ? "at least " : "") + num(s.depth) +
+           " mm (diameter of the largest ball that fits into the material shared by the exact outlines; box test: " +
+           num(r.depth) + " mm along " + axisName(r.axis) + ")";
+}
 
 /// Sweep and prune along X. Calls `narrow(a, b)` for every pair whose boxes overlap (by more
 /// than `tol` on all three axes); `counted(a, b)` tells which pairs take part at all.
@@ -130,15 +162,22 @@ void checkPartInterference(Context& c) {
     for (const auto& a : c.model.assemblies) {
         const std::size_t n = a.parts.size();
         st.possiblePartPairs += n * (n > 0 ? n - 1 : 0) / 2;
+        std::vector<const domain::Part*> usable;
+        for (const auto& p : a.parts)
+            if (validSize(p) && validPlacement(p.placement)) usable.push_back(&p); // others: part check
+        const auto shapes = prepareShapes(usable, o.exactShapeInterference);
         std::vector<Item> items;
-        for (const auto& p : a.parts) {
-            if (!validSize(p) || !validPlacement(p.placement)) continue; // reported by the part check
-            items.push_back({&a, &p, 0, makeObb(p.localBounds(), p.placement), p.bounds(), axisAligned(p.placement)});
+        for (std::size_t i = 0; i < usable.size(); ++i) {
+            const domain::Part& p = *usable[i];
+            items.push_back({&a, &p, 0, makeObb(p.localBounds(), p.placement), p.bounds(), axisAligned(p.placement),
+                             p.placement, shapes[i] ? &*shapes[i] : nullptr});
         }
         auto narrow = [&](const Item& x, const Item& y) {
             ++st.partPairsTested;
             const ObbOverlap r = intersectObb(x.obb, y.obb, tol);
             if (!r.intersects) return;
+            const auto exact = refine(x, y, tol, r, st);
+            if (exact && !exact->intersects) return; // e.g. a post passing through a cut-out
             const GrooveMatch g = matchGroove(x, y, std::max(o.grooveFitTolerance, 0.0));
             if (g.inside) {
                 ++st.grooveEngagementsAllowed;
@@ -158,7 +197,9 @@ void checkPartInterference(Context& c) {
             }
             const auto [pen, other] = penetrator(x, y, r.axis);
             c.add(Severity::Error, "validation.interference.parts",
-                  label(*pen->part) + " penetrates " + label(*other->part) + " by " + by(r) + ".", pen->part->id.str(),
+                  label(*pen->part) + " penetrates " + label(*other->part) + " by " +
+                      (exact ? byShape(*exact, r) : by(r)) + ".",
+                  pen->part->id.str(),
                   aid, pen->part->id.str(), {other->part->id.str()});
         };
         sweep(items, tol, st.broadPhaseChecks, [](const Item&, const Item&) { return true; }, narrow);
@@ -175,25 +216,34 @@ void checkAssemblyInterference(Context& c) {
         st.possibleCrossAssemblyPartPairs += before * a.parts.size();
         before += a.parts.size();
     }
-    std::vector<Item> items;
+    std::vector<const domain::Part*> usable;
+    std::vector<std::size_t> owner;
     for (std::size_t ai = 0; ai < as.size(); ++ai) {
         const auto& a = as[ai];
         if (!validPlacement(a.placement)) continue;
-        for (const auto& p : a.parts) {
-            if (!validSize(p) || !validPlacement(p.placement)) continue;
-            const geometry::Transform t = a.placement * p.placement;
-            items.push_back({&a, &p, ai, makeObb(p.localBounds(), t), p.localBounds().transformed(t), false});
-        }
+        for (const auto& p : a.parts)
+            if (validSize(p) && validPlacement(p.placement)) usable.push_back(&p), owner.push_back(ai);
+    }
+    const auto shapes = prepareShapes(usable, o.exactShapeInterference);
+    std::vector<Item> items;
+    for (std::size_t i = 0; i < usable.size(); ++i) {
+        const auto& a = as[owner[i]];
+        const domain::Part& p = *usable[i];
+        const geometry::Transform t = a.placement * p.placement;
+        items.push_back({&a, &p, owner[i], makeObb(p.localBounds(), t), p.localBounds().transformed(t), false, t,
+                         shapes[i] ? &*shapes[i] : nullptr});
     }
     auto counted = [](const Item& x, const Item& y) { return x.group != y.group; };
     auto narrow = [&](const Item& x, const Item& y) {
         ++st.crossAssemblyPartPairsTested;
         const ObbOverlap r = intersectObb(x.obb, y.obb, tol);
         if (!r.intersects) return;
+        const auto exact = refine(x, y, tol, r, st);
+        if (exact && !exact->intersects) return;
         const auto [pen, other] = penetrator(x, y, r.axis);
         c.add(o.assemblyInterferenceSeverity, "validation.interference.assemblies",
               label(*pen->part) + " of " + label(*pen->assembly) + " penetrates " + label(*other->part) + " of " +
-                  label(*other->assembly) + " by " + by(r) + " (project frame).",
+                  label(*other->assembly) + " by " + (exact ? byShape(*exact, r) : by(r)) + " (project frame).",
               pen->part->id.str(), pen->assembly->id.str(), pen->part->id.str(),
               {other->part->id.str(), other->assembly->id.str()});
     };

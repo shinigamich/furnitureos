@@ -105,6 +105,11 @@ core::Result<void> checkPartShape(const domain::Part& part, std::string_view par
     if (shape.cutouts.size() > kMaxShapeCutouts)
         return schemaError(cutoutsPath, "the part has " + std::to_string(shape.cutouts.size()) +
                                             " cut-outs; at most " + std::to_string(kMaxShapeCutouts) + " are allowed");
+    std::size_t total = shape.outer.size();
+    for (std::size_t k = 0; k < shape.cutouts.size(); ++k) {
+        total += shape.cutouts[k].size();
+        if (total > kMaxShapeVertices) return schemaError(joinPath(cutoutsPath, k), totalVerticesMessage(total));
+    }
     for (std::size_t k = 0; k < shape.cutouts.size(); ++k)
         if (shape.cutouts[k].size() > kMaxContourVertices)
             return schemaError(joinPath(cutoutsPath, k), cutoutName(k) + " has " +

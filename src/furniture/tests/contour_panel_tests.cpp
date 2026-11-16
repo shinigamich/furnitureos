@@ -120,8 +120,8 @@ TEST(ContourPanel, LShapedCustomTop) {
                   {"contour.length", "0", 0.0, {}},
                   {"contour.length", "contour.width", 0.0, {}},
                   {"contour.length - 600", "contour.width", 0.0, {}},
-                  {"contour.length - 600", "300", 0.0, {}},
-                  {"0", "300", 0.0, domain::EdgeSide::L2}};
+                  {"contour.length - 600", "300", 0.0, domain::EdgeSide::L2},
+                  {"0", "300", 0.0, {}}};
     p.contour = s;
     const domain::Part part = generated(p);
     ASSERT_TRUE(part.shape.has_value());

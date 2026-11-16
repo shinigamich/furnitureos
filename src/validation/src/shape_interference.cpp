@@ -47,11 +47,11 @@ std::optional<MaterialRegion> erode(const MaterialRegion& r, double h) {
     MaterialRegion out;
     auto outer = geometry::offsetContour(r.outer, -h);
     if (!outer) return std::nullopt;
-    out.outer = std::move(outer).value();
+    out.outer = outer.value();
     for (const auto& c : r.cutouts) {
         auto grown = geometry::offsetContour(c, h);
         if (!grown) return std::nullopt;
-        out.cutouts.push_back(std::move(grown).value());
+        out.cutouts.push_back(grown.value());
     }
     return out;
 }
@@ -115,11 +115,11 @@ MaterialRegion mapRegion(const MaterialRegion& r, const Transform& m) {
 }
 
 struct Pair {
-    const domain::Part* a;
-    const domain::Part* b;
+    const domain::Part* a = nullptr;
+    const domain::Part* b = nullptr;
     Transform ta, tb;
-    const ShapeSolid* sa;
-    const ShapeSolid* sb;
+    const ShapeSolid* sa = nullptr;
+    const ShapeSolid* sb = nullptr;
     bool parallel = false;      ///< Both shaped and thickness axes (anti)parallel.
     MaterialRegion bInA;        ///< parallel: b's region in a's part frame.
     double bz0 = 0, bz1 = 0;    ///< parallel: b's thickness interval along a's z.
@@ -163,7 +163,13 @@ ShapeOverlap refineShapeOverlap(const domain::Part& a, const Transform& ta, cons
                                 const domain::Part& b, const Transform& tb, const ShapeSolid* sb, double tol,
                                 double boxDepth) {
     ShapeOverlap out;
-    Pair pr{&a, &b, ta, tb, sa, sb};
+    Pair pr;
+    pr.a = &a;
+    pr.b = &b;
+    pr.ta = ta;
+    pr.tb = tb;
+    pr.sa = sa;
+    pr.sb = sb;
     if (sa && sb) {
         const Transform m = ta.inverse() * tb;
         if (std::fabs(std::fabs(m.zAxis.z) - 1.0) <= 1e-9) {

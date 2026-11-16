@@ -2,6 +2,7 @@
 #include "fos/cam/setup.hpp"
 
 #include "fos/core/units.hpp"
+#include "fos/domain/model.hpp"
 #include "fos/machining/face.hpp"
 #include "fos/machining/flip.hpp"
 
@@ -47,15 +48,23 @@ core::Result<SetupFrame> makeSetupFrame(const domain::Part& part, const Setup& s
                              "resting on or above it (the spoilboard limit is measured from the stock bottom); set the "
                              "work zero on the spoilboard.",
                          part.id.str());
+    const double a = setup.blankAllowance;
+    if (!(a >= 0) || !std::isfinite(a) || (a > 0 && domain::isRectangularOutline(part)))
+        return makeError(ErrorCode::InvalidArgument,
+                         "Setup of '" + part.name + "' has a blank allowance of " + core::formatLength(a, 3) +
+                             " mm; it must be >= 0 and is only allowed for shaped parts whose outline is routed.",
+                         part.id.str());
     SetupFrame f;
     f.faceUp = setup.faceUp;
-    f.origin = setup.stockOrigin;
+    f.blankAllowance = a;
+    f.origin = setup.stockOrigin + geometry::Vec3{a, a, 0};
     f.length = part.length;
     f.width = part.width;
     f.thickness = part.thickness;
     f.bottomZ = f.origin.z;
     f.topZ = f.origin.z + part.thickness;
-    f.stock = {f.origin, f.origin + geometry::Vec3{part.length, part.width, part.thickness}};
+    f.stock = {setup.stockOrigin,
+               setup.stockOrigin + geometry::Vec3{part.length + 2 * a, part.width + 2 * a, part.thickness}};
     return f;
 }
 

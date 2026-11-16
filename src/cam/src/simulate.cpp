@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/cam/simulate.hpp"
 
+#include "arc_math.hpp"
+#include "contour_sim.hpp"
 #include "heightmap.hpp"
 
 #include "fos/core/units.hpp"
@@ -148,7 +150,7 @@ SimulationReport simulate(const Program& program, const domain::Part& part, cons
     const double clearZ = frame.topZ + machine.clearance;
     const double spoilLimit = frame.bottomZ - machine.maxSpoilboardPenetration;
     const Rect stock{frame.stock.min.x, frame.stock.min.y, frame.stock.max.x, frame.stock.max.y};
-    detail::Heightmap hm(stock.x0, stock.y0, frame.length, frame.width, options.cellSize, frame.topZ);
+    detail::Heightmap hm(stock.x0, stock.y0, stock.x1 - stock.x0, stock.y1 - stock.y0, options.cellSize, frame.topZ);
     // Safe Z is where the tool travels from an unknown XY and where tool changes happen; it is
     // only safe when it clears this stock (validateProfile cannot know the stock).
     if (machine.safeZ < clearZ - kEps)
@@ -159,6 +161,7 @@ SimulationReport simulate(const Program& program, const domain::Part& part, cons
 
     Vec3 pos;
     bool xyKnown = false, zKnown = false, spindle = false;
+    std::map<std::string, double> cutterOf; // operation id -> diameter of the tool of its first cut
     const Tool* tool = nullptr;
     auto at = [&](std::size_t i) { return "Motion #" + std::to_string(i) + " (" + describe(program.motions[i]) + ")"; };
 
@@ -245,7 +248,58 @@ SimulationReport simulate(const Program& program, const domain::Part& part, cons
                                                   " mm below the stock top but tool '" + tool->id +
                                                   "' has flute length " + mm(tool->fluteLength) + " mm.");
             if (tool) hm.cut(from, target, r, i);
+            if (tool && !rapid) cutterOf.try_emplace(m.source.str(), tool->diameter);
             pos = target;
+            break;
+        }
+        case MotionKind::ArcCW:
+        case MotionKind::ArcCCW: {
+            if (!xyKnown || !zKnown) {
+                error("cam.sim.position_unknown", at(i) + " is an arc from an unknown position.");
+                pos = m.target;
+                xyKnown = zKnown = true;
+                break;
+            }
+            const Vec2 a{pos.x, pos.y}, b{m.target.x, m.target.y};
+            const double ra = geometry::length(a - m.centre), rb = geometry::length(b - m.centre);
+            const bool valid = std::fabs(ra - rb) <= 1e-3 && ra >= 1e-3 && geometry::length(b - a) > 1e-9;
+            if (!valid)
+                error("cam.sim.arc_invalid", at(i) + " is not a valid arc: start radius " + mm(ra) +
+                                                 " mm, end radius " + mm(rb) +
+                                                 " mm (must agree within 0.001 mm, be >= 0.001 mm and start != end).");
+            const detail::ArcGeom g = detail::arcFromEndpoints(a, b, m.centre, m.kind == MotionKind::ArcCCW);
+            double x0, y0, x1, y1;
+            detail::arcBounds(g, x0, y0, x1, y1);
+            if (!machine.envelopeZ.contains(m.target.z) || !machine.envelopeX.contains(x0) ||
+                !machine.envelopeX.contains(x1) || !machine.envelopeY.contains(y0) || !machine.envelopeY.contains(y1))
+                error("cam.sim.envelope", at(i) + " sweeps X " + mm(x0) + ".." + mm(x1) + ", Y " + mm(y0) + ".." +
+                                              mm(y1) + " mm, outside the envelope of machine '" + machine.name + "'.");
+            const double lowZ = std::min(pos.z, m.target.z);
+            const double len = std::hypot(detail::arcLength(g), m.target.z - pos.z);
+            const double r = tool ? tool->diameter / 2 : 0.0;
+            // Conservative: the arc's bounding box grown by the tool radius touches the stock.
+            const bool over = x1 + r > stock.x0 && x0 - r < stock.x1 && y1 + r > stock.y0 && y0 - r < stock.y1;
+            if (lowZ < spoilLimit - kEps)
+                error("cam.sim.spoilboard_limit", at(i) + " reaches Z " + mm(lowZ) + " mm, " +
+                                                      mm(frame.bottomZ - lowZ) +
+                                                      " mm below the stock bottom; the limit is " +
+                                                      mm(machine.maxSpoilboardPenetration) + " mm.");
+            if (!tool) error("cam.sim.no_tool", at(i) + " is a cutting move with no tool loaded.");
+            if (!spindle) error("cam.sim.spindle_off_cut", at(i) + " is a cutting move while the spindle is off.");
+            if (!(m.feed > 0) || m.feed > machine.maxFeed + kEps)
+                error("cam.sim.feed_limit", at(i) + " uses feed " + mm(m.feed) + " mm/min; machine '" + machine.name +
+                                                "' allows (0, " + mm(machine.maxFeed) + "] mm/min.");
+            rep.cutLength += len;
+            if (m.feed > 0) rep.estimatedSeconds += len / m.feed * 60.0;
+            if (tool && over && frame.topZ - lowZ > tool->fluteLength + kEps)
+                error("cam.sim.flute_length", at(i) + " cuts " + mm(frame.topZ - lowZ) +
+                                                  " mm below the stock top but tool '" + tool->id +
+                                                  "' has flute length " + mm(tool->fluteLength) + " mm.");
+            if (tool && valid) {
+                hm.cutArc(pos, m.target, m.centre, g.sweep, r, i);
+                cutterOf.try_emplace(m.source.str(), tool->diameter);
+            }
+            pos = m.target;
             break;
         }
         case MotionKind::ToolChange: {
@@ -361,6 +415,9 @@ SimulationReport simulate(const Program& program, const domain::Part& part, cons
                       (shallowest >= hm.topZ() - kEps ? ", i.e. untouched" : "") + ").");
         }
     }
+    // Contour routing: expectations from the domain (raw outline, cut-outs).
+    const detail::ContourChecker contours(part, frame, options, rep.diagnostics);
+    contours.checkCut(hm, cutterOf, frame.bottomZ, rep.diagnostics);
     // Gouges and over-deep cuts.
     std::map<std::string, Agg> gouges, deep;
     const auto removed = hm.removedCells(kEps);
@@ -371,11 +428,19 @@ SimulationReport simulate(const Program& program, const domain::Part& part, cons
         const Target* deepest = nullptr;
         for (const auto& t : targets)
             if (inAllowed(t, c) && (!deepest || t.allowedFloor < deepest->allowedFloor)) deepest = &t;
-        if (!deepest) {
+        double allowedFloor = deepest ? deepest->allowedFloor : 0;
+        std::string allowedId = deepest ? deepest->id : std::string();
+        // Waste side of a routed contour: may be removed down to the spoilboard limit.
+        if (!contours.targets().empty() && (!deepest || spoilLimit < allowedFloor))
+            if (const ContourTarget* w = contours.wasteAt(c)) {
+                allowedFloor = spoilLimit;
+                allowedId = w->id.str();
+            }
+        if (allowedId.empty()) {
             gouges[program.motions[cell->motion].source.str()].add(c, cell->minZ, cell->motion);
-        } else if (cell->minZ < deepest->allowedFloor - tol) {
-            auto& a = deep[deepest->id];
-            a.floor = deepest->allowedFloor;
+        } else if (cell->minZ < allowedFloor - tol) {
+            auto& a = deep[allowedId];
+            a.floor = allowedFloor;
             a.add(c, cell->minZ, cell->motion);
         }
     }

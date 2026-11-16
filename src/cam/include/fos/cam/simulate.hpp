@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include "fos/cam/contour.hpp"
 #include "fos/cam/machine.hpp"
 #include "fos/cam/setup.hpp"
 #include "fos/cam/tool.hpp"
@@ -33,17 +34,36 @@
 ///   cam.sim.flute_length           cutting deeper below the stock top than the flute length
 ///   cam.sim.spindle_on_at_end      program ends with the spindle running
 ///   cam.sim.invalid_dwell          negative dwell
+///   cam.sim.arc_invalid            arc whose start and end radii differ by > 0.001 mm, radius
+///                                  < 0.001 mm, or start == end (full circles are not allowed)
 /// Material checks (coarse heightmap of cell centres over the WHOLE stock, last row/column
 /// clipped to the stock edge; flat-bottomed cylindrical tool):
 ///   cam.sim.hole_not_cut / cam.sim.groove_not_cut   expected cells not cut to the floor
 ///   cam.sim.too_deep               cut inside an operation footprint below its floor
 ///   cam.sim.gouge                  material removed outside every operation footprint
 ///   cam.sim.unresolved (warning)   operation too small for the cell size
+/// Contour routing (shaped parts, contour.hpp; only when SimulationOptions::expectContours). The
+/// expectations come from domain::cutContour() / the cut-outs mapped with contourToMachineXY():
+///   cam.sim.contour_not_cut        a contour has no cutting motion, or cells on its waste side within
+///                                  one tool radius of the contour AND reachable by that tool (within r
+///                                  of the ideal compensated path offsetContour(contour, +/-r)) are not
+///                                  cut through to the stock bottom; unreachable sharp corners are not
+///                                  required (the generator warns about them)
+///   material on the waste side (outside the raw outline, inside a cut-out) may be removed down to the
+///   spoilboard limit; anything removed INSIDE the finished part area (raw outline minus cut-outs,
+///   beyond contourTolerance, and outside every hole/groove) is cam.sim.gouge.
 namespace fos::cam {
 
 struct SimulationOptions {
     double cellSize = 0.5;        ///< mm; heightmap resolution
     double depthTolerance = 0.01; ///< mm
+    /// Expect contour routing for parts with needsContourRouting() (set false when the program was
+    /// generated with CamOptions::routeContours = false).
+    bool expectContours = true;
+    double contourTolerance = 0.001; ///< mm; cell centres this close to a contour count as on it
+    /// Model providing the edge bands for domain::cutContour(); may be null unless an outline
+    /// segment is banded (cam.sim.setup_mismatch otherwise). Not owned.
+    const domain::Model* model = nullptr;
 };
 
 struct SimulationReport {

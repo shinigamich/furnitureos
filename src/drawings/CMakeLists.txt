@@ -26,4 +26,6 @@ fos_add_tests(drawings
         tests/export_tests.cpp
         tests/part_drawing_tests.cpp
         tests/edit_anchor_tests.cpp
-        tests/rect_golden_tests.cpp)
+        tests/rect_golden_tests.cpp
+        tests/shaped_part_tests.cpp
+        tests/shaped_view_tests.cpp)

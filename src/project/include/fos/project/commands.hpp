@@ -58,6 +58,9 @@ Command setConstruction(std::string itemId, furniture::ConstructionOptions optio
 Command setMaterials(std::string itemId, furniture::MaterialAssignment materials);
 Command setHardware(std::string itemId, furniture::HardwareSelection hardware);
 Command setPartOverride(std::string itemId, std::string slot, std::optional<furniture::PartOverride> override);
+/// Sets or clears (nullopt) the parametric contour of one part slot (furniture::setPartContour):
+/// an invalid spec (radii that do not fit, bad expressions, ...) fails and changes nothing.
+Command setPartContour(std::string itemId, std::string slot, std::optional<furniture::ContourSpec> contour);
 Command setInterior(std::string itemId, furniture::Section root);
 Command replaceSection(std::string itemId, std::string path, furniture::Section section);
 Command setShelfCount(std::string itemId, std::string path, int count);
@@ -69,6 +72,10 @@ Command setSectionSize(std::string itemId, std::string path, furniture::SectionS
 // --- panels ---
 /// Replaces the whole panel definition (its id must stay the same part id or be unique).
 Command setPanel(std::string itemId, furniture::PanelDefinition panel);
+/// Sets or clears (nullopt) the contour of a panel item. The panel is generated with the new
+/// contour against the project libraries first; any generation error (invalid contour) fails
+/// the command and changes nothing.
+Command setPanelContour(std::string itemId, std::optional<furniture::ContourSpec> contour);
 
 // --- items ---
 /// Appends (or inserts before `position`, clamped) a new item; its id must be non-empty and unused.

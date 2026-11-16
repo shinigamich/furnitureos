@@ -2,6 +2,7 @@
 #include "fos/project/commands.hpp"
 
 #include "fos/furniture/edit.hpp"
+#include "fos/furniture/panel.hpp"
 #include "fos/project/limits.hpp"
 
 #include <algorithm>
@@ -234,6 +235,14 @@ Command setPartOverride(std::string itemId, std::string slot, std::optional<furn
                        });
 }
 
+Command setPartContour(std::string itemId, std::string slot, std::optional<furniture::ContourSpec> contour) {
+    return cabinetEdit(itemId,
+                       label(contour ? "Set contour of part {1} of {0}" : "Remove contour of part {1} of {0}", {itemId, slot}),
+                       [slot, contour](CabinetDefinition& d, const Libraries& l) {
+                           return furniture::setPartContour(d, l, slot, contour);
+                       });
+}
+
 Command setInterior(std::string itemId, furniture::Section root) {
     return cabinetEdit(itemId, label("Change interior of {0}", {itemId}),
                        [root](CabinetDefinition& d, const Libraries& l) { return furniture::setInterior(d, l, root); });
@@ -287,6 +296,23 @@ Command setPanel(std::string itemId, furniture::PanelDefinition panel) {
         if (panel.id.empty())
             return core::makeError(core::ErrorCode::InvalidArgument, "Panel item \"" + itemId + "\" needs a non-empty part id.", itemId);
         item->panel()->panel = panel;
+        return items({itemId});
+    };
+    return c;
+}
+
+Command setPanelContour(std::string itemId, std::optional<furniture::ContourSpec> contour) {
+    Command c;
+    c.label = label(contour ? "Set contour of panel {0}" : "Remove contour of panel {0}", {itemId});
+    c.apply = [itemId, contour](Project& p) -> core::Result<Affected> {
+        Item* item = p.findItem(itemId);
+        if (item == nullptr) return noItem(itemId);
+        if (item->panel() == nullptr)
+            return core::makeError(core::ErrorCode::InvalidArgument, "Item \"" + itemId + "\" is a cabinet, not a panel.", itemId);
+        furniture::PanelDefinition panel = item->panel()->panel;
+        panel.contour = contour;
+        if (auto generated = furniture::generatePanel(panel, p.libraries); !generated) return generated.error();
+        item->panel()->panel = std::move(panel);
         return items({itemId});
     };
     return c;

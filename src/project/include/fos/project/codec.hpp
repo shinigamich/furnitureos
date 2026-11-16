@@ -22,6 +22,8 @@ formats::Json toJson(const furniture::CabinetDefinition& cabinet); ///< Without 
 formats::Json toJson(const drawings::DrawingEdits& edits);
 formats::Json toJson(const CuttingSettings& settings);
 formats::Json toJson(const Item& item);                            ///< With "type" and preserved keys.
+/// Part / panel contour (README "ContourSpec"); every field is written (lossless).
+formats::Json toJson(const furniture::ContourSpec& contour);
 
 core::Result<parametric::ParameterDef> parameterFromJson(const formats::Json& json, std::string_view path);
 core::Result<parametric::ConstraintDef> constraintFromJson(const formats::Json& json, std::string_view path);
@@ -32,6 +34,8 @@ core::Result<furniture::Section> sectionFromJson(const formats::Json& json, std:
 core::Result<furniture::CabinetDefinition> cabinetFromJson(const formats::Json& json, std::string_view path);
 core::Result<drawings::DrawingEdits> drawingEditsFromJson(const formats::Json& json, std::string_view path);
 core::Result<CuttingSettings> cuttingSettingsFromJson(const formats::Json& json, std::string_view path);
+/// Strict (closed object); the spec is checked with furniture::checkContourSpec.
+core::Result<furniture::ContourSpec> contourFromJson(const formats::Json& json, std::string_view path);
 core::Result<Item> itemFromJson(const formats::Json& json, std::string_view path);
 
 /// The whole payload of a `.fosp` file.

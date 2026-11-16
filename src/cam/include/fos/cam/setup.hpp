@@ -21,6 +21,11 @@
 ///    This is exactly machining::flippedFaceCoordinates(part, B, (u, v), FlipAxis::Length).
 /// In both cases the part's length runs along machine +X and the stock occupies
 /// [o.x, o.x + L] x [o.y, o.y + W] x [o.z, o.z + T]. Edge faces cannot face the spindle.
+///
+/// BLANK ALLOWANCE (routed shaped parts only, contour.hpp): with Setup::blankAllowance = a > 0 the
+/// clamped stock is the blank [s.x, s.x + L + 2a] x [s.y, s.y + W + 2a] x [s.z, s.z + T]
+/// (s = Setup::stockOrigin, the blank's min corner) and the part frame origin sits at
+/// o = s + (a, a, 0); all formulas above use o. a = 0 (the default) is exactly the old behaviour.
 namespace fos::cam {
 
 struct Setup {
@@ -29,23 +34,28 @@ struct Setup {
     /// seen on the table): the fixture offset. o.z is the stock bottom (normally 0); it must
     /// not be negative because Z = 0 is the spoilboard top (makeSetupFrame refuses it).
     geometry::Vec3 stockOrigin;
+    /// mm added on every side of the part's bounding box to form the blank (>= 0). Only valid for
+    /// parts that need contour routing (makeSetupFrame refuses it otherwise).
+    double blankAllowance = 0;
 };
 
 /// Derived, validated geometry of a setup.
 struct SetupFrame {
     domain::Face faceUp = domain::Face::A;
-    geometry::Vec3 origin;
-    double length = 0, width = 0, thickness = 0;
+    geometry::Vec3 origin;  ///< machine position of the PART frame origin (stockOrigin + allowance)
+    double length = 0, width = 0, thickness = 0; ///< part dimensions
+    double blankAllowance = 0;
     double topZ = 0;     ///< machine Z of the upward face
     double bottomZ = 0;  ///< machine Z of the stock bottom
-    geometry::Aabb stock;///< machine frame
+    geometry::Aabb stock;///< machine frame (the blank when blankAllowance > 0)
 
     /// Part-frame point -> machine frame (formulas above).
     geometry::Vec3 partToMachine(geometry::Vec3 partPoint) const noexcept;
 };
 
 /// Errors: faceUp not A/B (Unsupported), non-positive part dimensions (InvalidArgument),
-/// stockOrigin.z < 0, i.e. stock bottom below the spoilboard top Z = 0 (InvalidArgument; NaN too).
+/// stockOrigin.z < 0, i.e. stock bottom below the spoilboard top Z = 0 (InvalidArgument; NaN too),
+/// blankAllowance < 0 or > 0 for a part that needs no contour routing (InvalidArgument).
 core::Result<SetupFrame> makeSetupFrame(const domain::Part& part, const Setup& setup);
 
 /// Machine XY of a point (u, v) on the UPWARD face, computed with the machining flip

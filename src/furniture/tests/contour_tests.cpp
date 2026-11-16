@@ -41,7 +41,7 @@ std::optional<domain::EdgeBandId> abs2() { return domain::EdgeBandId("eb.abs2");
 TEST(Contour, ShelfWithRoundedFrontCorners) {
     const GenerationResult r = gen(withContour(shelfCabinet(), "shelf.1", rounded("30", "30")));
     EXPECT_THAT(errorsOf(r.diagnostics), IsEmpty());
-    const domain::Part& shelf = part(r.assembly, "shelf.1");
+    const domain::Part shelf = part(r.assembly, "shelf.1");
     expectSize(shelf, 762, 540, 18);
     ASSERT_TRUE(shelf.shape.has_value());
     const auto& c = shelf.shape->outer;
@@ -86,7 +86,7 @@ TEST(Contour, WidthChangeRegeneratesWithSameRadii) {
     CabinetDefinition d = withContour(shelfCabinet(), "shelf.1", rounded("30", "30"));
     auto edit = setParameter(d, libs(), "width", 900);
     ASSERT_TRUE(edit.ok()) << edit.error().message;
-    const domain::Part& shelf = part(edit.value().generated.assembly, "shelf.1");
+    const domain::Part shelf = part(edit.value().generated.assembly, "shelf.1");
     // 900 - 2 * 18 - 2 * 1 = 862 long.
     expectSize(shelf, 862, 540, 18);
     ASSERT_TRUE(shelf.shape.has_value());
@@ -103,7 +103,7 @@ TEST(Contour, RadiusExpressionsFollowTheParameterGraphAndPartSize) {
     ASSERT_TRUE(d.parameters.defineConstant("corner_r", 25, parametric::ParameterKind::Length).ok());
     // Corner (L,W) uses the part's own width: 540 / 10 = 54.
     d = withContour(d, "shelf.1", rounded("corner_r", "corner_r * 2", "contour.width / 10", ""));
-    const domain::Part& shelf = part(gen(d).assembly, "shelf.1");
+    const domain::Part shelf = part(gen(d).assembly, "shelf.1");
     ASSERT_TRUE(shelf.shape.has_value());
     const auto& c = shelf.shape->outer;
     // (25,0) L1 -> (712,0) arc R50 -> (762,50) W2 -> (762,486) arc R54 -> (708,540) L2 -> (0,540) W1 -> (0,25) arc R25.
@@ -177,7 +177,7 @@ TEST(Contour, MachiningInARemovedCornerIsAnError) {
     // The bottom joint (confirmats, defaults) is drilled into the side's face near that
     // corner. A R 100 corner removes everything outside the circle around (100, 100).
     const CabinetDefinition plain = defaultCabinet();
-    const domain::Part& before = part(gen(plain).assembly, "side.left");
+    const domain::Part before = part(gen(plain).assembly, "side.left");
     int expected = 0;
     for (const auto& op : before.operations)
         if (const auto* h = std::get_if<domain::Hole>(&op.shape))
@@ -196,7 +196,9 @@ TEST(Contour, MachiningInARemovedCornerIsAnError) {
         EXPECT_THAT(m, HasSubstr("leaves the contoured outline"));
     }
     for (const auto& d : r.diagnostics)
-        if (d.code == "furniture.contour.machining_outside") EXPECT_EQ(d.severity, core::Severity::Error);
+        if (d.code == "furniture.contour.machining_outside") {
+            EXPECT_EQ(d.severity, core::Severity::Error);
+        }
     // The operations are kept (reported, not silently dropped).
     EXPECT_EQ(part(r.assembly, "side.left").operations.size(), before.operations.size());
     // A small radius clear of the holes is fine.
@@ -209,7 +211,7 @@ TEST(Contour, EdgeHoleUnderAConcaveArcIsAnError) {
     // A concave arc on W1 (rise 30) removes material at the edge, so every edge hole on W1
     // (whose bore starts at x = 0) leaves the outline; holes on W2 stay inside.
     const CabinetDefinition plain = defaultCabinet();
-    const domain::Part& bottom = part(gen(plain).assembly, "bottom");
+    const domain::Part bottom = part(gen(plain).assembly, "bottom");
     int onW1 = 0;
     for (const auto& op : bottom.operations)
         if (const auto* h = std::get_if<domain::Hole>(&op.shape))
@@ -260,7 +262,7 @@ TEST(Contour, RoundedShelvingTemplate) {
     EXPECT_FALSE(hasCode(r.value().diagnostics, "furniture.contour.unused"));
     EXPECT_THAT(interpenetrations(r.value().assembly), IsEmpty());
     for (const char* slot : {"shelf.1.1", "shelf.1.2", "shelf.2.1", "shelf.2.2"}) {
-        const domain::Part& s = part(r.value().assembly, slot);
+        const domain::Part s = part(r.value().assembly, slot);
         ASSERT_TRUE(s.shape.has_value()) << slot;
         // 800 - 2 * 18 - 2 * 1 = 762 long; shelf_depth = 300 - 20 = 280.
         EXPECT_NEAR(geometry::signedArea(s.shape->outer), s.length * s.width - 2 * (900.0 - kPi * 900.0 / 4.0), 1e-6);
@@ -270,7 +272,7 @@ TEST(Contour, RoundedShelvingTemplate) {
     CabinetDefinition e = d;
     auto edit = setParameter(e, libs(), templates::kShelfCornerRadius, 50);
     ASSERT_TRUE(edit.ok()) << edit.error().message;
-    const domain::Part& s = part(edit.value().generated.assembly, "shelf.1.1");
+    const domain::Part s = part(edit.value().generated.assembly, "shelf.1.1");
     EXPECT_NEAR(geometry::segmentInfo(s.shape->outer, 1).radius, 50, 1e-9);
 }
 

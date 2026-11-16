@@ -37,6 +37,12 @@ void checkMachining(Context& c);
 void checkHardware(Context& c);
 void checkCompleteness(Context& c);
 
+/// Contoured parts (ADR-0008): shape structure, bounds, cut-outs, band entries, raw outline
+/// (called by checkParts for parts with a valid size) ...
+void checkPartShape(Context& c, const domain::Assembly& a, const domain::Part& p);
+/// ... and per-segment edge bands (called by checkEdgeBanding).
+void checkShapeBands(Context& c, const domain::Assembly& a, const domain::Part& p);
+
 /// core::formatLength (0.1 mm), but "NaN"/"inf" for non-finite values.
 std::string num(double mm);
 /// "'Name'" or, for an unnamed part, "part 'id'".

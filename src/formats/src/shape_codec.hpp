@@ -5,6 +5,8 @@
 #include "fos/domain/part.hpp"
 #include "fos/formats/json.hpp"
 
+#include <cstddef>
+#include <string>
 #include <string_view>
 
 namespace fos::formats::detail {
@@ -16,6 +18,9 @@ Json toJson(const domain::PartShape& shape);
 /// Structural decode of a "shape" object at `path` (types, unknown keys, the vertex/cut-out
 /// limits of codec.hpp). Geometry is checked by checkPartShape().
 core::Result<domain::PartShape> shapeFromJson(const Json& json, std::string_view path);
+
+/// Message of the kMaxShapeVertices limit.
+std::string totalVerticesMessage(std::size_t count);
 
 /// Semantic checks of `part.shape` (no-op without a shape), in this order:
 ///   Part::edges empty; limits; outer contour valid (geometry::validateContour), counter-

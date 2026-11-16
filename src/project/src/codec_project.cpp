@@ -87,6 +87,7 @@ Json panelJson(const PanelItem& p) {
     j["material"] = p.panel.material.str();
     j["edges"] = writeEdges(p.panel.edges);
     writeGraph(j, p.panel.parameters);
+    if (p.panel.contour) j["contour"] = writeContour(*p.panel.contour); // absent key = rectangle
     return j;
 }
 
@@ -106,6 +107,7 @@ void readPanelFields(Reader& r, PanelItem& p) {
     p.panel.material = domain::MaterialId(material);
     r.nested("edges", p.panel.edges, readEdges);
     readGraph(r, p.panel.parameters);
+    if (const Json* c = r.find("contour"); c != nullptr && !c->is_null()) r.nested("contour", p.panel.contour, readContour);
 }
 
 } // namespace

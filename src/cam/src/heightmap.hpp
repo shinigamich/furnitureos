@@ -24,6 +24,11 @@ public:
 
     /// Sweeps a flat-bottomed cylinder of radius r with its tip moving linearly a -> b.
     void cut(geometry::Vec3 a, geometry::Vec3 b, double r, std::size_t motion);
+    /// Sweeps the same cylinder with its tip moving along a circular arc in XY (centre c, signed
+    /// sweep in radians, radius |a - c|) from a to b, Z linear in the swept angle. EXACT: a cell
+    /// centre p is cut iff some arc position lies within r of p; the covered angles are
+    /// |phi - phi_p| <= acos((d^2 + R^2 - r^2) / (2 d R)) with d = |p - c|.
+    void cutArc(geometry::Vec3 a, geometry::Vec3 b, geometry::Vec2 c, double sweep, double r, std::size_t motion);
     /// Lowest Z at cell (i, j); +inf when untouched.
     double minZ(int i, int j) const;
     const Cell* cell(int i, int j) const;
@@ -38,6 +43,7 @@ public:
 
 private:
     static std::int64_t key(int i, int j) noexcept { return (static_cast<std::int64_t>(j) << 32) | static_cast<std::uint32_t>(i); }
+    void lower(int i, int j, double z, std::size_t motion);
     double centreCoord(int i, double origin, double extent) const noexcept;
     double x0_, y0_, lx_, ly_, h_, top_;
     int nx_, ny_;

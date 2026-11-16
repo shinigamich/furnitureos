@@ -77,6 +77,7 @@ void checkPart(Context& c, const domain::Assembly& a, const domain::Part& p) {
               label(p) + " measures only " + num(p.length) + " x " + num(p.width) + " mm; parts below " +
                   num(c.options.minPartSize) + " mm in length or width cannot be machined safely.",
               pid, aid, pid);
+    checkPartShape(c, a, p);
     if (m) checkSheetFit(c, a, p, *m);
 }
 } // namespace
@@ -150,6 +151,7 @@ void checkEdgeBanding(Context& c) {
                               (alongLength ? "part width " : "part length ") + num(perp) + " mm.",
                           pid, aid, pid, {b->id.str()});
             }
+            checkShapeBands(c, a, p);
             if (!anyBand || !validSize(p)) continue;
             const domain::CutSize cut = domain::cutSize(p, c.model);
             if (!(cut.length > 0) || !(cut.width > 0))

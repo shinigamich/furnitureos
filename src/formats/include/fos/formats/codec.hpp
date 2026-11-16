@@ -46,6 +46,7 @@ inline constexpr std::string_view kUnknownKeyPrefix = "json:";
 /// contour validation is O(n^2) in the number of segments.
 inline constexpr std::size_t kMaxContourVertices = 10000; ///< Per contour (outer or one cut-out).
 inline constexpr std::size_t kMaxShapeCutouts = 1000;     ///< Cut-outs per part.
+inline constexpr std::size_t kMaxShapeVertices = 20000;   ///< Outer contour + all cut-outs of one part.
 /// Tolerance (mm) of the check that the outer contour's exact bounding box equals
 /// [0, length] x [0, width].
 inline constexpr double kShapeBoundsTolerance = 1e-6;

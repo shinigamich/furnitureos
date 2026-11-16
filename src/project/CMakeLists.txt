@@ -24,4 +24,5 @@ fos_add_tests(project
         tests/file_tests.cpp
         tests/document_tests.cpp
         tests/scenario_tests.cpp
-        tests/limits_tests.cpp)
+        tests/limits_tests.cpp
+        tests/contour_tests.cpp)

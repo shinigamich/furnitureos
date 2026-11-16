@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/cam/generate.hpp"
 
+#include "arc_math.hpp"
+#include "builder.hpp"
+#include "contour_gen.hpp"
+
 #include "fos/core/units.hpp"
 #include "fos/machining/ordering.hpp"
 #include "fos/machining/validation.hpp"
@@ -15,73 +19,11 @@ using core::makeError;
 using geometry::Vec2;
 using geometry::Vec3;
 
+using detail::Builder;
+
 namespace {
 
 std::string mm(double v) { return core::formatLength(v, 3); }
-
-/// Appends motions while tracking position and machine state.
-class Builder {
-public:
-    Builder(Program& p, const CamOptions& o) : prog_(p), opt_(o) {}
-
-    void start() {
-        push(Motion::rapidZ(prog_.safeZ));
-        pos_.z = prog_.safeZ;
-    }
-    void useTool(const Tool& t) {
-        if (tool_ == t.number) return;
-        if (spindle_) { push(Motion::spindleOff()); spindle_ = false; }
-        if (pos_.z < prog_.safeZ) rapid({pos_.x, pos_.y, prog_.safeZ}, {});
-        push(Motion::toolChange(t.number));
-        push(Motion::spindleOn(t.rpm));
-        if (opt_.spindleSpinUpDwell > 0) push(Motion::dwell(opt_.spindleSpinUpDwell));
-        tool_ = t.number;
-        spindle_ = true;
-    }
-    /// XY travel at the current height (>= clearance plane), then straight down to the clearance plane.
-    void moveAbove(Vec2 xy, const domain::OperationId& src) {
-        if (!xyKnown_ || !core::approxEqual(xy.x, pos_.x) || !core::approxEqual(xy.y, pos_.y))
-            rapid({xy.x, xy.y, pos_.z}, src);
-        if (pos_.z > prog_.clearanceZ) rapid({xy.x, xy.y, prog_.clearanceZ}, src);
-    }
-    void rapid(Vec3 p, const domain::OperationId& src) {
-        push(Motion::rapid(p, src));
-        pos_ = p;
-        xyKnown_ = true;
-    }
-    void linear(Vec3 p, double feed, const domain::OperationId& src) {
-        push(Motion::linear(p, feed, src));
-        pos_ = p;
-    }
-    void dwell(double s, const domain::OperationId& src) { push(Motion::dwell(s, src)); }
-    void retract(const domain::OperationId& src) { rapid({pos_.x, pos_.y, prog_.clearanceZ}, src); }
-    void finish() {
-        if (xyKnown_ && pos_.z < prog_.safeZ) rapid({pos_.x, pos_.y, prog_.safeZ}, {});
-        if (spindle_) { push(Motion::spindleOff()); spindle_ = false; }
-    }
-
-private:
-    void push(Motion m) { prog_.motions.push_back(std::move(m)); }
-    Program& prog_;
-    const CamOptions& opt_;
-    Vec3 pos_;
-    bool xyKnown_ = false;
-    int tool_ = 0;
-    bool spindle_ = false;
-};
-
-core::Result<void> checkToolLimits(const Tool& t, const MachineProfile& m) {
-    const std::string who = std::string(toString(t.kind)) + " '" + t.id + "' (T" + std::to_string(t.number) + ")";
-    if (t.rpm > m.maxRpm)
-        return makeError(ErrorCode::ConstraintViolation, who + " runs at " + mm(t.rpm) + " rpm but machine '" + m.name +
-                                                             "' allows at most " + mm(m.maxRpm) + " rpm.", t.id);
-    const double f = std::max(t.feedRate, t.plungeRate);
-    if (f > m.maxFeed)
-        return makeError(ErrorCode::ConstraintViolation, who + " uses a feed of " + mm(f) + " mm/min but machine '" +
-                                                             m.name + "' allows at most " + mm(m.maxFeed) + " mm/min.",
-                         t.id);
-    return {};
-}
 
 void drill(Builder& b, const HoleTarget& h, double floorZ, const Tool& t, const CamOptions& o, double topZ) {
     b.moveAbove(h.centre, h.id);
@@ -153,8 +95,19 @@ core::Result<void> checkEnvelope(const Program& prog, const MachineProfile& m, c
                                  const CamOptions& o) {
     for (std::size_t i = 0; i < prog.motions.size(); ++i) {
         const Motion& mo = prog.motions[i];
-        if (mo.kind != MotionKind::Rapid && mo.kind != MotionKind::Linear) continue;
-        const bool xyOut = !mo.zOnly && (!m.envelopeX.contains(mo.target.x) || !m.envelopeY.contains(mo.target.y));
+        if (mo.kind != MotionKind::Rapid && !isFeedMove(mo.kind)) continue;
+        bool xyOut = !mo.zOnly && (!m.envelopeX.contains(mo.target.x) || !m.envelopeY.contains(mo.target.y));
+        if (isArc(mo.kind) && i > 0) {
+            // The whole arc must be reachable, not only its end point (extreme points included).
+            const Motion& prev = prog.motions[i - 1];
+            const detail::ArcGeom a = detail::arcFromEndpoints({prev.target.x, prev.target.y},
+                                                               {mo.target.x, mo.target.y}, mo.centre,
+                                                               mo.kind == MotionKind::ArcCCW);
+            double x0, y0, x1, y1;
+            detail::arcBounds(a, x0, y0, x1, y1);
+            xyOut = xyOut || !m.envelopeX.contains(x0) || !m.envelopeX.contains(x1) || !m.envelopeY.contains(y0) ||
+                    !m.envelopeY.contains(y1);
+        }
         if (!xyOut && m.envelopeZ.contains(mo.target.z)) continue;
         const std::string src = mo.source.str();
         const std::string what = src.empty() ? std::string("A set-up move") : "Operation '" + src + "'";
@@ -188,10 +141,10 @@ core::Result<CamResult> generateProgram(const domain::Part& part, const Setup& s
         res.diagnostics.push_back(std::move(d));
     }
     if (!(o.stepoverFraction > 0 && o.stepoverFraction <= 1) || o.peckDepth < 0 || o.breakthroughAllowance < 0 ||
-        o.dwellAtHoleBottom < 0 || o.spindleSpinUpDwell < 0 || o.grooveLeadOut < 0)
+        o.dwellAtHoleBottom < 0 || o.spindleSpinUpDwell < 0 || o.grooveLeadOut < 0 || !(o.contourLeadRadius >= 0))
         return makeError(ErrorCode::InvalidArgument,
                          "CAM options are invalid: stepoverFraction must be in (0, 1] and peck depth, breakthrough "
-                         "allowance, dwells and lead-out must not be negative.");
+                         "allowance, dwells, lead-out and contour lead radius must not be negative.");
     const auto vd = machining::validateOperations(part);
     std::size_t nErr = 0;
     const core::Diagnostic* first = nullptr;
@@ -269,6 +222,12 @@ core::Result<CamResult> generateProgram(const domain::Part& part, const Setup& s
                     res.toolsUsed.push_back(tool.value()->number);
             }
         }
+    }
+    if (o.routeContours) {
+        auto targets = contourTargets(part, frame, o.model);
+        if (!targets) return targets.error();
+        if (auto r = detail::routeContours(b, targets.value(), part, frame, machine, tools, o, res); !r)
+            return r.error();
     }
     b.finish();
     if (auto env = checkEnvelope(prog, machine, part, o); !env) return env.error();

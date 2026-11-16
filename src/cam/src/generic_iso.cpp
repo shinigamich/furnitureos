@@ -75,9 +75,13 @@ core::Result<PostOutput> GenericIsoPostprocessor::emit(const PostInput& in, cons
                                               : " - FRONT EDGE L1 AT MIN Y"));
     t += comment("ORIGIN: WORK ZERO AS IN MACHINE PROFILE FRAME. STOCK MIN CORNER AT X" + fixed(s.stockOrigin.x, 3) +
                  " Y" + fixed(s.stockOrigin.y, 3) + " Z" + fixed(s.stockOrigin.z, 3) + " = STOCK BOTTOM");
-    t += comment("STOCK: X" + fixed(s.stockOrigin.x, 3) + ".." + fixed(s.stockOrigin.x + part.length, 3) + " Y" +
-                 fixed(s.stockOrigin.y, 3) + ".." + fixed(s.stockOrigin.y + part.width, 3) + " Z" +
+    const double blank = 2 * s.blankAllowance;
+    t += comment("STOCK: X" + fixed(s.stockOrigin.x, 3) + ".." + fixed(s.stockOrigin.x + part.length + blank, 3) +
+                 " Y" + fixed(s.stockOrigin.y, 3) + ".." + fixed(s.stockOrigin.y + part.width + blank, 3) + " Z" +
                  fixed(s.stockOrigin.z, 3) + ".." + fixed(s.stockOrigin.z + part.thickness, 3) + " LENGTH ALONG +X");
+    if (s.blankAllowance > 0)
+        t += comment("BLANK: PART BOUNDING BOX + " + fixed(s.blankAllowance, 3) + " MM PER SIDE. PART ORIGIN AT X" +
+                     fixed(s.stockOrigin.x + s.blankAllowance, 3) + " Y" + fixed(s.stockOrigin.y + s.blankAllowance, 3));
     t += comment("SAFE Z " + fixed(in.program.safeZ, 3) + " / CLEARANCE PLANE Z " + fixed(in.program.clearanceZ, 3));
     for (int n : toolNums) {
         const Tool* tool = in.tools.findByNumber(n);

@@ -35,6 +35,10 @@ void readGraph(Reader& reader, parametric::ParameterGraph& graph);
 /// {"l1": id|null, "l2": ..., "w1": ..., "w2": ...}
 Json writeEdges(const std::array<std::optional<domain::EdgeBandId>, 4>& edges);
 core::Result<std::array<std::optional<domain::EdgeBandId>, 4>> readEdges(const Json& json, std::string_view path);
+/// Contour of a part override or panel (furniture/contour_spec.hpp); every field is written,
+/// so the round trip is lossless. The reader checks the spec with furniture::checkContourSpec.
+Json writeContour(const furniture::ContourSpec& contour);
+core::Result<furniture::ContourSpec> readContour(const Json& json, std::string_view path);
 /// Reads every key of a cabinet object except "type".
 void readCabinetFields(Reader& reader, furniture::CabinetDefinition& cabinet);
 

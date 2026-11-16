@@ -49,6 +49,11 @@ core::Result<geometry::Contour> contourFromJson(const Json& json, std::string_vi
 
 } // namespace
 
+std::string totalVerticesMessage(std::size_t count) {
+    return "the shape has at least " + std::to_string(count) + " vertices in its outer contour and cut-outs; at most " +
+           std::to_string(kMaxShapeVertices) + " are allowed per part";
+}
+
 Json toJson(const domain::PartShape& shape) {
     Json j = Json::object();
     j["outer"] = contourToJson(shape.outer);
@@ -77,7 +82,14 @@ core::Result<domain::PartShape> shapeFromJson(const Json& json, std::string_view
             r.failAt("cutouts", "the part has " + std::to_string(cutouts->size()) + " cut-outs; at most " +
                                     std::to_string(kMaxShapeCutouts) + " are allowed");
         } else {
+            std::size_t total = shape.outer.size();
             for (std::size_t k = 0; k < cutouts->size() && r.ok(); ++k) {
+                const Json& item = (*cutouts)[k];
+                if (item.is_array() && total + item.size() > kMaxShapeVertices) {
+                    r.fail(schemaError(joinPath(base, k), totalVerticesMessage(total + item.size())));
+                    break;
+                }
+                total += item.is_array() ? item.size() : 0;
                 auto contour = contourFromJson((*cutouts)[k], joinPath(base, k), "cut-out " + std::to_string(k));
                 if (!contour) r.fail(contour.error());
                 else shape.cutouts.push_back(std::move(contour.value()));

@@ -220,4 +220,41 @@ TEST(RasterPreview, InvalidRequestsGiveNullImage) {
     EXPECT_TRUE(test::inkBox(img).empty());
 }
 
+TEST(RasterPreview, ArcsAreExactCounterClockwiseAndYFlippedLikeSvg) {
+    // Arc primitive (contoured part outlines, ADR-0008): centre (50, 40) mm, radius 20 mm,
+    // counter-clockwise from 0 to 90 degrees ON PAPER (SVG writes the same arc as
+    // "M 70 40 A 20 20 0 0 0 50 20" after its Y flip, i.e. the upper-right quarter).
+    // Line weight 0.4 mm (0.2 mm = 2 px each side), flat caps.
+    //   x: (50 - 0) .. (70 + 0.2) mm -> px 500 .. 701 (the left end at (50, 60) has a horizontal tangent)
+    //   y on paper 40 .. 60.2 mm -> image rows (80 - 60.2) x 10 = 198 .. (80 - 40) x 10 - 1 = 399
+    Sheet s = test::blankSheet(100, 80);
+    s.primitives.emplace_back(drawings::Arc{{50, 40}, 20, 0, 90, LineStyle::Visible, 0.4, {}, {}});
+    const QImage img = renderPreview(s, kPpm);
+    const test::InkBox b = test::inkBox(img);
+    ASSERT_FALSE(b.empty());
+    std::printf("[measured] arc ink box: x %d..%d, y %d..%d (expected 500..701, 198..399)\n", b.minX, b.maxX,
+                b.minY, b.maxY);
+    EXPECT_NEAR(b.minX, 500, 2);
+    EXPECT_NEAR(b.maxX, 701, 1);
+    EXPECT_NEAR(b.minY, 198, 1);
+    EXPECT_NEAR(b.maxY, 399, 2);
+    // Point at 45 degrees: (50 + 14.142, 40 + 14.142) mm -> pixel (641, 258); the true radius
+    // passes through it (exact arc, not a chord: the chord midpoint would be at (60, 50) mm,
+    // 5.86 mm = 58 px inside the arc).
+    EXPECT_TRUE(test::isInk(img, 641, 258));
+    EXPECT_FALSE(test::isInk(img, 600, 300)); // chord midpoint (60, 50) mm: empty
+    // Opposite quadrant (225 degrees) is not drawn.
+    EXPECT_FALSE(test::isInk(img, 358, 541));
+
+    // Wrap-around: 90 -> 0 degrees is the 270-degree complement (upper-right quarter empty).
+    Sheet w = test::blankSheet(100, 80);
+    w.primitives.emplace_back(drawings::Arc{{50, 40}, 20, 90, 0, LineStyle::Visible, 0.4, {}, {}});
+    const QImage wi = renderPreview(w, kPpm);
+    EXPECT_FALSE(test::isInk(wi, 641, 258));
+    EXPECT_TRUE(test::isInk(wi, 358, 541)); // (35.858, 25.858) mm
+    EXPECT_TRUE(test::isInk(wi, 300, 400)); // (30, 40) mm, 180 degrees
+    // Ink pixels of the 270-degree arc ~ 3 x those of the quarter (same stroke, 3 x the length).
+    EXPECT_NEAR(static_cast<double>(test::inkBox(wi).count) / b.count, 3.0, 0.1);
+}
+
 } // namespace
