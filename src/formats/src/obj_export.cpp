@@ -2,6 +2,9 @@
 #include "fos/formats/obj_export.hpp"
 
 #include "fos/formats/atomic_file.hpp"
+#include "fos/geometry/contour.hpp"
+#include "obj_mesh.hpp"
+#include "shape_codec.hpp"
 
 #include <array>
 #include <charconv>
@@ -65,6 +68,63 @@ void appendVector(std::string& out, const char* tag, Vec3 v) {
 constexpr std::array<std::array<int, 4>, 6> kQuads{{{0, 2, 3, 1}, {4, 5, 7, 6}, {0, 1, 5, 4},
                                                     {2, 6, 7, 3}, {0, 4, 6, 2}, {1, 3, 7, 5}}};
 
+/// Index text "v//vn" (1-based global indices).
+std::string corner(std::size_t vertex, std::size_t normal) {
+    return std::to_string(vertex) + "//" + std::to_string(normal);
+}
+
+/// Shaped part (ADR-0008): the finished outline with its cut-outs, tessellated with
+/// kObjChordTolerance and extruded over [0, T]. Points p_0..p_{n-1} of the rings (outer CCW,
+/// holes CW) give vertices p_i at z = 0 (indices 0..n-1) and at z = T (n..2n-1).
+/// Normals: -Z (bottom cap), +Z (top cap), then one per ring edge (outward = right of the
+/// edge direction, since the solid is to the left). Faces: cap triangles (bottom reversed),
+/// and one quad bottom_i, bottom_j, top_j, top_i per ring edge i -> j, which winds
+/// counter-clockwise seen from outside: (b_j - b_i) x (t_i - b_i) = T (e.y, -e.x, 0).
+core::Result<void> appendExtrudedShape(std::string& obj, const domain::Part& part, const geometry::Transform& toProject,
+                                       std::size_t& vertexBase, std::size_t& normalBase) {
+    const domain::PartShape& shape = *part.shape;
+    std::vector<geometry::Polygon2> holes;
+    holes.reserve(shape.cutouts.size());
+    for (const auto& cutout : shape.cutouts) holes.push_back(geometry::tessellate(cutout, kObjChordTolerance));
+    auto cap = detail::triangulateWithHoles(geometry::tessellate(shape.outer, kObjChordTolerance), holes);
+    if (!cap) return cap.error();
+    const detail::CapTriangulation& mesh = cap.value();
+    const std::size_t n = mesh.points.size();
+    const double T = part.thickness;
+    for (const double z : {0.0, T})
+        for (const geometry::Vec2 p : mesh.points) appendVector(obj, "v", toProject.applyPoint({p.x, p.y, z}));
+    appendVector(obj, "vn", -toProject.zAxis);
+    appendVector(obj, "vn", toProject.zAxis);
+    std::vector<std::pair<std::size_t, std::size_t>> sideEdges; // (i, j) per ring edge
+    sideEdges.reserve(n);
+    for (std::size_t r = 0; r + 1 < mesh.ringStart.size(); ++r) {
+        const std::size_t first = mesh.ringStart[r], end = mesh.ringStart[r + 1];
+        for (std::size_t i = first; i < end; ++i) {
+            const std::size_t j = i + 1 < end ? i + 1 : first;
+            const geometry::Vec2 e = mesh.points[j] - mesh.points[i];
+            const double len = geometry::length(e);
+            appendVector(obj, "vn", toProject.applyVector({e.y / len, -e.x / len, 0.0}));
+            sideEdges.emplace_back(i, j);
+        }
+    }
+    for (const auto& t : mesh.triangles) // bottom: reversed, normal -Z
+        obj += "f " + corner(vertexBase + t[0], normalBase) + " " + corner(vertexBase + t[2], normalBase) + " " +
+               corner(vertexBase + t[1], normalBase) + "\n";
+    for (const auto& t : mesh.triangles) // top: as triangulated (CCW seen from +Z)
+        obj += "f " + corner(vertexBase + n + t[0], normalBase + 1) + " " +
+               corner(vertexBase + n + t[1], normalBase + 1) + " " + corner(vertexBase + n + t[2], normalBase + 1) +
+               "\n";
+    for (std::size_t k = 0; k < sideEdges.size(); ++k) {
+        const auto [i, j] = sideEdges[k];
+        const std::size_t vn = normalBase + 2 + k;
+        obj += "f " + corner(vertexBase + i, vn) + " " + corner(vertexBase + j, vn) + " " +
+               corner(vertexBase + n + j, vn) + " " + corner(vertexBase + n + i, vn) + "\n";
+    }
+    vertexBase += 2 * n;
+    normalBase += 2 + n;
+    return {};
+}
+
 } // namespace
 
 core::Result<ObjExport> exportObj(const domain::Model& model, const ObjExportOptions& options) {
@@ -82,6 +142,12 @@ core::Result<ObjExport> exportObj(const domain::Model& model, const ObjExportOpt
     obj += "# Axes: FurnitureOS project frame, right-handed, Z up\n";
     obj += "# One object per part: box of the finished size (length x width x thickness).\n";
     obj += "# Not included: machining operations, edge bands, hardware, textures.\n";
+    bool anyShaped = false;
+    for (const domain::Assembly& assembly : model.assemblies)
+        for (const domain::Part& part : assembly.parts) anyShaped = anyShaped || part.shape.has_value();
+    if (anyShaped) // only then, so that files of rectangular models stay byte-identical
+        obj += "# Shaped parts: finished outline with cut-outs extruded over the thickness; arcs as chords with a "
+               "maximum deviation of " + number(kObjChordTolerance) + " mm.\n";
     obj += "mtllib " + options.mtlFileName + "\n";
 
     // OBJ material name per model material id, assigned on first use (deterministic order).
@@ -143,10 +209,26 @@ core::Result<ObjExport> exportObj(const domain::Model& model, const ObjExportOpt
                                  "OBJ export: the placement of " + who + " is not a rigid transform.", part.id.str());
             const geometry::Transform toProject = assembly.placement * part.placement;
 
+            if (part.shape)
+                if (auto valid = detail::checkPartShape(part, ""); !valid)
+                    return makeError(ErrorCode::InvalidArgument,
+                                     "OBJ export: " + who + " has an invalid shape: " + valid.error().message,
+                                     part.id.str());
+
             const std::string name = makeUnique(objName(part.id.empty() ? part.name : part.id.str()), usedObjectNames);
             obj += "\n# " + commentText(part.name) + ": " + number(L) + " x " + number(W) + " x " + number(T) +
-                   " mm, assembly " + commentText(assembly.id.str()) + "\n";
+                   " mm, assembly " + commentText(assembly.id.str());
+            if (part.shape)
+                obj += ", shaped outline with " + std::to_string(part.shape->cutouts.size()) + " cut-out(s)";
+            obj += "\n";
             obj += "o " + name + "\ng " + name + "\nusemtl " + materialFor(part) + "\n";
+            if (part.shape) {
+                if (auto r = appendExtrudedShape(obj, part, toProject, vertexBase, normalBase); !r)
+                    return makeError(ErrorCode::InvalidArgument,
+                                     "OBJ export: the outline of " + who + " cannot be meshed: " + r.error().message,
+                                     part.id.str());
+                continue;
+            }
             for (int i = 0; i < 8; ++i)
                 appendVector(obj, "v", toProject.applyPoint({(i & 1) ? L : 0.0, (i & 2) ? W : 0.0, (i & 4) ? T : 0.0}));
             const std::array<Vec3, 6> normals{-toProject.zAxis, toProject.zAxis,  -toProject.yAxis,

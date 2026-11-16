@@ -115,6 +115,10 @@ void runHardware(Gen& g);
 /// length / width / thickness is not finite, not > 0 or above limits::kMaxDimension
 /// (message starts with "furniture.geometry.invalid_size").
 core::Result<void> checkPartSizes(const Gen& g);
+/// Turns the contours of the per-slot overrides into part shapes (after hardware placement,
+/// so that machining outside an outline is reported as furniture.contour.machining_outside).
+/// Invalid contours fail generation (messages start with "furniture.contour.invalid:").
+core::Result<void> applyContours(Gen& g);
 /// Self-check after generation: furniture.geometry.interpenetration errors (checks.hpp).
 void checkGeometry(Gen& g);
 

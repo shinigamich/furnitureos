@@ -14,6 +14,9 @@ fos_add_module(drawings
         src/format.cpp
         src/svg.cpp
         src/dxf.cpp
+        src/contour_view.cpp
+        src/part_shape.cpp
+        src/view_shape.cpp
     DEPS fos::core fos::geometry fos::domain)
 fos_add_tests(drawings
     SOURCES
@@ -22,4 +25,5 @@ fos_add_tests(drawings
         tests/sheet_tests.cpp
         tests/export_tests.cpp
         tests/part_drawing_tests.cpp
-        tests/edit_anchor_tests.cpp)
+        tests/edit_anchor_tests.cpp
+        tests/rect_golden_tests.cpp)

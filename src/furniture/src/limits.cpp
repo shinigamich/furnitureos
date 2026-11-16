@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/furniture/limits.hpp"
 
+#include "fos/furniture/contour.hpp"
+
 #include "fos/core/units.hpp"
 #include "fos/furniture/parameters.hpp"
 
@@ -145,6 +147,18 @@ core::Result<void> checkSectionLimits(const Section& root, const std::string& ow
 core::Result<void> checkDefinitionLimits(const CabinetDefinition& definition) {
     const std::string owner = definition.id.str();
     if (auto r = checkSectionLimits(definition.interior, owner); !r) return r;
+    std::size_t contourSegments = 0;
+    for (const auto& [slot, ov] : definition.materials.overrides) {
+        if (!ov.contour) continue;
+        if (auto r = checkContourSpec(*ov.contour, "part slot '" + slot + "' of cabinet '" + owner + "'"); !r) return r;
+        contourSegments += contourSegmentEstimate(*ov.contour);
+    }
+    if (contourSegments > limits::kMaxContourSegmentsPerCabinet)
+        return core::makeError(core::ErrorCode::ConstraintViolation,
+                               "The part contours of cabinet '" + owner + "' have about " +
+                                   std::to_string(contourSegments) + " segments in total; the limit is " +
+                                   std::to_string(limits::kMaxContourSegmentsPerCabinet) + ".",
+                               owner);
     // Inputs first (in the standard order), then derived parameters: a too large input is
     // reported under its own name rather than under a formula that uses it.
     std::vector<std::string> names;

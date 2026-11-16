@@ -144,17 +144,113 @@ void mergeGroup(const LineGroup& g, HiddenLineMode mode, std::vector<ViewSegment
     flush();
 }
 
+double normDeg(double a) noexcept {
+    a = std::fmod(a, 360.0);
+    if (a < 0) a += 360.0;
+    return a;
+}
+
+/// Angles (degrees, relative to the arc start, in (0, sweep)) where the circle crosses the
+/// lines carrying the sides of `r`.
+void circleRectCrossings(const HlrArc& arc, double sweep, const Rect2& r, std::vector<double>& out) {
+    const auto add = [&](double x, double y) {
+        const double rel = normDeg(core::radToDeg(std::atan2(y - arc.center.y, x - arc.center.x)) - arc.startDeg);
+        if (rel > 1e-12 && rel < sweep - 1e-12) out.push_back(rel);
+    };
+    for (const double x : {r.min.x, r.max.x}) {
+        const double dx = x - arc.center.x;
+        const double h2 = arc.radius * arc.radius - dx * dx;
+        if (h2 < 0) continue;
+        const double h = std::sqrt(h2);
+        add(x, arc.center.y + h);
+        add(x, arc.center.y - h);
+    }
+    for (const double y : {r.min.y, r.max.y}) {
+        const double dy = y - arc.center.y;
+        const double h2 = arc.radius * arc.radius - dy * dy;
+        if (h2 < 0) continue;
+        const double h = std::sqrt(h2);
+        add(arc.center.x + h, y);
+        add(arc.center.x - h, y);
+    }
+}
+
 } // namespace
 
+std::vector<ViewArc> removeHiddenArcs(const std::vector<HlrBox>& boxes, const std::vector<HlrArc>& arcs,
+                                      HiddenLineMode mode) {
+    std::vector<ViewArc> out;
+    for (const HlrArc& arc : arcs) {
+        if (!(arc.radius > kEps)) continue;
+        double sweep = std::fmod(arc.endDeg - arc.startDeg, 360.0);
+        if (sweep <= 0) sweep += 360.0;
+        std::vector<const HlrBox*> front;
+        std::vector<double> cuts{0.0, sweep};
+        for (const HlrBox& box : boxes) {
+            if (box.depthNear <= arc.depth + kEps) continue;
+            front.push_back(&box);
+            circleRectCrossings(arc, sweep, box.rect, cuts);
+        }
+        std::sort(cuts.begin(), cuts.end());
+        const auto at = [&](double rel) {
+            const double t = core::degToRad(arc.startDeg + rel);
+            return arc.center + Vec2{std::cos(t), std::sin(t)} * arc.radius;
+        };
+        bool open = false, openVisible = true;
+        double start = 0, end = 0;
+        const auto flush = [&] {
+            if (open && (openVisible || mode == HiddenLineMode::Dashed))
+                out.push_back({arc.center, arc.radius, normDeg(arc.startDeg + start), normDeg(arc.startDeg + end),
+                               openVisible ? LineStyle::Visible : LineStyle::Hidden, arc.sourceId});
+            open = false;
+        };
+        for (std::size_t i = 0; i + 1 < cuts.size(); ++i) {
+            const double s = cuts[i], e = cuts[i + 1];
+            if (core::degToRad(e - s) * arc.radius <= kEps) continue;
+            const Vec2 mid = at((s + e) * 0.5);
+            bool visible = true;
+            for (const HlrBox* b : front)
+                if (b->rect.contains(mid, -kEps)) {
+                    visible = false;
+                    break;
+                }
+            if (open && openVisible == visible) {
+                end = e;
+                continue;
+            }
+            flush();
+            open = true;
+            openVisible = visible;
+            start = s;
+            end = e;
+        }
+        flush();
+    }
+    return out;
+}
+
 std::vector<ViewSegment> removeHiddenLines(const std::vector<HlrBox>& boxes,
+                                           const std::vector<HlrLooseEdge>& looseEdges, HiddenLineMode mode) {
+    return removeHiddenLines(boxes, {}, looseEdges, mode);
+}
+
+std::vector<ViewSegment> removeHiddenLines(const std::vector<HlrBox>& boxes, const std::vector<HlrEdge>& edges,
                                            const std::vector<HlrLooseEdge>& looseEdges, HiddenLineMode mode) {
     std::vector<RawPiece> raw;
     std::size_t order = 0;
     for (const HlrBox& box : boxes) {
+        if (!box.drawEdges) {
+            ++order;
+            continue;
+        }
         const Vec2 c[4] = {box.rect.min, {box.rect.max.x, box.rect.min.y}, box.rect.max,
                            {box.rect.min.x, box.rect.max.y}};
         for (const double depth : {box.depthNear, box.depthFar})
             for (int i = 0; i < 4; ++i) classifyEdge(c[i], c[(i + 1) % 4], depth, order, box.sourceId, boxes, raw);
+        ++order;
+    }
+    for (const HlrEdge& e : edges) {
+        classifyEdge(e.a, e.b, e.depth, order, e.sourceId, boxes, raw);
         ++order;
     }
     for (const HlrLooseEdge& e : looseEdges) {

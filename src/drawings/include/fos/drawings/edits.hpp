@@ -40,6 +40,9 @@ inline constexpr double kStaleOverrideTolerance = core::kLengthEps;
 /// (`edit.measuredAtEdit = measuredValue(current)`). `current` is the dimension as currently
 /// generated (e.g. from DrawingResult::views[i].annotations).
 void setTextOverride(ElementEdit& edit, const Dimension& current, std::string text);
+/// Same for a radius/diameter dimension. For RadiusDimension elements, ElementEdit::offset
+/// replaces RadiusDimension::leaderLength (paper mm).
+void setTextOverride(ElementEdit& edit, const RadiusDimension& current, std::string text);
 
 /// A point of the MODEL that a user dimension is attached to; it is resolved into view
 /// coordinates at every generation, so the dimension follows the model.

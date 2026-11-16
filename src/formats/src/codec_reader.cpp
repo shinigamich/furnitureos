@@ -97,7 +97,8 @@ core::Result<geometry::Vec3> readVec3(const Json& value, std::string_view path) 
 Json writeVec2(geometry::Vec2 v) { return Json::array({v.x, v.y}); }
 Json writeVec3(geometry::Vec3 v) { return Json::array({v.x, v.y, v.z}); }
 
-void writeCustom(Json& object, const std::map<std::string, std::string>& custom) {
+void writeCustom(Json& object, const std::map<std::string, std::string>& custom,
+                 std::initializer_list<std::string_view> reservedKeys) {
     Json plain = Json::object();
     std::vector<std::pair<std::string, Json>> restored;
     for (const auto& [key, text] : custom) {
@@ -106,7 +107,8 @@ void writeCustom(Json& object, const std::map<std::string, std::string>& custom)
             Json parsed = Json::parse(text, nullptr, false);
             // An entry that cannot go back to the top level (not JSON, or the name is a
             // known key) stays an ordinary custom property so that nothing is lost.
-            if (!parsed.is_discarded() && name != "custom" && !object.contains(name)) {
+            const bool reserved = std::find(reservedKeys.begin(), reservedKeys.end(), name) != reservedKeys.end();
+            if (!parsed.is_discarded() && name != "custom" && !reserved && !object.contains(name)) {
                 restored.emplace_back(name, std::move(parsed));
                 continue;
             }

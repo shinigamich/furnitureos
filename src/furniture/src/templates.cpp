@@ -101,4 +101,17 @@ CabinetDefinition openShelving(domain::AssemblyId id, const TemplateMaterials& m
     return def;
 }
 
+CabinetDefinition openShelvingRounded(domain::AssemblyId id, const TemplateMaterials& m) {
+    CabinetDefinition def = openShelving(std::move(id), m);
+    def.name = "Open shelving unit, rounded shelves";
+    [[maybe_unused]] const auto added = def.parameters.define(
+        parametric::ParameterDef::constant(kShelfCornerRadius, 30, parametric::ParameterKind::Length)); // new name: cannot fail
+    ContourSpec rounded;
+    rounded.kind = ContourKind::RoundedCorners;
+    rounded.radii = {kShelfCornerRadius, kShelfCornerRadius, "", ""}; // corners (0,0) and (L,0): the front (L1) corners
+    for (const char* slot : {"shelf.1.1", "shelf.1.2", "shelf.2.1", "shelf.2.2"})
+        def.materials.overrides[slot].contour = rounded;
+    return def;
+}
+
 } // namespace fos::furniture::templates

@@ -4,6 +4,7 @@
 #include "fos/domain/model.hpp"
 #include "fos/formats/json.hpp"
 
+#include <cstddef>
 #include <string_view>
 
 /// JSON codecs of the domain types. The schema of every type is documented in
@@ -25,11 +26,29 @@
 ///    writes it back as the top-level key `k`.
 ///  * Color, Transform, HardwareInstance, Operation, Assembly and Model have no such
 ///    map: an unknown key is an error naming the key and the allowed keys.
+///
+/// PART SHAPES (ADR-0008): a part with `shape` gets a "shape" object
+/// {"outer": [vertex...], "cutouts": [[vertex...]...], "outerEdges": [null | band id...]},
+/// vertex = {"x", "y"[, "bulge"]} ("bulge" omitted when 0, optional on load, default 0).
+/// Rectangular parts (no shape) are written exactly as before, without the key. Decoding
+/// validates the shape: geometry::validateContour for every contour, outer contour
+/// counter-clockwise with bounding box [0,length]x[0,width] (kShapeBoundsTolerance),
+/// cut-outs strictly inside the outer contour and disjoint from each other, `outerEdges`
+/// empty or one entry per outer segment, `edges` empty, and the limits above.
 namespace fos::formats {
 
 /// Prefix of `custom` entries that carry preserved unknown JSON keys. Reserved: do not
 /// use it for user-defined properties.
 inline constexpr std::string_view kUnknownKeyPrefix = "json:";
+
+/// Limits of a part shape (`Part::shape`, ADR-0008) accepted by the codec and by the OBJ
+/// export. Larger shapes are rejected (ParseError naming the limit) before they are built:
+/// contour validation is O(n^2) in the number of segments.
+inline constexpr std::size_t kMaxContourVertices = 10000; ///< Per contour (outer or one cut-out).
+inline constexpr std::size_t kMaxShapeCutouts = 1000;     ///< Cut-outs per part.
+/// Tolerance (mm) of the check that the outer contour's exact bounding box equals
+/// [0, length] x [0, width].
+inline constexpr double kShapeBoundsTolerance = 1e-6;
 
 Json toJson(const domain::Color& color);              ///< "#RRGGBB" (upper-case hex).
 Json toJson(const geometry::Transform& placement);    ///< {"origin","xAxis","yAxis","zAxis"} arrays, mm.

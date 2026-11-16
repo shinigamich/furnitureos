@@ -97,6 +97,8 @@ inline void expectEqual(const domain::Part& a, const domain::Part& b, const std:
     ASSERT_EQ(a.operations.size(), b.operations.size()) << where;
     for (std::size_t i = 0; i < a.operations.size(); ++i)
         expectEqual(a.operations[i], b.operations[i], where + ".operations[" + std::to_string(i) + "]");
+    EXPECT_EQ(a.shape.has_value(), b.shape.has_value()) << where;
+    EXPECT_TRUE(a.shape == b.shape) << where << ": part shapes differ"; // exact, member-wise
     EXPECT_EQ(a.custom, b.custom) << where;
 }
 

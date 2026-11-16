@@ -44,6 +44,45 @@ void renderEdgeMark(const EdgeBandMark& m, const ViewPlacement& pl, const Drawin
     out.emplace_back(std::move(t));
 }
 
+/// Arc mark concentric with a banded arc, `edgeMarkOffset` paper mm inside the outline,
+/// shortened at both ends by the same inset as straight marks.
+void renderEdgeArcMark(const EdgeBandMark& m, const EdgeMarkArc& arc, const ViewPlacement& pl,
+                       const DrawingStyle& st, std::vector<Primitive>& out) {
+    const double r = arc.radius * pl.scale;
+    double sweep = std::fmod(arc.endDeg - arc.startDeg, 360.0);
+    if (sweep <= 0) sweep += 360.0;
+    const double arcLen = core::degToRad(sweep) * r;
+    if (!(r > core::kLengthEps) || arcLen <= core::kLengthEps) return;
+    const double inward = arc.centerInside ? -1.0 : 1.0; // radial direction into the material
+    const double rm = r + inward * st.edgeMarkOffset;
+    const double mid = arc.startDeg + sweep * 0.5;
+    const Vec2 c = pl.toPaper(arc.center);
+    const Vec2 radial{std::cos(core::degToRad(mid)), std::sin(core::degToRad(mid))};
+    if (rm > core::kLengthEps) {
+        const double inset = std::min(st.edgeMarkOffset, arcLen * 0.25);
+        const double insetDeg = core::radToDeg(inset / r);
+        Arc a;
+        a.center = c;
+        a.radius = rm;
+        a.startDeg = arc.startDeg + insetDeg;
+        a.endDeg = arc.startDeg + sweep - insetDeg;
+        a.style = LineStyle::Visible;
+        a.weight = st.edgeMarkWeight;
+        a.sourceId = m.sourceId;
+        a.elementId = m.id;
+        out.emplace_back(std::move(a));
+    }
+    Text t;
+    t.position = c + radial * (r + inward * (st.edgeMarkOffset + st.edgeCodeHeight)) + m.textShift;
+    t.height = st.edgeCodeHeight;
+    t.hAlign = HAlign::Center;
+    t.vAlign = VAlign::Middle;
+    t.text = m.code;
+    t.sourceId = m.sourceId;
+    t.elementId = m.id;
+    out.emplace_back(std::move(t));
+}
+
 void renderGrainArrow(const GrainArrow& g, const ViewPlacement& pl, const DrawingStyle& st,
                       std::vector<Primitive>& out) {
     const double dl = length(g.direction);
@@ -161,6 +200,30 @@ void renderDimension(const Dimension& d, const ViewPlacement& placement, const D
     out.emplace_back(g.text);
 }
 
+void renderRadiusDimension(const RadiusDimension& d, const ViewPlacement& pl, const DrawingStyle& st,
+                           std::vector<Primitive>& out) {
+    const Vec2 tip = pl.toPaper(d.arcPoint);
+    const Vec2 radial = d.arcPoint - d.center;
+    const double rl = length(radial);
+    if (!(rl > core::kLengthEps)) return;
+    const Vec2 dir = radial * (1.0 / rl);
+    const Vec2 knee = tip + dir * d.leaderLength;
+    const double side = dir.x >= 0 ? 1.0 : -1.0;
+    const Vec2 end = knee + Vec2{side * st.leaderShoulder, 0};
+    out.emplace_back(makeLine(tip, knee, LineStyle::Dimension, d.sourceId, d.id));
+    out.emplace_back(makeMarker(MarkerKind::Arrow, tip, angleOf(-dir), st.dimension.arrowSize, d.id));
+    out.emplace_back(makeLine(knee, end, LineStyle::Dimension, d.sourceId, d.id));
+    Text t;
+    t.position = end + Vec2{side * st.dimension.textGap, 0} + d.textShift;
+    t.height = st.dimension.textHeight;
+    t.hAlign = side > 0 ? HAlign::Left : HAlign::Right;
+    t.vAlign = VAlign::Middle;
+    t.text = dimensionText(d, st.dimension.decimals);
+    t.sourceId = d.sourceId;
+    t.elementId = d.id;
+    out.emplace_back(std::move(t));
+}
+
 std::vector<Primitive> renderView(const View& view, const ViewAnnotations& ann, const ViewPlacement& pl,
                                   const DrawingStyle& st) {
     std::vector<Primitive> out;
@@ -176,6 +239,17 @@ std::vector<Primitive> renderView(const View& view, const ViewAnnotations& ann, 
         circle.sourceId = c.sourceId;
         out.emplace_back(std::move(circle));
     }
+    for (const ViewArc& a : view.arcs) {
+        Arc arc;
+        arc.center = pl.toPaper(a.center);
+        arc.radius = a.radius * pl.scale;
+        arc.startDeg = a.startDeg;
+        arc.endDeg = a.endDeg;
+        arc.style = a.style;
+        arc.weight = defaultLineWeight(a.style);
+        arc.sourceId = a.sourceId;
+        out.emplace_back(std::move(arc));
+    }
     for (const CutRegion& cut : view.cuts) {
         // Hatch in view space with the spacing converted to model mm, so that the
         // pattern stays anchored to the model when the view is moved on the sheet.
@@ -183,11 +257,16 @@ std::vector<Primitive> renderView(const View& view, const ViewAnnotations& ann, 
             out.emplace_back(makeLine(pl.toPaper(h.a), pl.toPaper(h.b), LineStyle::Thin, cut.sourceId, {}));
     }
     for (const EdgeBandMark& m : ann.edgeBandMarks)
-        if (!m.hidden) renderEdgeMark(m, pl, st, out);
+        if (!m.hidden) {
+            if (m.arc) renderEdgeArcMark(m, *m.arc, pl, st, out);
+            else renderEdgeMark(m, pl, st, out);
+        }
     for (const GrainArrow& g : ann.grainArrows)
         if (!g.hidden) renderGrainArrow(g, pl, st, out);
     for (const Dimension& d : ann.dimensions)
         if (!d.hidden) renderDimension(d, pl, st.dimension, out);
+    for (const RadiusDimension& d : ann.radiusDimensions)
+        if (!d.hidden) renderRadiusDimension(d, pl, st, out);
     for (const Note& n : ann.notes)
         if (!n.hidden) renderNote(n, pl, out);
     for (const LeaderNote& l : ann.leaders)

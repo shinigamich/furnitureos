@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/drawings/part_view.hpp"
 
+#include "part_shape.hpp"
+
 #include <algorithm>
 #include <array>
 #include <variant>
@@ -131,14 +133,14 @@ std::string sizeText(std::initializer_list<double> values) {
 
 struct Coord {
     double value = 0;
-    std::string opId;
+    std::string id; ///< Full element id of the baseline dimension.
 };
 
-void addCoord(std::vector<Coord>& list, double value, const std::string& opId, double limit) {
+void addCoord(std::vector<Coord>& list, double value, const std::string& id, double limit) {
     if (value <= core::kLengthEps || value >= limit - core::kLengthEps) return;
     for (const Coord& c : list)
         if (std::fabs(c.value - value) <= core::kLengthEps) return;
-    list.push_back({value, opId});
+    list.push_back({value, id});
 }
 
 } // namespace
@@ -159,7 +161,10 @@ View generatePartView(const domain::Part& part, const PartViewOptions& options) 
         return view;
     }
     Builder b{part, options.face, view, faceA ? 1.0 : -1.0};
-    b.rect(0, 0, part.length, part.width, LineStyle::Visible, part.id.str());
+    if (detail::drawsContour(part))
+        detail::drawShape(part, b.ySign, view);
+    else
+        b.rect(0, 0, part.length, part.width, LineStyle::Visible, part.id.str());
     view.bounds = Rect2::fromCorners(b.map(0, 0), b.map(part.length, part.width));
     PartFootprint fp;
     fp.partId = part.id.str();
@@ -194,13 +199,15 @@ ViewAnnotations annotatePartView(const domain::Model& model, const domain::Part&
     for (const domain::Operation& op : part.operations) {
         const auto* h = std::get_if<domain::Hole>(&op.shape);
         if (!h || !(h->diameter > 0)) continue;
+        const std::string xId = view.id + "/dim.hole.x[" + op.id.str() + "]";
+        const std::string yId = view.id + "/dim.hole.y[" + op.id.str() + "]";
         if (isMainFace(h->face)) {
-            addCoord(xs, h->u, op.id.str(), L);
-            addCoord(ys, h->v, op.id.str(), W);
+            addCoord(xs, h->u, xId, L);
+            addCoord(ys, h->v, yId, W);
         } else if (h->face == Face::L1 || h->face == Face::L2) {
-            addCoord(xs, h->u, op.id.str(), L);
+            addCoord(xs, h->u, xId, L);
         } else {
-            addCoord(ys, h->u, op.id.str(), W);
+            addCoord(ys, h->u, yId, W);
         }
         // Legend group and per-hole label.
         std::size_t gi = 0;
@@ -224,6 +231,12 @@ ViewAnnotations annotatePartView(const domain::Model& model, const domain::Part&
             ann.notes.push_back(std::move(n));
         }
     }
+    {
+        std::vector<detail::CutoutCoord> cx, cy;
+        detail::cutoutCoordinates(part, view.id, cx, cy);
+        for (const auto& c : cx) addCoord(xs, c.value, c.id, L);
+        for (const auto& c : cy) addCoord(ys, c.value, c.id, W);
+    }
     const auto byValue = [](const Coord& a, const Coord& b) { return a.value < b.value; };
     std::stable_sort(xs.begin(), xs.end(), byValue);
     std::stable_sort(ys.begin(), ys.end(), byValue);
@@ -240,7 +253,7 @@ ViewAnnotations annotatePartView(const domain::Model& model, const domain::Part&
         std::vector<Dimension> dims;
         for (const Coord& c : coords) {
             Dimension d;
-            d.id = view.id + "/dim.hole." + (horizontal ? "x" : "y") + "[" + c.opId + "]";
+            d.id = c.id;
             d.orientation = orient;
             d.p1 = anchor(0);
             d.p2 = anchor(c.value);
@@ -260,10 +273,13 @@ ViewAnnotations annotatePartView(const domain::Model& model, const domain::Part&
     };
     stack(xs, true);
     stack(ys, false);
+    if (detail::drawsContour(part)) detail::addRadiusDimensions(part, view, ySign, ann);
 
     // --- edge-band marks ----------------------------------------------------------
     std::vector<domain::EdgeBandId> bands;
+    if (detail::drawsContour(part)) detail::addShapeEdgeMarks(part, view, ySign, bands, ann);
     for (const domain::EdgeSide side : domain::kAllEdges) {
+        if (detail::drawsContour(part)) break; // Part::edges must be empty with a shape (ADR-0008)
         const auto& band = part.edge(side);
         if (!band) continue;
         std::size_t bi = 0;
@@ -309,8 +325,9 @@ ViewAnnotations annotatePartView(const domain::Model& model, const domain::Part&
                          std::to_string(options.quantity),
                      options.noteHeight, part.id.str()});
     const domain::CutSize cut = domain::cutSize(part, model);
-    lines.push_back({view.id + "/note.cutsize", lb.cutSize + ": " + sizeText({cut.length, cut.width}) + unit,
-                     options.noteHeight, part.id.str()});
+    std::string cutText = lb.cutSize + ": " + sizeText({cut.length, cut.width}) + unit;
+    if (domain::hasShape(part) && !domain::isRectangularOutline(part)) cutText += ", " + lb.shapedPart;
+    lines.push_back({view.id + "/note.cutsize", cutText, options.noteHeight, part.id.str()});
     if (part.grain != domain::GrainDirection::None)
         lines.push_back({view.id + "/note.grain",
                          lb.grain + ": " +
@@ -323,9 +340,13 @@ ViewAnnotations annotatePartView(const domain::Model& model, const domain::Part&
         text += eb ? eb->name + " (" + sizeText({eb->thickness, eb->width}) + unit + ")"
                    : bands[i].str() + " (" + lb.missing + ")";
         std::string edges;
-        for (const domain::EdgeSide side : domain::kAllEdges)
-            if (part.edge(side) && *part.edge(side) == bands[i])
-                edges += std::string(edges.empty() ? "" : ", ") + domain::toString(side);
+        if (detail::drawsContour(part)) {
+            edges = detail::shapeBandUsage(part, bands[i], lb);
+        } else {
+            for (const domain::EdgeSide side : domain::kAllEdges)
+                if (part.edge(side) && *part.edge(side) == bands[i])
+                    edges += std::string(edges.empty() ? "" : ", ") + domain::toString(side);
+        }
         lines.push_back({view.id + "/legend.edge[" + bands[i].str() + "]", text + ": " + edges, options.noteHeight,
                          bands[i].str()});
     }

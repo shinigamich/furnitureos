@@ -2,6 +2,8 @@
 #include "fos/machining/validation.hpp"
 
 #include "fos/machining/face.hpp"
+#include "fos/machining/material_region.hpp"
+#include "fos/geometry/offset.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -21,6 +23,8 @@ struct Ctx {
     const Part& part;
     const ValidationOptions& opt;
     core::Diagnostics out;
+    /// Material of a non-rectangular shaped part (ADR-0008); empty for plain panels.
+    std::optional<MaterialRegion> region;
 
     void add(Severity s, const char* code, std::string msg) {
         out.push_back({s, code, std::move(msg), part.id.str()});
@@ -30,6 +34,34 @@ struct Ctx {
 
 std::string label(const char* kind, const domain::Operation& op) {
     return std::string(kind) + " '" + op.id.str() + "'";
+}
+
+/// Footprints are shrunk by this much before the containment test, so that an operation
+/// that merely touches the outline (a groove running out at a straight edge) is accepted.
+constexpr double kFootprintShrink = 1e-4;
+
+geometry::Vec2 xy(const geometry::Vec3& v) noexcept { return {v.x, v.y}; }
+
+geometry::Contour ringContour(std::vector<geometry::Vec2> pts) {
+    geometry::Contour c;
+    for (const auto& p : pts) c.vertices.push_back({p, 0.0});
+    return geometry::normalizedCcw(c);
+}
+
+/// XY shadow (part frame) of an operation entering edge face `f`: u in [u0, u1] along the
+/// face, from the surface to `depth` into the material, shrunk by kFootprintShrink.
+geometry::Contour edgeShadow(const Part& part, Face f, double u0, double u1, double depth) {
+    const double s = kFootprintShrink;
+    return ringContour({xy(faceToPart(part, f, u0 + s, 0, s)), xy(faceToPart(part, f, u1 - s, 0, s)),
+                        xy(faceToPart(part, f, u1 - s, 0, depth - s)), xy(faceToPart(part, f, u0 + s, 0, depth - s))});
+}
+
+/// Reports `code` when the footprint does not lie inside the shaped material.
+void checkFootprint(Ctx& c, const char* code, const std::string& what, const geometry::Contour& footprint) {
+    if (footprint.size() < 3 || !(std::fabs(geometry::signedArea(footprint)) > 0)) return;
+    const FootprintResult r = classifyFootprint(*c.region, footprint);
+    if (r.placement == FootprintPlacement::Inside) return;
+    c.add(Severity::Error, code, what + " " + describe(r) + "; it must lie completely inside the material of the part.");
 }
 
 /// Returns true when the hole has usable sizes (and may take part in collision checks).
@@ -68,10 +100,39 @@ bool checkHole(Ctx& c, const domain::Operation& op, const domain::Hole& h) {
         }
         double material = std::min(h.u - r, e.u.max - h.u - r);
         if (!edge) material = std::min({material, h.v - r, e.v.max - h.v - r});
-        if (material < c.opt.minEdgeMaterial - eps) {
+        std::string edgeName = "the panel edge";
+        bool skipEdgeRule = false;
+        if (c.region && !edge) {
+            // Shaped part: the centre must be in the material; the edge rule is measured to
+            // the nearest outline / cut-out segment instead of the bounding rectangle.
+            const geometry::Vec2 centre = xy(faceToPart(c.part, h.face, h.u, h.v, 0));
+            const PointInMaterial loc = locateInMaterial(*c.region, centre);
+            if (loc.location == MaterialLocation::OutsideOutline || loc.location == MaterialLocation::InCutout) {
+                c.add(Severity::Error, "machining.hole.outside_material",
+                      what + " lies " +
+                          (loc.location == MaterialLocation::InCutout
+                               ? "inside cut-out " + std::to_string(loc.cutout) + " of the shaped outline"
+                               : std::string("outside the shaped outline")) +
+                          "; it must lie in the material of the part.");
+                skipEdgeRule = true;
+            } else {
+                const BoundaryDistance d = distanceToBoundary(*c.region, centre);
+                material = d.distance - r;
+                edgeName = d.onCutout ? "cut-out " + std::to_string(d.cutout) : "the shaped outline";
+            }
+        }
+        if (c.region && edge) {
+            const double s = kFootprintShrink;
+            const double depth = effectiveDepth(c.part, h);
+            if (depth > 2 * s && r > s)
+                checkFootprint(c, "machining.hole.outside_material",
+                               what + " (diameter " + num(h.diameter) + " mm, drilled " + num(depth) + " mm)",
+                               edgeShadow(c.part, h.face, h.u - r, h.u + r, depth));
+        }
+        if (!skipEdgeRule && material < c.opt.minEdgeMaterial - eps) {
             if (material < -eps)
                 c.add(Severity::Warning, "machining.hole.too_close_to_edge",
-                      what + " with diameter " + num(h.diameter) + " mm breaks out of the panel edge by " +
+                      what + " with diameter " + num(h.diameter) + " mm breaks out of " + edgeName + " by " +
                           num(-material) + " mm.");
             else
                 c.add(Severity::Warning, "machining.hole.too_close_to_edge",
@@ -108,6 +169,25 @@ void checkGroove(Ctx& c, const domain::Operation& op, const domain::Groove& g) {
         c.add(Severity::Error, "machining.groove.out_of_bounds",
               what + " with width " + num(g.width) + " mm extends beyond the face, which spans u 0.." +
                   num(e.u.max) + " mm and v 0.." + num(e.v.max) + " mm.");
+    if (inside && c.region) {
+        const double s = kFootprintShrink;
+        if (!isEdgeFace(g.face)) {
+            const Vec2 d = dir * s, m = n * ((g.width / 2 - s) / (g.width / 2));
+            std::vector<Vec2> pts;
+            for (const Vec2 p : {a + d + m, b - d + m, b - d - m, a + d - m})
+                pts.push_back(xy(faceToPart(c.part, g.face, p.x, p.y, 0)));
+            if (len > 2 * s && g.width > 2 * s)
+                checkFootprint(c, "machining.groove.outside_material", what + " with width " + num(g.width) + " mm",
+                               ringContour(pts));
+        } else {
+            double u0 = a.x, u1 = a.x;
+            for (const Vec2 p : {a + n, a - n, b + n, b - n}) u0 = std::min(u0, p.x), u1 = std::max(u1, p.x);
+            const double depth = std::min(g.depth, e.materialDepth);
+            if (u1 - u0 > 2 * s && depth > 2 * s)
+                checkFootprint(c, "machining.groove.outside_material", what + " (" + num(g.depth) + " mm deep)",
+                               edgeShadow(c.part, g.face, u0, u1, depth));
+        }
+    }
     if (g.depth > e.materialDepth - eps)
         c.add(Severity::Error, "machining.groove.too_deep",
               what + " is " + num(g.depth) + " mm deep but only " + num(e.materialDepth) +
@@ -134,6 +214,7 @@ void checkPocket(Ctx& c, const domain::Operation& op, const domain::Pocket& p) {
         c.add(Severity::Warning, "machining.pocket.contour_clockwise",
               what + " has a clockwise contour (signed area " + num(signedArea(p.contour)) +
                   " mm2); pocket contours must be counter-clockwise.");
+    bool inside = true;
     for (std::size_t i = 0; i < p.contour.size(); ++i) {
         const Vec2 q = p.contour[i];
         if (!e.u.contains(q.x) || !e.v.contains(q.y)) {
@@ -141,8 +222,26 @@ void checkPocket(Ctx& c, const domain::Operation& op, const domain::Pocket& p) {
                   what + " has contour point " + std::to_string(i + 1) + " at " + at(q.x, q.y) +
                       " outside the face, which spans u 0.." + num(e.u.max) + " mm and v 0.." + num(e.v.max) +
                       " mm.");
+            inside = false;
             break;
         }
+    }
+    if (!inside || !c.region) return;
+    if (!isEdgeFace(p.face)) {
+        std::vector<Vec2> pts;
+        for (const Vec2 q : p.contour) pts.push_back(xy(faceToPart(c.part, p.face, q.x, q.y, 0)));
+        // Shrink by kFootprintShrink so a pocket touching the outline is accepted; a miter
+        // offset of the (simple) polygon; when it is not representable, test unshrunk.
+        geometry::Polygon2 poly;
+        poly.vertices = pts;
+        if (auto shrunk = geometry::offsetPolygon(poly, -kFootprintShrink)) pts = shrunk.value().vertices;
+        checkFootprint(c, "machining.pocket.outside_material", what, ringContour(pts));
+    } else {
+        double u0 = p.contour.front().x, u1 = u0;
+        for (const Vec2 q : p.contour) u0 = std::min(u0, q.x), u1 = std::max(u1, q.x);
+        const double depth = p.through ? e.materialDepth : std::min(p.depth, e.materialDepth);
+        if (u1 - u0 > 2 * kFootprintShrink && depth > 2 * kFootprintShrink)
+            checkFootprint(c, "machining.pocket.outside_material", what, edgeShadow(c.part, p.face, u0, u1, depth));
     }
 }
 
@@ -197,7 +296,7 @@ std::string contourProblem(const std::vector<Vec2>& c) {
 }
 
 core::Diagnostics validateOperations(const Part& part, const ValidationOptions& options) {
-    Ctx c{part, options, {}};
+    Ctx c{part, options, {}, shapedMaterialRegion(part)};
 
     std::map<std::string, int> idCount;
     for (const auto& op : part.operations) ++idCount[op.id.str()];

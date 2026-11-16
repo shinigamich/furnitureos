@@ -51,6 +51,20 @@ void checkStale(Dimension& d, const std::optional<double>& measuredAtEdit, EditT
          d.id});
 }
 
+void checkStale(RadiusDimension& d, const std::optional<double>& measuredAtEdit, EditTracker& tracker) {
+    if (!d.textOverride || !measuredAtEdit) return;
+    const double now = measuredValue(d);
+    if (std::fabs(now - *measuredAtEdit) <= kStaleOverrideTolerance) return;
+    d.staleOverride = true;
+    tracker.diagnostics.push_back(
+        {core::Severity::Warning, "drawings.edits.stale_override",
+         "Dimension '" + d.id + "' shows the text override '" + *d.textOverride + "', which was made when it measured " +
+             formatLength(*measuredAtEdit) + " mm; the model now measures " + formatLength(now) +
+             " mm. The sheet shows '" + *d.textOverride + kStaleOverrideMarker +
+             "'; check the override or remove it.",
+         d.id});
+}
+
 const char* subjectOf(const View& view) {
     return view.subject == ViewSubject::Part ? "the drawn part" : "the drawn assembly";
 }
@@ -62,6 +76,7 @@ bool idTaken(const ViewAnnotations& a, const std::string& id) {
     for (const auto& e : a.detailMarkers) if (e.id == id) return true;
     for (const auto& e : a.edgeBandMarks) if (e.id == id) return true;
     for (const auto& e : a.grainArrows) if (e.id == id) return true;
+    for (const auto& e : a.radiusDimensions) if (e.id == id) return true;
     return false;
 }
 
@@ -74,6 +89,17 @@ void applyEdits(const std::string& viewId, const View* view, const EditModelCont
         d.hidden = ed->hidden;
         d.textShift = d.textShift + ed->textShift;
         if (ed->offset) d.offset = *ed->offset;
+        if (ed->textOverride) d.textOverride = ed->textOverride;
+        if (ed->measuredAtEdit && !ed->textOverride)
+            ap.notApplicable(d.id, "measured value of a text override", "an edit without a text override");
+        checkStale(d, ed->measuredAtEdit, tracker);
+    }
+    for (RadiusDimension& d : ann.radiusDimensions) {
+        const ElementEdit* ed = ap.find(d.id);
+        if (!ed) continue;
+        d.hidden = ed->hidden;
+        d.textShift = d.textShift + ed->textShift;
+        if (ed->offset) d.leaderLength = *ed->offset;
         if (ed->textOverride) d.textOverride = ed->textOverride;
         if (ed->measuredAtEdit && !ed->textOverride)
             ap.notApplicable(d.id, "measured value of a text override", "an edit without a text override");
@@ -184,6 +210,11 @@ void applyEdits(const std::string& viewId, const View* view, const EditModelCont
 } // namespace
 
 void setTextOverride(ElementEdit& edit, const Dimension& current, std::string text) {
+    edit.textOverride = std::move(text);
+    edit.measuredAtEdit = measuredValue(current);
+}
+
+void setTextOverride(ElementEdit& edit, const RadiusDimension& current, std::string text) {
     edit.textOverride = std::move(text);
     edit.measuredAtEdit = measuredValue(current);
 }

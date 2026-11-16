@@ -23,9 +23,10 @@ struct DrawingStyle {
 /// annotations in 1:1 model-space exports, e.g. factor 10 for furniture).
 DrawingStyle scaled(const DrawingStyle& style, double factor) noexcept;
 
-/// Renders geometry (visible/hidden lines, circles, section hatching) and all
-/// non-hidden annotations. Order: geometry segments, circles, hatches, edge-band
-/// marks, grain arrows, dimensions, notes, leaders, detail markers.
+/// Renders geometry (visible/hidden lines, circles, arcs, section hatching) and all
+/// non-hidden annotations. Order: geometry segments, circles, arcs (exact Arc primitives),
+/// hatches, edge-band marks, grain arrows, dimensions, radius/diameter dimensions, notes,
+/// leaders, detail markers.
 /// Geometry primitives carry `sourceId`; annotation primitives carry `elementId`
 /// (= the annotation id) so that a UI can map a click back to an editable element.
 std::vector<Primitive> renderView(const View& view, const ViewAnnotations& annotations,
@@ -34,5 +35,10 @@ std::vector<Primitive> renderView(const View& view, const ViewAnnotations& annot
 /// Primitives of one dimension (extension lines, dimension line, terminators, text).
 void renderDimension(const Dimension& d, const ViewPlacement& placement, const DimensionStyle& style,
                      std::vector<Primitive>& out);
+
+/// Primitives of one radius/diameter dimension: leader line, arrow (tip on the arc, pointing
+/// at the centre), shoulder of DrawingStyle::leaderShoulder and the text (style.textHeight).
+void renderRadiusDimension(const RadiusDimension& d, const ViewPlacement& placement, const DrawingStyle& style,
+                           std::vector<Primitive>& out);
 
 } // namespace fos::drawings

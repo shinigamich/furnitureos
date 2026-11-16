@@ -187,6 +187,21 @@ core::Result<EditResult> setPartOverride(CabinetDefinition& definition, const Li
     return r;
 }
 
+core::Result<EditResult> setPartContour(CabinetDefinition& definition, const Libraries& libs, const std::string& slot,
+                                        const std::optional<ContourSpec>& contour) {
+    return applyEdit(definition, libs, [&](CabinetDefinition& d) -> core::Result<void> {
+        if (contour) {
+            d.materials.overrides[slot].contour = *contour;
+            return {};
+        }
+        const auto it = d.materials.overrides.find(slot);
+        if (it == d.materials.overrides.end()) return {};
+        it->second.contour.reset();
+        if (it->second == PartOverride{}) d.materials.overrides.erase(it);
+        return {};
+    });
+}
+
 core::Result<EditResult> setInterior(CabinetDefinition& definition, const Libraries& libs, const Section& root) {
     return applyEdit(definition, libs, [&](CabinetDefinition& d) -> core::Result<void> {
         d.interior = root;

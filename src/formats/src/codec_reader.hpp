@@ -6,6 +6,7 @@
 #include "fos/formats/json.hpp"
 #include "fos/geometry/vec.hpp"
 
+#include <initializer_list>
 #include <map>
 #include <optional>
 #include <string>
@@ -34,7 +35,10 @@ Json writeVec3(geometry::Vec3 v);
 
 /// Writes the `custom` map of an entity into its JSON object: preserved unknown keys
 /// ("json:<name>") go back to the top level, everything else into the "custom" object.
-void writeCustom(Json& object, const std::map<std::string, std::string>& custom);
+/// `reservedKeys` are known keys the entity may omit (e.g. a part's "shape"): a preserved
+/// entry with such a name stays an ordinary custom property, as for keys that are present.
+void writeCustom(Json& object, const std::map<std::string, std::string>& custom,
+                 std::initializer_list<std::string_view> reservedKeys = {});
 
 /// Reads the keys of one JSON object, remembering the first error and which keys were
 /// consumed. After an error every further read is a no-op.

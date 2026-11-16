@@ -20,7 +20,8 @@ if(FOS_BUILD_TESTS)
         tests/test_main.cpp
         tests/camera_tests.cpp
         tests/scene_tests.cpp
-        tests/picking_tests.cpp)
+        tests/picking_tests.cpp
+        tests/rect_golden_tests.cpp)
     target_link_libraries(fos_viewport_tests PRIVATE fos::viewport GTest::gtest GTest::gmock)
     fos_set_warnings(fos_viewport_tests PRIVATE)
     gtest_discover_tests(fos_viewport_tests DISCOVERY_TIMEOUT 60

@@ -63,6 +63,18 @@ struct ViewCircle {
     std::string sourceId;
 };
 
+/// Exact circular arc of view geometry (view coordinates, model mm), drawn counter-clockwise
+/// in VIEW axes from `startDeg` to `endDeg` (degrees in [0, 360); endDeg <= startDeg wraps
+/// through 360). Used for the true outline of contoured parts (ADR-0008); never tessellated.
+struct ViewArc {
+    Vec2 center;
+    double radius = 0;
+    double startDeg = 0;
+    double endDeg = 90;
+    LineStyle style = LineStyle::Visible;
+    std::string sourceId;
+};
+
 /// Cross-section of a part in the cutting plane of a section view. Hatch lines are
 /// generated when the view is rendered (spacing is a paper quantity).
 struct CutRegion {
@@ -112,6 +124,7 @@ struct View {
     std::optional<double> sectionPosition;
     std::vector<ViewSegment> segments; ///< Deterministic order; coincident pieces already merged.
     std::vector<ViewCircle> circles;
+    std::vector<ViewArc> arcs; ///< Arcs of contoured outlines (empty for rectangular parts).
     std::vector<CutRegion> cuts;
     std::vector<PartFootprint> footprints; ///< In assembly part order (removed parts omitted).
     Rect2 bounds;                          ///< Extent of all remaining parts in view coordinates.
@@ -125,6 +138,18 @@ bool isAxisAligned(const geometry::Transform& placement) noexcept;
 /// removal. Parts whose placement is not axis-aligned are drawn with all 12 edges
 /// visible, do not hide anything, are not cut by a section plane, and are reported
 /// with code "drawings.hlr.not_axis_aligned" in View::diagnostics.
+///
+/// Contoured parts (domain::hasShape and not isRectangularOutline, ADR-0008):
+///  * FACE-ON (thickness along the view direction): the exact projected finished outline and
+///    the cut-outs are drawn (lines in `segments`, arcs in `arcs`), hidden-line removed
+///    against all occluders. As an OCCLUDER such a part is approximated by the bounding box
+///    of its outline (APPROXIMATION: rounded corners and cut-outs do not let deeper geometry
+///    show through). When this approximation hides a piece of an edge that is really visible
+///    (inside a cut-out or outside the curved outline, and hidden by nothing else), the Warning
+///    "drawings.hlr.shape_approximated" names the parts involved.
+///  * EDGE-ON: the box silhouette (exact: the outline spans [0,L] x [0,W]).
+///  * Section planes cut contoured parts as their bounding box; when such a part is cut, the
+///    Warning "drawings.section.shape_approximated" says so.
 View generateAssemblyView(const domain::Assembly& assembly, ViewKind kind, const ViewOptions& options = {});
 
 } // namespace fos::drawings

@@ -19,12 +19,29 @@ std::string partName(const domain::Part& part) {
 
 std::vector<Job> jobsFromModel(const domain::Model& model, const Settings& settings,
                                core::Diagnostics& diagnostics) {
+    return cuttingFromModel(model, settings, diagnostics).jobs;
+}
+
+ModelCutting cuttingFromModel(const domain::Model& model, const Settings& settings, core::Diagnostics& diagnostics) {
+    ModelCutting out;
     std::vector<Job> jobs;
     std::vector<int> jobOfMaterial(model.materials.size(), -1);
     std::vector<char> badSheet(model.materials.size(), 0);
 
     for (const domain::Assembly& assembly : model.assemblies) {
         for (const domain::Part& part : assembly.parts) {
+            // Routing split (ADR-0008): a non-rectangular outline cannot be cut with guillotine cuts.
+            if (!domain::isRectangularOutline(part)) {
+                out.routedParts.push_back(
+                    {part.id.str(), part.name.empty() ? part.id.str() : part.name, part.material.str()});
+                diagnostics.push_back(
+                    {core::Severity::Info, "cutting.adapter.routed",
+                     "Part " + partName(part) +
+                         " has a non-rectangular outline or cut-outs; it is not in any guillotine cutting job and "
+                         "must be nested and routed (see the nesting jobs).",
+                     part.id.str()});
+                continue;
+            }
             std::size_t mi = 0;
             while (mi < model.materials.size() && model.materials[mi].id != part.material) ++mi;
             if (mi == model.materials.size()) {
@@ -137,10 +154,9 @@ std::vector<Job> jobsFromModel(const domain::Model& model, const Settings& setti
     }
 
     // Jobs in material order (they were created in order of first use).
-    std::vector<Job> ordered;
     for (std::size_t mi = 0; mi < model.materials.size(); ++mi)
-        if (jobOfMaterial[mi] >= 0) ordered.push_back(std::move(jobs[static_cast<std::size_t>(jobOfMaterial[mi])]));
-    return ordered;
+        if (jobOfMaterial[mi] >= 0) out.jobs.push_back(std::move(jobs[static_cast<std::size_t>(jobOfMaterial[mi])]));
+    return out;
 }
 
 } // namespace fos::cutting

@@ -281,7 +281,8 @@ core::Result<GenerationResult> generate(const CabinetDefinition& definition, con
     if (auto r = detail::buildBack(g); !r) return r.error();
     if (auto r = detail::checkPartSizes(g); !r) return r.error();
     detail::runHardware(g);
-    detail::checkGeometry(g);
+    detail::checkGeometry(g); // box based: shapes only remove material inside the boxes
+    if (auto r = detail::applyContours(g); !r) return r.error();
 
     for (const auto& part : g.assembly.parts) {
         auto found = machining::validateOperations(part);

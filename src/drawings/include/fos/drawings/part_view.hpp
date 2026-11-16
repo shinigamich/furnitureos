@@ -25,6 +25,12 @@
 ///    opposite one); grooves on an edge face: hidden band, `depth` deep, along that edge;
 ///  * pockets on A/B: closed contour (visible / hidden like holes; through = visible).
 ///    Pockets on edge faces are not drawn (diagnostic "drawings.part.unsupported_operation").
+///
+/// Contoured parts (Part::shape, ADR-0008): the exact FINISHED outline (domain::finishedContour)
+/// is drawn with straight segments in View::segments and TRUE arcs in View::arcs (never
+/// tessellated); cut-outs are through openings and are drawn with visible (solid) lines,
+/// circular cut-outs as a circle with a centre cross. Edge-face operations of contoured parts
+/// are still drawn against the bounding rectangle [0,L] x [0,W].
 namespace fos::drawings {
 
 enum class PartViewFace { A, B };
@@ -45,6 +51,8 @@ struct PartDrawingLabels {
     std::string face = "face";
     std::string unit = "mm";
     std::string missing = "not found in the model";
+    std::string shapedPart = "shaped part (routed)"; ///< Appended to the cut-size note of contoured parts.
+    std::string outlineSegments = "outline segments"; ///< Edge-band legend of contoured parts.
 };
 
 struct PartViewOptions {
@@ -74,6 +82,20 @@ View generatePartView(const domain::Part& part, const PartViewOptions& options =
 ///    "<view>/note.material", "<view>/note.finished" (finished L x W x T and quantity),
 ///    "<view>/note.cutsize" (domain::cutSize), "<view>/note.grain",
 ///    "<view>/legend.edge[<edge-band-id>]", "<view>/legend.hole.H<n>".
+/// Contoured parts additionally get:
+///  * ordinate (baseline) dimensions of the cut-out positions, merged with the hole
+///    coordinates (a coordinate already dimensioned keeps its first id):
+///    circular cut-out k -> centre "<view>/dim.cutout.x[k]" / "<view>/dim.cutout.y[k]",
+///    other cut-outs -> bounding box "<view>/dim.cutout.x[k.min]", "[k.max]" (same for y);
+///  * RadiusDimension "R <r>" per outer arc "<view>/dim.radius[<segment>]", per arc of a
+///    non-circular cut-out "<view>/dim.radius.cutout[<k>.<segment>]", and a diameter
+///    "\u00D8 <d>" per circular cut-out "<view>/dim.diameter.cutout[<k>]" (values always from
+///    the geometry);
+///  * edge-band marks along the banded outer segments "<view>/edge.seg[<segment>]" (concentric
+///    arc marks on arcs) instead of "<view>/edge.<L1|L2|W1|W2>"; the legend lists the number
+///    of banded segments and their exact finished length;
+///  * the cut-size note ends with ", " + labels.shapedPart when the outline is not a plain
+///    rectangle (domain::isRectangularOutline).
 ViewAnnotations annotatePartView(const domain::Model& model, const domain::Part& part, const View& view,
                                  double scale, const DimensionStyle& style, const PartViewOptions& options = {});
 

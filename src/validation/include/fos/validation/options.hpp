@@ -31,6 +31,16 @@ struct ValidationOptions {
     /// that box by at most this much on every axis (press fit). Beyond it the pair is reported
     /// as validation.interference.outside_groove.
     double grooveFitTolerance = 0.1;
+    /// Contoured parts (ADR-0008): when the boxes of two parts interfere and at least one of
+    /// them has a non-rectangular shape, refine the result with the exact outline (README,
+    /// check 3). false = box result only (conservative).
+    bool exactShapeInterference = true;
+    /// A banded arc of a contoured outline must not be bent tighter than this factor times
+    /// the band thickness (radius of the band's inner face = substrate radius).
+    /// GENERIC, UNVERIFIED rule of thumb: default 10 -> 20 mm for a 2 mm ABS band. Real
+    /// minimum radii depend on band material, temperature and machine; set per workshop.
+    /// <= 0 disables validation.edge.radius_too_small.
+    double edgeBandMinBendRadiusFactor = 10.0;
     /// Severity of interference between different assemblies in the project frame.
     core::Severity assemblyInterferenceSeverity = core::Severity::Warning;
 

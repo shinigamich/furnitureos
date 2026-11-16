@@ -50,6 +50,32 @@ double measuredValue(const Dimension& d) noexcept;
 /// core::formatLength(measuredValue(d), decimals).
 std::string dimensionText(const Dimension& d, int decimals = core::kDisplayDecimals);
 
+/// Radius ("R 50") or diameter ("\u00D8 80") dimension of an arc or circle. Like Dimension,
+/// the value is ALWAYS derived from the geometry anchors: measuredValue() = |arcPoint - center|
+/// (twice that for a diameter); it cannot be typed in. `textOverride` replaces only the
+/// displayed text. Drawn as a leader: arrow tip ON the arc at `arcPoint`, pointing to the
+/// centre, a radial line `leaderLength` paper mm outwards (away from the centre), a horizontal
+/// shoulder and the text.
+struct RadiusDimension {
+    std::string id;
+    Vec2 center;   ///< Centre of the arc/circle, view coordinates.
+    Vec2 arcPoint; ///< Point ON the arc where the arrow ends, view coordinates.
+    bool diameter = false;
+    double leaderLength = 8.0; ///< Paper mm (an ElementEdit::offset replaces it).
+    std::optional<std::string> textOverride;
+    Vec2 textShift{};
+    bool hidden = false;
+    bool userAuthored = false;
+    bool staleOverride = false; ///< See Dimension::staleOverride.
+    std::string sourceId;       ///< Part id.
+};
+
+/// |arcPoint - center| (radius) or 2 |arcPoint - center| (diameter), model mm.
+double measuredValue(const RadiusDimension& d) noexcept;
+/// `textOverride` (+ kStaleOverrideMarker when staleOverride) if set, otherwise
+/// "R <value>" or "\u00D8 <value>" with core::formatLength(measuredValue(d), decimals).
+std::string dimensionText(const RadiusDimension& d, int decimals = core::kDisplayDecimals);
+
 /// Text anchored to a view point.
 struct Note {
     std::string id;
@@ -89,8 +115,20 @@ struct DetailMarker {
     bool userAuthored = false;
 };
 
+/// Banded ARC of a contoured outline (view coordinates; counter-clockwise in view axes from
+/// startDeg to endDeg, as ViewArc).
+struct EdgeMarkArc {
+    Vec2 center;
+    double radius = 0;
+    double startDeg = 0;
+    double endDeg = 90;
+    bool centerInside = true; ///< The part material lies on the centre side of the arc (convex arc).
+};
+
 /// Edge-banding mark: a thick line parallel to a banded edge, drawn just inside the
-/// outline, plus a legend code ("E1").
+/// outline, plus a legend code ("E1"). When `arc` is set the banded edge is that arc
+/// (a/b are its end points, `inward` is unused) and the mark is a concentric arc
+/// drawn just inside the outline.
 struct EdgeBandMark {
     std::string id;
     Vec2 a, b;        ///< The banded edge, view coordinates.
@@ -99,6 +137,7 @@ struct EdgeBandMark {
     std::string sourceId; ///< Edge-band id.
     Vec2 textShift{};
     bool hidden = false;
+    std::optional<EdgeMarkArc> arc{};
 };
 
 /// Double-headed arrow showing the grain direction.
@@ -117,6 +156,7 @@ struct ViewAnnotations {
     std::vector<DetailMarker> detailMarkers;
     std::vector<EdgeBandMark> edgeBandMarks;
     std::vector<GrainArrow> grainArrows;
+    std::vector<RadiusDimension> radiusDimensions; ///< Radii/diameters of contoured parts.
 };
 
 enum class DimensionTerminator { Arrow, Tick };

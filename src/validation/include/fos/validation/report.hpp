@@ -45,6 +45,11 @@ struct ValidationStats {
     std::size_t crossAssemblyPartPairsTested = 0;
     /// Hole pairs classified as mating pairs by the coaxiality check.
     std::size_t matingHolePairs = 0;
+    /// Box-interfering pairs (checks 3 and 4) re-tested with the exact outline because at
+    /// least one part is contoured (ADR-0008) ...
+    std::size_t shapedPairsRefined = 0;
+    /// ... and how many of them the exact outline cleared (no shared material).
+    std::size_t shapedPairsCleared = 0;
 };
 
 struct ValidationReport {

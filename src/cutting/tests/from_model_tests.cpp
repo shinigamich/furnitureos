@@ -215,3 +215,68 @@ TEST(FromModel, EveryMissingBandEdgeGetsItsOwnWarning) {
     EXPECT_EQ(p.id, "cab1/shelf.1");
     EXPECT_NEAR(p.width, 540.0, 1e-9);
 }
+
+// Routing split (ADR-0008): parts whose outline is not a plain rectangle leave the guillotine jobs.
+TEST(FromModel, ShapedPartsAreRoutedRectangularShapesStay) {
+    domain::Model model = domain::fixtures::basicCabinet();
+    fos::core::Diagnostics baseDs;
+    const std::vector<Job> before = jobsFromModel(model, Settings{}, baseDs);
+
+    auto shaped = [](std::string id, double l, double w, fos::geometry::Contour outer,
+                     std::vector<fos::geometry::Contour> cutouts = {}) {
+        domain::Part p;
+        p.id = domain::PartId(id);
+        p.name = id;
+        p.length = l;
+        p.width = w;
+        p.thickness = 18;
+        p.material = domain::MaterialId("mat.pb18");
+        p.shape = domain::PartShape{std::move(outer), std::move(cutouts), {}};
+        return p;
+    };
+    domain::Assembly a;
+    a.id = domain::AssemblyId("shaped");
+    // A shape that IS a plain rectangle stays a guillotine piece (500 x 300, free rotation).
+    a.parts.push_back(shaped("rect-shape", 500, 300, fos::geometry::rectangleContour(500, 300)));
+    a.parts.push_back(shaped("rounded", 600, 400,
+                             fos::geometry::roundedRectangleContour(600, 400, {50, 50, 50, 50}).value()));
+    a.parts.push_back(shaped("with-hole", 400, 400, fos::geometry::rectangleContour(400, 400),
+                             {fos::geometry::circleContour({200, 200}, 50)}));
+    // A shaped part with an unknown material is still routed (the nesting adapter reports it).
+    a.parts.push_back(shaped("rounded-nomat", 600, 400,
+                             fos::geometry::roundedRectangleContour(600, 400, {50, 50, 50, 50}).value()));
+    a.parts.back().material = domain::MaterialId("mat.unknown");
+    model.assemblies.push_back(a);
+
+    fos::core::Diagnostics ds;
+    const ModelCutting split = cuttingFromModel(model, Settings{}, ds);
+    ASSERT_EQ(split.routedParts.size(), 3u);
+    EXPECT_EQ(split.routedParts[0].partId, "rounded");
+    EXPECT_EQ(split.routedParts[1].partId, "with-hole");
+    EXPECT_EQ(split.routedParts[2].partId, "rounded-nomat");
+    EXPECT_EQ(split.routedParts[2].materialId, "mat.unknown");
+    ASSERT_EQ(ds.size(), 3u);
+    EXPECT_EQ(ds[0].severity, fos::core::Severity::Info);
+    EXPECT_EQ(ds[0].code, "cutting.adapter.routed");
+    EXPECT_EQ(ds[0].entityId, "rounded");
+
+    // Cabinet pieces unchanged; the rectangular shape appended as a 4th particleboard piece.
+    ASSERT_EQ(split.jobs.size(), before.size());
+    ASSERT_EQ(split.jobs[0].pieces.size(), before[0].pieces.size() + 1);
+    for (std::size_t i = 0; i < before[0].pieces.size(); ++i) {
+        EXPECT_EQ(split.jobs[0].pieces[i].id, before[0].pieces[i].id);
+        EXPECT_EQ(split.jobs[0].pieces[i].length, before[0].pieces[i].length);
+        EXPECT_EQ(split.jobs[0].pieces[i].width, before[0].pieces[i].width);
+        EXPECT_EQ(split.jobs[0].pieces[i].quantity, before[0].pieces[i].quantity);
+    }
+    EXPECT_EQ(split.jobs[0].pieces.back().id, "rect-shape");
+    EXPECT_NEAR(split.jobs[0].pieces.back().length, 500.0, 1e-9);
+    EXPECT_NEAR(split.jobs[0].pieces.back().width, 300.0, 1e-9);
+
+    // jobsFromModel: the same jobs and the same diagnostics.
+    fos::core::Diagnostics ds2;
+    const std::vector<Job> jobs = jobsFromModel(model, Settings{}, ds2);
+    ASSERT_EQ(jobs.size(), split.jobs.size());
+    EXPECT_EQ(jobs[0].pieces.size(), split.jobs[0].pieces.size());
+    EXPECT_EQ(ds2.size(), ds.size());
+}

@@ -16,6 +16,17 @@ std::string dimensionText(const Dimension& d, int decimals) {
     return d.staleOverride ? *d.textOverride + kStaleOverrideMarker : *d.textOverride;
 }
 
+double measuredValue(const RadiusDimension& d) noexcept {
+    const double r = length(d.arcPoint - d.center);
+    return d.diameter ? 2.0 * r : r;
+}
+
+std::string dimensionText(const RadiusDimension& d, int decimals) {
+    if (d.textOverride) return d.staleOverride ? *d.textOverride + kStaleOverrideMarker : *d.textOverride;
+    // "R 50" / U+00D8 "Ø 80"
+    return std::string(d.diameter ? "\xC3\x98 " : "R ") + core::formatLength(measuredValue(d), decimals);
+}
+
 DimensionGeometry layoutDimension(const Dimension& d, const ViewPlacement& placement, const DimensionStyle& style) {
     DimensionGeometry g;
     const Vec2 a = placement.toPaper(d.p1), b = placement.toPaper(d.p2);

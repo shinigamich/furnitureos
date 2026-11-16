@@ -13,6 +13,8 @@ const char* toString(MotionKind k) noexcept {
     case MotionKind::SpindleOn: return "SpindleOn";
     case MotionKind::SpindleOff: return "SpindleOff";
     case MotionKind::Dwell: return "Dwell";
+    case MotionKind::ArcCW: return "ArcCW";
+    case MotionKind::ArcCCW: return "ArcCCW";
     }
     return "Unknown";
 }
@@ -35,6 +37,15 @@ Motion Motion::linear(geometry::Vec3 p, double feed, domain::OperationId src) {
     Motion m;
     m.kind = MotionKind::Linear;
     m.target = p;
+    m.feed = feed;
+    m.source = std::move(src);
+    return m;
+}
+Motion Motion::arc(geometry::Vec3 p, geometry::Vec2 centre, bool ccw, double feed, domain::OperationId src) {
+    Motion m;
+    m.kind = ccw ? MotionKind::ArcCCW : MotionKind::ArcCW;
+    m.target = p;
+    m.centre = centre;
     m.feed = feed;
     m.source = std::move(src);
     return m;
@@ -74,6 +85,10 @@ std::string describe(const Motion& m) {
     case MotionKind::SpindleOn: return "Spindle on S" + f(m.rpm);
     case MotionKind::SpindleOff: return "Spindle off";
     case MotionKind::Dwell: return "Dwell " + f(m.seconds) + " s";
+    case MotionKind::ArcCW:
+    case MotionKind::ArcCCW:
+        return std::string(m.kind == MotionKind::ArcCW ? "Arc CW to " : "Arc CCW to ") + pt(m.target) + " centre (" +
+               f(m.centre.x) + ", " + f(m.centre.y) + ") F" + f(m.feed);
     }
     return "Unknown motion";
 }

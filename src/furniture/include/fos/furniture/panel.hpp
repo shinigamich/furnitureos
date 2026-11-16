@@ -28,6 +28,9 @@ struct PanelDefinition {
     /// Holds at least the five standard parameters; custom parameters may be added and the
     /// standard ones may be expressions (e.g. length = "run - 2 * overhang").
     parametric::ParameterGraph parameters;
+    /// Parametric outline (README "Contoured parts"); expressions are evaluated over
+    /// `parameters`. std::nullopt = rectangle.
+    std::optional<ContourSpec> contour;
 };
 
 /// A panel 600 x 300 at the origin (all five parameters constants).
@@ -45,7 +48,9 @@ struct PanelResult {
 ///   VerticalFront: length along X, thickness along Y, width along Z
 /// Errors: a standard parameter is missing, length/width not > 0, a parameter not finite or
 /// above limits::kMaxDimension in magnitude, material not in the library or of a non-finite /
-/// non-positive / absurd thickness (messages start with "furniture.geometry.invalid_size:").
+/// non-positive / absurd thickness (messages start with "furniture.geometry.invalid_size:"),
+/// and an invalid `contour` (checkContourSpec / buildPartShape errors, naming the panel).
+/// Machining outside a contour cannot occur (generated panels carry no operations).
 core::Result<PanelResult> generatePanel(const PanelDefinition& definition, const Libraries& libraries);
 
 } // namespace fos::furniture

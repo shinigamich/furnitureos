@@ -3,6 +3,8 @@
 
 #include "fos/drawings/hlr.hpp"
 
+#include "view_shape.hpp"
+
 #include <cmath>
 
 namespace fos::drawings {
@@ -62,6 +64,9 @@ View generateAssemblyView(const domain::Assembly& assembly, ViewKind kind, const
 
     std::vector<HlrBox> boxes;
     std::vector<HlrLooseEdge> loose;
+    std::vector<HlrEdge> shapeEdges;
+    std::vector<HlrArc> shapeArcs;
+    std::vector<detail::FaceOnShape> faceOnShapes;
     std::size_t cutIndex = 0;
 
     for (const domain::Part& part : assembly.parts) {
@@ -126,20 +131,50 @@ View generateAssemblyView(const domain::Assembly& assembly, ViewKind kind, const
         else
             fp.aspect = PanelAspect::FaceOn;
 
+        const bool contoured = detail::isContoured(part);
         if (section) {
             if (fp.depthFar >= planeDepth - core::kLengthEps) continue; // entirely on the viewer's side
             if (fp.depthNear > planeDepth + core::kLengthEps) {
                 fp.depthNear = planeDepth;
                 fp.cut = true;
                 view.cuts.push_back({fp.rect, (cutIndex++ % 2 == 0) ? 45.0 : 135.0, pid});
+                if (contoured)
+                    view.diagnostics.push_back(
+                        {core::Severity::Warning, "drawings.section.shape_approximated",
+                         "Part '" + part.name +
+                             "' has a contoured outline; the section plane cuts it as its bounding box, so its "
+                             "hatched cross-section is the rectangle " +
+                             core::formatLength(fp.rect.width()) + " x " + core::formatLength(fp.rect.height()) +
+                             " mm (approximation).",
+                         pid});
             }
+        }
+        if (contoured && fp.aspect == PanelAspect::FaceOn) {
+            // Exact outline, bounding box as occluder (see generateAssemblyView docs).
+            detail::FaceOnShape shape = detail::makeFaceOnShape(part, b, fp.depthNear, boxes.size());
+            detail::appendHlrGeometry(shape, shapeEdges, shapeArcs);
+            faceOnShapes.push_back(std::move(shape));
+            HlrBox occluder{fp.rect, fp.depthNear, fp.depthFar, pid};
+            occluder.drawEdges = false;
+            boxes.push_back(std::move(occluder));
+            view.footprints.push_back(fp);
+            view.bounds.expand(fp.rect);
+            continue;
         }
         boxes.push_back({fp.rect, fp.depthNear, fp.depthFar, pid});
         view.footprints.push_back(fp);
         view.bounds.expand(fp.rect);
     }
 
-    view.segments = removeHiddenLines(boxes, loose, options.hiddenLines);
+    if (faceOnShapes.empty()) {
+        view.segments = removeHiddenLines(boxes, loose, options.hiddenLines);
+        return view;
+    }
+    view.segments = removeHiddenLines(boxes, shapeEdges, loose, options.hiddenLines);
+    view.arcs = removeHiddenArcs(boxes, shapeArcs, options.hiddenLines);
+    const core::Diagnostics approx =
+        detail::shapeApproximationDiagnostics(view.id, assembly, boxes, faceOnShapes, shapeEdges, shapeArcs);
+    view.diagnostics.insert(view.diagnostics.end(), approx.begin(), approx.end());
     return view;
 }
 

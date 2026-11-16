@@ -35,4 +35,13 @@ CabinetDefinition wardrobeSection(domain::AssemblyId id, const TemplateMaterials
 /// shelves in each half; overlay back.
 CabinetDefinition openShelving(domain::AssemblyId id, const TemplateMaterials& materials);
 
+/// Custom parameter of openShelvingRounded(): corner radius of the shelf fronts (mm).
+inline constexpr const char* kShelfCornerRadius = "shelf_corner_radius";
+/// openShelving() whose four adjustable shelves (shelf.1.1, shelf.1.2, shelf.2.1, shelf.2.2)
+/// have rounded FRONT corners (ContourKind::RoundedCorners on the L1/W1 and L1/W2 corners) of
+/// radius `shelf_corner_radius` (custom parameter, 30 mm). The front edge band runs along the
+/// front straight and both arcs. Changing a shelf count leaves overrides of removed shelves in
+/// place (warning furniture.contour.unused); new shelves are rectangular.
+CabinetDefinition openShelvingRounded(domain::AssemblyId id, const TemplateMaterials& materials);
+
 } // namespace fos::furniture::templates

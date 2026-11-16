@@ -1,0 +1,998 @@
+# basicCabinet
+## part list
+No.,Assembly,Part ID,Name,Role,Material,Length,Width,Thickness,Cut length,Cut width,Grain,Edge L1,Edge L2,Edge W1,Edge W2,Operations
+1,Base cabinet 800,cab1/side.left,Left side,Side,Particleboard 18 mm,720,560,18,719.2,558,along length,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,2
+2,Base cabinet 800,cab1/side.right,Right side,Side,Particleboard 18 mm,720,560,18,719.2,558,along length,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,0
+3,Base cabinet 800,cab1/bottom,Bottom,Bottom,Particleboard 18 mm,764,560,18,764,558,along length,ABS 2 mm,,,,0
+4,Base cabinet 800,cab1/top,Top,Top,Particleboard 18 mm,764,560,18,764,558,along length,ABS 2 mm,,,,0
+5,Base cabinet 800,cab1/shelf.1,Shelf,Shelf,Particleboard 18 mm,764,540,18,764,538,along length,ABS 2 mm,,,,0
+6,Base cabinet 800,cab1/back,Back panel,Back,HDF 3 mm,796,716,3,796,716,none,,,,,0
+## cut list
+Material,Thickness,Cut length,Cut width,Qty,Finished length,Finished width,Grain,Rotation allowed,Edge L1,Edge L2,Edge W1,Edge W2,Name,Operations,Part numbers,Part IDs
+HDF 3 mm,3,796,716,1,796,716,none,yes,,,,,Back panel,0,6,cab1/back
+Particleboard 18 mm,18,764,558,2,764,560,along length,no,ABS 2 mm,,,,Bottom / Top,0,"3, 4","cab1/bottom, cab1/top"
+Particleboard 18 mm,18,764,538,1,764,540,along length,no,ABS 2 mm,,,,Shelf,0,5,cab1/shelf.1
+Particleboard 18 mm,18,719.2,558,1,720,560,along length,no,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,Left side,2,1,cab1/side.left
+Particleboard 18 mm,18,719.2,558,1,720,560,along length,no,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,Right side,0,2,cab1/side.right
+## cut list per assembly
+Material,Thickness,Cut length,Cut width,Qty,Finished length,Finished width,Grain,Rotation allowed,Edge L1,Edge L2,Edge W1,Edge W2,Name,Operations,Part numbers,Part IDs
+HDF 3 mm,3,796,716,1,796,716,none,yes,,,,,Back panel,0,6,cab1/back
+Particleboard 18 mm,18,764,558,2,764,560,along length,no,ABS 2 mm,,,,Bottom / Top,0,"3, 4","cab1/bottom, cab1/top"
+Particleboard 18 mm,18,764,538,1,764,540,along length,no,ABS 2 mm,,,,Shelf,0,5,cab1/shelf.1
+Particleboard 18 mm,18,719.2,558,1,720,560,along length,no,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,Left side,2,1,cab1/side.left
+Particleboard 18 mm,18,719.2,558,1,720,560,along length,no,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,Right side,0,2,cab1/side.right
+## materials
+Material,Thickness,Parts,Finished area (m2),Cut area (m2),Sheet length,Sheet width,Sheets (area lower bound),Cost per sheet,Cost at area lower bound,Note
+Particleboard 18 mm,18,5,2.0746,2.0663,2800,2070,1,60,60,area lower bound - real sheet count comes from the cutting optimiser
+HDF 3 mm,3,1,0.5699,0.5699,2800,2070,1,15,15,area lower bound - real sheet count comes from the cutting optimiser
+## edge banding
+Edge band,Thickness,Width,Edges,Applied length (m),Overhang allowance (m),Waste allowance (m),Purchase length (m),Cost per m,Cost,Note
+ABS 2 mm,2,22,5,3.732,0.25,0,3.982,0.8,3.19,
+ABS 0.4 mm,0.4,22,4,2.24,0.2,0,2.44,0.3,0.73,
+## edge banding 30/10%
+Edge band,Thickness,Width,Edges,Applied length (m),Overhang allowance (m),Waste allowance (m),Purchase length (m),Cost per m,Cost,Note
+ABS 2 mm,2,22,5,3.732,0.3,0.403,4.435,0.8,3.55,
+ABS 0.4 mm,0.4,22,4,2.24,0.24,0.248,2.728,0.3,0.82,
+## hardware
+Hardware,Manufacturer,Article,Qty,Unit cost,Total,Dimensions verified,Note
+Shelf support pin 5 mm (generic),,,4,0.05,0.2,no,dimensions not verified
+## machining
+No.,Assembly,Part ID,Name,Holes (count x diameter @ face),Holes,Grooves,Groove length,Pockets
+1,Base cabinet 800,cab1/side.left,Left side,2 x 5 @ B,2,0,0,0
+## machining all
+No.,Assembly,Part ID,Name,Holes (count x diameter @ face),Holes,Grooves,Groove length,Pockets
+1,Base cabinet 800,cab1/side.left,Left side,2 x 5 @ B,2,0,0,0
+2,Base cabinet 800,cab1/side.right,Right side,,0,0,0,0
+3,Base cabinet 800,cab1/bottom,Bottom,,0,0,0,0
+4,Base cabinet 800,cab1/top,Top,,0,0,0,0
+5,Base cabinet 800,cab1/shelf.1,Shelf,,0,0,0,0
+6,Base cabinet 800,cab1/back,Back panel,,0,0,0,0
+totals 2 0 0
+## labels
+No.,Project,Assembly,Name,Part ID,Length,Width,Thickness,Cut length,Cut width,Material,Edges (L1 L2 W1 W2),Qty index
+1,Kitchen,Base cabinet 800,Left side,cab1/side.left,720,560,18,719.2,558,Particleboard 18 mm,1011,1/1
+2,Kitchen,Base cabinet 800,Right side,cab1/side.right,720,560,18,719.2,558,Particleboard 18 mm,1011,1/1
+3,Kitchen,Base cabinet 800,Bottom,cab1/bottom,764,560,18,764,558,Particleboard 18 mm,1000,1/2
+4,Kitchen,Base cabinet 800,Top,cab1/top,764,560,18,764,558,Particleboard 18 mm,1000,2/2
+5,Kitchen,Base cabinet 800,Shelf,cab1/shelf.1,764,540,18,764,538,Particleboard 18 mm,1000,1/1
+6,Kitchen,Base cabinet 800,Back panel,cab1/back,796,716,3,796,716,HDF 3 mm,0000,1/1
+## label page
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="210mm" height="297mm" viewBox="0 0 210 297" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" fill="#000">
+<g transform="translate(0 0.5)">
+<clipPath id="label-clip-1"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-1)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 1  Left side</text>
+<text x="2" y="16" font-size="3.4">720 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 719.2 × 558</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab1/side.left</text>
+<text x="2" y="34.5" font-size="2.6">1011</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/1</text>
+</g></g>
+</g>
+<g transform="translate(70 0.5)">
+<clipPath id="label-clip-2"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-2)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 2  Right side</text>
+<text x="2" y="16" font-size="3.4">720 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 719.2 × 558</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab1/side.right</text>
+<text x="2" y="34.5" font-size="2.6">1011</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/1</text>
+</g></g>
+</g>
+<g transform="translate(140 0.5)">
+<clipPath id="label-clip-3"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-3)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 3  Bottom</text>
+<text x="2" y="16" font-size="3.4">764 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 764 × 558</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab1/bottom</text>
+<text x="2" y="34.5" font-size="2.6">1000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/2</text>
+</g></g>
+</g>
+<g transform="translate(0 37.5)">
+<clipPath id="label-clip-4"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-4)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 4  Top</text>
+<text x="2" y="16" font-size="3.4">764 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 764 × 558</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab1/top</text>
+<text x="2" y="34.5" font-size="2.6">1000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">2/2</text>
+</g></g>
+</g>
+<g transform="translate(70 37.5)">
+<clipPath id="label-clip-5"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-5)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 5  Shelf</text>
+<text x="2" y="16" font-size="3.4">764 × 540 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 764 × 538</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab1/shelf.1</text>
+<text x="2" y="34.5" font-size="2.6">1000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/1</text>
+</g></g>
+</g>
+<g transform="translate(140 37.5)">
+<clipPath id="label-clip-6"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-6)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 6  Back panel</text>
+<text x="2" y="16" font-size="3.4">796 × 716 × 3</text>
+<text x="2" y="20.5" font-size="2.8">Cut 796 × 716</text>
+<text x="2" y="25" font-size="2.8">HDF 3 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab1/back</text>
+<text x="2" y="34.5" font-size="2.6">0000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/1</text>
+</g></g>
+</g>
+</svg>
+## cost
+Category,Item,Quantity,Unit,Unit cost,Cost,Currency,Note
+Materials,Particleboard 18 mm,1,sheets,60,60,,area lower bound - real sheet count comes from the cutting optimiser
+Materials,HDF 3 mm,1,sheets,15,15,,area lower bound - real sheet count comes from the cutting optimiser
+Materials,Subtotal,,,,75,,area lower bound - real sheet count comes from the cutting optimiser
+Edge banding,ABS 2 mm,3.982,m,0.8,3.19,,
+Edge banding,ABS 0.4 mm,2.44,m,0.3,0.73,,
+Edge banding,Subtotal,,,,3.92,,
+Hardware,Shelf support pin 5 mm (generic),4,pcs,0.05,0.2,,
+Hardware,Subtotal,,,,0.2,,
+Total,,,,,79.12,,lower bound (materials at area lower bound)
+## summary
+Assembly,Parts,Hardware items,Operations,Finished area (m2),Width,Depth,Height
+Base cabinet 800,6,4,2,2.6446,800,563,720
+summary 6 2.6445759999999998 2.6362192000000002 5.9720000000000004
+# twoCabinets
+## part list
+No.,Assembly,Part ID,Name,Role,Material,Length,Width,Thickness,Cut length,Cut width,Grain,Edge L1,Edge L2,Edge W1,Edge W2,Operations
+1,Base cabinet 800,cab1/side.left,Left side,Side,Particleboard 18 mm,720,560,18,719.2,558,along length,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,2
+2,Base cabinet 800,cab1/side.right,Right side,Side,Particleboard 18 mm,720,560,18,719.2,558,along length,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,0
+3,Base cabinet 800,cab1/bottom,Bottom,Bottom,Particleboard 18 mm,764,560,18,764,558,along length,ABS 2 mm,,,,0
+4,Base cabinet 800,cab1/top,Top,Top,Particleboard 18 mm,764,560,18,764,558,along length,ABS 2 mm,,,,0
+5,Base cabinet 800,cab1/shelf.1,Shelf,Shelf,Particleboard 18 mm,764,540,18,764,538,along length,ABS 2 mm,,,,0
+6,Base cabinet 800,cab1/back,Back panel,Back,HDF 3 mm,796,716,3,796,716,none,,,,,0
+7,Base cabinet 800 (2),cab2/side.left,Left side,Side,Particleboard 18 mm,720,560,18,719.2,558,along length,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,2
+8,Base cabinet 800 (2),cab2/side.right,Right side,Side,Particleboard 18 mm,720,560,18,719.2,558,along length,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,0
+9,Base cabinet 800 (2),cab2/bottom,Bottom,Bottom,Particleboard 18 mm,764,560,18,764,558,along length,ABS 2 mm,,,,0
+10,Base cabinet 800 (2),cab2/top,Top,Top,Particleboard 18 mm,764,560,18,764,558,along length,ABS 2 mm,,,,0
+11,Base cabinet 800 (2),cab2/shelf.1,Shelf,Shelf,Particleboard 18 mm,764,540,18,764,538,along length,ABS 2 mm,,,,0
+12,Base cabinet 800 (2),cab2/back,Back panel,Back,HDF 3 mm,796,716,3,796,716,none,,,,,0
+## cut list
+Material,Thickness,Cut length,Cut width,Qty,Finished length,Finished width,Grain,Rotation allowed,Edge L1,Edge L2,Edge W1,Edge W2,Name,Operations,Part numbers,Part IDs
+HDF 3 mm,3,796,716,2,796,716,none,yes,,,,,Back panel,0,"6, 12","cab1/back, cab2/back"
+Particleboard 18 mm,18,764,558,4,764,560,along length,no,ABS 2 mm,,,,Bottom / Top,0,"3, 4, 9, 10","cab1/bottom, cab1/top, cab2/bottom, cab2/top"
+Particleboard 18 mm,18,764,538,2,764,540,along length,no,ABS 2 mm,,,,Shelf,0,"5, 11","cab1/shelf.1, cab2/shelf.1"
+Particleboard 18 mm,18,719.2,558,2,720,560,along length,no,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,Left side,2,"1, 7","cab1/side.left, cab2/side.left"
+Particleboard 18 mm,18,719.2,558,2,720,560,along length,no,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,Right side,0,"2, 8","cab1/side.right, cab2/side.right"
+## cut list per assembly
+Material,Thickness,Cut length,Cut width,Qty,Finished length,Finished width,Grain,Rotation allowed,Edge L1,Edge L2,Edge W1,Edge W2,Name,Operations,Part numbers,Part IDs
+HDF 3 mm,3,796,716,1,796,716,none,yes,,,,,Back panel,0,6,cab1/back
+HDF 3 mm,3,796,716,1,796,716,none,yes,,,,,Back panel,0,12,cab2/back
+Particleboard 18 mm,18,764,558,2,764,560,along length,no,ABS 2 mm,,,,Bottom / Top,0,"3, 4","cab1/bottom, cab1/top"
+Particleboard 18 mm,18,764,558,2,764,560,along length,no,ABS 2 mm,,,,Bottom / Top,0,"9, 10","cab2/bottom, cab2/top"
+Particleboard 18 mm,18,764,538,1,764,540,along length,no,ABS 2 mm,,,,Shelf,0,5,cab1/shelf.1
+Particleboard 18 mm,18,764,538,1,764,540,along length,no,ABS 2 mm,,,,Shelf,0,11,cab2/shelf.1
+Particleboard 18 mm,18,719.2,558,1,720,560,along length,no,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,Left side,2,1,cab1/side.left
+Particleboard 18 mm,18,719.2,558,1,720,560,along length,no,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,Right side,0,2,cab1/side.right
+Particleboard 18 mm,18,719.2,558,1,720,560,along length,no,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,Left side,2,7,cab2/side.left
+Particleboard 18 mm,18,719.2,558,1,720,560,along length,no,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,Right side,0,8,cab2/side.right
+## materials
+Material,Thickness,Parts,Finished area (m2),Cut area (m2),Sheet length,Sheet width,Sheets (area lower bound),Cost per sheet,Cost at area lower bound,Note
+Particleboard 18 mm,18,10,4.1493,4.1326,2800,2070,1,60,60,area lower bound - real sheet count comes from the cutting optimiser
+HDF 3 mm,3,2,1.1399,1.1399,2800,2070,1,15,15,area lower bound - real sheet count comes from the cutting optimiser
+## edge banding
+Edge band,Thickness,Width,Edges,Applied length (m),Overhang allowance (m),Waste allowance (m),Purchase length (m),Cost per m,Cost,Note
+ABS 2 mm,2,22,10,7.464,0.5,0,7.964,0.8,6.37,
+ABS 0.4 mm,0.4,22,8,4.48,0.4,0,4.88,0.3,1.46,
+## edge banding 30/10%
+Edge band,Thickness,Width,Edges,Applied length (m),Overhang allowance (m),Waste allowance (m),Purchase length (m),Cost per m,Cost,Note
+ABS 2 mm,2,22,10,7.464,0.6,0.806,8.87,0.8,7.1,
+ABS 0.4 mm,0.4,22,8,4.48,0.48,0.496,5.456,0.3,1.64,
+## hardware
+Hardware,Manufacturer,Article,Qty,Unit cost,Total,Dimensions verified,Note
+Shelf support pin 5 mm (generic),,,8,0.05,0.4,no,dimensions not verified
+## machining
+No.,Assembly,Part ID,Name,Holes (count x diameter @ face),Holes,Grooves,Groove length,Pockets
+1,Base cabinet 800,cab1/side.left,Left side,2 x 5 @ B,2,0,0,0
+7,Base cabinet 800 (2),cab2/side.left,Left side,2 x 5 @ B,2,0,0,0
+## machining all
+No.,Assembly,Part ID,Name,Holes (count x diameter @ face),Holes,Grooves,Groove length,Pockets
+1,Base cabinet 800,cab1/side.left,Left side,2 x 5 @ B,2,0,0,0
+2,Base cabinet 800,cab1/side.right,Right side,,0,0,0,0
+3,Base cabinet 800,cab1/bottom,Bottom,,0,0,0,0
+4,Base cabinet 800,cab1/top,Top,,0,0,0,0
+5,Base cabinet 800,cab1/shelf.1,Shelf,,0,0,0,0
+6,Base cabinet 800,cab1/back,Back panel,,0,0,0,0
+7,Base cabinet 800 (2),cab2/side.left,Left side,2 x 5 @ B,2,0,0,0
+8,Base cabinet 800 (2),cab2/side.right,Right side,,0,0,0,0
+9,Base cabinet 800 (2),cab2/bottom,Bottom,,0,0,0,0
+10,Base cabinet 800 (2),cab2/top,Top,,0,0,0,0
+11,Base cabinet 800 (2),cab2/shelf.1,Shelf,,0,0,0,0
+12,Base cabinet 800 (2),cab2/back,Back panel,,0,0,0,0
+totals 4 0 0
+## labels
+No.,Project,Assembly,Name,Part ID,Length,Width,Thickness,Cut length,Cut width,Material,Edges (L1 L2 W1 W2),Qty index
+1,Kitchen,Base cabinet 800,Left side,cab1/side.left,720,560,18,719.2,558,Particleboard 18 mm,1011,1/2
+2,Kitchen,Base cabinet 800,Right side,cab1/side.right,720,560,18,719.2,558,Particleboard 18 mm,1011,1/2
+3,Kitchen,Base cabinet 800,Bottom,cab1/bottom,764,560,18,764,558,Particleboard 18 mm,1000,1/4
+4,Kitchen,Base cabinet 800,Top,cab1/top,764,560,18,764,558,Particleboard 18 mm,1000,2/4
+5,Kitchen,Base cabinet 800,Shelf,cab1/shelf.1,764,540,18,764,538,Particleboard 18 mm,1000,1/2
+6,Kitchen,Base cabinet 800,Back panel,cab1/back,796,716,3,796,716,HDF 3 mm,0000,1/2
+7,Kitchen,Base cabinet 800 (2),Left side,cab2/side.left,720,560,18,719.2,558,Particleboard 18 mm,1011,2/2
+8,Kitchen,Base cabinet 800 (2),Right side,cab2/side.right,720,560,18,719.2,558,Particleboard 18 mm,1011,2/2
+9,Kitchen,Base cabinet 800 (2),Bottom,cab2/bottom,764,560,18,764,558,Particleboard 18 mm,1000,3/4
+10,Kitchen,Base cabinet 800 (2),Top,cab2/top,764,560,18,764,558,Particleboard 18 mm,1000,4/4
+11,Kitchen,Base cabinet 800 (2),Shelf,cab2/shelf.1,764,540,18,764,538,Particleboard 18 mm,1000,2/2
+12,Kitchen,Base cabinet 800 (2),Back panel,cab2/back,796,716,3,796,716,HDF 3 mm,0000,2/2
+## label page
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="210mm" height="297mm" viewBox="0 0 210 297" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" fill="#000">
+<g transform="translate(0 0.5)">
+<clipPath id="label-clip-1"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-1)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 1  Left side</text>
+<text x="2" y="16" font-size="3.4">720 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 719.2 × 558</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab1/side.left</text>
+<text x="2" y="34.5" font-size="2.6">1011</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/2</text>
+</g></g>
+</g>
+<g transform="translate(70 0.5)">
+<clipPath id="label-clip-2"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-2)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 2  Right side</text>
+<text x="2" y="16" font-size="3.4">720 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 719.2 × 558</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab1/side.right</text>
+<text x="2" y="34.5" font-size="2.6">1011</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/2</text>
+</g></g>
+</g>
+<g transform="translate(140 0.5)">
+<clipPath id="label-clip-3"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-3)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 3  Bottom</text>
+<text x="2" y="16" font-size="3.4">764 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 764 × 558</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab1/bottom</text>
+<text x="2" y="34.5" font-size="2.6">1000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/4</text>
+</g></g>
+</g>
+<g transform="translate(0 37.5)">
+<clipPath id="label-clip-4"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-4)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 4  Top</text>
+<text x="2" y="16" font-size="3.4">764 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 764 × 558</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab1/top</text>
+<text x="2" y="34.5" font-size="2.6">1000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">2/4</text>
+</g></g>
+</g>
+<g transform="translate(70 37.5)">
+<clipPath id="label-clip-5"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-5)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 5  Shelf</text>
+<text x="2" y="16" font-size="3.4">764 × 540 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 764 × 538</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab1/shelf.1</text>
+<text x="2" y="34.5" font-size="2.6">1000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/2</text>
+</g></g>
+</g>
+<g transform="translate(140 37.5)">
+<clipPath id="label-clip-6"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-6)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 6  Back panel</text>
+<text x="2" y="16" font-size="3.4">796 × 716 × 3</text>
+<text x="2" y="20.5" font-size="2.8">Cut 796 × 716</text>
+<text x="2" y="25" font-size="2.8">HDF 3 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab1/back</text>
+<text x="2" y="34.5" font-size="2.6">0000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/2</text>
+</g></g>
+</g>
+<g transform="translate(0 74.5)">
+<clipPath id="label-clip-7"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-7)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800 (2)</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 7  Left side</text>
+<text x="2" y="16" font-size="3.4">720 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 719.2 × 558</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab2/side.left</text>
+<text x="2" y="34.5" font-size="2.6">1011</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">2/2</text>
+</g></g>
+</g>
+<g transform="translate(70 74.5)">
+<clipPath id="label-clip-8"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-8)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800 (2)</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 8  Right side</text>
+<text x="2" y="16" font-size="3.4">720 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 719.2 × 558</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab2/side.right</text>
+<text x="2" y="34.5" font-size="2.6">1011</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">2/2</text>
+</g></g>
+</g>
+<g transform="translate(140 74.5)">
+<clipPath id="label-clip-9"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-9)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800 (2)</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 9  Bottom</text>
+<text x="2" y="16" font-size="3.4">764 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 764 × 558</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab2/bottom</text>
+<text x="2" y="34.5" font-size="2.6">1000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">3/4</text>
+</g></g>
+</g>
+<g transform="translate(0 111.5)">
+<clipPath id="label-clip-10"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-10)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800 (2)</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 10  Top</text>
+<text x="2" y="16" font-size="3.4">764 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 764 × 558</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab2/top</text>
+<text x="2" y="34.5" font-size="2.6">1000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">4/4</text>
+</g></g>
+</g>
+<g transform="translate(70 111.5)">
+<clipPath id="label-clip-11"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-11)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800 (2)</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 11  Shelf</text>
+<text x="2" y="16" font-size="3.4">764 × 540 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 764 × 538</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab2/shelf.1</text>
+<text x="2" y="34.5" font-size="2.6">1000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">2/2</text>
+</g></g>
+</g>
+<g transform="translate(140 111.5)">
+<clipPath id="label-clip-12"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-12)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800 (2)</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 12  Back panel</text>
+<text x="2" y="16" font-size="3.4">796 × 716 × 3</text>
+<text x="2" y="20.5" font-size="2.8">Cut 796 × 716</text>
+<text x="2" y="25" font-size="2.8">HDF 3 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab2/back</text>
+<text x="2" y="34.5" font-size="2.6">0000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">2/2</text>
+</g></g>
+</g>
+</svg>
+## cost
+Category,Item,Quantity,Unit,Unit cost,Cost,Currency,Note
+Materials,Particleboard 18 mm,1,sheets,60,60,,area lower bound - real sheet count comes from the cutting optimiser
+Materials,HDF 3 mm,1,sheets,15,15,,area lower bound - real sheet count comes from the cutting optimiser
+Materials,Subtotal,,,,75,,area lower bound - real sheet count comes from the cutting optimiser
+Edge banding,ABS 2 mm,7.964,m,0.8,6.37,,
+Edge banding,ABS 0.4 mm,4.88,m,0.3,1.46,,
+Edge banding,Subtotal,,,,7.84,,
+Hardware,Shelf support pin 5 mm (generic),8,pcs,0.05,0.4,,
+Hardware,Subtotal,,,,0.4,,
+Total,,,,,83.24,,lower bound (materials at area lower bound)
+## summary
+Assembly,Parts,Hardware items,Operations,Finished area (m2),Width,Depth,Height
+Base cabinet 800,6,4,2,2.6446,800,563,720
+Base cabinet 800 (2),6,4,2,2.6446,800,563,720
+summary 12 5.2891519999999996 5.2724384000000004 11.944000000000001
+# twoCabinets scope cab2
+## part list
+No.,Assembly,Part ID,Name,Role,Material,Length,Width,Thickness,Cut length,Cut width,Grain,Edge L1,Edge L2,Edge W1,Edge W2,Operations
+7,Base cabinet 800 (2),cab2/side.left,Left side,Side,Particleboard 18 mm,720,560,18,719.2,558,along length,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,2
+8,Base cabinet 800 (2),cab2/side.right,Right side,Side,Particleboard 18 mm,720,560,18,719.2,558,along length,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,0
+9,Base cabinet 800 (2),cab2/bottom,Bottom,Bottom,Particleboard 18 mm,764,560,18,764,558,along length,ABS 2 mm,,,,0
+10,Base cabinet 800 (2),cab2/top,Top,Top,Particleboard 18 mm,764,560,18,764,558,along length,ABS 2 mm,,,,0
+11,Base cabinet 800 (2),cab2/shelf.1,Shelf,Shelf,Particleboard 18 mm,764,540,18,764,538,along length,ABS 2 mm,,,,0
+12,Base cabinet 800 (2),cab2/back,Back panel,Back,HDF 3 mm,796,716,3,796,716,none,,,,,0
+## cut list
+Material,Thickness,Cut length,Cut width,Qty,Finished length,Finished width,Grain,Rotation allowed,Edge L1,Edge L2,Edge W1,Edge W2,Name,Operations,Part numbers,Part IDs
+HDF 3 mm,3,796,716,1,796,716,none,yes,,,,,Back panel,0,12,cab2/back
+Particleboard 18 mm,18,764,558,2,764,560,along length,no,ABS 2 mm,,,,Bottom / Top,0,"9, 10","cab2/bottom, cab2/top"
+Particleboard 18 mm,18,764,538,1,764,540,along length,no,ABS 2 mm,,,,Shelf,0,11,cab2/shelf.1
+Particleboard 18 mm,18,719.2,558,1,720,560,along length,no,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,Left side,2,7,cab2/side.left
+Particleboard 18 mm,18,719.2,558,1,720,560,along length,no,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,Right side,0,8,cab2/side.right
+## cut list per assembly
+Material,Thickness,Cut length,Cut width,Qty,Finished length,Finished width,Grain,Rotation allowed,Edge L1,Edge L2,Edge W1,Edge W2,Name,Operations,Part numbers,Part IDs
+HDF 3 mm,3,796,716,1,796,716,none,yes,,,,,Back panel,0,12,cab2/back
+Particleboard 18 mm,18,764,558,2,764,560,along length,no,ABS 2 mm,,,,Bottom / Top,0,"9, 10","cab2/bottom, cab2/top"
+Particleboard 18 mm,18,764,538,1,764,540,along length,no,ABS 2 mm,,,,Shelf,0,11,cab2/shelf.1
+Particleboard 18 mm,18,719.2,558,1,720,560,along length,no,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,Left side,2,7,cab2/side.left
+Particleboard 18 mm,18,719.2,558,1,720,560,along length,no,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,Right side,0,8,cab2/side.right
+## materials
+Material,Thickness,Parts,Finished area (m2),Cut area (m2),Sheet length,Sheet width,Sheets (area lower bound),Cost per sheet,Cost at area lower bound,Note
+Particleboard 18 mm,18,5,2.0746,2.0663,2800,2070,1,60,60,area lower bound - real sheet count comes from the cutting optimiser
+HDF 3 mm,3,1,0.5699,0.5699,2800,2070,1,15,15,area lower bound - real sheet count comes from the cutting optimiser
+## edge banding
+Edge band,Thickness,Width,Edges,Applied length (m),Overhang allowance (m),Waste allowance (m),Purchase length (m),Cost per m,Cost,Note
+ABS 2 mm,2,22,5,3.732,0.25,0,3.982,0.8,3.19,
+ABS 0.4 mm,0.4,22,4,2.24,0.2,0,2.44,0.3,0.73,
+## edge banding 30/10%
+Edge band,Thickness,Width,Edges,Applied length (m),Overhang allowance (m),Waste allowance (m),Purchase length (m),Cost per m,Cost,Note
+ABS 2 mm,2,22,5,3.732,0.3,0.403,4.435,0.8,3.55,
+ABS 0.4 mm,0.4,22,4,2.24,0.24,0.248,2.728,0.3,0.82,
+## hardware
+Hardware,Manufacturer,Article,Qty,Unit cost,Total,Dimensions verified,Note
+Shelf support pin 5 mm (generic),,,4,0.05,0.2,no,dimensions not verified
+## machining
+No.,Assembly,Part ID,Name,Holes (count x diameter @ face),Holes,Grooves,Groove length,Pockets
+7,Base cabinet 800 (2),cab2/side.left,Left side,2 x 5 @ B,2,0,0,0
+## machining all
+No.,Assembly,Part ID,Name,Holes (count x diameter @ face),Holes,Grooves,Groove length,Pockets
+7,Base cabinet 800 (2),cab2/side.left,Left side,2 x 5 @ B,2,0,0,0
+8,Base cabinet 800 (2),cab2/side.right,Right side,,0,0,0,0
+9,Base cabinet 800 (2),cab2/bottom,Bottom,,0,0,0,0
+10,Base cabinet 800 (2),cab2/top,Top,,0,0,0,0
+11,Base cabinet 800 (2),cab2/shelf.1,Shelf,,0,0,0,0
+12,Base cabinet 800 (2),cab2/back,Back panel,,0,0,0,0
+totals 2 0 0
+## labels
+No.,Project,Assembly,Name,Part ID,Length,Width,Thickness,Cut length,Cut width,Material,Edges (L1 L2 W1 W2),Qty index
+7,Kitchen,Base cabinet 800 (2),Left side,cab2/side.left,720,560,18,719.2,558,Particleboard 18 mm,1011,1/1
+8,Kitchen,Base cabinet 800 (2),Right side,cab2/side.right,720,560,18,719.2,558,Particleboard 18 mm,1011,1/1
+9,Kitchen,Base cabinet 800 (2),Bottom,cab2/bottom,764,560,18,764,558,Particleboard 18 mm,1000,1/2
+10,Kitchen,Base cabinet 800 (2),Top,cab2/top,764,560,18,764,558,Particleboard 18 mm,1000,2/2
+11,Kitchen,Base cabinet 800 (2),Shelf,cab2/shelf.1,764,540,18,764,538,Particleboard 18 mm,1000,1/1
+12,Kitchen,Base cabinet 800 (2),Back panel,cab2/back,796,716,3,796,716,HDF 3 mm,0000,1/1
+## label page
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="210mm" height="297mm" viewBox="0 0 210 297" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" fill="#000">
+<g transform="translate(0 0.5)">
+<clipPath id="label-clip-1"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-1)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800 (2)</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 7  Left side</text>
+<text x="2" y="16" font-size="3.4">720 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 719.2 × 558</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab2/side.left</text>
+<text x="2" y="34.5" font-size="2.6">1011</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/1</text>
+</g></g>
+</g>
+<g transform="translate(70 0.5)">
+<clipPath id="label-clip-2"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-2)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800 (2)</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 8  Right side</text>
+<text x="2" y="16" font-size="3.4">720 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 719.2 × 558</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab2/side.right</text>
+<text x="2" y="34.5" font-size="2.6">1011</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/1</text>
+</g></g>
+</g>
+<g transform="translate(140 0.5)">
+<clipPath id="label-clip-3"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-3)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800 (2)</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 9  Bottom</text>
+<text x="2" y="16" font-size="3.4">764 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 764 × 558</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab2/bottom</text>
+<text x="2" y="34.5" font-size="2.6">1000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/2</text>
+</g></g>
+</g>
+<g transform="translate(0 37.5)">
+<clipPath id="label-clip-4"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-4)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800 (2)</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 10  Top</text>
+<text x="2" y="16" font-size="3.4">764 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 764 × 558</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab2/top</text>
+<text x="2" y="34.5" font-size="2.6">1000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">2/2</text>
+</g></g>
+</g>
+<g transform="translate(70 37.5)">
+<clipPath id="label-clip-5"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-5)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800 (2)</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 11  Shelf</text>
+<text x="2" y="16" font-size="3.4">764 × 540 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 764 × 538</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab2/shelf.1</text>
+<text x="2" y="34.5" font-size="2.6">1000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/1</text>
+</g></g>
+</g>
+<g transform="translate(140 37.5)">
+<clipPath id="label-clip-6"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-6)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800 (2)</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 12  Back panel</text>
+<text x="2" y="16" font-size="3.4">796 × 716 × 3</text>
+<text x="2" y="20.5" font-size="2.8">Cut 796 × 716</text>
+<text x="2" y="25" font-size="2.8">HDF 3 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab2/back</text>
+<text x="2" y="34.5" font-size="2.6">0000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/1</text>
+</g></g>
+</g>
+</svg>
+## cost
+Category,Item,Quantity,Unit,Unit cost,Cost,Currency,Note
+Materials,Particleboard 18 mm,1,sheets,60,60,,area lower bound - real sheet count comes from the cutting optimiser
+Materials,HDF 3 mm,1,sheets,15,15,,area lower bound - real sheet count comes from the cutting optimiser
+Materials,Subtotal,,,,75,,area lower bound - real sheet count comes from the cutting optimiser
+Edge banding,ABS 2 mm,3.982,m,0.8,3.19,,
+Edge banding,ABS 0.4 mm,2.44,m,0.3,0.73,,
+Edge banding,Subtotal,,,,3.92,,
+Hardware,Shelf support pin 5 mm (generic),4,pcs,0.05,0.2,,
+Hardware,Subtotal,,,,0.2,,
+Total,,,,,79.12,,lower bound (materials at area lower bound)
+## summary
+Assembly,Parts,Hardware items,Operations,Finished area (m2),Width,Depth,Height
+Base cabinet 800 (2),6,4,2,2.6446,800,563,720
+summary 6 2.6445759999999998 2.6362192000000002 5.9720000000000004
+# html cab1
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Production sheet - Base cabinet 800</title>
+<style>body{font-family:"DejaVu Sans",Arial,Helvetica,sans-serif;font-size:10pt;color:#000;margin:12mm}h1{font-size:16pt;margin:0 0 2mm}h2{font-size:12pt;margin:6mm 0 2mm}table{border-collapse:collapse;width:100%}th,td{border:0.2mm solid #444;padding:1mm 1.5mm;text-align:left;vertical-align:top}th{background:#eee}tr{page-break-inside:avoid}.meta td{border:none;padding:0.5mm 3mm 0.5mm 0}.meta{width:auto}.empty{color:#555;font-style:italic}@page{size:A4 landscape;margin:10mm}@media print{body{margin:0}th{background:#eee !important}}</style>
+</head>
+<body>
+<h1>Production sheet</h1>
+<table class="meta">
+<tr><td>Project</td><td><strong>Kitchen</strong></td></tr>
+<tr><td>Assembly</td><td><strong>Base cabinet 800</strong></td></tr>
+<tr><td>Envelope (W x D x H, mm)</td><td><strong>800 x 563 x 720</strong></td></tr>
+</table>
+<h2>Part list</h2>
+<table>
+<thead><tr><th>No.</th><th>Assembly</th><th>Part ID</th><th>Name</th><th>Role</th><th>Material</th><th>Length</th><th>Width</th><th>Thickness</th><th>Cut length</th><th>Cut width</th><th>Grain</th><th>Edge L1</th><th>Edge L2</th><th>Edge W1</th><th>Edge W2</th><th>Operations</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Base cabinet 800</td><td>cab1/side.left</td><td>Left side</td><td>Side</td><td>Particleboard 18 mm</td><td>720</td><td>560</td><td>18</td><td>719.2</td><td>558</td><td>along length</td><td>ABS 2 mm</td><td></td><td>ABS 0.4 mm</td><td>ABS 0.4 mm</td><td>2</td></tr>
+<tr><td>2</td><td>Base cabinet 800</td><td>cab1/side.right</td><td>Right side</td><td>Side</td><td>Particleboard 18 mm</td><td>720</td><td>560</td><td>18</td><td>719.2</td><td>558</td><td>along length</td><td>ABS 2 mm</td><td></td><td>ABS 0.4 mm</td><td>ABS 0.4 mm</td><td>0</td></tr>
+<tr><td>3</td><td>Base cabinet 800</td><td>cab1/bottom</td><td>Bottom</td><td>Bottom</td><td>Particleboard 18 mm</td><td>764</td><td>560</td><td>18</td><td>764</td><td>558</td><td>along length</td><td>ABS 2 mm</td><td></td><td></td><td></td><td>0</td></tr>
+<tr><td>4</td><td>Base cabinet 800</td><td>cab1/top</td><td>Top</td><td>Top</td><td>Particleboard 18 mm</td><td>764</td><td>560</td><td>18</td><td>764</td><td>558</td><td>along length</td><td>ABS 2 mm</td><td></td><td></td><td></td><td>0</td></tr>
+<tr><td>5</td><td>Base cabinet 800</td><td>cab1/shelf.1</td><td>Shelf</td><td>Shelf</td><td>Particleboard 18 mm</td><td>764</td><td>540</td><td>18</td><td>764</td><td>538</td><td>along length</td><td>ABS 2 mm</td><td></td><td></td><td></td><td>0</td></tr>
+<tr><td>6</td><td>Base cabinet 800</td><td>cab1/back</td><td>Back panel</td><td>Back</td><td>HDF 3 mm</td><td>796</td><td>716</td><td>3</td><td>796</td><td>716</td><td>none</td><td></td><td></td><td></td><td></td><td>0</td></tr>
+</tbody>
+</table>
+<h2>Cut list</h2>
+<table>
+<thead><tr><th>Material</th><th>Thickness</th><th>Cut length</th><th>Cut width</th><th>Qty</th><th>Finished length</th><th>Finished width</th><th>Grain</th><th>Rotation allowed</th><th>Edge L1</th><th>Edge L2</th><th>Edge W1</th><th>Edge W2</th><th>Name</th><th>Operations</th><th>Part numbers</th><th>Part IDs</th></tr></thead>
+<tbody>
+<tr><td>HDF 3 mm</td><td>3</td><td>796</td><td>716</td><td>1</td><td>796</td><td>716</td><td>none</td><td>yes</td><td></td><td></td><td></td><td></td><td>Back panel</td><td>0</td><td>6</td><td>cab1/back</td></tr>
+<tr><td>Particleboard 18 mm</td><td>18</td><td>764</td><td>558</td><td>2</td><td>764</td><td>560</td><td>along length</td><td>no</td><td>ABS 2 mm</td><td></td><td></td><td></td><td>Bottom / Top</td><td>0</td><td>3, 4</td><td>cab1/bottom, cab1/top</td></tr>
+<tr><td>Particleboard 18 mm</td><td>18</td><td>764</td><td>538</td><td>1</td><td>764</td><td>540</td><td>along length</td><td>no</td><td>ABS 2 mm</td><td></td><td></td><td></td><td>Shelf</td><td>0</td><td>5</td><td>cab1/shelf.1</td></tr>
+<tr><td>Particleboard 18 mm</td><td>18</td><td>719.2</td><td>558</td><td>1</td><td>720</td><td>560</td><td>along length</td><td>no</td><td>ABS 2 mm</td><td></td><td>ABS 0.4 mm</td><td>ABS 0.4 mm</td><td>Left side</td><td>2</td><td>1</td><td>cab1/side.left</td></tr>
+<tr><td>Particleboard 18 mm</td><td>18</td><td>719.2</td><td>558</td><td>1</td><td>720</td><td>560</td><td>along length</td><td>no</td><td>ABS 2 mm</td><td></td><td>ABS 0.4 mm</td><td>ABS 0.4 mm</td><td>Right side</td><td>0</td><td>2</td><td>cab1/side.right</td></tr>
+</tbody>
+</table>
+<h2>Edge banding</h2>
+<table>
+<thead><tr><th>Edge band</th><th>Thickness</th><th>Width</th><th>Edges</th><th>Applied length (m)</th><th>Overhang allowance (m)</th><th>Waste allowance (m)</th><th>Purchase length (m)</th><th>Cost per m</th><th>Cost</th><th>Note</th></tr></thead>
+<tbody>
+<tr><td>ABS 2 mm</td><td>2</td><td>22</td><td>5</td><td>3.732</td><td>0.25</td><td>0</td><td>3.982</td><td>0.8</td><td>3.19</td><td></td></tr>
+<tr><td>ABS 0.4 mm</td><td>0.4</td><td>22</td><td>4</td><td>2.24</td><td>0.2</td><td>0</td><td>2.44</td><td>0.3</td><td>0.73</td><td></td></tr>
+</tbody>
+</table>
+<h2>Hardware</h2>
+<table>
+<thead><tr><th>Hardware</th><th>Manufacturer</th><th>Article</th><th>Qty</th><th>Unit cost</th><th>Total</th><th>Dimensions verified</th><th>Note</th></tr></thead>
+<tbody>
+<tr><td>Shelf support pin 5 mm (generic)</td><td></td><td></td><td>4</td><td>0.05</td><td>0.2</td><td>no</td><td>dimensions not verified</td></tr>
+</tbody>
+</table>
+</body>
+</html>
+# html cab2
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Production sheet - Base cabinet 800 (2)</title>
+<style>body{font-family:"DejaVu Sans",Arial,Helvetica,sans-serif;font-size:10pt;color:#000;margin:12mm}h1{font-size:16pt;margin:0 0 2mm}h2{font-size:12pt;margin:6mm 0 2mm}table{border-collapse:collapse;width:100%}th,td{border:0.2mm solid #444;padding:1mm 1.5mm;text-align:left;vertical-align:top}th{background:#eee}tr{page-break-inside:avoid}.meta td{border:none;padding:0.5mm 3mm 0.5mm 0}.meta{width:auto}.empty{color:#555;font-style:italic}@page{size:A4 landscape;margin:10mm}@media print{body{margin:0}th{background:#eee !important}}</style>
+</head>
+<body>
+<h1>Production sheet</h1>
+<table class="meta">
+<tr><td>Project</td><td><strong>Kitchen</strong></td></tr>
+<tr><td>Assembly</td><td><strong>Base cabinet 800 (2)</strong></td></tr>
+<tr><td>Envelope (W x D x H, mm)</td><td><strong>800 x 563 x 720</strong></td></tr>
+</table>
+<h2>Part list</h2>
+<table>
+<thead><tr><th>No.</th><th>Assembly</th><th>Part ID</th><th>Name</th><th>Role</th><th>Material</th><th>Length</th><th>Width</th><th>Thickness</th><th>Cut length</th><th>Cut width</th><th>Grain</th><th>Edge L1</th><th>Edge L2</th><th>Edge W1</th><th>Edge W2</th><th>Operations</th></tr></thead>
+<tbody>
+<tr><td>7</td><td>Base cabinet 800 (2)</td><td>cab2/side.left</td><td>Left side</td><td>Side</td><td>Particleboard 18 mm</td><td>720</td><td>560</td><td>18</td><td>719.2</td><td>558</td><td>along length</td><td>ABS 2 mm</td><td></td><td>ABS 0.4 mm</td><td>ABS 0.4 mm</td><td>2</td></tr>
+<tr><td>8</td><td>Base cabinet 800 (2)</td><td>cab2/side.right</td><td>Right side</td><td>Side</td><td>Particleboard 18 mm</td><td>720</td><td>560</td><td>18</td><td>719.2</td><td>558</td><td>along length</td><td>ABS 2 mm</td><td></td><td>ABS 0.4 mm</td><td>ABS 0.4 mm</td><td>0</td></tr>
+<tr><td>9</td><td>Base cabinet 800 (2)</td><td>cab2/bottom</td><td>Bottom</td><td>Bottom</td><td>Particleboard 18 mm</td><td>764</td><td>560</td><td>18</td><td>764</td><td>558</td><td>along length</td><td>ABS 2 mm</td><td></td><td></td><td></td><td>0</td></tr>
+<tr><td>10</td><td>Base cabinet 800 (2)</td><td>cab2/top</td><td>Top</td><td>Top</td><td>Particleboard 18 mm</td><td>764</td><td>560</td><td>18</td><td>764</td><td>558</td><td>along length</td><td>ABS 2 mm</td><td></td><td></td><td></td><td>0</td></tr>
+<tr><td>11</td><td>Base cabinet 800 (2)</td><td>cab2/shelf.1</td><td>Shelf</td><td>Shelf</td><td>Particleboard 18 mm</td><td>764</td><td>540</td><td>18</td><td>764</td><td>538</td><td>along length</td><td>ABS 2 mm</td><td></td><td></td><td></td><td>0</td></tr>
+<tr><td>12</td><td>Base cabinet 800 (2)</td><td>cab2/back</td><td>Back panel</td><td>Back</td><td>HDF 3 mm</td><td>796</td><td>716</td><td>3</td><td>796</td><td>716</td><td>none</td><td></td><td></td><td></td><td></td><td>0</td></tr>
+</tbody>
+</table>
+<h2>Cut list</h2>
+<table>
+<thead><tr><th>Material</th><th>Thickness</th><th>Cut length</th><th>Cut width</th><th>Qty</th><th>Finished length</th><th>Finished width</th><th>Grain</th><th>Rotation allowed</th><th>Edge L1</th><th>Edge L2</th><th>Edge W1</th><th>Edge W2</th><th>Name</th><th>Operations</th><th>Part numbers</th><th>Part IDs</th></tr></thead>
+<tbody>
+<tr><td>HDF 3 mm</td><td>3</td><td>796</td><td>716</td><td>1</td><td>796</td><td>716</td><td>none</td><td>yes</td><td></td><td></td><td></td><td></td><td>Back panel</td><td>0</td><td>12</td><td>cab2/back</td></tr>
+<tr><td>Particleboard 18 mm</td><td>18</td><td>764</td><td>558</td><td>2</td><td>764</td><td>560</td><td>along length</td><td>no</td><td>ABS 2 mm</td><td></td><td></td><td></td><td>Bottom / Top</td><td>0</td><td>9, 10</td><td>cab2/bottom, cab2/top</td></tr>
+<tr><td>Particleboard 18 mm</td><td>18</td><td>764</td><td>538</td><td>1</td><td>764</td><td>540</td><td>along length</td><td>no</td><td>ABS 2 mm</td><td></td><td></td><td></td><td>Shelf</td><td>0</td><td>11</td><td>cab2/shelf.1</td></tr>
+<tr><td>Particleboard 18 mm</td><td>18</td><td>719.2</td><td>558</td><td>1</td><td>720</td><td>560</td><td>along length</td><td>no</td><td>ABS 2 mm</td><td></td><td>ABS 0.4 mm</td><td>ABS 0.4 mm</td><td>Left side</td><td>2</td><td>7</td><td>cab2/side.left</td></tr>
+<tr><td>Particleboard 18 mm</td><td>18</td><td>719.2</td><td>558</td><td>1</td><td>720</td><td>560</td><td>along length</td><td>no</td><td>ABS 2 mm</td><td></td><td>ABS 0.4 mm</td><td>ABS 0.4 mm</td><td>Right side</td><td>0</td><td>8</td><td>cab2/side.right</td></tr>
+</tbody>
+</table>
+<h2>Edge banding</h2>
+<table>
+<thead><tr><th>Edge band</th><th>Thickness</th><th>Width</th><th>Edges</th><th>Applied length (m)</th><th>Overhang allowance (m)</th><th>Waste allowance (m)</th><th>Purchase length (m)</th><th>Cost per m</th><th>Cost</th><th>Note</th></tr></thead>
+<tbody>
+<tr><td>ABS 2 mm</td><td>2</td><td>22</td><td>5</td><td>3.732</td><td>0.25</td><td>0</td><td>3.982</td><td>0.8</td><td>3.19</td><td></td></tr>
+<tr><td>ABS 0.4 mm</td><td>0.4</td><td>22</td><td>4</td><td>2.24</td><td>0.2</td><td>0</td><td>2.44</td><td>0.3</td><td>0.73</td><td></td></tr>
+</tbody>
+</table>
+<h2>Hardware</h2>
+<table>
+<thead><tr><th>Hardware</th><th>Manufacturer</th><th>Article</th><th>Qty</th><th>Unit cost</th><th>Total</th><th>Dimensions verified</th><th>Note</th></tr></thead>
+<tbody>
+<tr><td>Shelf support pin 5 mm (generic)</td><td></td><td></td><td>4</td><td>0.05</td><td>0.2</td><td>no</td><td>dimensions not verified</td></tr>
+</tbody>
+</table>
+</body>
+</html>
+# broken
+## part list
+No.,Assembly,Part ID,Name,Role,Material,Length,Width,Thickness,Cut length,Cut width,Grain,Edge L1,Edge L2,Edge W1,Edge W2,Operations
+1,Base cabinet 800,cab1/side.left,Left side,Side,mat.unknown [MISSING],720,560,18,719.2,558,along length,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,2
+2,Base cabinet 800,cab1/side.right,Right side,Side,Particleboard 18 mm,720,560,18,719.2,558,along length,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,0
+3,Base cabinet 800,cab1/bottom,Bottom,Bottom,Particleboard 18 mm,764,560,18,764,558,along length,ABS 2 mm,,,,0
+4,Base cabinet 800,cab1/top,Top,Top,Particleboard 18 mm,764,560,18,764,558,along length,ABS 2 mm,,,,0
+5,Base cabinet 800,cab1/shelf.1,Shelf,Shelf,Particleboard 18 mm,764,540,18,764,538,along length,ABS 2 mm,,,,0
+6,Base cabinet 800,cab1/back,Back panel,Back,HDF 3 mm,796,716,3,796,716,none,eb.unknown [MISSING],,,,0
+production.material.missing | Part 'Left side' (cab1/side.left) references material 'mat.unknown' which is not in the model. | cab1/side.left
+production.edgeband.missing | Edge L1 of part 'Back panel' (cab1/back) references edge band 'eb.unknown' which is not in the model; it is treated as 0 mm thick in the cut size. | cab1/back
+## cut list
+Material,Thickness,Cut length,Cut width,Qty,Finished length,Finished width,Grain,Rotation allowed,Edge L1,Edge L2,Edge W1,Edge W2,Name,Operations,Part numbers,Part IDs
+mat.unknown [MISSING],18,719.2,558,1,720,560,along length,no,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,Left side,2,1,cab1/side.left
+HDF 3 mm,3,796,716,1,796,716,none,yes,eb.unknown [MISSING],,,,Back panel,0,6,cab1/back
+Particleboard 18 mm,18,764,558,2,764,560,along length,no,ABS 2 mm,,,,Bottom / Top,0,"3, 4","cab1/bottom, cab1/top"
+Particleboard 18 mm,18,764,538,1,764,540,along length,no,ABS 2 mm,,,,Shelf,0,5,cab1/shelf.1
+Particleboard 18 mm,18,719.2,558,1,720,560,along length,no,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,Right side,0,2,cab1/side.right
+production.material.missing | Part 'Left side' (cab1/side.left) references material 'mat.unknown' which is not in the model. | cab1/side.left
+production.edgeband.missing | Edge L1 of part 'Back panel' (cab1/back) references edge band 'eb.unknown' which is not in the model; it is treated as 0 mm thick in the cut size. | cab1/back
+## cut list per assembly
+Material,Thickness,Cut length,Cut width,Qty,Finished length,Finished width,Grain,Rotation allowed,Edge L1,Edge L2,Edge W1,Edge W2,Name,Operations,Part numbers,Part IDs
+mat.unknown [MISSING],18,719.2,558,1,720,560,along length,no,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,Left side,2,1,cab1/side.left
+HDF 3 mm,3,796,716,1,796,716,none,yes,eb.unknown [MISSING],,,,Back panel,0,6,cab1/back
+Particleboard 18 mm,18,764,558,2,764,560,along length,no,ABS 2 mm,,,,Bottom / Top,0,"3, 4","cab1/bottom, cab1/top"
+Particleboard 18 mm,18,764,538,1,764,540,along length,no,ABS 2 mm,,,,Shelf,0,5,cab1/shelf.1
+Particleboard 18 mm,18,719.2,558,1,720,560,along length,no,ABS 2 mm,,ABS 0.4 mm,ABS 0.4 mm,Right side,0,2,cab1/side.right
+## materials
+Material,Thickness,Parts,Finished area (m2),Cut area (m2),Sheet length,Sheet width,Sheets (area lower bound),Cost per sheet,Cost at area lower bound,Note
+Particleboard 18 mm,18,4,1.6714,1.665,2800,2070,1,60,60,area lower bound - real sheet count comes from the cutting optimiser
+HDF 3 mm,3,1,0.5699,0.5699,2800,2070,1,15,15,area lower bound - real sheet count comes from the cutting optimiser
+mat.unknown [MISSING],,1,0.4032,0.4013,,,,,,MISSING
+production.material.missing | Part 'Left side' (cab1/side.left) references material 'mat.unknown' which is not in the model. | cab1/side.left
+## edge banding
+Edge band,Thickness,Width,Edges,Applied length (m),Overhang allowance (m),Waste allowance (m),Purchase length (m),Cost per m,Cost,Note
+ABS 2 mm,2,22,5,3.732,0.25,0,3.982,0.8,3.19,
+ABS 0.4 mm,0.4,22,4,2.24,0.2,0,2.44,0.3,0.73,
+eb.unknown [MISSING],,,1,0.796,0.05,0,0.846,,,MISSING
+production.edgeband.missing | Edge L1 of part 'Back panel' (cab1/back) references edge band 'eb.unknown' which is not in the model; it is treated as 0 mm thick in the cut size. | cab1/back
+## edge banding 30/10%
+Edge band,Thickness,Width,Edges,Applied length (m),Overhang allowance (m),Waste allowance (m),Purchase length (m),Cost per m,Cost,Note
+ABS 2 mm,2,22,5,3.732,0.3,0.403,4.435,0.8,3.55,
+ABS 0.4 mm,0.4,22,4,2.24,0.24,0.248,2.728,0.3,0.82,
+eb.unknown [MISSING],,,1,0.796,0.06,0.086,0.942,,,MISSING
+## hardware
+Hardware,Manufacturer,Article,Qty,Unit cost,Total,Dimensions verified,Note
+Shelf support pin 5 mm (generic),,,4,0.05,0.2,no,dimensions not verified
+## machining
+No.,Assembly,Part ID,Name,Holes (count x diameter @ face),Holes,Grooves,Groove length,Pockets
+1,Base cabinet 800,cab1/side.left,Left side,2 x 5 @ B,2,0,0,0
+## machining all
+No.,Assembly,Part ID,Name,Holes (count x diameter @ face),Holes,Grooves,Groove length,Pockets
+1,Base cabinet 800,cab1/side.left,Left side,2 x 5 @ B,2,0,0,0
+2,Base cabinet 800,cab1/side.right,Right side,,0,0,0,0
+3,Base cabinet 800,cab1/bottom,Bottom,,0,0,0,0
+4,Base cabinet 800,cab1/top,Top,,0,0,0,0
+5,Base cabinet 800,cab1/shelf.1,Shelf,,0,0,0,0
+6,Base cabinet 800,cab1/back,Back panel,,0,0,0,0
+totals 2 0 0
+## labels
+No.,Project,Assembly,Name,Part ID,Length,Width,Thickness,Cut length,Cut width,Material,Edges (L1 L2 W1 W2),Qty index
+1,Kitchen,Base cabinet 800,Left side,cab1/side.left,720,560,18,719.2,558,mat.unknown [MISSING],1011,1/1
+2,Kitchen,Base cabinet 800,Right side,cab1/side.right,720,560,18,719.2,558,Particleboard 18 mm,1011,1/1
+3,Kitchen,Base cabinet 800,Bottom,cab1/bottom,764,560,18,764,558,Particleboard 18 mm,1000,1/2
+4,Kitchen,Base cabinet 800,Top,cab1/top,764,560,18,764,558,Particleboard 18 mm,1000,2/2
+5,Kitchen,Base cabinet 800,Shelf,cab1/shelf.1,764,540,18,764,538,Particleboard 18 mm,1000,1/1
+6,Kitchen,Base cabinet 800,Back panel,cab1/back,796,716,3,796,716,HDF 3 mm,?000,1/1
+production.material.missing | Part 'Left side' (cab1/side.left) references material 'mat.unknown' which is not in the model. | cab1/side.left
+production.edgeband.missing | Edge L1 of part 'Back panel' (cab1/back) references edge band 'eb.unknown' which is not in the model; it is treated as 0 mm thick in the cut size. | cab1/back
+## label page
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="210mm" height="297mm" viewBox="0 0 210 297" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" fill="#000">
+<g transform="translate(0 0.5)">
+<clipPath id="label-clip-1"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-1)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 1  Left side</text>
+<text x="2" y="16" font-size="3.4">720 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 719.2 × 558</text>
+<text x="2" y="25" font-size="2.8">mat.unknown</text>
+<text x="2" y="29.5" font-size="2.2">cab1/side.left</text>
+<text x="2" y="34.5" font-size="2.6">1011</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/1</text>
+</g></g>
+</g>
+<g transform="translate(70 0.5)">
+<clipPath id="label-clip-2"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-2)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 2  Right side</text>
+<text x="2" y="16" font-size="3.4">720 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 719.2 × 558</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab1/side.right</text>
+<text x="2" y="34.5" font-size="2.6">1011</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/1</text>
+</g></g>
+</g>
+<g transform="translate(140 0.5)">
+<clipPath id="label-clip-3"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-3)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 3  Bottom</text>
+<text x="2" y="16" font-size="3.4">764 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 764 × 558</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab1/bottom</text>
+<text x="2" y="34.5" font-size="2.6">1000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/2</text>
+</g></g>
+</g>
+<g transform="translate(0 37.5)">
+<clipPath id="label-clip-4"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-4)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 4  Top</text>
+<text x="2" y="16" font-size="3.4">764 × 560 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 764 × 558</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab1/top</text>
+<text x="2" y="34.5" font-size="2.6">1000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">2/2</text>
+</g></g>
+</g>
+<g transform="translate(70 37.5)">
+<clipPath id="label-clip-5"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-5)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 5  Shelf</text>
+<text x="2" y="16" font-size="3.4">764 × 540 × 18</text>
+<text x="2" y="20.5" font-size="2.8">Cut 764 × 538</text>
+<text x="2" y="25" font-size="2.8">Particleboard 18 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab1/shelf.1</text>
+<text x="2" y="34.5" font-size="2.6">1000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/1</text>
+</g></g>
+</g>
+<g transform="translate(140 37.5)">
+<clipPath id="label-clip-6"><rect width="70" height="37"/></clipPath>
+<rect width="70" height="37" fill="none" stroke="#999" stroke-width="0.1"/>
+<g clip-path="url(#label-clip-6)"><g transform="scale(1)">
+<text x="2" y="5" font-size="2.6">Kitchen · Base cabinet 800</text>
+<text x="2" y="10.5" font-size="3.6" font-weight="bold">No. 6  Back panel</text>
+<text x="2" y="16" font-size="3.4">796 × 716 × 3</text>
+<text x="2" y="20.5" font-size="2.8">Cut 796 × 716</text>
+<text x="2" y="25" font-size="2.8">HDF 3 mm</text>
+<text x="2" y="29.5" font-size="2.2">cab1/back</text>
+<text x="2" y="34.5" font-size="2.6">?000</text>
+<line x1="55" y1="21.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.9" stroke-dasharray="1 0.6"/>
+<line x1="55" y1="13.5" x2="68" y2="13.5" stroke="#000" stroke-width="0.15"/>
+<line x1="55" y1="13.5" x2="55" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<line x1="68" y1="13.5" x2="68" y2="21.5" stroke="#000" stroke-width="0.15"/>
+<text x="68" y="34.5" font-size="4" text-anchor="end" font-weight="bold">1/1</text>
+</g></g>
+</g>
+</svg>
+## cost
+Category,Item,Quantity,Unit,Unit cost,Cost,Currency,Note
+Materials,Particleboard 18 mm,1,sheets,60,60,,area lower bound - real sheet count comes from the cutting optimiser
+Materials,HDF 3 mm,1,sheets,15,15,,area lower bound - real sheet count comes from the cutting optimiser
+Materials,mat.unknown [MISSING],,sheets,,,,MISSING
+Materials,Subtotal,,,,75,,area lower bound - real sheet count comes from the cutting optimiser
+Edge banding,ABS 2 mm,3.982,m,0.8,3.19,,
+Edge banding,ABS 0.4 mm,2.44,m,0.3,0.73,,
+Edge banding,eb.unknown [MISSING],0.846,m,,,,MISSING
+Edge banding,Subtotal,,,,3.92,,
+Hardware,Shelf support pin 5 mm (generic),4,pcs,0.05,0.2,,
+Hardware,Subtotal,,,,0.2,,
+Total,,,,,79.12,,lower bound (materials at area lower bound); incomplete (some prices unknown)
+production.material.missing | Part 'Left side' (cab1/side.left) references material 'mat.unknown' which is not in the model. | cab1/side.left
+production.edgeband.missing | Edge L1 of part 'Back panel' (cab1/back) references edge band 'eb.unknown' which is not in the model; it is treated as 0 mm thick in the cut size. | cab1/back
+## summary
+Assembly,Parts,Hardware items,Operations,Finished area (m2),Width,Depth,Height
+Base cabinet 800,6,4,2,2.6446,800,563,720
+summary 6 2.6445759999999998 2.6362192000000002 6.7680000000000007

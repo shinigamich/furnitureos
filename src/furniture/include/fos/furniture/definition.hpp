@@ -6,6 +6,7 @@
 /// DERIVED from it by generate() (generate.hpp). All lengths are millimetres.
 #include "fos/core/result.hpp"
 #include "fos/domain/model.hpp"
+#include "fos/furniture/contour_spec.hpp"
 #include "fos/furniture/enums.hpp"
 #include "fos/hardware/catalog.hpp"
 #include "fos/parametric/parameter_graph.hpp"
@@ -96,6 +97,9 @@ struct PartOverride {
     std::optional<domain::MaterialId> material;
     /// Present entry = override of that edge; std::nullopt value = raw edge.
     std::map<domain::EdgeSide, std::optional<domain::EdgeBandId>> edges;
+    /// Parametric outline of the part (README "Contoured parts"); std::nullopt = rectangle.
+    /// The edge bands above (and the generator's) are mapped onto the outline's segments.
+    std::optional<ContourSpec> contour;
     bool operator==(const PartOverride&) const = default;
 };
 

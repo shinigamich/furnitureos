@@ -2,6 +2,7 @@
 // Codecs of the model-level types: Operation, Part, Assembly, Model.
 #include "codec_reader.hpp"
 #include "fos/formats/codec.hpp"
+#include "shape_codec.hpp"
 
 namespace fos::formats {
 using namespace detail;
@@ -116,7 +117,8 @@ Json toJson(const domain::Part& p) {
     Json operations = Json::array();
     for (const auto& op : p.operations) operations.push_back(toJson(op));
     j["operations"] = std::move(operations);
-    writeCustom(j, p.custom);
+    if (p.shape) j["shape"] = toJson(*p.shape); // omitted for rectangular parts (unchanged files)
+    writeCustom(j, p.custom, {"shape"});
     return j;
 }
 
@@ -158,7 +160,14 @@ core::Result<domain::Part> partFromJson(const Json& json, std::string_view path)
     r.array("operations", p.operations, operationFromJson);
     if (r.ok())
         if (auto duplicate = findDuplicateId(p.operations, r.childPath("operations"))) r.fail(*duplicate);
+    r.nested("shape", p.shape, [](const Json& value, std::string_view at) -> core::Result<std::optional<domain::PartShape>> {
+        auto shape = shapeFromJson(value, at);
+        if (!shape) return shape.error();
+        return std::optional<domain::PartShape>(std::move(shape.value()));
+    });
     r.customAndUnknown(p.custom);
+    if (r.ok())
+        if (auto checked = checkPartShape(p, path); !checked) r.fail(checked.error());
     if (!r.ok()) return r.error();
     return p;
 }

@@ -29,6 +29,24 @@
 ///   machining.pocket.contour_clockwise          warning  contour is clockwise (must be CCW)
 ///   machining.pocket.out_of_bounds              error    contour vertex outside the face
 ///   machining.pocket.too_deep                   error    blind depth > material behind the face
+///
+/// Additional rules for parts with a non-rectangular shape (ADR-0008; see
+/// `material_region.hpp`). The material is the FINISHED outline (`shape->outer`) minus the
+/// through cut-outs; exact line/arc geometry, no tessellation:
+///   machining.hole.outside_material             error    face A/B: hole centre outside the outline or
+///                                                        inside a cut-out; edge face: the drilled
+///                                                        shadow (u +- r, surface .. drilled depth)
+///                                                        leaves the material (entry not on a straight
+///                                                        outline stretch, or it runs into a cut-out)
+///   machining.hole.too_close_to_edge            warning  face A/B: measured to the NEAREST outline or
+///                                                        cut-out segment (exact distance - radius)
+///   machining.groove.outside_material           error    groove rectangle (A/B), or its shadow into the
+///                                                        material (edge faces), not inside the material
+///   machining.pocket.outside_material           error    pocket polygon (A/B), or its u-range x depth
+///                                                        shadow (edge faces), not inside the material
+/// Cut-outs are named by their 0-based index in PartShape::cutouts ("cut-out 0").
+/// Footprints may touch the boundary (they are shrunk by 1e-4 mm before the test). Shaped
+/// parts with an invalid shape, or a plain rectangular outline, get the rectangle rules only.
 namespace fos::machining {
 
 struct ValidationOptions {

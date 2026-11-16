@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/furniture/panel.hpp"
 
+#include "fos/furniture/contour.hpp"
 #include "fos/furniture/limits.hpp"
 
 #include <cmath>
@@ -85,6 +86,14 @@ core::Result<PanelResult> generatePanel(const PanelDefinition& def, const Librar
             continue;
         }
         p.edge(side) = band;
+    }
+    if (def.contour) {
+        const parametric::Lookup lookup = [&def](const std::string& name) -> std::optional<double> {
+            auto v = def.parameters.value(name);
+            if (!v) return std::nullopt;
+            return v.value();
+        };
+        if (auto r = applyContour(p, *def.contour, lookup, "panel '" + def.id.str() + "'"); !r) return r.error();
     }
     return out;
 }

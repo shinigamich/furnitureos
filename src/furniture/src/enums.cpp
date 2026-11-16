@@ -43,6 +43,12 @@ constexpr Table<MaterialRole, 3> kMaterialRole{{{MaterialRole::Carcass, "Carcass
 constexpr Table<PanelOrientation, 3> kPanelOrientation{{{PanelOrientation::Horizontal, "Horizontal"},
                                                        {PanelOrientation::VerticalSide, "VerticalSide"},
                                                        {PanelOrientation::VerticalFront, "VerticalFront"}}};
+constexpr Table<ContourKind, 4> kContourKind{{{ContourKind::Rectangle, "Rectangle"},
+                                             {ContourKind::RoundedCorners, "RoundedCorners"},
+                                             {ContourKind::ArcEdge, "ArcEdge"},
+                                             {ContourKind::Custom, "Custom"}}};
+constexpr Table<ArcDirection, 2> kArcDirection{{{ArcDirection::Convex, "Convex"}, {ArcDirection::Concave, "Concave"}}};
+constexpr Table<CutoutKind, 2> kCutoutKind{{{CutoutKind::Rectangle, "Rectangle"}, {CutoutKind::Circle, "Circle"}}};
 } // namespace
 
 #define FOS_FURNITURE_ENUM(E, table)                                                                \
@@ -62,6 +68,9 @@ FOS_FURNITURE_ENUM(HingeSide, kHingeSide)
 FOS_FURNITURE_ENUM(HandlePosition, kHandlePosition)
 FOS_FURNITURE_ENUM(MaterialRole, kMaterialRole)
 FOS_FURNITURE_ENUM(PanelOrientation, kPanelOrientation)
+FOS_FURNITURE_ENUM(ContourKind, kContourKind)
+FOS_FURNITURE_ENUM(ArcDirection, kArcDirection)
+FOS_FURNITURE_ENUM(CutoutKind, kCutoutKind)
 #undef FOS_FURNITURE_ENUM
 
 } // namespace fos::furniture

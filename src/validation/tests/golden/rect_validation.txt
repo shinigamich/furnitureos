@@ -1,0 +1,116 @@
+# basicCabinet
+Validation passed: 0 error(s), 0 warning(s), 1 info(s); 6 part(s) in 1 assembly(ies), 7 check(s) run.
+[info] validation.hardware.unverified_dimensions (hw.shelf_pin_5): Hardware 'Shelf support pin 5 mm (generic)' (hw.shelf_pin_5, used by 1 instance(s)) has dimensions that were not verified against a manufacturer data sheet; check the drilling before production.
+# Validation report
+
+Validation passed: 0 error(s), 0 warning(s), 1 info(s); 6 part(s) in 1 assembly(ies), 7 check(s) run.
+
+## Information (1)
+
+| Code | Assembly | Part | Entity | Message |
+|---|---|---|---|---|
+| `validation.hardware.unverified_dimensions` |  |  | hw.shelf_pin_5 | Hardware 'Shelf support pin 5 mm (generic)' (hw.shelf_pin_5, used by 1 instance(s)) has dimensions that were not verified against a manufacturer data sheet; check the drilling before production. |
+
+## Statistics
+
+| Counter | Value |
+|---|---|
+| Assemblies | 1 |
+| Parts | 6 |
+| Operations | 2 |
+| Hardware instances | 1 |
+| Checks run | 7 |
+| Possible part pairs | 15 |
+| Broad-phase checks | 8 |
+| Part pairs tested (SAT) | 0 |
+| Groove engagements allowed | 0 |
+| Possible cross-assembly part pairs | 0 |
+| Cross-assembly broad-phase checks | 0 |
+| Cross-assembly part pairs tested | 0 |
+| Mating hole pairs | 0 |
+stats 7 15 8 0 0 0 0 0 0
+# interfering cabinet
+Validation FAILED: 1 error(s), 0 warning(s), 1 info(s); 6 part(s) in 1 assembly(ies), 7 check(s) run.
+[error] validation.interference.parts (cab1/shelf.1): 'Shelf' penetrates 'Left side' by 30 mm along X.
+[info] validation.hardware.unverified_dimensions (hw.shelf_pin_5): Hardware 'Shelf support pin 5 mm (generic)' (hw.shelf_pin_5, used by 1 instance(s)) has dimensions that were not verified against a manufacturer data sheet; check the drilling before production.
+# Validation report
+
+Validation FAILED: 1 error(s), 0 warning(s), 1 info(s); 6 part(s) in 1 assembly(ies), 7 check(s) run.
+
+## Errors (1)
+
+| Code | Assembly | Part | Entity | Message |
+|---|---|---|---|---|
+| `validation.interference.parts` | cab1 | cab1/shelf.1 | cab1/shelf.1 | 'Shelf' penetrates 'Left side' by 30 mm along X. |
+
+## Information (1)
+
+| Code | Assembly | Part | Entity | Message |
+|---|---|---|---|---|
+| `validation.hardware.unverified_dimensions` |  |  | hw.shelf_pin_5 | Hardware 'Shelf support pin 5 mm (generic)' (hw.shelf_pin_5, used by 1 instance(s)) has dimensions that were not verified against a manufacturer data sheet; check the drilling before production. |
+
+## Statistics
+
+| Counter | Value |
+|---|---|
+| Assemblies | 1 |
+| Parts | 6 |
+| Operations | 2 |
+| Hardware instances | 1 |
+| Checks run | 7 |
+| Possible part pairs | 15 |
+| Broad-phase checks | 9 |
+| Part pairs tested (SAT) | 1 |
+| Groove engagements allowed | 0 |
+| Possible cross-assembly part pairs | 0 |
+| Cross-assembly broad-phase checks | 0 |
+| Cross-assembly part pairs tested | 0 |
+| Mating hole pairs | 0 |
+stats 7 15 9 1 0 0 0 0 0
+# boards
+Validation FAILED: 4 error(s), 1 warning(s), 0 info(s); 3 part(s) in 1 assembly(ies), 7 check(s) run.
+[error] machining.groove.too_deep (p): Groove 'g' from (0, 380) to (600, 380) on face B of 'Board p' is 20 mm deep but only 18 mm of material lies behind that face; the groove would cut the panel apart.
+[error] machining.hole.out_of_bounds (p): Hole 'h2' at (700, 200) on face A of 'Board p' lies outside the face, which spans u 0..600 mm and v 0..400 mm.
+[error] validation.interference.parts (p): 'Board p' penetrates 'Board r' by 13 mm along Z.
+[error] validation.interference.outside_groove (q): 'Board q' engages groove 'g' of 'Board p' but sticks out of the groove by 276 mm along Y (groove fit tolerance 0.1 mm).
+[warning] machining.hole.too_close_to_edge (p): Hole 'h1' at (4, 200) on face A of 'Board p' with diameter 8 mm leaves only 0 mm of material to the panel edge (minimum 3 mm).
+# Validation report
+
+Validation FAILED: 4 error(s), 1 warning(s), 0 info(s); 3 part(s) in 1 assembly(ies), 7 check(s) run.
+
+## Errors (4)
+
+| Code | Assembly | Part | Entity | Message |
+|---|---|---|---|---|
+| `machining.groove.too_deep` | a1 | p | p | Groove 'g' from (0, 380) to (600, 380) on face B of 'Board p' is 20 mm deep but only 18 mm of material lies behind that face; the groove would cut the panel apart. |
+| `machining.hole.out_of_bounds` | a1 | p | p | Hole 'h2' at (700, 200) on face A of 'Board p' lies outside the face, which spans u 0..600 mm and v 0..400 mm. |
+| `validation.interference.parts` | a1 | p | p | 'Board p' penetrates 'Board r' by 13 mm along Z. |
+| `validation.interference.outside_groove` | a1 | q | q | 'Board q' engages groove 'g' of 'Board p' but sticks out of the groove by 276 mm along Y (groove fit tolerance 0.1 mm). |
+
+## Warnings (1)
+
+| Code | Assembly | Part | Entity | Message |
+|---|---|---|---|---|
+| `machining.hole.too_close_to_edge` | a1 | p | p | Hole 'h1' at (4, 200) on face A of 'Board p' with diameter 8 mm leaves only 0 mm of material to the panel edge (minimum 3 mm). |
+
+## Statistics
+
+| Counter | Value |
+|---|---|
+| Assemblies | 1 |
+| Parts | 3 |
+| Operations | 5 |
+| Hardware instances | 0 |
+| Checks run | 7 |
+| Possible part pairs | 3 |
+| Broad-phase checks | 2 |
+| Part pairs tested (SAT) | 2 |
+| Groove engagements allowed | 0 |
+| Possible cross-assembly part pairs | 0 |
+| Cross-assembly broad-phase checks | 0 |
+| Cross-assembly part pairs tested | 0 |
+| Mating hole pairs | 0 |
+stats 7 3 2 2 0 0 0 0 0
+machining machining.hole.too_close_to_edge | Hole 'h1' at (4, 200) on face A of 'Board p' with diameter 8 mm leaves only 0 mm of material to the panel edge (minimum 3 mm).
+machining machining.hole.out_of_bounds | Hole 'h2' at (700, 200) on face A of 'Board p' lies outside the face, which spans u 0..600 mm and v 0..400 mm.
+machining machining.groove.too_deep | Groove 'g' from (0, 380) to (600, 380) on face B of 'Board p' is 20 mm deep but only 18 mm of material lies behind that face; the groove would cut the panel apart.

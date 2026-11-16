@@ -50,6 +50,20 @@ enum class PanelOrientation {
     VerticalFront, ///< length -> +X, width -> +Z, thickness -> -Y (like a back panel / filler strip).
 };
 
+/// Kind of a parametric part outline (contour.hpp).
+enum class ContourKind {
+    Rectangle,      ///< Plain rectangle (no shape unless there are cut-outs).
+    RoundedCorners, ///< Rectangle with four corner radii (expressions).
+    ArcEdge,        ///< One edge replaced by a circular arc of a given rise.
+    Custom,         ///< Explicit vertices whose coordinates are expressions.
+};
+/// Direction of an ArcEdge arc relative to the part (contour.hpp).
+enum class ArcDirection {
+    Convex,  ///< Bulges outwards; the arc's apex lies on the original edge line.
+    Concave, ///< Dips into the part; the arc's ends are the original corners.
+};
+enum class CutoutKind { Rectangle, Circle };
+
 const char* toString(JointKind) noexcept;
 const char* toString(TopKind) noexcept;
 const char* toString(BackMount) noexcept;
@@ -63,6 +77,9 @@ const char* toString(HingeSide) noexcept;
 const char* toString(HandlePosition) noexcept;
 const char* toString(MaterialRole) noexcept;
 const char* toString(PanelOrientation) noexcept;
+const char* toString(ContourKind) noexcept;
+const char* toString(ArcDirection) noexcept;
+const char* toString(CutoutKind) noexcept;
 
 /// Inverse of toString for every enum above; std::nullopt for unknown text (case-sensitive).
 template <class E> std::optional<E> fromString(std::string_view text) noexcept;
@@ -79,5 +96,8 @@ template <> std::optional<HingeSide> fromString<HingeSide>(std::string_view) noe
 template <> std::optional<HandlePosition> fromString<HandlePosition>(std::string_view) noexcept;
 template <> std::optional<MaterialRole> fromString<MaterialRole>(std::string_view) noexcept;
 template <> std::optional<PanelOrientation> fromString<PanelOrientation>(std::string_view) noexcept;
+template <> std::optional<ContourKind> fromString<ContourKind>(std::string_view) noexcept;
+template <> std::optional<ArcDirection> fromString<ArcDirection>(std::string_view) noexcept;
+template <> std::optional<CutoutKind> fromString<CutoutKind>(std::string_view) noexcept;
 
 } // namespace fos::furniture

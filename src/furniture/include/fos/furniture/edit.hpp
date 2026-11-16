@@ -48,6 +48,11 @@ core::Result<EditResult> setHardware(CabinetDefinition& definition, const Librar
 /// Sets or clears (std::nullopt) the override of one part slot, e.g. "side.left".
 core::Result<EditResult> setPartOverride(CabinetDefinition& definition, const Libraries& libraries, const std::string& slot,
                                          const std::optional<PartOverride>& override);
+/// Sets or clears (std::nullopt) the contour of one part slot (PartOverride::contour; an
+/// override left without material, edges and contour is removed). Rejected (definition
+/// unchanged) when the spec is invalid for the generated part, e.g. radii that do not fit.
+core::Result<EditResult> setPartContour(CabinetDefinition& definition, const Libraries& libraries,
+                                        const std::string& slot, const std::optional<ContourSpec>& contour);
 
 /// Replaces the whole interior tree.
 core::Result<EditResult> setInterior(CabinetDefinition& definition, const Libraries& libraries, const Section& root);
