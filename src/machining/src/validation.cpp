@@ -137,7 +137,7 @@ bool checkHole(Ctx& c, const domain::Operation& op, const domain::Hole& h) {
             else
                 c.add(Severity::Warning, "machining.hole.too_close_to_edge",
                       what + " with diameter " + num(h.diameter) + " mm leaves only " + num(material) +
-                          " mm of material to the panel edge (minimum " + num(c.opt.minEdgeMaterial) + " mm).");
+                          " mm of material to " + edgeName + " (minimum " + num(c.opt.minEdgeMaterial) + " mm).");
         }
     }
     if (!h.through && h.depth > e.materialDepth + eps) {

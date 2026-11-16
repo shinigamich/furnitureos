@@ -164,6 +164,14 @@ grain `AlongWidth`, stock is one unlimited sheet type of the material's sheet si
 with a missing material, an invalid cut size or an invalid sheet size are reported in
 `diagnostics`, never dropped silently.
 
+### Routing split (ADR-0008)
+
+Parts with `!domain::isRectangularOutline(part)` (arcs, non-rectangular corners or cut-outs) are not
+guillotine pieces: `cuttingFromModel()` returns the unchanged jobs plus `routedParts`, and both it and
+`jobsFromModel()` emit an Info `cutting.adapter.routed` per such part. A shape that is a plain rectangle
+stays a piece. Nesting jobs for the routed parts: `fos::nesting::nestingJobsFromModel()`
+(target `fos::nesting_model`).
+
 ## Limits
 
 * Heuristic only; no exact or branch-and-bound solver, no optimality proof.

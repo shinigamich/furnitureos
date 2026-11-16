@@ -3,6 +3,8 @@
 
 #include "fos/core/units.hpp"
 
+#include <algorithm>
+
 namespace fos::production {
 namespace {
 
@@ -46,6 +48,14 @@ std::string roleCell(domain::PartRole r, const Terms& t) {
     return it != t.roles.end() ? it->second : std::string(domain::toString(r));
 }
 
+/// One character per outline segment: '1' banded, '0' raw, '?' missing band.
+std::string outlineCode(const std::vector<EdgeCell>& edges, int segments) {
+    if (edges.empty()) return std::string(static_cast<std::size_t>(std::max(segments, 0)), '0');
+    std::string s;
+    for (const auto& e : edges) s += e.missing ? '?' : (e.banded() ? '1' : '0');
+    return s;
+}
+
 std::string money(double v, bool known, const NumberFormat& nf) { return known ? formatLength(v, nf.money) : ""; }
 
 } // namespace
@@ -65,6 +75,18 @@ Table partListTable(const PartList& r, const Localisation& loc, const NumberForm
                           edgeCell(p.edges[0], loc.terms), edgeCell(p.edges[1], loc.terms),
                           edgeCell(p.edges[2], loc.terms), edgeCell(p.edges[3], loc.terms),
                           std::to_string(p.operationCount)});
+    bool anyShaped = false;
+    for (const auto& p : r.rows) anyShaped = anyShaped || p.shaped;
+    if (anyShaped) {
+        t.header.insert(t.header.end(), {h.shape, h.outlineArea, h.outlineEdges});
+        for (std::size_t i = 0; i < r.rows.size(); ++i) {
+            const auto& p = r.rows[i];
+            auto& row = t.rows[i];
+            row.push_back(p.shaped ? loc.terms.shaped : "");
+            row.push_back(p.shaped ? formatLength(p.outlineAreaM2, nf.area) : "");
+            row.push_back(p.shaped ? outlineCode(p.outlineEdges, p.outlineSegments) : "");
+        }
+    }
     return t;
 }
 
@@ -89,6 +111,18 @@ Table cutListTable(const CutList& r, const Localisation& loc, const NumberFormat
                           edgeCell(g.edges[0], loc.terms), edgeCell(g.edges[1], loc.terms),
                           edgeCell(g.edges[2], loc.terms), edgeCell(g.edges[3], loc.terms), g.name(),
                           std::to_string(g.operationCount), numbers, ids});
+    }
+    bool anyShaped = false;
+    for (const auto& g : r.rows) anyShaped = anyShaped || g.shaped;
+    if (anyShaped) {
+        t.header.insert(t.header.end(), {h.shape, h.outlineArea, h.outlineEdges});
+        for (std::size_t i = 0; i < r.rows.size(); ++i) {
+            const auto& g = r.rows[i];
+            auto& row = t.rows[i];
+            row.push_back(g.shaped ? loc.terms.shaped : "");
+            row.push_back(g.shaped ? formatLength(g.outlineAreaM2, nf.area) : "");
+            row.push_back(g.shaped ? outlineCode(g.outlineEdges, g.outlineSegments) : "");
+        }
     }
     return t;
 }
@@ -164,6 +198,13 @@ Table machiningTable(const MachiningSummary& r, const Localisation& loc, const N
                           std::to_string(m.holeCount), std::to_string(m.grooveCount),
                           formatLength(m.grooveLength, nf.length), std::to_string(m.pocketCount)});
     }
+    if (r.totalRoutedContours > 0) {
+        t.header.insert(t.header.end(), {h.routedContours, h.routingLength});
+        for (std::size_t i = 0; i < r.rows.size(); ++i) {
+            t.rows[i].push_back(std::to_string(r.rows[i].routedContours));
+            t.rows[i].push_back(formatLength(r.rows[i].routingLength, nf.length));
+        }
+    }
     return t;
 }
 
@@ -178,7 +219,8 @@ Table labelTable(const LabelSet& r, const Localisation& loc, const NumberFormat&
                           formatLength(l.thickness, nf.length), formatLength(l.cutLength, nf.length),
                           formatLength(l.cutWidth, nf.length),
                           l.materialMissing ? flagged(l.materialName, loc.terms.missing) : l.materialName,
-                          l.edgeCode, l.quantityText()});
+                          l.shaped ? loc.terms.shaped + " " + l.outlineEdgeCode : l.edgeCode,
+                          l.quantityText()});
     return t;
 }
 

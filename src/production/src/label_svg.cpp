@@ -68,10 +68,15 @@ void renderLabel(std::string& out, const Label& l, const LabelSheetOptions& o, d
     text(out, pad, 20.5, 2.8, o.text.cut + " " + len(l.cutLength) + times + len(l.cutWidth));
     text(out, pad, 25.0, 2.8, l.materialName);
     text(out, pad, 29.5, 2.2, l.partId.str());
-    text(out, pad, 34.5, 2.6, l.edgeCode);
-
     const double dw = 13.0, dh = 8.0;
-    edgeDiagram(out, l, w - pad - dw, 13.5, dw, dh);
+    if (l.shaped) {
+        // No rectangle diagram: its four edges say nothing about a contoured outline.
+        text(out, pad, 34.5, 2.6, o.text.shaped + " " + l.outlineEdgeCode);
+        text(out, w - pad, 19.0, 3.0, o.text.shaped, " text-anchor=\"end\" font-weight=\"bold\"");
+    } else {
+        text(out, pad, 34.5, 2.6, l.edgeCode);
+        edgeDiagram(out, l, w - pad - dw, 13.5, dw, dh);
+    }
     text(out, w - pad, 34.5, 4.0, l.quantityText(), " text-anchor=\"end\" font-weight=\"bold\"");
     out += "</g></g>\n</g>\n";
 }

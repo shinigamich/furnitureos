@@ -2,6 +2,7 @@
 #include "fos/viewport/scene.hpp"
 
 #include "fos/geometry/mesh.hpp"
+#include "fos/viewport/shape_mesh.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -26,6 +27,9 @@ bool validSize(Vec3 s) {
 void Scene::setModel(const domain::Model& model) {
     parts_.clear();
     valid_.clear();
+    meshes_.clear();
+    edges_.clear();
+    diagnostics_.clear();
     for (const auto& a : model.assemblies) {
         for (const auto& p : a.parts) {
             ScenePart sp;
@@ -34,7 +38,32 @@ void Scene::setModel(const domain::Model& model) {
             sp.world = a.placement * p.placement;
             const domain::Material* m = model.findMaterial(p.material);
             sp.color = m ? m->color : kFallbackColor;
-            valid_.push_back(validSize(sp.size));
+            const bool ok = validSize(sp.size);
+            geometry::TriangleMesh mesh;
+            std::vector<geometry::Edge3> edges;
+            if (ok && domain::hasShape(p) && !domain::isRectangularOutline(p)) {
+                auto g = makeShapedPartGeometry(domain::finishedContour(p), p.shape->cutouts, p.thickness,
+                                                shapeChordTolerance(p.length, p.width));
+                if (g.ok()) {
+                    sp.contoured = true;
+                    mesh = std::move(g.value().mesh);
+                    edges = std::move(g.value().edges);
+                } else {
+                    diagnostics_.push_back({core::Severity::Warning, "viewport.shape.fallback_box",
+                                            "Part '" + p.name + "' is shown as its " + core::formatLength(p.length) +
+                                                " x " + core::formatLength(p.width) +
+                                                " mm bounding box because its contour cannot be displayed: " +
+                                                g.error().message,
+                                            sp.id});
+                }
+            }
+            if (ok && !sp.contoured) {
+                mesh = geometry::makeBox(sp.size);
+                edges = geometry::makeBoxEdges(sp.size);
+            }
+            valid_.push_back(ok);
+            meshes_.push_back(std::move(mesh));
+            edges_.push_back(std::move(edges));
             parts_.push_back(std::move(sp));
         }
     }
@@ -73,12 +102,27 @@ std::optional<std::size_t> Scene::pick(const geometry::Ray3& ray) const {
     for (std::size_t i = 0; i < parts_.size(); ++i) {
         if (!isVisible(i)) continue;
         const auto hit = geometry::intersectRayOrientedBox(ray, parts_[i].size, parts_[i].world);
-        if (hit && (!best || hit->t < bestT)) {
+        if (!hit) continue;
+        double t = hit->t;
+        if (parts_[i].contoured) {
+            // Rigid transform: the ray parameter is the same in the part frame.
+            const geometry::Transform inv = parts_[i].world.inverse();
+            const geometry::Ray3 local{inv.applyPoint(ray.origin), inv.applyVector(ray.direction)};
+            const auto mh = geometry::intersectRayMesh(local, meshes_[i]);
+            if (!mh) continue;
+            t = mh->t;
+        }
+        if (!best || t < bestT) {
             best = i;
-            bestT = hit->t;
+            bestT = t;
         }
     }
     return best;
+}
+
+const geometry::TriangleMesh& Scene::localMesh(std::size_t index) const {
+    static const geometry::TriangleMesh kEmpty;
+    return index < meshes_.size() ? meshes_[index] : kEmpty;
 }
 
 Scene::Buffers Scene::buildBuffers() const {
@@ -93,14 +137,14 @@ Scene::Buffers Scene::buildBuffers() const {
         if (!valid_[i]) continue;
         const auto& p = parts_[i];
         const float idx = static_cast<float>(i);
-        const auto mesh = geometry::transformed(geometry::makeBox(p.size), p.world);
+        const auto mesh = geometry::transformed(meshes_[i], p.world);
         const auto base = static_cast<std::uint32_t>(out.vertices.size());
         for (std::size_t v = 0; v < mesh.positions.size(); ++v) {
             const Vec3 q = mesh.positions[v], nn = mesh.normals[v];
             out.vertices.push_back({f(q.x), f(q.y), f(q.z), f(nn.x), f(nn.y), f(nn.z), idx});
         }
         for (auto k : mesh.indices) out.indices.push_back(base + k);
-        for (const auto& e : geometry::transformed(geometry::makeBoxEdges(p.size), p.world)) {
+        for (const auto& e : geometry::transformed(edges_[i], p.world)) {
             out.lines.push_back({f(e.a.x), f(e.a.y), f(e.a.z), idx});
             out.lines.push_back({f(e.b.x), f(e.b.y), f(e.b.z), idx});
         }

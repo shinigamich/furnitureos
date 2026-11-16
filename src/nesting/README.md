@@ -5,6 +5,19 @@ rectangular stock sheets for routing. It is separate from `cutting` (guillotine 
 produces non-guillotine layouts. **It is a heuristic: results are never claimed optimal**
 (`NestResult::isHeuristic` is always true).
 
+## Model adapter (`fos::nesting_model`)
+
+`fos/nesting/from_model.hpp`: `nestingJobsFromModel(model, ModelSettings, diagnostics)` builds one
+`MaterialNestJob` per material from every part with `!domain::isRectangularOutline(part)` (the
+counterpart of `fos::cutting::cuttingFromModel`, which keeps the rectangles). Outline =
+`domain::cutContour()` (raw, before banding) tessellated with `ModelSettings::chordTolerance`
+(default 0.1 mm, vertices on the arcs); cut-outs → `holes`. Rotation from `domain::sheetAlignment`:
+Free → Quarter, LengthAlongSheet → Half, LengthAcrossSheet → outline pre-rotated 90° + Half
+(`NestedPartFrame::preRotationDeg`). `partSpacing = toolDiameter + clearance + 2·chordTolerance`,
+`edgeSpacing = toolDiameter + chordTolerance` (the tolerance terms make the EXACT arcs keep the distance).
+Separate target in `src/nesting` because `cutting` precedes `nesting` in the module order; built only
+when `fos::domain` is. Diagnostics `nesting.adapter.*` (see header).
+
 ## Model
 
 * Sheet frame: origin at the sheet's lower-left corner, +X along the sheet length, +Y along its width.

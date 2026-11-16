@@ -23,6 +23,11 @@ struct Label {
     /// '1' = banded, '0' = raw, '?' = references an edge band missing from the model.
     std::string edgeCode;
     std::array<double, 4> edgeThickness{}; ///< mm per side (0 = raw or missing), for diagrams.
+    /// Contoured part (ADR-0008): `edgeCode` is then "0000" (Part::edges is empty) and the
+    /// outline bands are in `outlineEdgeCode`, one character per outline segment ('1', '0',
+    /// '?'). The SVG label prints LabelText::shaped and that code instead of the rectangle.
+    bool shaped = false;
+    std::string outlineEdgeCode;
     int indexInGroup = 0;  ///< 1-based position inside its cut-list group.
     int groupQuantity = 0; ///< Size of that group.
 
@@ -40,6 +45,7 @@ LabelSet labels(const domain::Model& model, const LabelOptions& options = {}, co
 struct LabelText {
     std::string cut = "Cut";
     std::string number = "No.";
+    std::string shaped = "Shaped";
 };
 
 /// Label sheet layout. All values in mm on paper. Labels are placed row by row from

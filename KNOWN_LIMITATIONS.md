@@ -31,3 +31,20 @@ Honesty rule (ARCHITECTURE.md 4.7): nothing is labelled as working unless it is 
 
 ## Interoperability
 * No import/export with bCAD, Astra, PRO100, GibLab or ViyarPro is implemented; their formats are unverified (`docs/research/interoperability.md`).
+
+## Contoured parts (phase 12, ADR-0008)
+
+* Contours are lines and circular arcs only (no splines); one contour kind per part in furniture
+  definitions; custom outlines must be given counter-clockwise; cut-outs are never edge-banded.
+* Hardware placement rules do not know about outlines: a fitting in a removed area is reported as an
+  error, not moved.
+* Drawings: a face-on shaped part hides other parts as its bounding box (diagnostic
+  `drawings.hlr.shape_approximated`); sections hatch shaped parts as boxes.
+* Validation: two shaped parts that are not parallel get a conservative box-based fallback; outline
+  erosion uses miter joins, so slivers thinner than about 0.41 x tolerance at sharp corners can be missed.
+* CAM: sharp inside corners stay rounded with the tool radius (warned); no tabs, ramps or part-in-part
+  ordering; raw edges lying on the blank boundary are only verified when a blank allowance is set.
+* The shared hole triangulator may omit zero-area corners; meshes built from such rings would not be
+  closed (covered by watertightness tests; not observed).
+* Project cutting plans and the CLI do not yet send shaped parts to nesting (T-034): shaped parts are
+  currently left out of guillotine plans and reported as routed.

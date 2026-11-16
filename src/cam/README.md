@@ -35,8 +35,9 @@ GenericIsoPostprocessor ── text  ──►  parseGenericIso / checkRoundTrip
 | `tool.hpp` | `Tool`, `ToolKind {Drill, EndMill}`, `ToolLibrary` (validation, `selectDrill`, `selectGrooveCutter`) |
 | `machine.hpp` | `MachineProfile` (envelope, safe Z, clearance, limits, `verified = false`), `validateProfile` |
 | `setup.hpp` | `Setup`, `SetupFrame`, frame mapping, `planSetup`, `HoleTarget`/`GrooveTarget` |
-| `toolpath.hpp` | `Motion` (Rapid, Linear, ToolChange, SpindleOn, SpindleOff, Dwell), `Program` |
-| `generate.hpp` | `CamOptions`, `generateProgram` (drilling, pecking, grooves) |
+| `toolpath.hpp` | `Motion` (Rapid, Linear, ArcCW, ArcCCW with exact centre, ToolChange, SpindleOn, SpindleOff, Dwell), `Program` |
+| `contour.hpp` | `ContourTarget`, `needsContourRouting`, `contourToMachineXY`, `contourTargets` (shaped parts) |
+| `generate.hpp` | `CamOptions`, `ContourDirection`, `generateProgram` (drilling, pecking, grooves, contour routing) |
 | `simulate.hpp` | `simulate`, `SimulationReport` (diagnostics, path lengths, time estimate) |
 | `postprocessor.hpp` | `Postprocessor` (NVI: `generate` simulates then `emit`s), `PostprocessorRegistry` |
 | `generic_iso.hpp` | the single reference postprocessor |
@@ -69,11 +70,46 @@ Supported (3-axis, single vertical spindle, tool along −Z):
   computed in the IR (no G41/G42). Open ends (axis-parallel groove ending on the panel edge) are run out
   past the edge; closed ends are rounded with the tool radius (warning `cam.groove.rounded_end`).
 
+* Contour routing of shaped parts (ADR-0008; `needsContourRouting(part)` = `!domain::isRectangularOutline`),
+  see below.
+
 Unsupported — always reported explicitly in `SetupPlan::unsupported`, never silently skipped:
 * Every operation on an edge face (L1, L2, W1, W2): needs a horizontal spindle or aggregate.
 * Pockets (blind and through): no pocket strategy exists that the simulator verifies.
-* Holes larger than any drill (no helical/circular interpolation), arcs, canned cycles, contours, cut-outs,
-  climb/conventional direction, lead-in ramps, clamps/fixtures, tool-length offsets, multiple parts per program.
+* Holes larger than any drill (no helical interpolation of holes), canned cycles, tabs/bridges, ramped
+  entries, clamps/fixtures, tool-length offsets, multiple parts per program.
+
+## Contour routing (phase 12)
+
+* **Source.** No new domain operation type: the targets come straight from the domain
+  (`contourTargets`): every cut-out of `PartShape` (as given; cut-outs are never banded) and the
+  **raw** outline `domain::cutContour(part, model)` — the panel is routed before edge banding. Synthetic
+  ids `contour.cutout.<k>` and `contour.outline` (a part operation with such an id is refused).
+  Edge bands come from `CamOptions::model` / `SimulationOptions::model` (required when any outline
+  segment is banded). Routing runs after holes and grooves: cut-outs first, then the outline.
+* **Blank.** `Setup::blankAllowance` (shaped parts only) makes the clamped stock the part bounding box
+  grown by that much per side; `stockOrigin` is the blank's min corner, the part origin is
+  `stockOrigin + (a, a, 0)`. With 0 the stock is the bounding box and straight raw edges on it cut air.
+* **Compensation in the IR.** Tool-centre path = `geometry::offsetContour(raw, +r)` (outline, tool
+  outside) / `offsetContour(cut-out, −r)` (inside). Arcs stay concentric arcs, emitted as exact
+  `ArcCW/ArcCCW` (R50 outline corner, 8 mm cutter → R54; R50 cut-out corner → R46). Sharp corners whose
+  waste side is a wedge stay rounded with the tool radius (`cam.contour.rounded_corner`).
+* **Tool.** `CamOptions::contourToolNumber`, or the largest centre-cutting end mill whose flute covers
+  T + breakthrough and for which every offset exists.
+* **Direction.** Spindle CW (M3). `Climb` (default): part on the right of the tool — outline clockwise,
+  cut-outs counter-clockwise (seen from +Z). `Conventional`: reversed.
+* **Depth.** Step-downs of `maxDepthOfCut` to stock bottom − `breakthroughAllowance` (≤ spoilboard limit).
+* **Lead-in/out.** Tangential quarter-circle **arcs** (radius `contourLeadRadius`, default tool radius) on
+  the waste side at the midpoint of the longest straight path segment; plunge at plunge rate at the
+  lead-in start (in the waste), loop, lead-out, retract — per level. No tabs.
+* **Simulation.** Arcs are rasterised exactly (covered angular window per cell). Expected: on each
+  contour's waste side, every cell within r of the contour and reachable (within r of the ideal offset
+  path) is cut through to the stock bottom (`cam.sim.contour_not_cut`); waste may be cut down to the
+  spoilboard limit; anything removed inside the finished part area beyond `contourTolerance` (0.001 mm)
+  and outside holes/grooves is `cam.sim.gouge`. `cam.sim.arc_invalid` for inconsistent radii/full circles.
+  The raw outline comes from the domain; the offset used for the reach test is computed by the
+  simulator, not taken from the program. The face-B mapping of contours (`contourToMachineXY`) is shared
+  with the generator and tested separately from first principles.
 
 ## Safety model
 
@@ -107,8 +143,11 @@ Unsupported — always reported explicitly in `SetupPlan::unsupported`, never si
 ## Reference postprocessor
 
 `generic-iso` — "Generic ISO G-code (RS-274 style), UNVERIFIED": `G21 G90 G17 G94`, `Tn M6`, `Sn M3`, `M5`,
-`G0`/`G1` with explicit X Y Z (3 decimals) and F (1 decimal), `G4 P<seconds>` (warned: some controls read ms),
-`M30`. No canned cycles, arcs, cutter compensation, work-offset or tool-length words.
+`G0`/`G1` with explicit X Y Z (3 decimals) and F (1 decimal), `G2`/`G3` X Y Z I J F (I/J = centre
+**incremental from the arc start**, computed from the rounded centre and start so the printed centre is
+exact to 0.001 mm; review warnings about G90.1 controls and arc end-point tolerance), `G4 P<seconds>`
+(warned: some controls read ms), `M30`. No canned cycles, R-format arcs, cutter compensation, work-offset
+or tool-length words. `parseGenericIso`/`checkRoundTrip` read G2/G3 back and compare end points and centres.
 
 ## Adding a postprocessor
 

@@ -21,6 +21,8 @@ struct PartListHeaders {
                 material = "Material", length = "Length", width = "Width", thickness = "Thickness",
                 cutLength = "Cut length", cutWidth = "Cut width", grain = "Grain", edgeL1 = "Edge L1",
                 edgeL2 = "Edge L2", edgeW1 = "Edge W1", edgeW2 = "Edge W2", operations = "Operations";
+    /// Appended only when the report contains a contoured part (see partListTable).
+    std::string shape = "Shape", outlineArea = "Outline area (m2)", outlineEdges = "Outline edges";
 };
 struct CutListHeaders {
     std::string material = "Material", thickness = "Thickness", cutLength = "Cut length",
@@ -29,6 +31,8 @@ struct CutListHeaders {
                 edgeL1 = "Edge L1", edgeL2 = "Edge L2", edgeW1 = "Edge W1", edgeW2 = "Edge W2",
                 name = "Name", operations = "Operations", partNumbers = "Part numbers",
                 partIds = "Part IDs";
+    /// Appended only when the report contains a contoured part (see cutListTable).
+    std::string shape = "Shape", outlineArea = "Outline area (m2)", outlineEdges = "Outline edges";
 };
 struct MaterialHeaders {
     std::string material = "Material", thickness = "Thickness", parts = "Parts",
@@ -52,6 +56,8 @@ struct MachiningHeaders {
     std::string number = "No.", assembly = "Assembly", partId = "Part ID", name = "Name",
                 holes = "Holes (count x diameter @ face)", holeCount = "Holes", grooves = "Grooves",
                 grooveLength = "Groove length", pockets = "Pockets";
+    /// Appended only when some part has routed contours (see machiningTable).
+    std::string routedContours = "Routed contours", routingLength = "Routing length";
 };
 struct LabelHeaders {
     std::string number = "No.", project = "Project", assembly = "Assembly", name = "Name",
@@ -85,6 +91,8 @@ struct Terms {
     std::string suppliedSheetCount = "supplied sheet count";
     std::string totalIsLowerBound = "lower bound (materials at area lower bound)";
     std::string totalIncomplete = "incomplete (some prices unknown)";
+    /// Marks contoured parts (Shape column, label edge code).
+    std::string shaped = "shaped";
     /// Role captions; roles not listed fall back to `domain::toString(PartRole)`.
     std::map<domain::PartRole, std::string> roles;
 };
@@ -110,6 +118,13 @@ struct NumberFormat {
     int money = 2;
 };
 
+/// Contoured parts (ADR-0008): when at least one row is shaped, the part list and cut list get
+/// three extra trailing columns - Shape (`Terms::shaped` or empty), Outline area (m2, exact
+/// outline minus cut-outs; empty for rectangles) and Outline edges (one character per outline
+/// segment: '1' banded, '0' raw, '?' missing band) - and the label table shows
+/// "<shaped> <outline code>" in the edge-code column. The machining table gets Routed contours
+/// and Routing length when some part is routed. Reports of rectangular parts only are
+/// unchanged, column for column.
 Table partListTable(const PartList& r, const Localisation& loc = {}, const NumberFormat& nf = {});
 Table cutListTable(const CutList& r, const Localisation& loc = {}, const NumberFormat& nf = {});
 Table materialTable(const MaterialReport& r, const Localisation& loc = {}, const NumberFormat& nf = {});

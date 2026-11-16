@@ -117,7 +117,7 @@ empty).
 **Panel** (`PanelItem` = `furniture::PanelDefinition` + placement): `id` (R, assembly id), `name` (R),
 `placement`, `partId` (R, non-empty; new panels use `<id>/panel`), `role` (PartRole token, formats §3.1, default
 `generic`), `orientation` (`Horizontal` | `VerticalSide` | `VerticalFront`), `material` (R, id), `edges` (Edges),
-`parameters` (R), `constraints`.
+`parameters` (R), `constraints`, `contour` (Contour, optional; absent = rectangle).
 
 Enumerations of the furniture module are written with their **stable `toString()` texts** (case-sensitive):
 
@@ -140,7 +140,17 @@ Enumerations of the furniture module are written with their **stable `toString()
 **MaterialAssignment** — closed: `carcass`, `back`, `front`, `visibleEdge` (strings, `""` = none / same as
 carcass / raw, see furniture `definition.hpp`), `hiddenEdge`, `frontEdge` (string or `null` = unset),
 `overrides` (object slot id → `{ "material": id|null, "edges": { "l1"|"l2"|"w1"|"w2": id|null } }`; a present
-edge key with `null` means "raw edge", an absent key means "no override").
+edge key with `null` means "raw edge", an absent key means "no override"). An override may also carry
+`"contour"`: Contour (written only when set, so files without contours are unchanged byte for byte).
+
+**Contour** (`furniture::ContourSpec`, furniture README "Contoured parts") — closed; every key is written
+(lossless, also the fields the kind does not use): `kind` (R: `Rectangle` | `RoundedCorners` | `ArcEdge` |
+`Custom`), `radii` (array of exactly 4 expression strings, corners (0,0), (L,0), (L,W), (0,W); `""` = 0),
+`arcEdge` (`l1` | `l2` | `w1` | `w2`), `arcRise` (expression), `arcDirection` (`Convex` | `Concave`),
+`vertices` (array of `{ "x": expr (R), "y": expr (R), "bulge": number, "bandFrom": "l1"…|null }`, ≤ 500),
+`cutouts` (array of `{ "kind": "Rectangle"|"Circle" (R), "x", "y", "length", "width", "radius" }` expression
+strings, ≤ 50). Decoding runs `furniture::checkContourSpec` (expressions must parse; Custom ≥ 3 vertices,
+|bulge| ≤ 1); values are checked when the item is generated.
 
 **HardwareSelection** — closed: `hinge`, `handle`, `shelfPin`, `confirmat`, `dowel`, `foot` (catalogue ids;
 defaults = the generic built-in ids).
@@ -215,6 +225,7 @@ furniture edits (`furniture::generate`). Counts of arrays are checked before the
 | Weight sizes | ≤ 1 000 000 | `furniture::limits::kMaxWeight` | after decoding, generator |
 | generated part length / width / thickness | finite, > 0, ≤ 100 000 mm | generator (`furniture.geometry.invalid_size`) | item diagnostic `project.item.generation_failed` |
 | panel item parameters | finite, \|value\| ≤ 100 000 mm | `furniture::generatePanel` | item diagnostic |
+| contour vertices / cut-outs | 500 / 50 per contour; ~10 000 segments per cabinet | `furniture::limits::kMaxContour*` | array length on load, after decoding, generator |
 
 The JSON nesting of the whole file is limited to 128 levels by the container (formats §1.2).
 
@@ -226,6 +237,9 @@ The JSON nesting of the whole file is limited to 128 levels by the container (fo
   `furniture/edit.hpp`, which is atomic), panels, item add / remove / duplicate / move / rename, library
   upsert / remove (removal is refused while an item references the entry), drawing edits, cutting settings,
   metadata, settings and custom data. Labels name items by id (the UI may map ids to names).
+  Contours: `setPartContour(item, slot, spec|nullopt)` (cabinets, via `furniture::setPartContour`) and
+  `setPanelContour(item, spec|nullopt)` (panels; the panel is generated first, an invalid contour fails the
+  command and changes nothing).
 * `Document::execute` runs the command on a **copy** of the project, checks the structure, and re-generates every
   affected item that generated before; any error leaves project, history and dirty flag untouched. A command that
   changes nothing records no step.

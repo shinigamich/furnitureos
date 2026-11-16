@@ -39,6 +39,21 @@ Every check is a registry entry (`availableChecks()`), switched by its `Validati
 | `validation.assembly.duplicate_id` | error | two assemblies share an id (`entityId` = assembly id) |
 | `validation.assembly.non_rigid_placement` | error | assembly placement not rigid; excluded from check 4 |
 
+Contoured parts (ADR-0008), checked for every shaped part with a valid size. Segment and
+cut-out numbers in messages are 0-based indices into `PartShape::outer` / `cutouts`.
+
+| Code | Severity | Condition |
+|---|---|---|
+| `validation.shape.invalid_outline` | error | `geometry::validateContour(outer)` fails (message of the geometry kernel appended); other shape checks skipped |
+| `validation.shape.clockwise_outline` | error | outline signed area < 0 |
+| `validation.shape.bounds_mismatch` | error | exact outline bounding box differs from [0,L]x[0,W] by more than 1e-6 mm |
+| `validation.shape.invalid_cutout` | error | a cut-out fails `validateContour` |
+| `validation.shape.cutout_outside` | error | a cut-out touches / crosses the outline or lies outside it |
+| `validation.shape.cutouts_overlap` | error | two valid cut-outs touch, cross or nest |
+| `validation.shape.edges_with_shape` | error | shaped part with a band in `Part::edges` (must be empty) |
+| `validation.shape.outer_edges_count` | error | `outerEdges` neither empty nor one entry per outline segment |
+| `validation.shape.cut_contour` | error | `domain::cutContour` fails (geometry message appended); only when outline, bounds, band count and `Part::edges` are fine |
+
 ### 2. edge-banding (`checkEdgeBanding`)
 | Code | Severity | Condition |
 |---|---|---|
@@ -47,6 +62,11 @@ Every check is a registry entry (`availableChecks()`), switched by its `Validati
 | `validation.edge.band_too_thick` | warning | band thickness > `maxBandThicknessShare` x perpendicular dimension (width for L1/L2, length for W1/W2) |
 | `validation.edge.non_positive_cut_size` | error | cut length or width <= 0 after subtracting the bands |
 | `validation.edge.invalid_band` | error | library band with thickness < 0 / non-finite or width <= 0 (`entityId` = band id) |
+| `validation.edge.radius_too_small` | warning | contoured part: a banded outline arc whose substrate radius (R - t convex, R + t concave; t = band thickness) is below `edgeBandMinBendRadiusFactor` x t. GENERIC, UNVERIFIED rule of thumb (default 10: 20 mm for 2 mm ABS) |
+
+For contoured parts `missing_band` and `band_too_narrow` are also checked per outline segment
+("outline segment i"); `band_too_thick` and `non_positive_cut_size` apply to `Part::edges` only
+(the raw outline is checked by `validation.shape.cut_contour`).
 
 ### 3. part-interference (`checkPartInterference`)
 | Code | Severity | Condition |
@@ -60,6 +80,28 @@ Every check is a registry entry (`availableChecks()`), switched by its `Validati
   vector `(x, y, z)`. Overlaps up to `interferenceTolerance` (touching) are accepted.
   The part named as penetrating is the one with the larger extent along that axis (a shelf
   end entering a side); ties: the part listed first.
+* Contoured parts (ADR-0008, option `exactShapeInterference`, default on): when the boxes
+  interfere and at least one part has a valid non-rectangular shape inside [0,L]x[0,W], the
+  pair is re-tested with the exact outline (lines and arcs, no tessellation). Criterion: the
+  solids, each eroded by `interferenceTolerance / 2`, still intersect. A part is the prism
+  "outline minus cut-outs" x [0, T]; its erosion is the outline offset inwards and the cut-outs
+  offset outwards (`geometry::offsetContour`) x [h, T - h]; a box shrinks by h.
+  * shaped vs box, ANY relative orientation: the eroded box is clipped to the shaped part's
+    eroded thickness slab and projected onto its plane (convex polygon), then tested against
+    the eroded region - exact.
+  * two shaped parts with (anti)parallel thickness axes: both regions in one plane (mirrored
+    when anti-parallel) plus overlap of the eroded thickness intervals - exact.
+  * two shaped parts at another relative orientation: each shape against the other's BOX; the
+    pair is reported only if both say so - conservative fallback (may report, never misses).
+  Reported depth = diameter of the largest ball that fits into the shared material (bisection
+  on the erosion, 0.001 mm), capped by the box depth; the message also gives the box result.
+  "at least" marks a depth whose search stopped because an outline arc could not be eroded
+  further. offsetContour uses miter joins at sharp corners, whose erosion is a subset of the
+  exact one: a reported overlap is always real, near a sharp cut-out corner (or reflex outline
+  corner) a sliver thinner than about 0.41 x tolerance may be missed and the depth may be
+  slightly under-estimated. If the base erosion is not representable the box result stands.
+  Stats: `shapedPairsRefined`, `shapedPairsCleared`. Groove engagement is evaluated after the
+  refinement on the boxes as before.
 * Broad phase: sweep and prune of the part AABBs along X. Stats: `possiblePartPairs`
   (n(n-1)/2 per assembly), `broadPhaseChecks` (pairs reaching the AABB comparison),
   `partPairsTested` (AABBs overlap -> exact SAT test).
@@ -78,7 +120,7 @@ Every check is a registry entry (`availableChecks()`), switched by its `Validati
 |---|---|---|
 | `validation.interference.assemblies` | `assemblyInterferenceSeverity` (warning) | parts of different assemblies share volume in the project frame (assembly placement applied); `relatedIds` = other part, other assembly |
 
-Same SAT/sweep as check 3, no groove allowance. Stats: `possibleCrossAssemblyPartPairs`,
+Same SAT/sweep and contoured-part refinement as check 3, no groove allowance. Stats: `possibleCrossAssemblyPartPairs`,
 `crossAssemblyBroadPhaseChecks`, `crossAssemblyPartPairsTested`.
 
 ### 5. machining (`checkMachining`)
@@ -117,6 +159,8 @@ Same SAT/sweep as check 3, no groove allowance. Stats: `possibleCrossAssemblyPar
 | `interferenceTolerance` | 0.01 mm | accepted overlap (touching) |
 | `grooveFitTolerance` | 0.1 mm | accepted protrusion beyond a groove box |
 | `assemblyInterferenceSeverity` | Warning | severity of check 4 |
+| `exactShapeInterference` | true | exact-outline refinement for contoured parts (checks 3, 4) |
+| `edgeBandMinBendRadiusFactor` | 10 | `edge.radius_too_small` threshold factor (generic, unverified); <= 0 disables |
 | `coaxialTolerance` | 0.1 mm | max axis distance of mating holes |
 | `matingSearchRadius` | 8 mm | pairing radius (heuristic) |
 | `matingMaxAxialGap` | 1 mm | pairing axial gap (heuristic) |
@@ -124,8 +168,8 @@ Same SAT/sweep as check 3, no groove allowance. Stats: `possibleCrossAssemblyPar
 | `machining` | defaults | forwarded to `machining::validateOperations` |
 
 ## Limitations
-* Parts are boxes: pockets, holes and grooves do not remove material in the interference
-  test (except the groove engagement rule above).
+* Parts are boxes or exact contoured prisms (cut-outs remove material); pockets, holes and
+  grooves do not remove material in the interference test (except the groove engagement rule).
 * Groove recognition only for axis-aligned parts and axis-parallel grooves.
 * Mating-hole pairing is a heuristic; holes from `"user"` operations are never paired.
 * Hole/groove and groove/groove collisions inside one part are not checked (machining module scope).

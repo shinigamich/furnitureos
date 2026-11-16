@@ -7,7 +7,7 @@ fos_add_module(validation
 fos_add_tests(validation
     SOURCES tests/obb_tests.cpp tests/check_tests.cpp tests/interference_tests.cpp
             tests/report_tests.cpp tests/large_model_tests.cpp
-            tests/rect_golden_tests.cpp)
+            tests/rect_golden_tests.cpp tests/shape_tests.cpp)
 if(TARGET fos_validation_tests)
     target_compile_definitions(fos_validation_tests PRIVATE
         FOS_VALIDATION_GOLDEN_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/golden")

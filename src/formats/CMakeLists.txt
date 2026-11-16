@@ -16,7 +16,7 @@ fos_add_module(formats
         src/shape_check.cpp
         src/library.cpp
         src/obj_export.cpp
-        src/obj_mesh.cpp
+       
         src/csv_materials.cpp
     DEPS fos::core fos::geometry fos::domain nlohmann_json::nlohmann_json)
 

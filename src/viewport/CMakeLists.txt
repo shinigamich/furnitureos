@@ -6,6 +6,7 @@ fos_add_module(viewport
         include/fos/viewport/viewport_widget.hpp
         src/camera.cpp
         src/scene.cpp
+        src/shape_mesh.cpp
         src/gl_renderer.cpp
         src/viewport_widget.cpp
     DEPS fos::geometry fos::domain Qt6::Widgets Qt6::OpenGLWidgets
@@ -21,8 +22,10 @@ if(FOS_BUILD_TESTS)
         tests/camera_tests.cpp
         tests/scene_tests.cpp
         tests/picking_tests.cpp
-        tests/rect_golden_tests.cpp)
+        tests/rect_golden_tests.cpp
+        tests/shape_mesh_tests.cpp)
     target_link_libraries(fos_viewport_tests PRIVATE fos::viewport GTest::gtest GTest::gmock)
+    target_include_directories(fos_viewport_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     fos_set_warnings(fos_viewport_tests PRIVATE)
     gtest_discover_tests(fos_viewport_tests DISCOVERY_TIMEOUT 60
         PROPERTIES ENVIRONMENT "${FOS_QT_TEST_PLATFORM_ENV}")

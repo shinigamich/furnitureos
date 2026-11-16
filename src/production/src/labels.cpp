@@ -39,6 +39,11 @@ LabelSet labels(const domain::Model& model, const LabelOptions& options, const S
             l.edgeCode += e.missing ? '?' : (e.banded() ? '1' : '0');
             l.edgeThickness[i] = e.thickness;
         }
+        if (r.shaped) {
+            l.shaped = true;
+            if (r.outlineEdges.empty()) l.outlineEdgeCode.assign(static_cast<std::size_t>(r.outlineSegments), '0');
+            for (const auto& e : r.outlineEdges) l.outlineEdgeCode += e.missing ? '?' : (e.banded() ? '1' : '0');
+        }
         const auto pos = position.at(r.number); // every part is in exactly one group
         l.indexInGroup = pos.first;
         l.groupQuantity = pos.second;

@@ -124,10 +124,12 @@ TEST(ShapedAssemblyView, ArcPartlyHiddenIsSplitExactly) {
         if (samePoint(arc.center, {50, 350})) {
             EXPECT_EQ(arc.style, LineStyle::Visible);
         }
-    // Left outline line (0,50)-(0,350) lies on the box boundary x = 0: not strictly inside -> visible.
-    const ViewSegment* left = findSegment(v, {0, 50}, {0, 350});
+    // Left outline line (0,50)-(0,350) lies on the box boundary x = 0: not strictly inside ->
+    // visible. Coincident pieces merge: y 0..100 belongs to the nearer box, y 100..350 to the shelf.
+    const ViewSegment* left = findSegment(v, {0, 100}, {0, 350});
     ASSERT_TRUE(left);
     EXPECT_EQ(left->style, LineStyle::Visible);
+    EXPECT_EQ(left->sourceId, "cab1/shelf.round");
     // Omit mode drops the hidden sub-arc.
     ViewOptions o;
     o.hiddenLines = HiddenLineMode::Omit;

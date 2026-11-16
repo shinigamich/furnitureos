@@ -66,6 +66,25 @@ placement of every view so a UI can convert clicks back to view/model coordinate
   `<view>/legend.edge[<edge-band-id>]`, `<view>/legend.hole.H<n>`
 * sheet furniture: `sheet/frame`, `sheet/titleblock`, `sheet/title.<field>[.label]`, `sheet/calibration.*`
 
+## Contoured parts (ADR-0008, phase 12)
+
+* **Part drawings** draw the exact finished outline (`domain::finishedContour`): lines in `View::segments`, true
+  arcs in `View::arcs` (`ViewArc`, rendered as `Arc` primitives → SVG `A` commands, DXF `ARC` entities, Qt
+  `arcTo`; never tessellated). Cut-outs are drawn solid (through openings); circular cut-outs as a circle with a
+  centre cross. Annotations: `RadiusDimension` (`R 50` per outer arc `<view>/dim.radius[<seg>]`, per arc of a
+  cut-out `<view>/dim.radius.cutout[<k>.<seg>]`, `Ø 35` per circular cut-out `<view>/dim.diameter.cutout[<k>]`;
+  value = |arcPoint − centre| from the geometry, leader with arrow on the arc), ordinate dimensions of cut-outs
+  (`<view>/dim.cutout.x|y[<k>.min|max]`, circles `[<k>]` = centre) merged with hole coordinates, edge-band marks per
+  banded segment `<view>/edge.seg[<i>]` (concentric arc marks on arcs), legend "n outline segments, length mm", and
+  the cut-size note ends with ", shaped part (routed)". Edits work on radius dimensions (`offset` = leader length).
+* **Assembly views**: face-on contoured parts show their exact projected outline and cut-outs, hidden-line
+  removed (`removeHiddenLines` with `HlrEdge`, `removeHiddenArcs` exact at circle/rectangle crossings).
+  APPROXIMATION: as occluders they count as their bounding box (`HlrBox::drawEdges = false`), so nothing is seen
+  through cut-outs or past rounded corners; when this hides a really visible stretch of another part's edge, the
+  Warning `drawings.hlr.shape_approximated` names both parts (lines checked exactly, arcs on a 0.05 mm polygon).
+  Edge-on contoured parts keep the exact box silhouette. Section planes cut contoured parts as their bounding box
+  (`drawings.section.shape_approximated`).
+
 ## Hidden-line removal
 
 Exact for panels whose placement is axis-aligned (every current furniture part). Each box contributes the four
@@ -144,7 +163,10 @@ its own sheet.
   hides nothing, is not cut, and is reported (`drawings.hlr.not_axis_aligned`). Machining (holes, grooves,
   cut-outs) and hardware are not shown in assembly views; panels are plain boxes there.
 * No isometric/perspective views, no detail views (a `DetailMarker` only marks the region), no view captions.
-* Dimensions are linear horizontal/vertical only (no aligned, angular, radial dimensions). Automatic
+* Dimensions are linear horizontal/vertical plus radius/diameter leaders of contoured parts (no aligned or
+  angular dimensions). Edge-face operations of contoured parts are drawn against the bounding rectangle.
+* Edge-on contoured parts occlude with their full bounding box depth (only matters for geometry placed inside
+  the notch of a rounded corner). Automatic
   dimensioning covers overall sizes and edge-on panel chains; set-backs (e.g. shelf 20 mm behind the front)
   are not dimensioned automatically — add a `UserDimension`.
 * Text width is a **heuristic** (0.6 × height per code point); there are no font metrics in the core. Automatic

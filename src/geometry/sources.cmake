@@ -6,6 +6,7 @@ list(APPEND FOS_GEOMETRY_SOURCES
     src/polygon_relations.cpp
     src/offset.cpp
     src/triangulate.cpp
+    src/triangulate_holes.cpp
     src/mesh.cpp
     src/ray.cpp
     src/projection.cpp
@@ -20,6 +21,7 @@ list(APPEND FOS_GEOMETRY_TEST_SOURCES
     tests/polygon_relations_tests.cpp
     tests/offset_tests.cpp
     tests/triangulate_tests.cpp
+    tests/triangulate_holes_tests.cpp
     tests/mesh_tests.cpp
     tests/ray_tests.cpp
     tests/projection_tests.cpp

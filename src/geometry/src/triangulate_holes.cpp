@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Ear-clipping triangulation of a polygon with holes (bridge method), for OBJ cap faces.
-#include "obj_mesh.hpp"
+#include "fos/geometry/triangulate.hpp"
 
 #include <algorithm>
 #include <cmath>
 #include <limits>
 #include <string>
 
-namespace fos::formats::detail {
+namespace fos::geometry {
 namespace {
 
-using geometry::Vec2;
 
 core::Error meshError(const std::string& message) {
     return core::makeError(core::ErrorCode::InvalidArgument, "Cap triangulation: " + message);
@@ -18,7 +17,7 @@ core::Error meshError(const std::string& message) {
 
 struct Node {
     Vec2 p;
-    std::uint32_t index = 0; ///< Into CapTriangulation::points.
+    std::uint32_t index = 0; ///< Into TriangulationWithHoles::points.
     std::size_t prev = 0, next = 0;
     bool shared = false; ///< Bridge end: another node has the same position.
 };
@@ -195,19 +194,19 @@ double ringArea(const std::vector<Vec2>& pts, std::size_t first, std::size_t cou
 
 } // namespace
 
-core::Result<CapTriangulation> triangulateWithHoles(const geometry::Polygon2& outer,
-                                                    const std::vector<geometry::Polygon2>& holes) {
-    CapTriangulation out;
+core::Result<TriangulationWithHoles> triangulateWithHoles(const Polygon2& outer,
+                                                    const std::vector<Polygon2>& holes) {
+    TriangulationWithHoles out;
     std::size_t total = outer.size();
     for (const auto& h : holes) total += h.size();
-    if (total > kMaxCapPoints)
+    if (total > kMaxTriangulationPoints)
         return meshError("the region has " + std::to_string(total) + " points; at most " +
-                         std::to_string(kMaxCapPoints) + " are supported");
+                         std::to_string(kMaxTriangulationPoints) + " are supported");
 
     // Rings: outer counter-clockwise, holes clockwise.
     double expected = 0;
     for (std::size_t r = 0; r <= holes.size(); ++r) {
-        const geometry::Polygon2& ring = r == 0 ? outer : holes[r - 1];
+        const Polygon2& ring = r == 0 ? outer : holes[r - 1];
         const std::string name = r == 0 ? std::string("the outer ring") : "hole " + std::to_string(r - 1);
         if (ring.size() < 3) return meshError(name + " has fewer than 3 points");
         const std::size_t first = out.points.size();
@@ -290,4 +289,4 @@ core::Result<CapTriangulation> triangulateWithHoles(const geometry::Polygon2& ou
     return out;
 }
 
-} // namespace fos::formats::detail
+} // namespace fos::geometry

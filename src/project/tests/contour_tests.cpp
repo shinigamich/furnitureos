@@ -44,7 +44,7 @@ Project projectWithContours() {
     p.items.push_back(cab);
     PanelItem panel;
     panel.id = domain::AssemblyId("top");
-    panel.panel = furniture::makePanel(domain::PartId("top/panel"), "L top", domain::MaterialId(defaults::kPb18));
+    panel.panel = furniture::makePanel(domain::PartId("top/panel"), "L top", domain::MaterialId(defaults::kParticleboard18));
     EXPECT_TRUE(panel.panel.parameters.setValue("length", 1200).ok());
     EXPECT_TRUE(panel.panel.parameters.setValue("width", 600).ok());
     panel.panel.edges[0] = domain::EdgeBandId(defaults::kAbs2);
@@ -167,7 +167,8 @@ TEST(ProjectContour, SetPanelContourCommand) {
     arc.arcEdge = domain::EdgeSide::L1;
     arc.arcRise = "100";
     ASSERT_TRUE(doc.execute(commands::setPanelContour("top", arc)).ok());
-    const domain::Part* top = findPart(resolved(doc.project()), "top/panel");
+    const Resolved r = resolved(doc.project());
+    const domain::Part* top = findPart(r, "top/panel");
     ASSERT_NE(top, nullptr);
     ASSERT_TRUE(top->shape.has_value());
     // Rise 100 on the 1200 chord: bulge 100 / 600.

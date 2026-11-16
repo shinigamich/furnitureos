@@ -20,6 +20,7 @@ using geometry::Vec2;
 using geometry::Vec3;
 
 using detail::Builder;
+using detail::checkToolLimits;
 
 namespace {
 

@@ -12,8 +12,13 @@ struct MaterialRow {
     bool missing = false; ///< Referenced by parts but absent from the model (or empty id).
     double thickness = 0; ///< Material thickness, mm (0 when missing).
     int partCount = 0;
-    double finishedAreaM2 = 0; ///< Sum of length * width.
-    double cutAreaM2 = 0;      ///< Sum of cutLength * cutWidth.
+    /// Sum of length * width; contoured parts contribute their exact outline area minus
+    /// cut-outs (the material that ends up in the furniture).
+    double finishedAreaM2 = 0;
+    /// Sum of cutLength * cutWidth. For contoured parts this is the rectangular BLANK
+    /// (domain::cutSize) because the blank is what is cut from the sheet before the outline is
+    /// routed; the routed-away material is waste, so sheet estimates use the blank.
+    double cutAreaM2 = 0;
     double sheetLength = 0, sheetWidth = 0; ///< mm, 0 when missing.
     double sheetAreaM2 = 0;
     /// True when the material exists and has a positive sheet size.
@@ -49,8 +54,13 @@ struct EdgeBandingRow {
     std::string name;     ///< Empty when `missing`.
     bool missing = false;
     double thickness = 0, width = 0; ///< mm.
+    /// Banded edges; for contoured parts the number of band strips (see below).
     int edgeCount = 0;
-    double appliedLengthM = 0;     ///< Sum of domain::edgeLength of the banded edges.
+    /// Sum of domain::edgeLength of the banded edges. Contoured parts: exact length of the
+    /// banded outline segments (arc lengths, geometry::segmentInfo on the finished outline).
+    /// Consecutive banded segments with the same band and a tangent junction form ONE strip
+    /// (one pair of overhangs); a sharp corner starts a new strip, as on a rectangle.
+    double appliedLengthM = 0;
     double overhangAllowanceM = 0; ///< edgeCount * 2 * overhangPerEnd.
     double wasteAllowanceM = 0;    ///< (applied + overhang) * wastePercent / 100.
     double purchaseLengthM = 0;    ///< applied + overhang + waste.
@@ -109,6 +119,11 @@ struct MachiningRow {
     std::vector<HoleGroup> holes; ///< Sorted by diameter, then face (A, B, L1, L2, W1, W2).
     int holeCount = 0, grooveCount = 0, pocketCount = 0;
     double grooveLength = 0;      ///< Sum of groove centre-line lengths, mm.
+    /// Contoured parts that are not plain rectangles (ADR-0008): contours routed on the CNC =
+    /// the raw outline (domain::cutContour, before edge banding) + one per cut-out ...
+    int routedContours = 0;
+    /// ... and their total exact length (geometry::perimeter, arcs exact), mm.
+    double routingLength = 0;
 };
 
 struct MachiningOptions {
@@ -119,10 +134,14 @@ struct MachiningOptions {
 struct MachiningSummary {
     std::vector<MachiningRow> rows; ///< Part-number order.
     int totalHoles = 0, totalGrooves = 0, totalPockets = 0;
+    int totalRoutedContours = 0;
+    double totalRoutingLength = 0; ///< mm
     core::Diagnostics diagnostics;
 };
 
-/// Counts taken from `Part::operations`; operations are not validated here.
+/// Counts taken from `Part::operations`; operations are not validated here. Routed contoured
+/// parts are listed even without operations; one whose raw outline cannot be computed gets
+/// production.shape.invalid and no routing figures.
 MachiningSummary machiningSummary(const domain::Model& model, const MachiningOptions& options = {},
                                   const Scope& scope = {});
 

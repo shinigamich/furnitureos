@@ -196,3 +196,38 @@ TEST(ViewportGl, UnsupportedContextRendersBackgroundWithoutCrashing) {
     }
     ctx.doneCurrent();
 }
+
+TEST(ViewportGl, ContouredWorktopShowsTheSinkOpening) {
+    REQUIRE_GL();
+    // 1200 x 600 x 38 worktop with a 500 x 400 sink cut-out at (350, 100) (ADR-0008), seen
+    // from above: the sink centre (600, 300) is the centre of the fitted view.
+    domain::Model m = domain::fixtures::basicCabinet();
+    domain::Part top;
+    top.id = domain::PartId("worktop");
+    top.name = "Worktop";
+    top.length = 1200;
+    top.width = 600;
+    top.thickness = 38;
+    top.material = domain::MaterialId("mat.pb18");
+    domain::PartShape shape;
+    shape.outer = geometry::rectangleContour(1200, 600);
+    shape.cutouts.push_back(geometry::translated(geometry::rectangleContour(500, 400), {350, 100}));
+    top.shape = shape;
+    m.assemblies[0].parts = {top};
+    ViewportWidget w;
+    w.resize(800, 600);
+    w.setModel(m);
+    w.setProjection(Projection::Orthographic);
+    w.setViewPreset(ViewPreset::Top);
+    // Sample a little off the 100 mm grid lines.
+    const QPoint inSink(400 + 13, 300 + 7), onTop(400 + 13 + 250, 300 + 7);
+    ASSERT_EQ(w.partAt(inSink), "");
+    ASSERT_EQ(w.partAt(onTop), "worktop");
+    const QImage img = render(w);
+    ASSERT_FALSE(img.isNull());
+    const QColor sink = img.pixelColor(inSink), material = img.pixelColor(onTop);
+    std::printf("[measured] sink pixel (%d,%d,%d), worktop pixel (%d,%d,%d)\n", sink.red(), sink.green(),
+                sink.blue(), material.red(), material.green(), material.blue());
+    EXPECT_LT(colourDistance(sink, kBackground), 40);
+    EXPECT_GT(colourDistance(sink, material), 30);
+}

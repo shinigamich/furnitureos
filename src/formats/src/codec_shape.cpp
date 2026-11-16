@@ -82,14 +82,15 @@ core::Result<domain::PartShape> shapeFromJson(const Json& json, std::string_view
             r.failAt("cutouts", "the part has " + std::to_string(cutouts->size()) + " cut-outs; at most " +
                                     std::to_string(kMaxShapeCutouts) + " are allowed");
         } else {
+            // Total vertex limit over all cut-outs, checked before any cut-out is decoded; the
+            // error names the first cut-out that exceeds it.
             std::size_t total = shape.outer.size();
             for (std::size_t k = 0; k < cutouts->size() && r.ok(); ++k) {
                 const Json& item = (*cutouts)[k];
-                if (item.is_array() && total + item.size() > kMaxShapeVertices) {
-                    r.fail(schemaError(joinPath(base, k), totalVerticesMessage(total + item.size())));
-                    break;
-                }
                 total += item.is_array() ? item.size() : 0;
+                if (total > kMaxShapeVertices) r.fail(schemaError(joinPath(base, k), totalVerticesMessage(total)));
+            }
+            for (std::size_t k = 0; k < cutouts->size() && r.ok(); ++k) {
                 auto contour = contourFromJson((*cutouts)[k], joinPath(base, k), "cut-out " + std::to_string(k));
                 if (!contour) r.fail(contour.error());
                 else shape.cutouts.push_back(std::move(contour.value()));

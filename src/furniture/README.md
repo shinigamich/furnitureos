@@ -118,6 +118,44 @@ that does not lie inside a groove of one of the two parts yields the error
 `furniture.geometry.interpenetration` naming both parts and the shared volume in mm. This catches
 e.g. pinned parameters that no longer fit a changed construction.
 
+## Contoured parts
+
+A part slot can get a parametric outline through `PartOverride::contour` (edit: `setPartContour()`),
+a free panel through `PanelDefinition::contour` (`ContourSpec`, contour_spec.hpp). Generation builds a
+`domain::PartShape` (ADR-0008) — the finished outline in the part frame — never extra geometry.
+
+* Kinds (stable texts `Rectangle`, `RoundedCorners`, `ArcEdge`, `Custom`): `Rectangle` = no shape (unless it
+  has cut-outs); `RoundedCorners` = four radius expressions for corners (0,0), (L,0), (L,W), (0,W) (L1/W1,
+  L1/W2, L2/W2, L2/W1; empty = sharp); `ArcEdge` = one edge (L1/L2/W1/W2) replaced by an arc with a rise
+  expression, `Convex` or `Concave`; `Custom` = counter-clockwise vertices with expression coordinates and a
+  numeric bulge (|b| ≤ 1). `cutouts`: `Rectangle{x, y, length, width, radius}` (min corner, corner radius)
+  and `Circle{x, y, radius}` (centre).
+* Expressions are evaluated over the cabinet's resolved parameter graph (the panel's own graph) plus the
+  read-only names `contour.length`, `contour.width`, `contour.thickness` of the shaped part (they win
+  over graph names). Errors start with `furniture.contour.invalid:` and name the part / slot, the field
+  and the expression; they make `generate()` (and with it every edit) fail, so an invalid spec is
+  rejected and the definition stays unchanged.
+* **Size rule.** The part keeps its construction-derived L × W and the outline's bounding box is exactly
+  [0,L]×[0,W]. A **convex arc is cut INTO the box**: the ends of the edge move inwards by the rise and the
+  apex lies on the original edge line (e.g. L2 of 800 × 720, rise 50: ends at y = 670, apex (400, 720),
+  bulge = rise / half chord = 50 / 400 = 0.125, R = 1625). A concave arc runs between the original
+  corners. Rise: > 0, ≤ half the edge, < the part's other dimension. Custom outlines must span the box.
+* **Edge bands** move from `Part::edges` (generator roles + overrides) to `shape->outerEdges` and
+  `Part::edges` is cleared: a straight segment on a box side takes that side's band; an ArcEdge arc the band
+  of the edge it replaces; a RoundedCorners corner arc the band of its L side (L1/L2) when banded, else of
+  its W side (so the banded front L1 of a shelf continues around both front arcs); Custom segments use
+  `bandFrom` when set, else the box side they lie on, else raw. Cut-outs are never banded.
+* **Machining.** Contours are applied after hardware placement; every operation whose footprint leaves the
+  outline or enters a cut-out is an Error `furniture.contour.machining_outside` (kept, not dropped), e.g. a
+  confirmat hole in a removed R 100 corner, or edge holes under a concave arc (`checkOperationsInsideOutline`).
+* **Self-check.** Shapes only remove material inside the part's box, so the box-based interpenetration
+  check stays valid (conservative) and runs before the contours are applied.
+* A contour on a slot the cabinet does not generate gives the warning `furniture.contour.unused`.
+* Limits: 500 Custom vertices, 50 cut-outs per contour, ~10 000 contour segments per cabinet
+  (`checkDefinitionLimits`).
+* Template `templates::openShelvingRounded()`: the open shelving unit whose four adjustable shelves have
+  rounded front corners of radius `shelf_corner_radius` (custom parameter, 30 mm).
+
 ## Limits
 
 `limits.hpp` holds hard limits, far above real furniture, so that a hostile or corrupted definition (e.g. from a
@@ -160,3 +198,5 @@ See generate.hpp for the full list of codes.
 * Inset doors get no hinges (no rule available; warning `furniture.front.inset_hinges`).
 * The interpenetration check compares bounding boxes (exact for the axis-aligned panels generated here).
 * Hinge heights are not snapped to a 32 mm system row.
+* Contours: hardware rules do not know the outline (a fitting in a removed area is reported, not moved);
+  cut-outs are not banded; one kind per part (no rounded corners combined with an arc edge).

@@ -5,4 +5,4 @@ fos_add_module(machining
     DEPS fos::core fos::geometry fos::domain)
 fos_add_tests(machining
     SOURCES tests/face_tests.cpp tests/validation_tests.cpp tests/patterns_tests.cpp
-            tests/ordering_report_tests.cpp)
+            tests/ordering_report_tests.cpp tests/shaped_validation_tests.cpp)

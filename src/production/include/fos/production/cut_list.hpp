@@ -27,6 +27,14 @@ struct CutListOptions {
 /// different vertex are treated as different (no contour normalisation).
 std::string operationSignature(const domain::Part& part);
 
+/// Canonical text describing the outline of a contoured part (ADR-0008), used to keep parts
+/// with different shapes apart in the cut list. Empty for parts without shape.
+/// Definition: "O|x,y,b x,y,b ..." for the outer contour in stored order, then
+/// ";C|x,y,b ..." per cut-out in stored order, then ";E|id1 - id3 ..." (one band id per
+/// outline segment, "-" = raw; omitted when `outerEdges` is empty). Coordinates rounded to
+/// 0.001 mm, bulges to 1e-6. No normalisation of the start vertex.
+std::string shapeSignature(const domain::Part& part);
+
 /// A group of interchangeable parts.
 struct CutListRow {
     domain::MaterialId materialId;
@@ -47,6 +55,11 @@ struct CutListRow {
     std::vector<domain::AssemblyId> assemblyIds; ///< Distinct, first-seen order.
     int operationCount = 0;              ///< Per part.
     std::string operationSignature;
+    bool shaped = false;          ///< Members are contoured parts (same shapeSignature).
+    double outlineAreaM2 = 0;     ///< Per part, see PartRow::outlineAreaM2.
+    int outlineSegments = 0;
+    std::vector<EdgeCell> outlineEdges; ///< Per outline segment, see PartRow::outlineEdges.
+    std::string shapeSignature;
 
     /// Distinct names joined with " / " (e.g. "Bottom / Top").
     std::string name() const;
@@ -59,7 +72,8 @@ struct CutList {
 
 /// Cut list. Parts are merged only when ALL of these match: material id, thickness,
 /// cut size and finished size (within `sizeTolerance`), edge band id on each of the
-/// four sides, grain direction, operation signature and - unless
+/// four sides, grain direction, operation signature, shape signature (contoured parts with
+/// different outlines, cut-outs or outline bands never merge) and - unless
 /// `groupAcrossAssemblies` - the owning assembly. Name and role do not matter.
 /// Sorted by material name, material id, then descending cut length, descending cut
 /// width, then lowest part number.

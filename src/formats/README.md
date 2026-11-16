@@ -294,7 +294,54 @@ Common keys: `id` (R, non-empty), `type` (R: `"hole"`, `"groove"` or `"pocket"`)
 | `grain` | GrainDirection | | `none` | |
 | `placement` | Placement | | identity | part frame → assembly frame |
 | `operations` | array of Operation | | `[]` | ids unique within the part |
+| `shape` | PartShape (3.9.1) | | absent | contoured part (ADR-0008); **omitted** for rectangular parts, which are therefore written exactly as before shapes existed. With a shape, `edges` must be empty (explicit `null`s allowed). Written after `operations`, before `custom` |
 | `custom` | object string→string | | `{}` | |
+
+A preserved unknown-key entry `custom["json:shape"]` (from an older reader) is never turned back into a
+`shape` key: it stays an ordinary custom property.
+
+#### 3.9.1 PartShape — unknown keys rejected
+
+Lengths in mm in the part frame's XY plane. A *contour* is an array of vertices; segment i runs from vertex i to
+vertex i+1 (closing back to vertex 0; the first vertex is not repeated). DXF LWPOLYLINE bulge convention
+(`fos/geometry/contour.hpp`): `bulge = tan(θ/4)`, 0 = line, > 0 counter-clockwise arc, ±1 = half circle.
+
+```json
+"shape": {
+  "outer":   [{"x": 0.0, "y": 0.0}, {"x": 800.0, "y": 0.0}, {"x": 800.0, "y": 600.0, "bulge": 0.25}, {"x": 0.0, "y": 600.0}],
+  "cutouts": [[{"x": 1030.0, "y": 300.0, "bulge": 1.0}, {"x": 970.0, "y": 300.0, "bulge": 1.0}]],
+  "outerEdges": ["eb.abs2", null, null, null]
+}
+```
+
+| Key | Type | | Default | Rule |
+|---|---|---|---|---|
+| `outer` | contour | R | | finished outline (edge banding included) |
+| `cutouts` | array of contour | | `[]` | through openings, never banded |
+| `outerEdges` | array of (EdgeBand id \| `null`) | | `[]` | `[]` = all segments raw, else exactly one entry per outer segment; `null` = raw |
+| vertex `x`, `y` | number | R | | finite |
+| vertex `bulge` | number | | 0 | finite; **written only when ≠ 0**, optional on load (an explicit `0` is accepted and dropped on the next save) |
+
+Vertices are objects with exactly these keys (others are errors). Writing always emits all three shape keys
+(`cutouts` / `outerEdges` as `[]` when empty), so encode → decode → encode is byte-identical.
+
+Validation on load (first failure wins; every message starts with the JSON pointer, e.g.
+`/assemblies/0/parts/2/shape/cutouts/1: ...`):
+
+| Check | Location |
+|---|---|
+| `edges` has a band although a shape exists | `…/edges/<side>` |
+| > 10 000 vertices in one contour (`kMaxContourVertices`), > 1 000 cut-outs (`kMaxShapeCutouts`), > 20 000 vertices in outer + all cut-outs (`kMaxShapeVertices`), > 10 000 `outerEdges` entries — checked before the vertices are read | `…/shape/outer`, `…/shape/cutouts[/k]`, `…/shape/outerEdges` |
+| `geometry::validateContour` fails (≥ 3 vertices, or 2 with an arc; finite; \|bulge\| < 1e6; no zero-length segment; no self-intersection) — its message is appended | `…/shape/outer`, `…/shape/cutouts/k` |
+| outer contour clockwise (signed area ≤ 0) | `…/shape/outer` |
+| exact bounding box of `outer` (arc extrema included) ≠ `[0, length] × [0, width]` by more than 1e-6 mm (`kShapeBoundsTolerance`); the message gives both boxes | `…/shape/outer` |
+| a cut-out vertex outside or on (within 1e-6 mm) the outer contour (exact point location, arcs not approximated) | `…/shape/cutouts/k/i` |
+| a cut-out segment touching or crossing an outer segment (exact line/arc intersection, eps 1e-6 mm) | `…/shape/cutouts/k` |
+| two cut-outs touching/overlapping, or one nested inside another | `…/shape/cutouts/m` (the later one) |
+| `outerEdges` neither empty nor one entry per outer segment; an empty id | `…/shape/outerEdges[/i]` |
+
+Cut-outs may be written in either orientation; it is kept as written. The limits bound the cost of
+`validateContour`, which is O(n²) per contour (about 0.9 s for 10 000 segments in an optimised build).
 
 ### 3.10 Assembly — unknown keys rejected
 
@@ -370,11 +417,12 @@ Two entries with different ids but identical content are not detected as duplica
 | | |
 |---|---|
 | Exported | Every part of every assembly as a box of its **finished** size `length × width × thickness`, positioned in the **project frame** (`assembly.placement * part.placement`). One `o` and one `g` per part (named after the part id), 8 `v`, 6 `vn`, 6 quad faces `f v//vn` with outward counter-clockwise winding. |
+| Shaped parts | A part with `shape` (ADR-0008) is exported as its **finished outline with cut-outs** extruded over `[0, thickness]`: arcs tessellated with a chord tolerance of `kObjChordTolerance` = 0.05 mm (contour vertices kept exactly), n outline points → 2n `v`; `vn` −Z, +Z and one per outline edge; bottom and top caps as triangles (ear clipping with holes joined by bridge edges, inside `formats`), one quad per outline edge; all outward counter-clockwise, the mesh closed (every edge shared by exactly two faces in opposite directions). The volume is T·(area of the tessellated outer − areas of the tessellated cut-outs), i.e. within T · 0.05 mm · (arc length) of the exact value. A shape failing the codec checks (3.9.1), or with more than 20 000 tessellated points, fails the export naming the part. One extra header comment line about shaped parts is written only when the model has one, so exports of rectangular models are byte-identical to earlier versions. |
 | Units | Millimetres, stated in the file header comment. No scaling. Coordinates are written with full double precision. |
 | Axes | FurnitureOS project frame: right-handed, **Z up**. No conversion to the Y-up convention some viewers assume. |
 | Materials | `usemtl <material id>` per part; the MTL file has one `newmtl` per used material with the display colour as `Kd` (4 decimals), `d 1`, `illum 1`. A part with no or an unknown material gets a neutral grey material and a `formats.obj.material_missing` warning. |
 | Names | Whitespace, control characters and `#` in ids are replaced by `_`; clashes get `_2`, `_3`, … |
-| Not exported | Machining operations (holes, grooves, pockets, cut-outs), edge bands, hardware, textures / UVs, grain direction, assembly hierarchy, costs, custom properties. |
+| Not exported | Machining operations (holes, grooves, pockets, pocket cut-outs; shape cut-outs *are* exported), edge bands, hardware, textures / UVs, grain direction, assembly hierarchy, costs, custom properties. |
 | Errors | A part with a non-positive or non-finite size, or a non-rigid part/assembly placement, fails the export with a message naming the part. |
 | Import | Not supported. |
 
@@ -427,3 +475,10 @@ Each test uses its own temporary directory and removes it.
 `limits_tests.cpp`: FIFO and `/dev/zero` refused without blocking, 300 MiB sparse file refused from its size,
 configurable limit at ±1 byte, `backupCount` 101 / 1e6 / -1 refused, listing-based rotation (foreign `.bak007`,
 `.bak4` beyond the count, gaps), `importLibraryText` equal to `importLibrary` and bounded.
+`shape_codec_tests.cpp`: byte-identical round trips (in memory and through a container file) of the PHASE 12
+example parts (rounded 600 × 400 panel with per-segment bands, arc-topped 800 × 700 side, 1200 × 600 worktop with
+sink and hob hole); rectangular encoding compared with a SHA-256 golden recorded before shapes existed; every
+shape validation error with its exact path; limits at and beyond the boundary. `obj_shape_tests.cpp`: hand-computed
+volumes of the example parts within the tessellation bound, closed and consistently oriented meshes, cap
+triangles tiling the region exactly once (centroids in the material), rectangular OBJ/MTL output equal to the
+pre-shape golden hashes, invalid shapes failing the export.

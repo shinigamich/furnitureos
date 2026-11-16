@@ -2,6 +2,7 @@
 #include "fos/production/reports.hpp"
 
 #include "collect.hpp"
+#include "shape.hpp"
 #include "fos/core/units.hpp"
 
 #include <algorithm>
@@ -84,7 +85,13 @@ EdgeBandingReport edgeBandingReport(const domain::Model& model, const EdgeBandin
     const double waste = detail::positiveFinite(options.wastePercent) ? options.wastePercent : 0.0;
 
     std::map<domain::EdgeBandId, EdgeBandingRow> acc;
-    for (const auto& ref : c.parts)
+    for (const auto& ref : c.parts) {
+        for (const auto& strip : detail::bandStrips(*ref.part)) {
+            auto& row = acc[strip.band];
+            row.edgeBandId = strip.band;
+            ++row.edgeCount;
+            if (detail::positiveFinite(strip.length)) row.appliedLengthM += core::mmToM(strip.length);
+        }
         for (auto s : domain::kAllEdges) {
             const auto& e = ref.part->edge(s);
             if (!e) continue;
@@ -94,6 +101,7 @@ EdgeBandingReport edgeBandingReport(const domain::Model& model, const EdgeBandin
             const double len = domain::edgeLength(*ref.part, s);
             if (detail::positiveFinite(len)) row.appliedLengthM += core::mmToM(len);
         }
+    }
     auto finish = [&](EdgeBandingRow& row) {
         row.overhangAllowanceM = core::mmToM(row.edgeCount * 2.0 * overhang);
         row.wasteAllowanceM = (row.appliedLengthM + row.overhangAllowanceM) * waste / 100.0;
@@ -180,7 +188,8 @@ MachiningSummary machiningSummary(const domain::Model& model, const MachiningOpt
 
     for (const auto& ref : c.parts) {
         const auto& p = *ref.part;
-        if (p.operations.empty() && !options.includePartsWithoutOperations) continue;
+        const bool routed = detail::isRouted(p);
+        if (p.operations.empty() && !routed && !options.includePartsWithoutOperations) continue;
         MachiningRow row;
         row.partNumber = ref.number;
         row.assemblyId = ref.assembly->id;
@@ -207,6 +216,19 @@ MachiningSummary machiningSummary(const domain::Model& model, const MachiningOpt
                 ++row.pocketCount;
             }
         }
+        if (routed) {
+            const auto raw = domain::cutContour(p, model);
+            if (raw) {
+                row.routedContours = 1 + static_cast<int>(p.shape->cutouts.size());
+                row.routingLength = geometry::perimeter(raw.value());
+                for (const auto& k : p.shape->cutouts) row.routingLength += geometry::perimeter(k);
+            } else {
+                detail::warn(out.diagnostics, "production.shape.invalid",
+                             "Part " + detail::describe(p) + ": the raw outline cannot be computed (" +
+                                 raw.error().message + "); no routing length is given.",
+                             p.id.str());
+            }
+        }
         std::stable_sort(row.holes.begin(), row.holes.end(), [](const HoleGroup& a, const HoleGroup& b) {
             const double da = std::isfinite(a.diameter) ? a.diameter : 0.0;
             const double db = std::isfinite(b.diameter) ? b.diameter : 0.0;
@@ -215,6 +237,8 @@ MachiningSummary machiningSummary(const domain::Model& model, const MachiningOpt
         out.totalHoles += row.holeCount;
         out.totalGrooves += row.grooveCount;
         out.totalPockets += row.pocketCount;
+        out.totalRoutedContours += row.routedContours;
+        out.totalRoutingLength += row.routingLength;
         out.rows.push_back(std::move(row));
     }
     return out;
@@ -234,6 +258,8 @@ ProjectSummary projectSummary(const domain::Model& model, const Scope& scope) {
     for (const auto& r : parts.rows) {
         mats.push_back(r.materialId);
         for (const auto& e : r.edges)
+            if (e.id) bands.push_back(*e.id);
+        for (const auto& e : r.outlineEdges)
             if (e.id) bands.push_back(*e.id);
         out.finishedAreaM2 += r.finishedAreaM2();
         out.cutAreaM2 += r.cutAreaM2();
@@ -256,7 +282,7 @@ ProjectSummary projectSummary(const domain::Model& model, const Scope& scope) {
             if (h.quantity > 0) s.hardwareQuantity += h.quantity;
         for (const auto& p : a->parts) {
             s.operationCount += static_cast<int>(p.operations.size());
-            s.finishedAreaM2 += detail::areaM2(p.length, p.width);
+            s.finishedAreaM2 += detail::finishedAreaM2(p);
         }
         const auto size = a->bounds().size();
         if (std::isfinite(size.x) && std::isfinite(size.y) && std::isfinite(size.z)) {

@@ -56,6 +56,30 @@ std::string operationSignature(const domain::Part& part) {
     return out;
 }
 
+std::string shapeSignature(const domain::Part& part) {
+    if (!part.shape) return {};
+    auto ring = [](const geometry::Contour& k) {
+        std::string s;
+        for (std::size_t i = 0; i < k.vertices.size(); ++i) {
+            if (i) s += ' ';
+            const auto& v = k.vertices[i];
+            s += num(v.point.x) + "," + num(v.point.y) + "," + core::formatLength(v.bulge, 6);
+        }
+        return s;
+    };
+    std::string out = "O|" + ring(part.shape->outer);
+    for (const auto& k : part.shape->cutouts) out += ";C|" + ring(k);
+    if (!part.shape->outerEdges.empty()) {
+        out += ";E|";
+        for (std::size_t i = 0; i < part.shape->outerEdges.size(); ++i) {
+            if (i) out += ' ';
+            const auto& e = part.shape->outerEdges[i];
+            out += e ? e->str() : "-";
+        }
+    }
+    return out;
+}
+
 std::string CutListRow::name() const {
     std::string out;
     for (std::size_t i = 0; i < partNames.size(); ++i) {
@@ -74,8 +98,11 @@ CutList cutList(const domain::Model& model, const CutListOptions& options, const
     for (const auto& ref : c.parts) {
         const PartRow r = detail::makeRow(model, ref);
         const std::string sig = operationSignature(*ref.part);
+        const std::string shapeSig = shapeSignature(*ref.part);
         auto matches = [&](const CutListRow& g) {
-            if (g.materialId != r.materialId || g.grain != r.grain || g.operationSignature != sig) return false;
+            if (g.materialId != r.materialId || g.grain != r.grain || g.operationSignature != sig ||
+                g.shapeSignature != shapeSig)
+                return false;
             if (!same(g.thickness, r.thickness, tol) || !same(g.cutLength, r.cutLength, tol) ||
                 !same(g.cutWidth, r.cutWidth, tol) || !same(g.length, r.length, tol) ||
                 !same(g.width, r.width, tol))
@@ -101,6 +128,11 @@ CutList cutList(const domain::Model& model, const CutListOptions& options, const
             g.edges = r.edges;
             g.operationCount = r.operationCount;
             g.operationSignature = sig;
+            g.shaped = r.shaped;
+            g.outlineAreaM2 = r.outlineAreaM2;
+            g.outlineEdges = r.outlineEdges;
+            g.outlineSegments = r.outlineSegments;
+            g.shapeSignature = shapeSig;
             out.rows.push_back(std::move(g));
             it = std::prev(out.rows.end());
         }

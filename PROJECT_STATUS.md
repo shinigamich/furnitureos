@@ -69,11 +69,12 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 |---|---|---|---|
 | T-027 | Contour geometry: exact line/arc contours (bulge), intersection, offset, tessellation (`fos/geometry/contour.hpp`) | Done | 32 tests, hand-derived values |
 | T-028 | Domain: `PartShape`, generalised cut rule (`cutContour`, ADR-0008) | Done | 5 tests; all rectangular cut sizes unchanged |
-| T-029 | Persistence: shapes in `formats` codec and `.fosp` (lossless) | Not started | T-028 |
-| T-030 | Furniture: parametric contours (corner radii, arched edges, cut-outs) for panels, tops, shelves | Not started | T-028 |
-| T-031 | Consumers: drawings (outline, radii), viewport (extrusion with holes), validation (exact outline interference), production (area, banding along contour) | Not started | T-028 |
-| T-032 | Manufacturing route: contoured parts to nesting with raw outline; CAM contour routing with arc moves; simulator support | Not started | T-028 |
+| T-029 | Persistence: shapes in `formats` codec and `.fosp` (lossless); OBJ export of real outlines | Done | strict schema validation; rectangular JSON/OBJ byte-identical to golden hashes |
+| T-030 | Furniture: parametric contours (corner radii, arched edges, custom outlines, cut-outs) for cabinet parts and panels; project commands and codec | Done | 25 tests; machining outside the outline is an error |
+| T-031 | Consumers: drawings (true arcs, R/Ø dimensions, cut-outs; SVG/DXF), viewport (extrusion with holes, picking), validation (exact outline interference, shape checks), production (outline areas, banding along arcs, routing length) | Done | rectangular drawings/meshes/reports unchanged (golden tests) |
+| T-032 | Manufacturing route: shaped parts to nesting (raw outline), guillotine for rectangles; CAM contour routing with exact arcs (G2/G3), lead arcs, simulator check | Done | corrupted arc radius caught; G-code round trip with arcs |
 | T-033 | Desktop UI: contour editing, display of shaped parts in all workspaces | Not started | T-030, T-031 |
+| T-034 | Integration: project/CLI cutting plans include nesting jobs for shaped parts; CLI CAM passes the model and blank allowance for shaped parts | Not started | T-032 |
 
 ## Independent review 2026-11-12 (calculation-critical modules)
 

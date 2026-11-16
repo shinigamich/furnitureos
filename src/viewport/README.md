@@ -47,6 +47,17 @@ plane (`distance · tan 15°`), so switching projection keeps the framing.
   or a shader fails, a warning is logged (`core::log`, category `viewport`) and the view shows only
   the background; picking, camera and signals keep working.
 
+## Contoured parts (ADR-0008)
+
+Parts with a non-rectangular outline or cut-outs are drawn as the extrusion of their finished outline
+(`shape_mesh.hpp`, `makeShapedPartGeometry`): contours tessellated with chord tolerance
+`clamp(max(L, W) / 3000, 0.01, 0.2)` mm (`shapeChordTolerance`), caps triangulated with holes by bridge merging +
+ear clipping (`geometry::triangulateWithHoles`, shared with the OBJ export), flat-shaded
+side walls, watertight. Edge lines follow the outline and cut-outs at both faces plus vertical edges only at real
+corners (tangent turn > 1°). Picking uses the part's mesh in the part frame, so a click into a sink cut-out or past
+a rounded corner misses the part. A contour that cannot be triangulated falls back to the box
+(`Scene::diagnostics()`, `viewport.shape.fallback_box`). Rectangular parts are unchanged (golden test).
+
 ## Picking
 
 `partAt()` casts a CPU ray (`Camera::rayThroughPixel` at the pixel centre) against the oriented part
@@ -73,8 +84,8 @@ Hidden, non-isolated and zero/non-finite-size parts are not pickable.
 
 ## Limitations
 
-* Parts are drawn as their finished-size boxes: no operations (holes, grooves), contours, edge-band
-  colours, textures or hardware geometry.
+* Rectangular parts are drawn as finished-size boxes, contoured parts as flat-shaded extrusions (arcs look
+  faceted within the chord tolerance): no operations (holes, grooves), edge-band colours, textures or hardware.
 * No hidden-line removal in `Wireframe` (all edges are shown); no transparency, shadows or labels on the
   axis triad.
 * Line width is 1 device pixel (wide lines are not available in core profile).
