@@ -3,6 +3,10 @@
 
 #include <gtest/gtest.h>
 
+#include <map>
+#include <optional>
+#include <string>
+
 using namespace fos;
 using namespace fos::domain;
 
@@ -128,4 +132,157 @@ TEST(SheetRotation, FixtureParts) {
     EXPECT_FALSE(canRotateOnSheet(side, m.findMaterial(side.material)));
     EXPECT_EQ(sheetAlignment(side, m.findMaterial(side.material)), SheetAlignment::LengthAlongSheet);
     EXPECT_TRUE(canRotateOnSheet(back, m.findMaterial(back.material)));
+}
+
+// ---- Contoured parts (ADR-0008) -------------------------------------------------------------
+
+namespace {
+/// The rectangular part expressed as a shape: plain rectangle contour with the part's edges
+/// moved onto the segments (segment 0..3 = L1, W2, L2, W1) and Part::edges cleared.
+Part asRectangleShape(const Part& p) {
+    Part s = p;
+    PartShape sh;
+    sh.outer = geometry::rectangleContour(p.length, p.width);
+    sh.outerEdges = {p.edge(EdgeSide::L1), p.edge(EdgeSide::W2), p.edge(EdgeSide::L2), p.edge(EdgeSide::W1)};
+    s.shape = sh;
+    s.edges = {};
+    return s;
+}
+
+Part roundedShelf(const Model& m, double radius, std::optional<EdgeBandId> band) {
+    Part p = part(m, "cab1/shelf.1");
+    p.length = 600;
+    p.width = 400;
+    p.edges = {};
+    const double r[4] = {radius, radius, radius, radius};
+    PartShape sh;
+    sh.outer = geometry::roundedRectangleContour(600, 400, r).value();
+    sh.outerEdges.assign(sh.outer.size(), band);
+    p.shape = sh;
+    return p;
+}
+} // namespace
+
+TEST(ContouredPart, FixtureCutSizesAreUnchanged) {
+    const Model m = fixtures::basicCabinet();
+    // Hand-specified table of fixtures.hpp (ADR-0004 formulas).
+    const std::map<std::string, std::pair<double, double>> expected = {
+        {"cab1/side.left", {719.2, 558}}, {"cab1/side.right", {719.2, 558}}, {"cab1/bottom", {764, 558}},
+        {"cab1/top", {764, 558}},         {"cab1/shelf.1", {764, 538}},      {"cab1/back", {796, 716}}};
+    ASSERT_EQ(m.assemblies.at(0).parts.size(), expected.size());
+    for (const Part& p : m.assemblies.at(0).parts) {
+        EXPECT_FALSE(hasShape(p));
+        EXPECT_TRUE(isRectangularOutline(p));
+        const auto& e = expected.at(p.id.str());
+        const CutSize c = cutSize(p, m);
+        EXPECT_NEAR(c.length, e.first, 1e-9) << p.id.str();
+        EXPECT_NEAR(c.width, e.second, 1e-9) << p.id.str();
+        // The raw contour of the rectangular path is exactly [t(W1), L - t(W2)] x [t(L1), W - t(L2)].
+        const auto raw = cutContour(p, m);
+        ASSERT_TRUE(raw.ok()) << p.id.str();
+        const geometry::Rect2 b = geometry::bounds(raw.value());
+        EXPECT_NEAR(b.min.x, edgeBandThickness(p, EdgeSide::W1, m), 1e-9) << p.id.str();
+        EXPECT_NEAR(b.max.x, p.length - edgeBandThickness(p, EdgeSide::W2, m), 1e-9) << p.id.str();
+        EXPECT_NEAR(b.min.y, edgeBandThickness(p, EdgeSide::L1, m), 1e-9) << p.id.str();
+        EXPECT_NEAR(b.max.y, p.width - edgeBandThickness(p, EdgeSide::L2, m), 1e-9) << p.id.str();
+    }
+}
+
+TEST(ContouredPart, RectangleShapeWithSegmentBandsMatchesRectangularPath) {
+    const Model m = fixtures::basicCabinet();
+    for (const Part& p : m.assemblies.at(0).parts) {
+        const Part s = asRectangleShape(p);
+        ASSERT_TRUE(hasShape(s));
+        EXPECT_TRUE(isRectangularOutline(s)) << p.id.str();
+        const CutSize a = cutSize(p, m), b = cutSize(s, m);
+        EXPECT_NEAR(b.length, a.length, 1e-9) << p.id.str();
+        EXPECT_NEAR(b.width, a.width, 1e-9) << p.id.str();
+        for (std::size_t i = 0; i < 4; ++i)
+            EXPECT_DOUBLE_EQ(contourBandThickness(s, i, m), contourBandThickness(p, i, m)) << p.id.str() << " " << i;
+    }
+    // side.left: L1 abs2, W1 + W2 abs04 -> 720 - 0.8 = 719.2 by 560 - 2 = 558 through the offset.
+    const CutSize side = cutSize(asRectangleShape(part(m, "cab1/side.left")), m);
+    EXPECT_NEAR(side.length, 719.2, 1e-9);
+    EXPECT_NEAR(side.width, 558.0, 1e-9);
+}
+
+TEST(ContouredPart, RoundedShelfBandedAllRound) {
+    const Model m = fixtures::basicCabinet();
+    const Part p = roundedShelf(m, 50, EdgeBandId("eb.abs2"));
+    EXPECT_FALSE(isRectangularOutline(p));
+    const auto raw = cutContour(p, m);
+    ASSERT_TRUE(raw.ok()) << raw.error().message;
+    ASSERT_EQ(raw.value().size(), 8u);
+    // Every segment moves in by 2 mm: corner radius 50 -> 48 (centres unchanged).
+    for (std::size_t i = 1; i < 8; i += 2) {
+        const geometry::ContourSegmentInfo a = geometry::segmentInfo(raw.value(), i);
+        ASSERT_TRUE(a.isArc);
+        EXPECT_NEAR(a.radius, 48.0, 1e-9);
+    }
+    // Cut size = 600 - 2*2 by 400 - 2*2.
+    const CutSize c = cutSize(p, m);
+    EXPECT_NEAR(c.length, 596.0, 1e-9);
+    EXPECT_NEAR(c.width, 396.0, 1e-9);
+    // Unbanded: the raw contour is the finished one.
+    const Part bare = roundedShelf(m, 50, std::nullopt);
+    EXPECT_EQ(cutContour(bare, m).value(), bare.shape->outer);
+    EXPECT_NEAR(cutSize(bare, m).length, 600.0, 1e-12);
+    // Banding that the corner radius cannot take: r 1.5 with 2 mm band -> no raw contour, and
+    // cutSize falls back to the finished size (validation reports the shape).
+    const Part tight = roundedShelf(m, 1.5, EdgeBandId("eb.abs2"));
+    EXPECT_FALSE(cutContour(tight, m).ok());
+    EXPECT_NEAR(cutSize(tight, m).length, 600.0, 1e-12);
+}
+
+TEST(ContouredPart, RectangularOutlineDetection) {
+    const Model m = fixtures::basicCabinet();
+    Part p = part(m, "cab1/shelf.1"); // 764 x 540
+    EXPECT_TRUE(isRectangularOutline(p)); // no shape
+    p.shape = PartShape{geometry::rectangleContour(764, 540), {}, {}};
+    EXPECT_TRUE(isRectangularOutline(p));
+    // Same rectangle starting at another corner / clockwise: still a plain rectangle.
+    p.shape->outer = geometry::reversed(geometry::rectangleContour(764, 540));
+    EXPECT_TRUE(isRectangularOutline(p));
+    // Rectangle not covering [0,L]x[0,W].
+    p.shape->outer = geometry::rectangleContour(700, 540);
+    EXPECT_FALSE(isRectangularOutline(p));
+    // An arc segment.
+    p.shape->outer = geometry::rectangleContour(764, 540);
+    p.shape->outer.vertices[2].bulge = 0.1;
+    EXPECT_FALSE(isRectangularOutline(p));
+    // A cut-out.
+    p.shape->outer = geometry::rectangleContour(764, 540);
+    p.shape->cutouts.push_back(geometry::circleContour({100, 100}, 20));
+    EXPECT_FALSE(isRectangularOutline(p));
+    // Rounded corners.
+    EXPECT_FALSE(isRectangularOutline(roundedShelf(m, 10, std::nullopt)));
+}
+
+TEST(ContouredPart, BandThicknessMappingForRectangles) {
+    Model m = fixtures::basicCabinet();
+    Part p = part(m, "cab1/side.left"); // L1 abs2 (2.0), W1 + W2 abs04 (0.4), L2 none
+    // finishedContour: CCW from (0,0): segments L1 (bottom), W2 (right), L2 (top), W1 (left).
+    EXPECT_EQ(finishedContour(p), geometry::rectangleContour(720, 560));
+    p.edge(EdgeSide::W2) = EdgeBandId("eb.abs2"); // make W1 and W2 distinguishable
+    EXPECT_DOUBLE_EQ(contourBandThickness(p, 0, m), 2.0); // L1
+    EXPECT_DOUBLE_EQ(contourBandThickness(p, 1, m), 2.0); // W2
+    EXPECT_DOUBLE_EQ(contourBandThickness(p, 2, m), 0.0); // L2
+    EXPECT_DOUBLE_EQ(contourBandThickness(p, 3, m), 0.4); // W1
+    EXPECT_DOUBLE_EQ(contourBandThickness(p, 4, m), 0.0); // out of range
+    // cut contour = [0.4, 718] x [2, 560].
+    const auto raw = cutContour(p, m);
+    ASSERT_TRUE(raw.ok());
+    const geometry::Rect2 b = geometry::bounds(raw.value());
+    EXPECT_NEAR(b.min.x, 0.4, 1e-12);
+    EXPECT_NEAR(b.max.x, 718.0, 1e-12);
+    EXPECT_NEAR(b.min.y, 2.0, 1e-12);
+    EXPECT_NEAR(b.max.y, 560.0, 1e-12);
+    // Shaped part: per-segment bands; missing band entries and unknown bands count as 0.
+    Part s = roundedShelf(m, 50, std::nullopt);
+    s.shape->outerEdges[2] = EdgeBandId("eb.abs04");
+    s.shape->outerEdges[3] = EdgeBandId("eb.missing");
+    s.shape->outerEdges.resize(4);
+    EXPECT_DOUBLE_EQ(contourBandThickness(s, 2, m), 0.4);
+    EXPECT_DOUBLE_EQ(contourBandThickness(s, 3, m), 0.0);
+    EXPECT_DOUBLE_EQ(contourBandThickness(s, 6, m), 0.0);
 }

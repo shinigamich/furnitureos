@@ -67,8 +67,8 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 
 | ID | Task | Status | Depends on |
 |---|---|---|---|
-| T-027 | Contour geometry: exact line/arc contours (bulge), intersection, offset, tessellation (`fos/geometry/contour.hpp`) | In progress | — |
-| T-028 | Domain: `PartShape`, generalised cut rule (`cutContour`, ADR-0008) | In progress (interface done) | T-027 |
+| T-027 | Contour geometry: exact line/arc contours (bulge), intersection, offset, tessellation (`fos/geometry/contour.hpp`) | Done | 32 tests, hand-derived values |
+| T-028 | Domain: `PartShape`, generalised cut rule (`cutContour`, ADR-0008) | Done | 5 tests; all rectangular cut sizes unchanged |
 | T-029 | Persistence: shapes in `formats` codec and `.fosp` (lossless) | Not started | T-028 |
 | T-030 | Furniture: parametric contours (corner radii, arched edges, cut-outs) for panels, tops, shelves | Not started | T-028 |
 | T-031 | Consumers: drawings (outline, radii), viewport (extrusion with holes), validation (exact outline interference), production (area, banding along contour) | Not started | T-028 |
