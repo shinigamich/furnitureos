@@ -3,6 +3,7 @@
 #include "fos/domain/ids.hpp"
 #include "fos/domain/operation.hpp"
 #include "fos/geometry/aabb.hpp"
+#include "fos/geometry/contour.hpp"
 #include "fos/geometry/transform.hpp"
 
 #include <array>
@@ -28,7 +29,23 @@ inline constexpr std::array<EdgeSide, 4> kAllEdges{EdgeSide::L1, EdgeSide::L2, E
 /// `None` means the part may be rotated freely on the sheet.
 enum class GrainDirection { None, AlongLength, AlongWidth };
 
-/// A flat rectangular panel cut from sheet material.
+/// Non-rectangular outline of a flat part (ADR-0008), in the part frame's XY plane.
+///
+/// * `outer` is the FINISHED outline (edge banding included), counter-clockwise, and its exact
+///   bounding box is [0, length] x [0, width] of the owning part (validation checks this).
+/// * `cutouts` are through openings (sink, cable outlets, handles); each lies strictly inside
+///   `outer`. Cut-outs are never edge-banded in this version.
+/// * `outerEdges[i]` is the edge band on outer segment i (empty vector = all segments raw;
+///   otherwise exactly one entry per segment). When a part has a shape, `Part::edges` must be
+///   empty; the per-segment bands replace them.
+struct PartShape {
+    geometry::Contour outer;
+    std::vector<geometry::Contour> cutouts;
+    std::vector<std::optional<EdgeBandId>> outerEdges;
+    bool operator==(const PartShape&) const = default;
+};
+
+/// A flat panel cut from sheet material: rectangular, or with a contour (`shape`).
 ///
 /// DIMENSION CONVENTION (ADR-0004): `length` and `width` are FINISHED dimensions,
 /// i.e. they include applied edge banding. The saw (cut) size is derived by
@@ -47,6 +64,8 @@ struct Part {
     geometry::Transform placement; ///< Part frame -> owning assembly frame.
     std::vector<Operation> operations;
     std::map<std::string, std::string> custom;
+    /// Contoured parts only (ADR-0008); empty for rectangular panels.
+    std::optional<PartShape> shape;
 
     const std::optional<EdgeBandId>& edge(EdgeSide s) const { return edges[static_cast<std::size_t>(s)]; }
     std::optional<EdgeBandId>& edge(EdgeSide s) { return edges[static_cast<std::size_t>(s)]; }
