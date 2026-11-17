@@ -42,7 +42,8 @@ and a drill, and for a factory with CNC machines.
 | CAM: toolpaths, simulator, generic G-code | Experimental | **No machine is verified.** Output must be proven by a qualified operator |
 | Plugins | Partial | Declarative data plugins only (materials, edge bands, hardware); no code plugins |
 | Import from other furniture CAD products | Not started | Research only (`docs/research/`) |
-| Windows / macOS builds, installers, releases | Not started | Only Linux (GCC 13, Clang 18) is built and tested |
+| Windows build and portable ZIP | Experimental | Built and tested in CI (MSVC, Qt 6.5); portable ZIP is a CI artifact; no installer, not code-signed |
+| macOS build, installers, releases | Not started | |
 
 ## Build and test
 

@@ -23,7 +23,7 @@ Verified on 2026-11-13 (after the second review), Ubuntu 24.04, Qt 6.4.2, from c
 | Headless, Clang 18, Debug, `-DFOS_WERROR=ON` | builds; 761/761 pass |
 | CLI end to end (`fos new` → `set width 900` → `report` → `validate` → `cut` → `drawing` → `cam`) | run by hand; results checked against hand-computed sizes |
 
-GitHub Actions runs on every push to the development branch (Linux GCC with Qt, Linux Clang, Windows MSVC).
+GitHub Actions runs on every push to the development branch (Linux GCC with Qt, Linux Clang, Windows MSVC with packaging); all three green at bc0473f.
 Not verified: macOS, physical printers, any real CNC machine or controller.
 
 ## Tests per module (GoogleTest cases)
@@ -60,7 +60,7 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 | T-022 | Website backend (separate repo) | Done (v1) | 167 tests | Docker image never built |
 | T-023 | Independent review of calculation-critical modules | Done | findings below | — |
 | T-024 | Desktop UI: interior/fronts/hardware/part-override/drawing-annotation/cutting editors | Done | 43 app-core tests + 5 GUI tests; en/uk screenshots reviewed | — |
-| T-025 | Windows build bring-up and portable distribution | In progress | MinGW cross build: 758/764 tests pass under Wine (6 skips = Wine limits). MSVC CI: full build; 886/887 tests pass. The remaining failure exposed a real crash (desktop app on OpenGL < 3.3) — fixed with a regression test (005d8ff). Packaging steps (windeployqt, self-containment check, ZIP) not yet reached in CI | — |
+| T-025 | Windows build and portable distribution | Done (2026-11-17) | MSVC + Qt 6.5 on GitHub Actions: 1017/1017 tests incl. GUI; windeployqt folder verified self-contained (24 binaries); packaged fos.exe smoke test; portable ZIP + SHA-256 uploaded as CI artifact (run 44157461371). MinGW cross build: 758/764 under Wine (6 = Wine limits). Fixed on the way: desktop crash on OpenGL < 3.3, MSVC manifest/preprocessor issues, POSIX-only test code, plugin junction safety | — |
 | T-026 | Review of project, CAM, validation, nesting, plugins, CLI, printing | Done | all findings fixed with regression tests | — |
 
 ### Phase 12 — Geometry kernel II: curves and contoured parts (ROADMAP.md)
