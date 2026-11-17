@@ -73,8 +73,8 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 | T-030 | Furniture: parametric contours (corner radii, arched edges, custom outlines, cut-outs) for cabinet parts and panels; project commands and codec | Done | 25 tests; machining outside the outline is an error |
 | T-031 | Consumers: drawings (true arcs, R/Ø dimensions, cut-outs; SVG/DXF), viewport (extrusion with holes, picking), validation (exact outline interference, shape checks), production (outline areas, banding along arcs, routing length) | Done | rectangular drawings/meshes/reports unchanged (golden tests) |
 | T-032 | Manufacturing route: shaped parts to nesting (raw outline), guillotine for rectangles; CAM contour routing with exact arcs (G2/G3), lead arcs, simulator check | Done | corrupted arc radius caught; G-code round trip with arcs |
-| T-033 | Desktop UI: contour editing, display of shaped parts in all workspaces | Not started | T-030, T-031 |
-| T-034 | Integration: project/CLI cutting plans include nesting jobs for shaped parts; CLI CAM passes the model and blank allowance for shaped parts | Not started | T-032 |
+| T-033 | Desktop UI: contour editing, display of shaped parts in all workspaces | Paused (partial, unverified code committed as WIP; was on the cutting workspace) | T-030, T-031 |
+| T-034 | Integration: project/CLI cutting plans include nesting jobs for shaped parts; CLI CAM passes the model and blank allowance for shaped parts | Paused (partial, unverified code committed as WIP; was extending project.hpp settings) | T-032 |
 
 ## Independent review 2026-11-12 (calculation-critical modules)
 

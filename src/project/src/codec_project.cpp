@@ -193,6 +193,19 @@ core::Result<CuttingSettings> cuttingSettingsFromJson(const Json& json, std::str
     return s;
 }
 
+Json toJson(const NestingSettings& s) {
+    Json j = Json::object();
+    j["toolDiameter"] = s.toolDiameter;
+    j["clearance"] = s.clearance;
+    j["chordTolerance"] = s.chordTolerance;
+    j["margins"] = {{"left", s.margins.left}, {"right", s.margins.right}, {"bottom", s.margins.bottom},
+                    {"top", s.margins.top}};
+    j["minRemnantLength"] = s.minRemnantLength;
+    j["iterations"] = s.iterations;
+    j["seed"] = s.seed;
+    return j;
+}
+
 // ------------------------------------------------------------------ payload
 
 namespace {
@@ -286,11 +299,50 @@ void readKeyedObject(Reader& r, const char* key, std::map<std::string, T>& out, 
     }
 }
 
+core::Result<nesting::Margins> marginsFromJson(const Json& json, std::string_view path) {
+    Reader r(json, path, "nesting margins");
+    nesting::Margins m;
+    r.number("left", m.left, Num::NonNegative, true);
+    r.number("right", m.right, Num::NonNegative, true);
+    r.number("bottom", m.bottom, Num::NonNegative, true);
+    r.number("top", m.top, Num::NonNegative, true);
+    r.rejectUnknown();
+    if (!r.ok()) return r.error();
+    return m;
+}
+
+core::Result<NestingSettings> nestingFromJson(const Json& json, std::string_view path) {
+    Reader r(json, path, "nesting settings");
+    NestingSettings s;
+    r.number("toolDiameter", s.toolDiameter, Num::Positive);
+    r.number("clearance", s.clearance, Num::NonNegative);
+    r.number("chordTolerance", s.chordTolerance, Num::Positive);
+    r.nested("margins", s.margins, marginsFromJson);
+    r.number("minRemnantLength", s.minRemnantLength, Num::NonNegative);
+    r.integerInRange("iterations", s.iterations, 0, kMaxNestingIterations);
+    if (const Json* seed = r.find("seed"); seed != nullptr) {
+        constexpr long long kMaxSeed = 4294967295LL;
+        if (seed->is_number_integer() && seed->get<long long>() >= 0 && seed->get<long long>() <= kMaxSeed)
+            s.seed = static_cast<std::uint32_t>(seed->get<long long>());
+        else
+            r.failAt("seed", "expected an integer from 0 to 4294967295, got " + describe(*seed));
+    }
+    r.rejectUnknown();
+    if (!r.ok()) return r.error();
+    if (auto ok = checkNestingSettings(s); !ok) return schemaError(path, ok.error().message);
+    return s;
+}
+
 core::Result<ProjectCuttingSettings> projectCuttingFromJson(const Json& json, std::string_view path) {
     Reader r(json, path, "the cutting settings");
     ProjectCuttingSettings c;
     r.nested("defaults", c.defaults, cuttingSettingsFromJson);
     readKeyedObject(r, "materials", c.materials, cuttingSettingsFromJson, "material id");
+    if (r.find("nesting") != nullptr) {
+        NestingSettings n;
+        r.nested("nesting", n, nestingFromJson);
+        if (r.ok()) c.nesting = n;
+    }
     r.rejectUnknown();
     if (!r.ok()) return r.error();
     return c;
@@ -321,6 +373,7 @@ Json projectToJson(const Project& p) {
     Json perMaterial = Json::object();
     for (const auto& [id, s] : p.cutting.materials) perMaterial[id] = toJson(s);
     cut["materials"] = std::move(perMaterial);
+    if (p.cutting.nesting) cut["nesting"] = toJson(*p.cutting.nesting);
     j["cutting"] = std::move(cut);
     j["settings"] = settingsJson(p.settings);
     j["custom"] = p.custom.is_object() ? p.custom : Json::object();
