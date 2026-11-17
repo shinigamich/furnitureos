@@ -338,7 +338,9 @@ void screenshots(const QString& language) {
             w.workspaces()->setCurrentIndex(i);
             settle(500);
             const QImage shot = w.grab().toImage();
-            EXPECT_EQ(shot.width(), 1440);
+            // The window asks for 1440 px but the OS clamps it to the screen (1351 px on the
+            // Windows CI runner): the grab must match the window, not a fixed size.
+            EXPECT_EQ(shot.width(), qRound(w.width() * shot.devicePixelRatio()));
             if (!shotDir.isEmpty()) {
                 QDir().mkpath(shotDir);
                 EXPECT_TRUE(shot.save(QDir(shotDir).filePath(QStringLiteral("%1-%2.png").arg(language, QLatin1String(names[i])))));
@@ -347,7 +349,9 @@ void screenshots(const QString& language) {
         auto save = [&](const char* name) {
             settle(400);
             const QImage shot = w.grab().toImage();
-            EXPECT_EQ(shot.width(), 1440);
+            // The window asks for 1440 px but the OS clamps it to the screen (1351 px on the
+            // Windows CI runner): the grab must match the window, not a fixed size.
+            EXPECT_EQ(shot.width(), qRound(w.width() * shot.devicePixelRatio()));
             if (!shotDir.isEmpty()) {
                 EXPECT_TRUE(shot.save(QDir(shotDir).filePath(QStringLiteral("%1-%2.png").arg(language, QLatin1String(name)))));
             }
