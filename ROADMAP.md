@@ -70,7 +70,8 @@ ARCHITECTURE.md §4.3 (finished vs cut size for contoured and curved parts, phas
 | 10 Plugins and interoperability | Data plugins done; interoperability → phase 21; code plugins → phase 22 |
 | 11 Production hardening | Linux done (GCC + Clang, warnings as errors); Windows done (MSVC, portable ZIP in CI, T-025); macOS, installers, signing not started |
 | 12 Geometry kernel II | Done for lines and arcs (T-027–T-034); splines and nesting layouts in the desktop UI remain |
-| 13–22 | Not started |
+| 21 Interoperability | DXF outline import started (T-036) |
+| 13–20, 22 | Not started |
 
 ## Near-term priorities
 

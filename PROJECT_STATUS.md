@@ -76,6 +76,13 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 | T-033 | Desktop UI: Shape editor (corner radii, arc edges, custom outlines, cut-outs) with undo and inline errors; shaped-part info; routed-parts list in Cutting; en/uk | Done | 7 app-core tests + GUI test through the widgets; screenshots reviewed |
 | T-034 | Integration: project cutting plans = guillotine for rectangles + nesting for shaped parts (persisted nesting settings); `fos cut` nesting SVGs; `fos cam` routes shaped parts | Done | scenario F end to end; 7 new tests |
 
+### Further features (2026-11-18)
+
+| ID | Task | Status | Verification |
+|---|---|---|---|
+| T-035 | Drawer boxes behind drawer fronts (sides, box front/back, grooved or nailed bottom) with generic ball-bearing / undermount slides and slide holes on cabinet and drawer | Done (engine, codec; desktop front editor does not expose it yet) | 7 focused tests |
+| T-036 | DXF outline import (LINE, ARC, CIRCLE, LWPOLYLINE, POLYLINE; units; loop chaining) into shaped panels; `fos import-dxf` | Done (CLI; no desktop action yet) | 12 focused tests incl. truncated-file robustness |
+
 ## Independent review 2026-11-12 (calculation-critical modules)
 
 Verified correct by probes: single cut-size formula everywhere; machining face frames; parametric incremental
