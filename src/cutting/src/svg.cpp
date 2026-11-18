@@ -82,16 +82,15 @@ std::string renderSheetSvg(const Job& job, const SheetLayout& sheet, const SvgOp
     s += "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"" + num(L) + "mm\" height=\"" + num(W + legendHeight) +
          "mm\" viewBox=\"0 0 " + num(L) + " " + num(W + legendHeight) + "\">\n";
     s += "<title>" + xmlEscape("Cutting layout " + job.name + " - " + sheet.stockId) + "</title>\n";
-    s += "<defs>\n<pattern id=\"fos-hatch\" width=\"24\" height=\"24\" patternUnits=\"userSpaceOnUse\" "
-         "patternTransform=\"rotate(45)\"><line x1=\"0\" y1=\"0\" x2=\"0\" y2=\"24\" stroke=\"#9a9a9a\" "
-         "stroke-width=\"3\"/></pattern>\n</defs>\n";
+    // Waste is a flat grey (no <pattern> hatch): Qt's SVG renderer (SVG Tiny 1.2), used by the
+    // desktop application, does not support patterns.
     s += "<style>\n"
          ".fos-trim{fill:#c9b79c;stroke:#333;stroke-width:2}\n"
          ".fos-usable{fill:#ffffff;stroke:none}\n"
          ".fos-piece{fill:#f3dfb0;stroke:#5a4520;stroke-width:1.5}\n"
          ".fos-kerf{fill:#d62828;stroke:none}\n"
          ".fos-remnant{fill:#bfe3c0;stroke:#2d6a4f;stroke-width:1.5;stroke-dasharray:12 6}\n"
-         ".fos-waste{fill:url(#fos-hatch);stroke:#9a9a9a;stroke-width:1}\n"
+         ".fos-waste{fill:#d9d9d9;stroke:#9a9a9a;stroke-width:1}\n"
          ".fos-label{font-family:sans-serif;text-anchor:middle;dominant-baseline:central;fill:#1d1d1d}\n"
          ".fos-legend{font-family:sans-serif;fill:#1d1d1d}\n"
          "</style>\n";

@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // GUI smoke test of the Shape section (contoured parts) through the widgets. main() is in
-// gui_smoke_tests.cpp. With FOS_APP_SHOT_DIR=<dir> it writes shape-editor-en.png / -uk.png.
+// gui_smoke_tests.cpp. With FOS_APP_SHOT_DIR=<dir> it writes shape-editor-en.png / -uk.png and
+// cutting-nest-en.png.
 #include "cutting_workspace.hpp"
 #include "drawings_workspace.hpp"
 #include "fos/app/contour_rows.hpp"
 #include "inspector_panel.hpp"
 #include "main_window.hpp"
+#include "nesting_settings_form.hpp"
 #include "shape_editor.hpp"
 
 #include <QApplication>
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QDir>
 #include <QLabel>
 #include <QLineEdit>
@@ -49,6 +52,30 @@ void selectKind(ShapeEditor* e, furniture::ContourKind kind) {
 double outlineArea(Session& s, const std::string& partId) {
     const domain::Part* p = s.findPart(partId);
     return p ? shapeFacts(*p).outlineArea : -1;
+}
+
+/// Selects the first "Router nesting" summary row and checks that a nest sheet is shown.
+void selectNestSheet(CuttingWorkspace* c) {
+    wait(300);
+    int nestRow = -1;
+    for (int r = 0; r < c->summary()->rowCount() && nestRow < 0; ++r)
+        if (c->summary()->item(r, 1)->text().contains(QStringLiteral("nesting"))) nestRow = r;
+    ASSERT_GE(nestRow, 0);
+    EXPECT_TRUE(c->summary()->item(nestRow, 1)->text().contains(QStringLiteral("heuristic")));
+    EXPECT_EQ(c->summary()->item(nestRow, 7)->text(), QStringLiteral("valid"));
+    c->summary()->selectRow(nestRow);
+    wait();
+    ASSERT_EQ(c->shownSheetKind(), PlanKind::Nesting);
+    EXPECT_TRUE(c->sheetSelector()->currentText().startsWith(QStringLiteral("Nest sheet")));
+    EXPECT_TRUE(c->sheetView()->hasDocument());
+    const QImage preview = c->sheetView()->grab().toImage();
+    ASSERT_FALSE(preview.isNull());
+    // Non-empty: some pixels are not the white background.
+    bool drawn = false;
+    for (int y = 0; y < preview.height() && !drawn; y += 2)
+        for (int x = 0; x < preview.width() && !drawn; x += 2)
+            drawn = preview.pixelColor(x, y) != QColor(Qt::white);
+    EXPECT_TRUE(drawn);
 }
 
 /// Open shelving 800 x 1800 x 300; shelf.1.1 is 762 long (800 - 2*18 - 2*1) by its width W
@@ -121,6 +148,20 @@ TEST(ShapeGui, RoundedShelfCutoutRefusalUndo) {
     w.workspaces()->setCurrentWidget(w.cuttingWorkspace());
     wait(300);
     EXPECT_EQ(w.cuttingWorkspace()->routedPartCount(), 2);
+    selectNestSheet(w.cuttingWorkspace());
+
+    // Nesting settings: a 0 mm tool is refused inline with the core message; nothing changes.
+    auto* nesting = w.cuttingWorkspace()->nestingSettings();
+    const auto before = s.revision();
+    child<QDoubleSpinBox>(nesting, "nestTool")->setValue(0);
+    EXPECT_FALSE(nesting->apply());
+    EXPECT_TRUE(nesting->errorText().contains(QStringLiteral("tool diameter"))) << nesting->errorText().toStdString();
+    EXPECT_EQ(s.revision(), before);
+    child<QDoubleSpinBox>(nesting, "nestTool")->setValue(6);
+    EXPECT_TRUE(nesting->apply());
+    EXPECT_DOUBLE_EQ(s.project().cutting.nestingSettings().toolDiameter, 6);
+    ASSERT_TRUE(s.undo().ok());
+    EXPECT_DOUBLE_EQ(s.project().cutting.nestingSettings().toolDiameter, 8);
 
     // Undo: panel cut-out, panel, shelf shape.
     ASSERT_TRUE(s.undo().ok());
@@ -165,6 +206,30 @@ void shapeScreenshot(const QString& language) {
         }
     }
     if (language != QLatin1String("en")) QApplication::removeTranslator(&translator);
+}
+
+/// Cutting workspace with the nest sheet of the rounded shelf (FOS_APP_SHOT_DIR/cutting-nest-en.png).
+TEST(ShapeGui, CuttingNestScreenshot) {
+    MainWindow w;
+    w.resize(1440, 900);
+    w.show();
+    ASSERT_TRUE(w.newFromTemplate(TemplateKind::OpenShelving, std::nullopt));
+    Session& s = w.session();
+    const auto target = contourTarget(s.project(), "cab1", "cab1/shelf.1.1");
+    ContourInput in;
+    in.kind = furniture::ContourKind::RoundedCorners;
+    in.radii = {QStringLiteral("30"), QStringLiteral("30"), {}, {}};
+    ASSERT_TRUE(applyContourInput(s, *target, in).ok());
+    w.workspaces()->setCurrentWidget(w.cuttingWorkspace());
+    selectNestSheet(w.cuttingWorkspace());
+    wait(300);
+    const QImage shot = w.grab().toImage();
+    EXPECT_EQ(shot.size(), w.size());
+    const QString shotDir = qEnvironmentVariable("FOS_APP_SHOT_DIR");
+    if (!shotDir.isEmpty()) {
+        QDir().mkpath(shotDir);
+        EXPECT_TRUE(shot.save(QDir(shotDir).filePath(QStringLiteral("cutting-nest-en.png"))));
+    }
 }
 
 TEST(ShapeGui, ScreenshotEnglish) { shapeScreenshot(QStringLiteral("en")); }

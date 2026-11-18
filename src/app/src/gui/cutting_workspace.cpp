@@ -8,7 +8,9 @@
 #include "fos/core/units.hpp"
 #include "fos/domain/model.hpp"
 #include "fos/cutting/svg.hpp"
+#include "fos/nesting/svg.hpp"
 #include "inspector_panel.hpp"
+#include "nesting_settings_form.hpp"
 
 #include <QComboBox>
 #include <QDoubleSpinBox>
@@ -66,19 +68,24 @@ QDoubleSpinBox* mmSpin(QWidget* parent) {
     return s;
 }
 QString num(double v, int decimals = 1) { return QString::fromStdString(core::formatLength(v, decimals)); }
+/// Sheet selector item data: plan kind and sheet index.
+constexpr int kSheetKindRole = Qt::UserRole;
+constexpr int kSheetIndexRole = Qt::UserRole + 1;
 } // namespace
 
 CuttingWorkspace::CuttingWorkspace(Session& session, QWidget* parent) : QWidget(parent), session_(session) {
     setObjectName(QStringLiteral("cuttingWorkspace"));
     auto* heuristic = new QLabel(
-        tr("<b>Heuristic result.</b> Layouts come from a heuristic guillotine optimiser and are in general not optimal. "
+        tr("<b>Heuristic results.</b> Saw layouts come from a heuristic guillotine optimiser, router layouts of "
+           "shaped parts from a heuristic true-shape nesting; both are in general not optimal. "
            "Utilisation = placed part area / sheet area. “Lower bound” is the area-based minimum sheet count."),
         this);
     heuristic->setWordWrap(true);
 
     summary_ = new QTableWidget(this);
-    summary_->setColumnCount(7);
-    summary_->setHorizontalHeaderLabels({tr("Material"), tr("Pieces"), tr("Sheets"), tr("Lower bound"),
+    summary_->setObjectName(QStringLiteral("cuttingSummary"));
+    summary_->setColumnCount(8);
+    summary_->setHorizontalHeaderLabels({tr("Material"), tr("Method"), tr("Pieces"), tr("Sheets"), tr("Lower bound"),
                                          tr("Utilisation (heuristic)"), tr("Unplaced"), tr("Layout check")});
     summary_->verticalHeader()->hide();
     summary_->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -93,6 +100,8 @@ CuttingWorkspace::CuttingWorkspace(Session& session, QWidget* parent) : QWidget(
     routed_->hide();
 
     sheet_ = new QComboBox(this);
+    sheet_->setObjectName(QStringLiteral("cuttingSheet"));
+    sheet_->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     sheetInfo_ = new QLabel(this);
     sheetInfo_->setWordWrap(true);
     view_ = new SvgView(this);
@@ -149,14 +158,22 @@ CuttingWorkspace::CuttingWorkspace(Session& session, QWidget* parent) : QWidget(
     form->addRow(useDefaults_);
     form->addRow(error_);
 
-    // Summary across the full width; below it the saw settings and the selected sheet.
+    nesting_ = new NestingSettingsForm(session_, this);
+    auto* allSettings = new QWidget(this);
+    auto* allSettingsLayout = new QVBoxLayout(allSettings);
+    allSettingsLayout->setContentsMargins(0, 0, 0, 0);
+    allSettingsLayout->addWidget(settings);
+    allSettingsLayout->addWidget(nesting_);
+    allSettingsLayout->addStretch(1);
+
+    // Summary across the full width; below it the saw / nesting settings and the selected sheet.
     auto* settingsScroll = new QScrollArea(this);
-    settingsScroll->setWidget(settings);
+    settingsScroll->setWidget(allSettings);
     settingsScroll->setWidgetResizable(true);
     settingsScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     settingsScroll->setFrameShape(QFrame::NoFrame);
     // Wide enough for the (translated) form without a horizontal scroll bar.
-    settingsScroll->setFixedWidth(std::max(390, settings->sizeHint().width() +
+    settingsScroll->setFixedWidth(std::max(390, allSettings->sizeHint().width() +
                                                     style()->pixelMetric(QStyle::PM_ScrollBarExtent) + 6));
     auto* right = new QWidget(this);
     auto* rightLayout = new QVBoxLayout(right);
@@ -206,25 +223,46 @@ int CuttingWorkspace::materialCount() const { return summary_->rowCount(); }
 void CuttingWorkspace::refresh() {
     stale_ = false;
     const int keep = std::max(0, summary_->currentRow());
-    const auto rows = cuttingSummary(session_.cuttingPlans());
-    summary_->setRowCount(static_cast<int>(rows.size()));
-    for (std::size_t i = 0; i < rows.size(); ++i) {
-        const auto& r = rows[i];
+    const auto& plans = session_.cuttingPlans();
+    const auto saw = cuttingSummary(plans);
+    const auto nest = nestingSummary(plans);
+    rows_ = cuttingTableRows(plans);
+    summary_->setRowCount(static_cast<int>(rows_.size()));
+    for (std::size_t i = 0; i < rows_.size(); ++i) {
         const int row = static_cast<int>(i);
         auto set = [&](int col, const QString& text) { summary_->setItem(row, col, new QTableWidgetItem(text)); };
-        set(0, tr("%1 (%2 mm)").arg(QString::fromStdString(r.materialName), num(r.thickness)));
-        set(1, QString::number(r.pieces));
-        if (!r.optimised) {
-            set(2, tr("failed"));
-            for (int c = 3; c < 7; ++c) set(c, QStringLiteral("—"));
+        if (rows_[i].kind == PlanKind::Nesting) {
+            const auto& r = nest[rows_[i].planIndex];
+            set(0, tr("%1 (%2 mm)").arg(QString::fromStdString(r.materialName), num(r.thickness)));
+            set(1, tr("Router nesting (heuristic)"));
+            set(2, QString::number(r.parts));
+            if (!r.nested) {
+                set(3, tr("failed"));
+                for (int c = 4; c < 8; ++c) set(c, QStringLiteral("—"));
+                continue;
+            }
+            set(3, QString::number(r.sheets));
+            set(4, QStringLiteral("—")); // the nesting reports no lower bound
+            set(5, QStringLiteral("%1 %").arg(num(r.utilisationPct)));
+            set(6, QString::number(r.unplaced));
+            set(7, r.problems == 0 ? tr("valid") : tr("problems: %1").arg(r.problems));
             continue;
         }
-        set(2, QString::number(r.sheets));
-        set(3, r.sheetCountProvenMinimal ? tr("%1 (count is minimal)").arg(r.sheetLowerBound)
+        const auto& r = saw[rows_[i].planIndex];
+        set(0, tr("%1 (%2 mm)").arg(QString::fromStdString(r.materialName), num(r.thickness)));
+        set(1, tr("Saw (guillotine)"));
+        set(2, QString::number(r.pieces));
+        if (!r.optimised) {
+            set(3, tr("failed"));
+            for (int c = 4; c < 8; ++c) set(c, QStringLiteral("—"));
+            continue;
+        }
+        set(3, QString::number(r.sheets));
+        set(4, r.sheetCountProvenMinimal ? tr("%1 (count is minimal)").arg(r.sheetLowerBound)
                                          : QString::number(r.sheetLowerBound));
-        set(4, QStringLiteral("%1 %").arg(num(r.utilisationPct)));
-        set(5, QString::number(r.unplaced));
-        set(6, r.layoutValid ? tr("valid") : tr("ERRORS"));
+        set(5, QStringLiteral("%1 %").arg(num(r.utilisationPct)));
+        set(6, QString::number(r.unplaced));
+        set(7, r.layoutValid ? tr("valid") : tr("ERRORS"));
     }
     summary_->resizeColumnsToContents();
     // As tall as its rows (no empty block below two materials), at most 190 px.
@@ -251,8 +289,8 @@ void CuttingWorkspace::refresh() {
             }
     }
     routedCount_ = static_cast<int>(routed.size());
-    routed_->setText(tr("<b>Routed parts — nested separately</b> (shaped outlines are cut on the CNC router, "
-                        "not on the saw; they are not in the layouts below): %1")
+    routed_->setText(tr("<b>Routed parts</b> (shaped outlines are cut on the CNC router, not on the saw; their "
+                        "layouts are the “Router nesting” rows): %1")
                          .arg(routed.join(QStringLiteral("; ")).toHtmlEscaped()));
     routed_->setVisible(!routed.isEmpty());
 
@@ -264,35 +302,72 @@ void CuttingWorkspace::refresh() {
         scope_->addItem(QString::fromStdString(m.name), QString::fromStdString(m.id.str()));
     scope_->setCurrentIndex(std::max(0, scope_->findData(scope)));
     loadSettings();
-    if (!rows.empty()) summary_->selectRow(std::min(keep, static_cast<int>(rows.size()) - 1));
+    nesting_->load();
+    if (!rows_.empty()) summary_->selectRow(std::min(keep, static_cast<int>(rows_.size()) - 1));
     else showPlan();
 }
 
 void CuttingWorkspace::showPlan() {
-    const auto& plans = session_.cuttingPlans().plans;
+    // All sheets of the selected row's material: saw sheets, then nest sheets; the first sheet
+    // of the selected row's method is shown.
+    const auto& plans = session_.cuttingPlans();
     const int row = summary_->currentRow();
     sheet_->blockSignals(true);
     sheet_->clear();
-    if (row >= 0 && row < static_cast<int>(plans.size()) && plans[static_cast<std::size_t>(row)].result) {
-        const auto& sheets = plans[static_cast<std::size_t>(row)].result->sheets;
-        for (std::size_t i = 0; i < sheets.size(); ++i)
-            sheet_->addItem(tr("%1 of %2").arg(i + 1).arg(sheets.size()));
+    if (row >= 0 && row < static_cast<int>(rows_.size())) {
+        const CuttingTableRow& selected = rows_[static_cast<std::size_t>(row)];
+        auto add = [&](PlanKind kind, const QString& text, std::size_t index) {
+            sheet_->addItem(text);
+            sheet_->setItemData(sheet_->count() - 1, static_cast<int>(kind), kSheetKindRole);
+            sheet_->setItemData(sheet_->count() - 1, static_cast<int>(index), kSheetIndexRole);
+        };
+        if (const auto* g = plans.guillotineFor(selected.materialId); g && g->result)
+            for (std::size_t i = 0; i < g->result->sheets.size(); ++i)
+                add(PlanKind::Guillotine, tr("Saw sheet %1 of %2").arg(i + 1).arg(g->result->sheets.size()), i);
+        if (const auto* n = plans.nestingFor(selected.materialId); n && n->result)
+            for (std::size_t i = 0; i < n->result->sheets.size(); ++i)
+                add(PlanKind::Nesting, tr("Nest sheet %1 of %2").arg(i + 1).arg(n->result->sheets.size()), i);
+        sheet_->setCurrentIndex(std::max(0, sheet_->findData(static_cast<int>(selected.kind), kSheetKindRole)));
     }
     sheet_->blockSignals(false);
     showSheet();
 }
 
+std::optional<PlanKind> CuttingWorkspace::shownSheetKind() const {
+    if (sheet_->currentIndex() < 0) return std::nullopt;
+    return static_cast<PlanKind>(sheet_->currentData(kSheetKindRole).toInt());
+}
+
 void CuttingWorkspace::showSheet() {
-    const auto& plans = session_.cuttingPlans().plans;
+    const auto& plans = session_.cuttingPlans();
     const int row = summary_->currentRow();
-    const int index = sheet_->currentIndex();
-    if (row < 0 || row >= static_cast<int>(plans.size()) || index < 0) {
+    const auto kind = shownSheetKind();
+    if (row < 0 || row >= static_cast<int>(rows_.size()) || !kind) {
         view_->setSvg({});
-        sheetInfo_->setText(plans.empty() ? tr("No parts to cut.") : QString());
+        sheetInfo_->setText(rows_.empty() ? tr("No parts to cut.") : QString());
         return;
     }
-    const auto& plan = plans[static_cast<std::size_t>(row)];
-    const auto& sheet = plan.result->sheets[static_cast<std::size_t>(index)];
+    const std::string& material = rows_[static_cast<std::size_t>(row)].materialId;
+    const auto index = static_cast<std::size_t>(sheet_->currentData(kSheetIndexRole).toInt());
+    if (*kind == PlanKind::Nesting) {
+        const project::NestingPlan& plan = *plans.nestingFor(material);
+        const nesting::SheetLayout& sheet = plan.result->sheets[index];
+        view_->setSvg(QByteArray::fromStdString(nesting::renderNestSvg(plan.job.job, sheet)));
+        double length = 0, width = 0;
+        for (const auto& stock : plan.job.job.sheets)
+            if (stock.id == sheet.sheetId) {
+                length = stock.length;
+                width = stock.width;
+            }
+        sheetInfo_->setText(tr("Nest sheet %1 × %2 mm, %3 parts; utilisation %4 % of the sheet (heuristic); "
+                               "used length %5 mm.")
+                                .arg(num(length), num(width))
+                                .arg(sheet.placements.size())
+                                .arg(num(sheet.utilisation * 100.0), num(sheet.usedLength)));
+        return;
+    }
+    const project::CuttingPlan& plan = *plans.guillotineFor(material);
+    const auto& sheet = plan.result->sheets[index];
     view_->setSvg(QByteArray::fromStdString(cutting::renderSheetSvg(plan.job, sheet)));
     sheetInfo_->setText(tr("Sheet %1 × %2 mm, %3 parts; utilisation %4 % of the sheet (%5 % of the usable area); "
                            "cut length %6 m.")

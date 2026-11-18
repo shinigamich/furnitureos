@@ -1,9 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 /// \file
-/// Cutting workspace: per-material sheet layouts from project::cuttingPlans (a heuristic
-/// optimiser), drawn from the cutting module's SVG; kerf / trim settings as a command.
+/// Cutting workspace: per-material sheet layouts from project::cuttingPlans — saw (guillotine)
+/// layouts of rectangular parts and router nesting layouts of shaped parts, both heuristics —
+/// drawn from the cutting / nesting modules' SVG; saw and nesting settings as commands.
+#include "fos/app/nesting_rows.hpp"
+
 #include <QWidget>
+
+#include <vector>
 
 class QComboBox;
 class QDoubleSpinBox;
@@ -18,6 +23,8 @@ class Session;
 }
 
 namespace fos::app::gui {
+
+class NestingSettingsForm;
 
 /// Paints an SVG document scaled to fit, keeping its aspect ratio.
 class SvgView : public QWidget {
@@ -46,6 +53,14 @@ public:
     QComboBox* settingsScope() const noexcept { return scope_; }
     QComboBox* objective() const noexcept { return objective_; }
     QTableWidget* remnants() const noexcept { return remnants_; }
+    /// Summary table (one row per material and method), sheet selector (saw and nest sheets of
+    /// the selected material) and the sheet preview (for tests).
+    QTableWidget* summary() const noexcept { return summary_; }
+    QComboBox* sheetSelector() const noexcept { return sheet_; }
+    SvgView* sheetView() const noexcept { return view_; }
+    /// Kind of the sheet shown (nullopt when none).
+    std::optional<PlanKind> shownSheetKind() const;
+    NestingSettingsForm* nestingSettings() const noexcept { return nesting_; }
     /// Same as pressing "Apply and re-optimise".
     void apply() { applySettings(); }
 
@@ -62,6 +77,7 @@ private:
     void removeRemnant();
 
     Session& session_;
+    std::vector<CuttingTableRow> rows_;
     QTableWidget* summary_;
     QComboBox* sheet_;
     QLabel* sheetInfo_;
@@ -80,6 +96,7 @@ private:
     QLabel* remnantHint_;
     QLabel* error_;
     QLabel* routed_;
+    NestingSettingsForm* nesting_;
     int routedCount_ = 0;
     bool stale_ = true;
 };

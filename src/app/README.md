@@ -26,6 +26,7 @@ existing items' bounding boxes).
 | `parameter_rows.hpp` | `parameterGroups` (by `ParameterKind`; standard inputs, then derived, then custom), `kindTitle`, `unitSuffix`, `editText`, `valueText`, `parseParameterInput` (plain decimal → value, else expression), `parameterCommand`, `applyParameterInput` |
 | `browser_tree.hpp` | `buildBrowserTree`: item → assembly → parts |
 | `diagnostics_rows.hpp` | generation + validation findings with part / item links, `summarize` |
+| `nesting_rows.hpp` | `NestingSummaryRow` / `nestingSummary` (numbers of the heuristic nesting plans; `problems` = Error findings of `validateNest`), `PlanKind`, `CuttingTableRow` / `cuttingTableRows`, `nestingSettingsInput`, `nestingSettingsCommand` (`setNestingSettings`), `parseNestingSeed` |
 | `cutting_rows.hpp` | `cuttingSummary` (numbers from the heuristic optimiser), `cuttingSettingsCommand` (kerf / trim, or a `CuttingSettingsInput` with kerf, trim, objective and remnant list), `cuttingSettingsInput`, `hasOwnCuttingSettings`, `useDefaultCuttingSettingsCommand`, `nextRemnantId` ("R1", "R2", …) |
 | `interior_rows.hpp` | `sectionRows` (section tree depth-first), `sectionCaption` / `sizeDescription` / `contentText`, size syntax `parseSectionSize` / `sizeText` / `parseSizeList` (`300` = fixed mm, `1*` = share, anything else = expression), `splitCommand` (equal shares), `removeSplitCommand` (split section → empty leaf, front kept), `sectionSizeCommand`, `clearInteriorCommand` (`setInterior` with an empty leaf), `FrontInput` + `frontInput` / `frontCommand` (none / door / door pair / drawer stack) |
 | `cabinet_parts.hpp` | `HardwareRole` (hinge, handle, shelf pin, confirmat, dowel, foot), `hardwareChoices` (library entries of the matching `HardwareKind`), `hardwareCommand`; `partSlot`, `currentOverride`, `edgeChoice`, `partMaterialCommand`, `partEdgeCommand` (cabinet rule / raw / band), `clearPartOverrideCommand` |
@@ -79,9 +80,18 @@ existing items' bounding boxes).
   Cutting (per material summary, sheet layouts from `cutting::renderSheetSvg`, labelled as heuristic; kerf,
   trim, **objective** (fewest sheets / least waste / remnants first / fewest cuts) and — per material — the
   **remnant list** (label, length, width, quantity) through `commands::setCuttingSettings`; "Use project
-  defaults for this material" removes the material's own entry). Parts with a non-rectangular outline are listed
-  as **Routed parts — nested separately** (name, material, blank size; same `domain::isRectangularOutline` rule as
-  `cutting::cuttingFromModel`); nesting layouts are not shown yet. Production tables show the shaped columns of the
+  defaults for this material" removes the material's own entry). The summary has one row per material **and
+  method** (`cuttingTableRows`: `CuttingPlans::materials` order, saw plan first): "Saw (guillotine)" rows from
+  `CuttingPlans::plans`, "Router nesting (heuristic)" rows from `CuttingPlans::nestingPlans` (part instances, sheet
+  count, utilisation = `NestResult::utilisation`, unplaced, layout check = `validateNest` "valid" / "problems: N";
+  no lower bound). The sheet selector lists every sheet of the selected material ("Saw sheet i of n", then "Nest
+  sheet i of n"); nest sheets are drawn from `nesting::renderNestSvg(job, sheetLayout)` in the same `SvgView`
+  (sheet size, parts, utilisation, used length below the selector). Parts with a non-rectangular outline are also
+  listed as **Routed parts** (name, material, blank size). **Router nesting settings (all materials)**: tool
+  diameter, clearance, chord tolerance, four margins, iterations and seed (0 … 4294967295, typed) applied with
+  "Apply and re-nest" as `commands::setNestingSettings` (undoable; spin box ranges are wider than the accepted
+  ones so out-of-range values reach the command and its message is shown inline; minimum remnant length kept).
+  Production tables show the shaped columns of the
   production module (Shape, Outline area, Outline edges, Routed contours, Routing length; translated).
 * **Drawing annotations** (panel to the right of the sheet preview). A click on the preview selects the nearest
   visible dimension (hit test against the primitives with its `elementId`, highlighted in blue). For the
@@ -129,7 +139,9 @@ means Ukrainian for a Ukrainian system locale, English otherwise.
   into the inspector model: shelf 562 → 662 mm, bottom 664 mm, cut list follows; undo / redo; clean at the save
   point), expressions and refused inputs leave the project unchanged, save / open / broken file, autosave +
   recovery + undo back to disk state, add / duplicate / delete items, selection normalisation, parameter grouping,
-  browser tree, diagnostics rows, cutting summary + kerf command, drawings (A3 sheet, explicit scale too large is
+  browser tree, diagnostics rows, cutting summary + kerf command, nesting summary of an R 30 shelf (area from
+  `domain::cutContour`), nesting settings command / refusal / undo, seed parsing, drawings (A3 sheet, explicit
+  scale too large is
   refused, SVG / DXF / PDF export), English captions without a translator.
 * `fos_app_gui_tests` (CTest `app_gui_smoke`, label `gui`; run under `xvfb-run`, exit 77 = skipped without a
   display): base cabinet from template, width 900 typed into the inspector (shelf 862 mm), refused input shows an
@@ -141,7 +153,9 @@ means Ukrainian for a Ukrainian system locale, English otherwise.
   two corner clicks (820 mm), cutting objective + remnant. `shape_gui_tests.cpp`: R 30 front corners on an
   open-shelving shelf typed into the Shape section (area as above, "shaped part (routed)"), R 5000 refused inline,
   Reset, drawings preview, circular cut-out added to a free panel through the cut-out table, Cutting lists 2 routed
-  parts, undo back to 0; screenshots `shape-editor-en/uk.png`. With `FOS_APP_SHOT_DIR=<dir>` it writes 1440 × 900
+  parts, the "Router nesting" row is "valid", selecting it shows "Nest sheet 1 of 1" with a non-empty preview, a
+  0 mm tool is refused inline ("tool diameter"), 6 mm applied and undone, undo back to 0; screenshots
+  `shape-editor-en/uk.png`, `cutting-nest-en.png`. With `FOS_APP_SHOT_DIR=<dir>` it writes 1440 × 900
   screenshots of the four workspaces and of the new editors (part override, interior, front, hardware, drawing
   annotations, cutting remnants) in English and Ukrainian.
 
@@ -165,7 +179,9 @@ means Ukrainian for a Ukrainian system locale, English otherwise.
 * No item placement editing (move / rotate) other than the automatic placement of added / duplicated cabinets.
 * DXF export writes one file per view (R12 has no paper space here); see `src/drawings/include/fos/drawings/dxf.hpp`.
 * The Help ▸ About source link is the CMake cache value `FOS_APP_SOURCE_URL`; set it for distributed builds.
-* Shapes: no nesting layouts of routed parts in the Cutting workspace yet (the list only); free panels cannot be
+* Nesting: no "back to default nesting settings" button and no editor for the nesting minimum remnant length
+  (both available as commands).
+* Shapes: free panels cannot be
   created in the UI (only opened from files / added by commands), so their Shape section is reached that way; no
   graphical outline preview inside the Shape editor (the 3D view and part drawings show the result after Apply).
 * Only Linux (X11 / offscreen) has been built and tested.

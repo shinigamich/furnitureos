@@ -46,5 +46,5 @@ Honesty rule (ARCHITECTURE.md 4.7): nothing is labelled as working unless it is 
   ordering; raw edges lying on the blank boundary are only verified when a blank allowance is set.
 * The shared hole triangulator may omit zero-area corners; meshes built from such rings would not be
   closed (covered by watertightness tests; not observed).
-* Nesting settings are project-wide (not per material); the desktop Cutting workspace lists routed parts
-  but does not yet show nesting sheet layouts (the CLI writes them as SVG).
+* Nesting settings are project-wide (not per material). Shaped parts are nested separately from the
+  saw layouts of the same material (no combined sheet use of guillotine and nested parts).

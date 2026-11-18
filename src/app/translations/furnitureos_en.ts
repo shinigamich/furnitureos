@@ -1013,10 +1013,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&lt;b&gt;Heuristic result.&lt;/b&gt; Layouts come from a heuristic guillotine optimiser and are in general not optimal. Utilisation = placed part area / sheet area. “Lower bound” is the area-based minimum sheet count.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Material</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1105,10 +1101,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>%1 of %2</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>No parts to cut.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1181,7 +1173,39 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&lt;b&gt;Routed parts — nested separately&lt;/b&gt; (shaped outlines are cut on the CNC router, not on the saw; they are not in the layouts below): %1</source>
+        <source>&lt;b&gt;Heuristic results.&lt;/b&gt; Saw layouts come from a heuristic guillotine optimiser, router layouts of shaped parts from a heuristic true-shape nesting; both are in general not optimal. Utilisation = placed part area / sheet area. “Lower bound” is the area-based minimum sheet count.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Method</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Router nesting (heuristic)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Saw (guillotine)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;b&gt;Routed parts&lt;/b&gt; (shaped outlines are cut on the CNC router, not on the saw; their layouts are the “Router nesting” rows): %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Saw sheet %1 of %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Nest sheet %1 of %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Nest sheet %1 × %2 mm, %3 parts; utilisation %4 % of the sheet (heuristic); used length %5 mm.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>problems: %1</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2435,6 +2459,81 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
     <message>
         <source>Clear list</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::NestingSettingsForm</name>
+    <message>
+        <source> mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Router nesting settings (all materials)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Diameter of the router bit that cuts the shaped parts out; parts are spaced by it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Extra distance between parts beyond one tool diameter.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Largest deviation of the straight segments that approximate arcs in the nesting.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Improvement passes of the heuristic (more can find fewer sheets, takes longer).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Start value of the heuristic&apos;s random choices; the same seed gives the same layout.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Apply and re-nest</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tool diameter:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Clearance:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Chord tolerance:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Margin left:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Margin right:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Margin bottom:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Margin top:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Iterations:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Seed:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Seed must be a whole number from 0 to 4294967295, got “%1”.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

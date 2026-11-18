@@ -20,6 +20,7 @@ add_library(fos_app_core STATIC
     src/core/browser_tree.cpp
     src/core/diagnostics_rows.cpp
     src/core/cutting_rows.cpp
+    src/core/nesting_rows.cpp
     src/core/production_text.cpp
     src/core/drawing_request.cpp
     src/core/interior_rows.cpp
@@ -85,6 +86,8 @@ set(FOS_APP_GUI_SOURCES
     src/gui/production_workspace.cpp
     src/gui/cutting_workspace.hpp
     src/gui/cutting_workspace.cpp
+    src/gui/nesting_settings_form.hpp
+    src/gui/nesting_settings_form.cpp
     src/gui/dialogs.hpp
     src/gui/dialogs.cpp
     src/gui/settings.hpp
