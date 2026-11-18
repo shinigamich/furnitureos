@@ -2,6 +2,25 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="uk_UA">
 <context>
+    <name>ContourText</name>
+    <message>
+        <source>Vertex %1: the bulge “%2” is not a number (0 = straight, 1 = half circle, negative = clockwise).</source>
+        <translation>Вершина %1: опуклість «%2» не є числом (0 = прямий відрізок, 1 = півколо, від’ємна = за годинниковою стрілкою).</translation>
+    </message>
+    <message>
+        <source>rectangle</source>
+        <translation>прямокутник</translation>
+    </message>
+    <message>
+        <source>shaped part (routed)</source>
+        <translation>фігурна деталь (фрезерована)</translation>
+    </message>
+    <message>
+        <source>shaped part (rectangular outline, sawn)</source>
+        <translation>фігурна деталь (прямокутний контур, розпилюється)</translation>
+    </message>
+</context>
+<context>
     <name>DrawingEditText</name>
     <message>
         <source>A user dimension cannot be hidden; remove it instead.</source>
@@ -624,6 +643,34 @@
         <source>Cut</source>
         <translation>Розкрій</translation>
     </message>
+    <message>
+        <source>Shape</source>
+        <translation>Форма</translation>
+    </message>
+    <message>
+        <source>Outline area (m2)</source>
+        <translation>Площа контуру (м2)</translation>
+    </message>
+    <message>
+        <source>Outline edges</source>
+        <translation>Кромки контуру</translation>
+    </message>
+    <message>
+        <source>Routed contours</source>
+        <translation>Фрезеровані контури</translation>
+    </message>
+    <message>
+        <source>Routing length</source>
+        <translation>Довжина фрезерування</translation>
+    </message>
+    <message>
+        <source>shaped</source>
+        <translation>фігурна</translation>
+    </message>
+    <message>
+        <source>Shaped</source>
+        <translation>Фігурна</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::CommandText</name>
@@ -1129,6 +1176,14 @@
         <source>Remnant</source>
         <translation>Залишок</translation>
     </message>
+    <message>
+        <source>%1 (%2; blank %3 × %4 mm)</source>
+        <translation>%1 (%2; заготовка %3 × %4 мм)</translation>
+    </message>
+    <message>
+        <source>&lt;b&gt;Routed parts — nested separately&lt;/b&gt; (shaped outlines are cut on the CNC router, not on the saw; they are not in the layouts below): %1</source>
+        <translation>&lt;b&gt;Фрезеровані деталі — розкладаються окремо&lt;/b&gt; (фігурні контури вирізаються на фрезерному верстаті з ЧПК, а не на пилці; їх немає в картах розкрою нижче): %1</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::DiagnosticsPanel</name>
@@ -1564,6 +1619,34 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Inset (inside the opening)</source>
         <translation>Вкладний (у прорізі)</translation>
     </message>
+    <message>
+        <source>Rectangle</source>
+        <translation>Прямокутник</translation>
+    </message>
+    <message>
+        <source>Rounded corners</source>
+        <translation>Закруглення кутів</translation>
+    </message>
+    <message>
+        <source>Arc edge</source>
+        <translation>Дуга на кромці</translation>
+    </message>
+    <message>
+        <source>Custom outline</source>
+        <translation>Довільний контур</translation>
+    </message>
+    <message>
+        <source>Convex (outwards)</source>
+        <translation>Опукла (назовні)</translation>
+    </message>
+    <message>
+        <source>Concave (inwards)</source>
+        <translation>Увігнута (всередину)</translation>
+    </message>
+    <message>
+        <source>Circle</source>
+        <translation>Коло</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::InspectorPanel</name>
@@ -1790,6 +1873,38 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     <message>
         <source>Remove override</source>
         <translation>Видалити перевизначення</translation>
+    </message>
+    <message>
+        <source>Cut size (blank):</source>
+        <translation>Розмір заготовки:</translation>
+    </message>
+    <message>
+        <source>Shape:</source>
+        <translation>Форма:</translation>
+    </message>
+    <message>
+        <source>%1 mm² (%2 m²)</source>
+        <translation>%1 мм² (%2 м²)</translation>
+    </message>
+    <message>
+        <source>Outline area:</source>
+        <translation>Площа контуру:</translation>
+    </message>
+    <message>
+        <source>Outline segments:</source>
+        <translation>Сегментів контуру:</translation>
+    </message>
+    <message>
+        <source>Cut-outs:</source>
+        <translation>Вирізи:</translation>
+    </message>
+    <message>
+        <source>Edge banding:</source>
+        <translation>Крайкування:</translation>
+    </message>
+    <message>
+        <source>%1 of %2 outline segments banded</source>
+        <translation>%1 з %2 сегментів контуру з крайкою</translation>
     </message>
 </context>
 <context>
@@ -2441,6 +2556,147 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     <message>
         <source>Size (mm)</source>
         <translation>Розмір (мм)</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::ShapeEditor</name>
+    <message>
+        <source>Auto</source>
+        <translation>Авто</translation>
+    </message>
+    <message>
+        <source>Shape</source>
+        <translation>Контур</translation>
+    </message>
+    <message>
+        <source>Outline:</source>
+        <translation>Форма:</translation>
+    </message>
+    <message>
+        <source>Plain rectangle. Cut-outs below still apply.</source>
+        <translation>Звичайний прямокутник. Вирізи нижче все одно застосовуються.</translation>
+    </message>
+    <message>
+        <source>Radius L1 · W1 (0, 0):</source>
+        <translation>Радіус L1 · W1 (0, 0):</translation>
+    </message>
+    <message>
+        <source>Radius L1 · W2 (L, 0):</source>
+        <translation>Радіус L1 · W2 (L, 0):</translation>
+    </message>
+    <message>
+        <source>Radius L2 · W2 (L, W):</source>
+        <translation>Радіус L2 · W2 (L, W):</translation>
+    </message>
+    <message>
+        <source>Radius L2 · W1 (0, W):</source>
+        <translation>Радіус L2 · W1 (0, W):</translation>
+    </message>
+    <message>
+        <source>sharp</source>
+        <translation>гострий</translation>
+    </message>
+    <message>
+        <source>Edge:</source>
+        <translation>Кромка:</translation>
+    </message>
+    <message>
+        <source>Rise (mm):</source>
+        <translation>Стріла дуги (мм):</translation>
+    </message>
+    <message>
+        <source>Direction:</source>
+        <translation>Напрямок:</translation>
+    </message>
+    <message>
+        <source>Vertices counter-clockwise; bulge 0 = straight segment to the next vertex, 1 = half circle, negative = clockwise arc.</source>
+        <translation>Вершини проти годинникової стрілки; опуклість 0 = прямий відрізок до наступної вершини, 1 = півколо, від’ємна = дуга за годинниковою стрілкою.</translation>
+    </message>
+    <message>
+        <source>X</source>
+        <translation>X</translation>
+    </message>
+    <message>
+        <source>Y</source>
+        <translation>Y</translation>
+    </message>
+    <message>
+        <source>Bulge</source>
+        <translation>Опуклість</translation>
+    </message>
+    <message>
+        <source>Band from</source>
+        <translation>Крайка з</translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation>Додати</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>Видалити</translation>
+    </message>
+    <message>
+        <source>Up</source>
+        <translation>Вгору</translation>
+    </message>
+    <message>
+        <source>Down</source>
+        <translation>Вниз</translation>
+    </message>
+    <message>
+        <source>Cut-outs (through openings, never edge-banded):</source>
+        <translation>Вирізи (наскрізні отвори, без крайки):</translation>
+    </message>
+    <message>
+        <source>Kind</source>
+        <translation>Тип</translation>
+    </message>
+    <message>
+        <source>Length</source>
+        <translation>Довжина</translation>
+    </message>
+    <message>
+        <source>Width</source>
+        <translation>Ширина</translation>
+    </message>
+    <message>
+        <source>Radius</source>
+        <translation>Радіус</translation>
+    </message>
+    <message>
+        <source>Rectangle: X, Y = lower-left corner, Length × Width, corner Radius (empty = sharp).
+Circle: X, Y = centre, Radius.</source>
+        <translation>Прямокутник: X, Y = нижній лівий кут, Довжина × Ширина, Радіус кутів (порожньо = гострі).
+Коло: X, Y = центр, Радіус.</translation>
+    </message>
+    <message>
+        <source>Add rectangle</source>
+        <translation>Додати прямокутник</translation>
+    </message>
+    <message>
+        <source>Add circle</source>
+        <translation>Додати коло</translation>
+    </message>
+    <message>
+        <source>Values in mm, in the part frame (X along the length, Y along the width). Each field accepts an expression of the parameters and contour.length, contour.width, contour.thickness.</source>
+        <translation>Значення в мм, у системі координат деталі (X уздовж довжини, Y уздовж ширини). Кожне поле приймає вираз із параметрів і contour.length, contour.width, contour.thickness.</translation>
+    </message>
+    <message>
+        <source>Apply</source>
+        <translation>Застосувати</translation>
+    </message>
+    <message>
+        <source>Reset</source>
+        <translation>Скинути</translation>
+    </message>
+    <message>
+        <source>Discard the changes in this section and show the stored shape.</source>
+        <translation>Скасувати зміни в цьому розділі й показати збережений контур.</translation>
+    </message>
+    <message>
+        <source>Remove shape</source>
+        <translation>Видалити контур</translation>
     </message>
 </context>
 <context>

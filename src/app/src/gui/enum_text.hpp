@@ -34,5 +34,9 @@ Choices<furniture::HingeSide> hingeSideChoices();
 Choices<furniture::HandlePosition> handleChoices();
 Choices<cutting::Objective> objectiveChoices();
 Choices<drawings::DimensionOrientation> orientationChoices();
+/// Shape editor choices.
+Choices<furniture::ContourKind> contourKindChoices();
+Choices<furniture::ArcDirection> arcDirectionChoices();
+Choices<furniture::CutoutKind> cutoutKindChoices();
 
 } // namespace fos::app::gui

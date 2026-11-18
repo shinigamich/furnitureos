@@ -194,6 +194,13 @@ required; default 10 each), `minRemnantLength` (300), `minRemnantWidth` (100), `
 `firstCut` (`free` | `lengthwise` | `crosswise`), `objective` (`minimize_sheets` | `minimize_waste` |
 `prefer_remnants` | `minimize_cuts`), `remnants` (`[{id (unique), label, length > 0, width > 0, quantity ≥ 1}]`;
 length runs along the sheet length / grain).
+`nesting` (optional; absent = defaults and **not written**, so older files stay byte for byte the same; when
+present every key is written, also default values — lossless): NestingSettings of the shaped (routed) parts of
+all materials — closed: `toolDiameter` (0 < d ≤ 100, default 8), `clearance` (0 … 100, 0), `chordTolerance`
+(0.01 … 10, 0.1), `margins` (`{left, right, bottom, top}`, each 0 … 1000, all required; default 10 each),
+`minRemnantLength` (0 … 100 000, 300), `iterations` (integer 0 … 1000, 20; bounds the work a file can request),
+`seed` (integer 0 … 4294967295, 12345). Values are checked on load and by `setNestingSettings` with
+`checkNestingSettings` (message names the field and the value).
 
 ### 2.7 Settings *(extensible)*
 
@@ -240,6 +247,7 @@ The JSON nesting of the whole file is limited to 128 levels by the container (fo
   Contours: `setPartContour(item, slot, spec|nullopt)` (cabinets, via `furniture::setPartContour`) and
   `setPanelContour(item, spec|nullopt)` (panels; the panel is generated first, an invalid contour fails the
   command and changes nothing).
+  Nesting: `setNestingSettings(settings|nullopt)` (nullopt removes the key = defaults).
 * `Document::execute` runs the command on a **copy** of the project, checks the structure, and re-generates every
   affected item that generated before; any error leaves project, history and dirty flag untouched. A command that
   changes nothing records no step.
@@ -265,6 +273,15 @@ The JSON nesting of the whole file is limited to 128 levels by the container (fo
   `<material>/remnant/<id>` (isRemnant, priority 1, cost 0), then `cutting::optimize` (a heuristic) and the
   independent `cutting::validateLayout`. Diagnostics: adapter findings, `project.cutting.optimize_failed`,
   `project.cutting.layout_invalid`, `project.cutting.unplaced`.
+* Shaped parts (ADR-0008, `!domain::isRectangularOutline`): the guillotine side uses `cutting::cuttingFromModel`
+  (shaped parts are left out and reported as Info `cutting.adapter.routed`, listed in `CuttingPlans::routedParts`);
+  `nesting::nestingJobsFromModel` with `nestingModelSettings(project.cutting.nestingSettings())` builds one
+  nesting job per material, then `nesting::nest` (a **heuristic**; `iterations`, `seed` from the settings) and the
+  independent `nesting::validateNest`. Result: `CuttingPlans::nestingPlans` (`NestingPlan{job, result,
+  validation}`), `materials` (model material order, `MaterialPlans{materialId, guillotine?, nesting?}` — a
+  material can have both), `guillotineFor(id)` / `nestingFor(id)`. Diagnostics: `nesting.adapter.*`,
+  `project.nesting.failed` (Error), `project.nesting.layout_invalid` (Error, one per validateNest error),
+  `project.nesting.unplaced` (Warning). `plans` is unchanged for rectangular projects.
 * `assemblyDrawing(project, resolved, itemId, options)` / `partDrawing(...)`: `drawings::generate*Drawing` with the
   stored edits of the drawing id (model anchors are resolved by the drawings module).
 
@@ -291,6 +308,9 @@ remnants; save → load → save byte-identical with every schema feature (incl.
 `measuredAtEdit`); unknown-key preservation; closed-object rejection with paths; strict validation messages;
 newer version / other kind refused; truncation at many offsets; checksum mismatch and recovery opt-in; unsavable
 project not written; autosave + recovery; failed commands leave the document unchanged; dirty flag; merging;
-undo limit. `limits_tests.cpp`: the reviewer's hostile files (shelfCount 2000 / 10000, 51 children, 3 × 100 shelves,
+undo limit. `nesting_tests.cpp`: nesting settings absent → not written, explicit defaults and non-default values
+(seed > INT_MAX) round-trip byte for byte, range errors on load and in the command, cutting plans with a shaped shelf
+(nested, part spacing 6 + 0 + 2·0.1 = 6.2 with a 6 mm tool, both validators clean). Scenario F (tests/) covers
+the whole chain. `limits_tests.cpp`: the reviewer's hostile files (shelfCount 2000 / 10000, 51 children, 3 × 100 shelves,
 31 drawers, height 1e308, backupCount 1e6, 501 items) are rejected on load in well under a second with the exact
 messages; commands refuse the same limits; backup rotation through `saveProject`.

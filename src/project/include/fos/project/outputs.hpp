@@ -6,6 +6,8 @@
 #include "fos/cutting/from_model.hpp"
 #include "fos/cutting/optimizer.hpp"
 #include "fos/drawings/drawing.hpp"
+#include "fos/nesting/from_model.hpp"
+#include "fos/nesting/types.hpp"
 #include "fos/production/production.hpp"
 #include "fos/project/resolve.hpp"
 
@@ -41,19 +43,52 @@ struct CuttingPlan {
     core::Diagnostics validation;                 ///< cutting::validateLayout(job, *result).
 };
 
-struct CuttingPlans {
-    std::vector<CuttingPlan> plans; ///< Model material order (cutting::jobsFromModel).
-    /// Adapter findings, then per job: project.cutting.optimize_failed (Error),
-    /// project.cutting.layout_invalid (Error, one per validateLayout error),
-    /// project.cutting.unplaced (Warning, one per unplaced piece).
-    core::Diagnostics diagnostics;
+/// One material's true-shape nesting job (its SHAPED parts) and the nested, independently
+/// validated layout. The nesting optimiser is a HEURISTIC (result->isHeuristic is always true).
+struct NestingPlan {
+    nesting::MaterialNestJob job;                ///< nesting::nestingJobsFromModel (materialId, job, frames).
+    std::optional<nesting::NestResult> result;   ///< Empty when nest() failed (see diagnostics).
+    core::Diagnostics validation;                ///< nesting::validateNest(job.job, *result).
 };
+
+/// Where the plans of one material are (indices into CuttingPlans::plans / nestingPlans).
+struct MaterialPlans {
+    std::string materialId;
+    std::optional<std::size_t> guillotine; ///< Rectangular parts (panel saw).
+    std::optional<std::size_t> nesting;    ///< Shaped parts (routing).
+};
+
+struct CuttingPlans {
+    std::vector<CuttingPlan> plans; ///< Rectangular parts; model material order (cutting::cuttingFromModel).
+    /// Shaped parts (`!domain::isRectangularOutline`); model material order. A material can have
+    /// a guillotine plan, a nesting plan or both.
+    std::vector<NestingPlan> nestingPlans;
+    /// Every material with at least one plan, in model material order.
+    std::vector<MaterialPlans> materials;
+    /// Parts left out of the guillotine jobs (cutting::ModelCutting::routedParts); they are in nestingPlans.
+    std::vector<cutting::RoutedPart> routedParts;
+    /// Guillotine adapter findings (incl. Info cutting.adapter.routed per shaped part), nesting
+    /// adapter findings (nesting.adapter.*), then per guillotine job: project.cutting.optimize_failed
+    /// (Error), project.cutting.layout_invalid (Error, one per validateLayout error),
+    /// project.cutting.unplaced (Warning, one per unplaced piece); then per nesting job:
+    /// project.nesting.failed (Error), project.nesting.layout_invalid (Error, one per validateNest
+    /// error), project.nesting.unplaced (Warning, one per unplaced part instance).
+    core::Diagnostics diagnostics;
+
+    const CuttingPlan* guillotineFor(const std::string& materialId) const;
+    const NestingPlan* nestingFor(const std::string& materialId) const;
+};
+
+/// nesting::ModelSettings of the project nesting settings.
+nesting::ModelSettings nestingModelSettings(const NestingSettings& settings);
 
 /// cutting::jobsFromModel with the project DEFAULT settings, then for every job (job id =
 /// material id) the material's own CuttingSettings (kerf, trim, remnant limits, stages, first
 /// cut, objective) and its remnants appended as limited stock
 /// ("<material id>/remnant/<remnant id>", isRemnant = true, priority 1, cost 0); then
-/// cutting::optimize and cutting::validateLayout.
+/// cutting::optimize and cutting::validateLayout. Shaped parts: nesting::nestingJobsFromModel
+/// with settings.nestingSettings() (nestingModelSettings), nesting::nest (iterations, seed) and
+/// nesting::validateNest.
 CuttingPlans cuttingPlans(const Resolved& resolved, const ProjectCuttingSettings& settings,
                           const cutting::Options& options = {});
 

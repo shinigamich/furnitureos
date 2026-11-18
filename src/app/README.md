@@ -29,6 +29,7 @@ existing items' bounding boxes).
 | `cutting_rows.hpp` | `cuttingSummary` (numbers from the heuristic optimiser), `cuttingSettingsCommand` (kerf / trim, or a `CuttingSettingsInput` with kerf, trim, objective and remnant list), `cuttingSettingsInput`, `hasOwnCuttingSettings`, `useDefaultCuttingSettingsCommand`, `nextRemnantId` ("R1", "R2", …) |
 | `interior_rows.hpp` | `sectionRows` (section tree depth-first), `sectionCaption` / `sizeDescription` / `contentText`, size syntax `parseSectionSize` / `sizeText` / `parseSizeList` (`300` = fixed mm, `1*` = share, anything else = expression), `splitCommand` (equal shares), `removeSplitCommand` (split section → empty leaf, front kept), `sectionSizeCommand`, `clearInteriorCommand` (`setInterior` with an empty leaf), `FrontInput` + `frontInput` / `frontCommand` (none / door / door pair / drawer stack) |
 | `cabinet_parts.hpp` | `HardwareRole` (hinge, handle, shelf pin, confirmat, dowel, foot), `hardwareChoices` (library entries of the matching `HardwareKind`), `hardwareCommand`; `partSlot`, `currentOverride`, `edgeChoice`, `partMaterialCommand`, `partEdgeCommand` (cabinet rule / raw / band), `clearPartOverrideCommand` |
+| `contour_rows.hpp` | Shape editor view-model: `VertexRow`, `CutoutRow`, `ContourInput`, `contourInput(spec)`, `contourSpec(input)` (only the selected kind's fields + cut-outs; Rectangle without cut-outs = no shape; plain numbers normalised, other texts passed on as expressions; only a non-numeric bulge is refused here), `rectangleVertexRows`, `moveRow`, `ContourTarget` / `contourTarget` (cabinet slot or panel item), `currentContour`, `contourCommand` (`setPartContour` / `setPanelContour`), `applyContourInput`, `ShapeFacts` / `shapeFacts` (shaped, routed = `!isRectangularOutline`, outline area mm² via `geometry::signedArea` minus cut-outs, segments, cut-outs, banded segments), `shapeSummary` |
 | `drawing_edits.hpp` | `drawingIdOf`, `editContext`, `findDimension`, picking: `viewAt` (sheet view placements), `dimensionAt` (distance to the primitives carrying the dimension's `elementId`, 1.5 paper mm), `elementBounds`, `nearestCorner` (every part corner through `drawings::resolveAnchor`); commands: `dimensionOffsetCommand`, `hideDimensionCommand`, `dimensionTextCommand` (records `measuredAtEdit` via `drawings::setTextOverride`), `removeEditCommand`, `addUserDimensionCommand` (two `ModelAnchor`s, id `user.dim.<n>`); `drawingEditRows` / `editRowText` (stale and orphan flags from the `EditReport`), `editFindings` |
 | `drawing_request.hpp` | `DrawingRequest`, `generateDrawing` (translated title block + calibration note), `exportDrawingSvg/Dxf/Pdf` |
 | `production_text.hpp` | `ProductionText::localisation()/htmlSheetText()/labelText()` — every production caption via `tr()` |
@@ -61,7 +62,15 @@ existing items' bounding boxes).
   A refused edit shows the engine's message (under the field or under the action buttons) and changes nothing.
   Panel item: name + parameters. Part: read-only finished size, cut size (`domain::cutSize`), material, grain,
   edges, operation count; for a cabinet part an **override** editor (material, and each edge L1/L2/W1/W2 as
-  cabinet rule / raw / an edge band of the library; Remove override) through `commands::setPartOverride`.
+  cabinet rule / raw / an edge band of the library; Remove override, which keeps a contour) through
+  `commands::setPartOverride`. Shaped parts show "shaped part (routed)" (or "rectangular outline, sawn"), outline
+  area, segment / cut-out / banded-segment counts and the blank cut size instead of the four edges.
+* **Shape** section (`ShapeEditor`; cabinet part slots and panel items): outline kind Rectangle / Rounded corners
+  (4 radius expressions) / Arc edge (edge, rise, convex / concave) / Custom (vertex table x, y, bulge, band-from
+  side; add / remove / move up / down; starts from the full rectangle), cut-out table (rectangle x / y / length /
+  width / corner radius, circle x / y / radius; add / remove). **Apply** = `setPartContour` / `setPanelContour`
+  (undoable); a refused spec shows the core's message inline and changes nothing; **Reset** reloads the stored
+  spec; **Remove shape** clears it.
 * **Workspaces.** 3D (`viewport::ViewportWidget`, selection synchronised both ways, View menu presets /
   projection / display mode / fit all); Drawings (assembly drawing of each item and part drawings of the selected
   item; paper A4–A1, orientation, fit or fixed scale 1:1…1:50, sheet, zoom; PDF/SVG/DXF export; print at exact
@@ -70,7 +79,10 @@ existing items' bounding boxes).
   Cutting (per material summary, sheet layouts from `cutting::renderSheetSvg`, labelled as heuristic; kerf,
   trim, **objective** (fewest sheets / least waste / remnants first / fewest cuts) and — per material — the
   **remnant list** (label, length, width, quantity) through `commands::setCuttingSettings`; "Use project
-  defaults for this material" removes the material's own entry).
+  defaults for this material" removes the material's own entry). Parts with a non-rectangular outline are listed
+  as **Routed parts — nested separately** (name, material, blank size; same `domain::isRectangularOutline` rule as
+  `cutting::cuttingFromModel`); nesting layouts are not shown yet. Production tables show the shaped columns of the
+  production module (Shape, Outline area, Outline edges, Routed contours, Routing length; translated).
 * **Drawing annotations** (panel to the right of the sheet preview). A click on the preview selects the nearest
   visible dimension (hit test against the primitives with its `elementId`, highlighted in blue). For the
   selected dimension: **Offset** (paper mm, signed like `Dimension::offset`), **Text** override (empty = measured
@@ -108,6 +120,10 @@ means Ukrainian for a Ukrainian system locale, English otherwise.
   point, offset / text / hide / remove with undo / redo, stale override after a width change, user dimension
   between corners 820 → 900 mm following the model, refused anchors, orphans and their removal), cutting
   settings (objective, remnant as extra stock, refused remnants / kerf, back to defaults, undo / redo);
+  shape editor (`contour_tests.cpp`: rows → spec normalisation, Rectangle = no shape, non-numeric bulge refused,
+  round trip of arc / custom / rounded specs, `moveRow`; open-shelving shelf R 30 front corners → outline area
+  762 · 280 − 2 · (900 − 225π) mm², refused R 5000 leaves revision and spec unchanged, Remove override keeps the
+  contour, undo / redo; panel 600 × 300 with a Ø 40 hole → 180 000 − 400π mm², hole outside refused);
   title, recent files, autosave decisions and
   recovery offers, command labels, every template, Scenario B at the view-model level (width 600 → 700 typed
   into the inspector model: shelf 562 → 662 mm, bottom 664 mm, cut list follows; undo / redo; clean at the save
@@ -122,7 +138,10 @@ means Ukrainian for a Ukrainian system locale, English otherwise.
   pair → 12 parts with sizes checked by hand (partition 684, shelves 271 × 540, doors 716 × 296.5), a refused
   size shows the inline error, undo restores the 10 template parts; hardware combo, part material override,
   a click on the width dimension + text override (recorded at 600 mm, stale at 700 mm), a user dimension by
-  two corner clicks (820 mm), cutting objective + remnant. With `FOS_APP_SHOT_DIR=<dir>` it writes 1440 × 900
+  two corner clicks (820 mm), cutting objective + remnant. `shape_gui_tests.cpp`: R 30 front corners on an
+  open-shelving shelf typed into the Shape section (area as above, "shaped part (routed)"), R 5000 refused inline,
+  Reset, drawings preview, circular cut-out added to a free panel through the cut-out table, Cutting lists 2 routed
+  parts, undo back to 0; screenshots `shape-editor-en/uk.png`. With `FOS_APP_SHOT_DIR=<dir>` it writes 1440 × 900
   screenshots of the four workspaces and of the new editors (part override, interior, front, hardware, drawing
   annotations, cutting remnants) in English and Ukrainian.
 
@@ -146,4 +165,7 @@ means Ukrainian for a Ukrainian system locale, English otherwise.
 * No item placement editing (move / rotate) other than the automatic placement of added / duplicated cabinets.
 * DXF export writes one file per view (R12 has no paper space here); see `src/drawings/include/fos/drawings/dxf.hpp`.
 * The Help ▸ About source link is the CMake cache value `FOS_APP_SOURCE_URL`; set it for distributed builds.
+* Shapes: no nesting layouts of routed parts in the Cutting workspace yet (the list only); free panels cannot be
+  created in the UI (only opened from files / added by commands), so their Shape section is reached that way; no
+  graphical outline preview inside the Shape editor (the 3D view and part drawings show the result after Apply).
 * Only Linux (X11 / offscreen) has been built and tested.

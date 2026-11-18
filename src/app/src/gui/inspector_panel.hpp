@@ -25,6 +25,7 @@ class Session;
 namespace fos::app::gui {
 
 class InteriorEditor;
+class ShapeEditor;
 
 class InspectorPanel : public QScrollArea {
     Q_OBJECT
@@ -40,6 +41,8 @@ public:
     QTabWidget* cabinetTabs() const;
     /// Interior tab of the selected cabinet (null when no cabinet is shown).
     InteriorEditor* interiorEditor() const;
+    /// Shape section of the selected part / panel item (null when none is shown).
+    ShapeEditor* shapeEditor() const;
 
 private:
     void rebuild();
@@ -51,6 +54,7 @@ private:
     void buildConstruction(QVBoxLayout* layout, const std::string& itemId);
     void buildMaterials(QVBoxLayout* layout, const std::string& itemId);
     void buildHardware(QVBoxLayout* layout, const std::string& itemId);
+    void buildShape(QVBoxLayout* layout, const std::string& itemId, const std::string& partId);
     void buildPartOverride(QVBoxLayout* layout, const std::string& itemId, const std::string& partId);
     void buildNameEditor(QVBoxLayout* layout, const std::string& itemId);
     bool commitParameter(const std::string& itemId, const std::string& name, QLineEdit* editor);

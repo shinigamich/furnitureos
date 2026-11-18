@@ -121,4 +121,22 @@ Choices<drawings::DimensionOrientation> orientationChoices() {
              drawings::DimensionOrientation::Vertical}};
 }
 
+Choices<furniture::ContourKind> contourKindChoices() {
+    using K = furniture::ContourKind;
+    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Rectangle")), K::Rectangle},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Rounded corners")), K::RoundedCorners},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Arc edge")), K::ArcEdge},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Custom outline")), K::Custom}};
+}
+
+Choices<furniture::ArcDirection> arcDirectionChoices() {
+    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Convex (outwards)")), furniture::ArcDirection::Convex},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Concave (inwards)")), furniture::ArcDirection::Concave}};
+}
+
+Choices<furniture::CutoutKind> cutoutKindChoices() {
+    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Rectangle")), furniture::CutoutKind::Rectangle},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Circle")), furniture::CutoutKind::Circle}};
+}
+
 } // namespace fos::app::gui

@@ -6,6 +6,7 @@
 #include "fos/app/cutting_rows.hpp"
 #include "fos/app/session.hpp"
 #include "fos/core/units.hpp"
+#include "fos/domain/model.hpp"
 #include "fos/cutting/svg.hpp"
 #include "inspector_panel.hpp"
 
@@ -84,6 +85,12 @@ CuttingWorkspace::CuttingWorkspace(Session& session, QWidget* parent) : QWidget(
     summary_->setSelectionBehavior(QAbstractItemView::SelectRows);
     summary_->setSelectionMode(QAbstractItemView::SingleSelection);
     summary_->horizontalHeader()->setStretchLastSection(true);
+
+    routed_ = new QLabel(this);
+    routed_->setObjectName(QStringLiteral("routedParts"));
+    routed_->setWordWrap(true);
+    routed_->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    routed_->hide();
 
     sheet_ = new QComboBox(this);
     sheetInfo_ = new QLabel(this);
@@ -168,6 +175,7 @@ CuttingWorkspace::CuttingWorkspace(Session& session, QWidget* parent) : QWidget(
     auto* layout = new QVBoxLayout(this);
     layout->addWidget(heuristic);
     layout->addWidget(summary_);
+    layout->addWidget(routed_);
     layout->addLayout(lower, 1);
 
     connect(&session_, &Session::projectChanged, this, [this] {
@@ -225,6 +233,28 @@ void CuttingWorkspace::refresh() {
                       style()->pixelMetric(QStyle::PM_ScrollBarExtent);
     for (int r = 0; r < summary_->rowCount(); ++r) tableHeight += summary_->rowHeight(r);
     summary_->setFixedHeight(std::min(std::max(tableHeight, 60), 190));
+
+    // Shaped parts whose outline is not a plain rectangle are not in the saw jobs
+    // (cutting::cuttingFromModel uses the same domain::isRectangularOutline rule).
+    QStringList routed;
+    if (const project::Resolved* resolved = session_.resolved()) {
+        const auto& model = resolved->model;
+        for (const auto& assembly : model.assemblies)
+            for (const auto& part : assembly.parts) {
+                if (domain::isRectangularOutline(part)) continue;
+                const auto blank = domain::cutSize(part, model);
+                const domain::Material* m = model.findMaterial(part.material);
+                routed << tr("%1 (%2; blank %3 × %4 mm)")
+                              .arg(QString::fromStdString(part.name.empty() ? part.id.str() : part.name),
+                                   m ? QString::fromStdString(m->name) : QString::fromStdString(part.material.str()),
+                                   num(blank.length), num(blank.width));
+            }
+    }
+    routedCount_ = static_cast<int>(routed.size());
+    routed_->setText(tr("<b>Routed parts — nested separately</b> (shaped outlines are cut on the CNC router, "
+                        "not on the saw; they are not in the layouts below): %1")
+                         .arg(routed.join(QStringLiteral("; ")).toHtmlEscaped()));
+    routed_->setVisible(!routed.isEmpty());
 
     // Settings scope: defaults + materials of the library.
     const QString scope = scope_->currentData().toString();

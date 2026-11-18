@@ -85,8 +85,31 @@ interior — the browser then lists a partition (684 mm long) and two 271 × 540
 Selecting a part shows read-only facts: finished size, cut size (finished size minus edge band thickness),
 material, grain, the four edges and the number of machining operations. For a cabinet part, **Override for this
 part** sets its material (or "Cabinet material") and each edge L1, L2, W1, W2 ("Cabinet rule", raw, or an edge
-band from the library). **Remove override** returns the part to the cabinet's rules. Part sizes themselves
-always follow from the cabinet parameters and interior.
+band from the library). **Remove override** returns the material and edges to the cabinet's rules (a shape is
+kept). Part sizes themselves always follow from the cabinet parameters and interior.
+
+### Shaped parts (contours)
+
+The **Shape** section (below the override for a cabinet part; in the inspector of a free panel) gives a part a
+contoured outline. Choose the **outline**:
+
+* **Rectangle** — no shape (cut-outs still possible);
+* **Rounded corners** — a radius for each corner (L1 · W1 at (0, 0), L1 · W2 at (L, 0), …; empty = sharp);
+* **Arc edge** — one edge (L1, L2, W1, W2) becomes an arc with the given **rise**, convex (cut into the part's
+  box: its apex stays on the edge line) or concave;
+* **Custom outline** — a vertex table (X, Y, bulge, band from) with **Add / Remove / Up / Down**; it starts from
+  the full rectangle. Vertices run counter-clockwise; bulge 0 = straight, 1 = half circle, negative = clockwise.
+
+**Cut-outs** (through openings, never banded): **Add rectangle** (X, Y = lower-left corner, length, width,
+corner radius) or **Add circle** (X, Y = centre, radius). All values are mm in the part frame (X along the length,
+Y along the width) and may be expressions of the cabinet parameters and `contour.length`, `contour.width`,
+`contour.thickness` — e.g. a hole centred at `contour.length / 2`. **Apply** stores the shape (undoable);
+an impossible shape (a radius that does not fit, a hole outside the part, a bad expression) is refused with the
+reason under the buttons and nothing changes. **Reset** discards the edits in the section, **Remove shape**
+returns to a rectangle. The part then shows "shaped part (routed)", its outline area, segment and cut-out count
+and its blank (cut) size; the 3D view, the part drawings and the production tables (Shape, Outline area, Outline
+edges, routing columns) show the real outline. Example: the open shelving template, shelf `shelf.1.1`, rounded
+corners L1 · W1 and L1 · W2 = 30 → outline area 762 × 280 − 2 × (900 − 225π) ≈ 212 974 mm².
 
 ## 6. Drawings, annotations and exact-scale printing
 
@@ -138,6 +161,9 @@ first, fewest cuts). For a single material you can also list **remnants** — le
 sheets (label, length along the grain, width, quantity): **Add remnant** / **Remove remnant**. Press **Apply and
 re-optimise**; invalid values (e.g. a remnant of width 0) are refused with the reason. **Use project defaults for
 this material** removes the material's own settings. Each of these is an undoable project change.
+
+Shaped parts whose outline is not a plain rectangle are not cut on the saw: they are listed above the settings as
+**Routed parts — nested separately** (name, material, blank size) and are not part of the saw layouts.
 
 ## 9. Saving, backups and recovery
 

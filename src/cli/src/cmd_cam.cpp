@@ -2,6 +2,7 @@
 // fos cam (UNVERIFIED output, fictional demo machine)
 #include "common.hpp"
 
+#include "fos/cam/contour.hpp"
 #include "fos/cam/generate.hpp"
 #include "fos/cam/generic_iso.hpp"
 #include "fos/cam/simulate.hpp"
@@ -12,8 +13,12 @@
 namespace fos::cli::detail {
 namespace {
 
+/// mm per side of the blank of a shaped part when --blank-allowance is not given.
+constexpr double kDefaultBlankAllowance = 10.0;
+
 const char* kCamHelp =
-    "Usage: fos cam <file.fosp> <part-id> --face A|B --out prog.nc [--peck DEPTH]\n\n"
+    "Usage: fos cam <file.fosp> <part-id> --face A|B --out prog.nc [--peck DEPTH]\n"
+    "               [--blank-allowance MM]\n\n"
     "Generates a 3-axis program for the operations on one face of one part, using the\n"
     "FICTIONAL 'FurnitureOS demo profile — not a real machine' and a fictional demo tool\n"
     "library (drills 3 4 5 7 8 10 12 15 20 35 mm, end mills 4 6 8 mm). The part's length runs\n"
@@ -24,6 +29,11 @@ const char* kCamHelp =
     "operations on the other face as needing the other setup - never silently dropped.\n"
     "THE OUTPUT IS UNVERIFIED: no profile, tool or dialect has been proven on any machine.\n"
     "Never run it without review and proof by a qualified operator on the actual control.\n"
+    "SHAPED parts (arcs, cut-outs): the raw outline and every cut-out are routed (radius\n"
+    "compensation in the program, exact G2/G3 arcs), cut-outs first. The clamped blank is the\n"
+    "part's bounding box grown by --blank-allowance on every side (default 10 mm for shaped\n"
+    "parts); its minimum corner is at machine (20, 20, 0). --blank-allowance > 0 is refused for\n"
+    "rectangular parts (they are sawn to size; exit code 2).\n"
     "Exit code 1 also when the project has model errors (stderr lists the items that are missing).\n";
 
 const domain::Part* findPart(const domain::Model& model, const std::string& id) {
@@ -40,7 +50,7 @@ void printPlanned(std::ostream& out, const char* title, const std::vector<cam::P
 } // namespace
 
 int cmdCam(const std::vector<std::string>& args, Io& io) {
-    auto parsed = parseArgs(args, {{"face"}, {"out"}, {"peck"}});
+    auto parsed = parseArgs(args, {{"face"}, {"out"}, {"peck"}, {"blank-allowance"}});
     if (!parsed) return usageError(io, "cam", parsed.error().message);
     const ParsedArgs& a = parsed.value();
     if (a.help) {
@@ -57,6 +67,12 @@ int cmdCam(const std::vector<std::string>& args, Io& io) {
         if (!v || *v < 0) return usageError(io, "cam", "--peck must be a depth >= 0 in mm.");
         options.peckDepth = *v;
     }
+    std::optional<double> blankAllowance;
+    if (auto text = a.value("blank-allowance")) {
+        const auto v = parseNumber(*text);
+        if (!v || !(*v >= 0) || *v > 1000) return usageError(io, "cam", "--blank-allowance must be from 0 to 1000 mm.");
+        blankAllowance = *v;
+    }
     auto loaded = loadProjectOrReport(io, "cam", a.positional[0]);
     if (!loaded) return kExitUsageOrIo;
     const std::string& partId = a.positional[1];
@@ -70,11 +86,31 @@ int cmdCam(const std::vector<std::string>& args, Io& io) {
     auto& out = io.out;
     const cam::MachineProfile machine = demoMachineProfile();
     const cam::ToolLibrary tools = demoToolLibrary();
-    const cam::Setup setup{faceText == "A" ? domain::Face::A : domain::Face::B, demoStockOrigin()};
+    const bool shaped = cam::needsContourRouting(*part);
+    if (!shaped && blankAllowance.value_or(0) > 0) {
+        io.err << incomplete;
+        return usageError(io, "cam",
+                          "--blank-allowance applies to shaped (routed) parts only; '" + partId +
+                              "' is rectangular and is sawn to size, so its stock is the part itself.");
+    }
+    cam::Setup setup{faceText == "A" ? domain::Face::A : domain::Face::B, demoStockOrigin()};
+    if (shaped) setup.blankAllowance = blankAllowance.value_or(kDefaultBlankAllowance);
+    options.model = &loaded->resolved.model;
+    cam::SimulationOptions simOptions;
+    simOptions.model = &loaded->resolved.model;
     out << "Part " << partId << " \"" << part->name << "\" " << core::formatLength(part->length) << " x "
         << core::formatLength(part->width) << " x " << core::formatLength(part->thickness) << " mm, "
         << part->operations.size() << " operations, face " << faceText << " up\n"
         << "Machine: " << machine.name << " (fictional, verified: no)\n";
+    if (shaped) {
+        const double al = setup.blankAllowance;
+        out << "Shaped part: outline" << (part->shape && !part->shape->cutouts.empty()
+                                              ? " and " + std::to_string(part->shape->cutouts.size()) + " cut-out(s)"
+                                              : std::string())
+            << " routed; blank allowance " << core::formatLength(al) << " mm -> blank "
+            << core::formatLength(part->length + 2 * al) << " x " << core::formatLength(part->width + 2 * al) << " x "
+            << core::formatLength(part->thickness) << " mm\n";
+    }
 
     const auto opDiagnostics = machining::validateOperations(*part);
     out << "Machining validation: " << (opDiagnostics.empty() ? "no findings" : std::to_string(opDiagnostics.size()) + " finding(s)") << "\n";
@@ -98,22 +134,37 @@ int cmdCam(const std::vector<std::string>& args, Io& io) {
         out << "CAM diagnostics:\n";
         printDiagnostics(out, other);
     }
-    if (g.plan.machinableNow.empty()) {
+    std::size_t contours = 0;
+    if (shaped)
+        if (auto frame = cam::makeSetupFrame(*part, setup))
+            if (auto targets = cam::contourTargets(*part, frame.value(), &loaded->resolved.model)) {
+                contours = targets.value().size();
+                out << "Contour routing: " << contours << "\n";
+                for (const auto& t : targets.value())
+                    out << "  " << t.id.str() << (t.outer ? " (outline, tool outside)" : " (cut-out, tool inside)") << "\n";
+            }
+    if (g.plan.machinableNow.empty() && contours == 0) {
         io.err << "fos cam: nothing to machine on face " << faceText << " of " << partId
                << "; no program was written.\n";
         io.err << incomplete;
         return kExitValidationErrors;
     }
 
-    const auto sim = cam::simulate(g.program, *part, setup, machine, tools);
+    const auto sim = cam::simulate(g.program, *part, setup, machine, tools, simOptions);
     out << "Simulation: " << errorCount(sim.diagnostics) << " errors, " << warningCount(sim.diagnostics)
         << " warnings; " << sim.toolChanges << " tool change(s), rapid " << core::formatLength(sim.rapidLength)
         << " mm, cutting " << core::formatLength(sim.cutLength) << " mm, estimated "
         << core::formatLength(sim.estimatedSeconds, 0) << " s (estimate, no acceleration)\n";
     printDiagnostics(out, sim.diagnostics);
+    if (sim.hasErrors()) {
+        io.err << "fos cam: refused: the simulation reports " << errorCount(sim.diagnostics)
+               << " error(s) (listed above).\nNo program was written.\n";
+        io.err << incomplete;
+        return kExitValidationErrors;
+    }
 
     const cam::GenericIsoPostprocessor post;
-    auto emitted = post.generate(cam::PostInput{g.program, *part, setup, machine, tools});
+    auto emitted = post.generate(cam::PostInput{g.program, *part, setup, machine, tools}, simOptions);
     if (!emitted) {
         io.err << "fos cam: refused by the postprocessor: " << emitted.error().message << "\nNo program was written.\n";
         io.err << incomplete;

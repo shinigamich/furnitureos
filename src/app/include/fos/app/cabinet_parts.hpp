@@ -54,13 +54,14 @@ struct EdgeOverrideChoice {
 furniture::PartOverride currentOverride(const furniture::CabinetDefinition& cabinet, const std::string& slot);
 EdgeOverrideChoice edgeChoice(const furniture::PartOverride& override, domain::EdgeSide side);
 /// commands::setPartOverride with the material override set (std::nullopt = cabinet material)
-/// and the edges of the existing override kept. An override that ends up empty is removed.
+/// and the edges (and contour) of the existing override kept. An override that ends up empty is removed.
 project::Command partMaterialCommand(const furniture::CabinetDefinition& cabinet, const std::string& slot,
                                      const std::optional<std::string>& materialId);
 /// As above for one edge.
 project::Command partEdgeCommand(const furniture::CabinetDefinition& cabinet, const std::string& slot,
                                  domain::EdgeSide side, const EdgeOverrideChoice& choice);
-/// commands::setPartOverride(..., std::nullopt).
+/// Removes the material and edge overrides of `slot` (commands::setPartOverride); a contour
+/// (Shape section) is kept.
 project::Command clearPartOverrideCommand(const furniture::CabinetDefinition& cabinet,
                                           const std::string& slot);
 

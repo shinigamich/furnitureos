@@ -3,8 +3,11 @@
 
 #include "enum_text.hpp"
 #include "fos/app/session.hpp"
+#include "fos/app/contour_rows.hpp"
 #include "fos/core/units.hpp"
+#include "fos/domain/model.hpp"
 #include "interior_editor.hpp"
+#include "shape_editor.hpp"
 
 #include <QFormLayout>
 #include <QGroupBox>
@@ -201,7 +204,16 @@ void InspectorPanel::buildPanelItem(QVBoxLayout* layout, const std::string& item
     buildNameEditor(layout, itemId);
     const project::Item* item = session_.project().findItem(itemId);
     buildParameters(layout, itemId, parameterGroups(item->panel()->panel), false);
+    buildShape(layout, itemId, {});
 }
+
+void InspectorPanel::buildShape(QVBoxLayout* layout, const std::string& itemId, const std::string& partId) {
+    const auto target = contourTarget(session_.project(), itemId, partId);
+    if (!target) return;
+    layout->addWidget(new ShapeEditor(session_, *target, layout->parentWidget()));
+}
+
+ShapeEditor* InspectorPanel::shapeEditor() const { return widget() ? widget()->findChild<ShapeEditor*>() : nullptr; }
 
 void InspectorPanel::buildPart(QVBoxLayout* layout, const std::string& partId) {
     const domain::Part* part = session_.findPart(partId);
@@ -222,12 +234,29 @@ void InspectorPanel::buildPart(QVBoxLayout* layout, const std::string& partId) {
     form->addRow(tr("Finished size:"),
                  label(tr("%1 × %2 × %3 mm").arg(mm(part->length), mm(part->width), mm(part->thickness))));
     const auto cut = domain::cutSize(*part, model);
-    form->addRow(tr("Cut size:"), label(tr("%1 × %2 mm").arg(mm(cut.length), mm(cut.width))));
+    form->addRow(domain::hasShape(*part) ? tr("Cut size (blank):") : tr("Cut size:"),
+                 label(tr("%1 × %2 mm").arg(mm(cut.length), mm(cut.width))));
     const domain::Material* material = model.findMaterial(part->material);
     form->addRow(tr("Material:"), label(material ? QString::fromStdString(material->name)
                                                  : tr("%1 (missing)").arg(QString::fromStdString(part->material.str()))));
     form->addRow(tr("Grain:"), label(grainText(part->grain)));
+    const ShapeFacts facts = shapeFacts(*part);
+    auto* shapeLabel = label(shapeSummary(facts));
+    shapeLabel->setObjectName(QStringLiteral("partShape"));
+    form->addRow(tr("Shape:"), shapeLabel);
+    if (facts.shaped) {
+        auto* area = label(tr("%1 mm² (%2 m²)").arg(QString::number(facts.outlineArea, 'f', 1),
+                                                    QString::number(facts.outlineArea / 1e6, 'f', 4)));
+        area->setObjectName(QStringLiteral("partOutlineArea"));
+        form->addRow(tr("Outline area:"), area);
+        form->addRow(tr("Outline segments:"), label(QString::number(facts.segments)));
+        form->addRow(tr("Cut-outs:"), label(QString::number(facts.cutouts)));
+        form->addRow(tr("Edge banding:"), label(tr("%1 of %2 outline segments banded")
+                                                    .arg(facts.bandedSegments)
+                                                    .arg(facts.segments)));
+    }
     for (domain::EdgeSide side : {domain::EdgeSide::L1, domain::EdgeSide::L2, domain::EdgeSide::W1, domain::EdgeSide::W2}) {
+        if (facts.shaped) break; // bands follow the outline segments (above)
         const auto& edge = part->edge(side);
         QString text = tr("raw");
         if (edge) {
@@ -243,7 +272,9 @@ void InspectorPanel::buildPart(QVBoxLayout* layout, const std::string& partId) {
                             layout->parentWidget());
     hint->setWordWrap(true);
     layout->addWidget(hint);
-    buildPartOverride(layout, session_.itemOfPart(partId), partId);
+    const std::string itemId = session_.itemOfPart(partId);
+    buildPartOverride(layout, itemId, partId);
+    buildShape(layout, itemId, partId);
 }
 
 } // namespace fos::app::gui

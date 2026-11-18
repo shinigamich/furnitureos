@@ -109,6 +109,9 @@ Command setElementEdit(std::string drawingId, std::string elementId, std::option
 // --- settings ---
 /// materialId nullopt = project defaults; settings nullopt removes the material's own entry.
 Command setCuttingSettings(std::optional<std::string> materialId, std::optional<CuttingSettings> settings);
+/// Sets the project nesting settings of shaped parts (checkNestingSettings), or with nullopt removes
+/// them (back to NestingSettings{}, key no longer written).
+Command setNestingSettings(std::optional<NestingSettings> settings);
 Command setMetadata(Metadata metadata);
 Command setSettings(ProjectSettings settings);
 /// Must be a JSON object.

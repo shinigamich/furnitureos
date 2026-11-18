@@ -2,6 +2,25 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US">
 <context>
+    <name>ContourText</name>
+    <message>
+        <source>Vertex %1: the bulge “%2” is not a number (0 = straight, 1 = half circle, negative = clockwise).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>rectangle</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>shaped part (routed)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>shaped part (rectangular outline, sawn)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>DrawingEditText</name>
     <message>
         <source>A user dimension cannot be hidden; remove it instead.</source>
@@ -624,6 +643,34 @@
         <source>Cut</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Shape</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Outline area (m2)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Outline edges</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Routed contours</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Routing length</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>shaped</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Shaped</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::CommandText</name>
@@ -1129,6 +1176,14 @@
         <source>Remnant</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>%1 (%2; blank %3 × %4 mm)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;b&gt;Routed parts — nested separately&lt;/b&gt; (shaped outlines are cut on the CNC router, not on the saw; they are not in the layouts below): %1</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::DiagnosticsPanel</name>
@@ -1559,6 +1614,34 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Inset (inside the opening)</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Rectangle</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rounded corners</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Arc edge</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Custom outline</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Convex (outwards)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Concave (inwards)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Circle</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::InspectorPanel</name>
@@ -1784,6 +1867,38 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
     <message>
         <source>Remove override</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cut size (blank):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Shape:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 mm² (%2 m²)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Outline area:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Outline segments:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cut-outs:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edge banding:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 of %2 outline segments banded</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2433,6 +2548,146 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
     <message>
         <source>Size (mm)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::ShapeEditor</name>
+    <message>
+        <source>Auto</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Shape</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Outline:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Plain rectangle. Cut-outs below still apply.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Radius L1 · W1 (0, 0):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Radius L1 · W2 (L, 0):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Radius L2 · W2 (L, W):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Radius L2 · W1 (0, W):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>sharp</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edge:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rise (mm):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Direction:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Vertices counter-clockwise; bulge 0 = straight segment to the next vertex, 1 = half circle, negative = clockwise arc.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>X</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Y</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Bulge</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Band from</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Up</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Down</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cut-outs (through openings, never edge-banded):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Kind</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Length</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Width</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Radius</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rectangle: X, Y = lower-left corner, Length × Width, corner Radius (empty = sharp).
+Circle: X, Y = centre, Radius.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add rectangle</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add circle</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Values in mm, in the part frame (X along the length, Y along the width). Each field accepts an expression of the parameters and contour.length, contour.width, contour.thickness.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Apply</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reset</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Discard the changes in this section and show the stored shape.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove shape</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

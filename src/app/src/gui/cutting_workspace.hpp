@@ -40,6 +40,8 @@ class CuttingWorkspace : public QWidget {
 public:
     explicit CuttingWorkspace(Session& session, QWidget* parent = nullptr);
     int materialCount() const;
+    /// Shaped parts left out of the saw layouts (routed / nested separately).
+    int routedPartCount() const noexcept { return routedCount_; }
     /// Scope combo, objective combo and remnant table of the settings editor (for tests).
     QComboBox* settingsScope() const noexcept { return scope_; }
     QComboBox* objective() const noexcept { return objective_; }
@@ -77,6 +79,8 @@ private:
     QPushButton* useDefaults_;
     QLabel* remnantHint_;
     QLabel* error_;
+    QLabel* routed_;
+    int routedCount_ = 0;
     bool stale_ = true;
 };
 

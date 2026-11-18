@@ -14,6 +14,7 @@ production::Localisation ProductionText::localisation() {
     p.thickness = s(tr("Thickness")); p.cutLength = s(tr("Cut length")); p.cutWidth = s(tr("Cut width"));
     p.grain = s(tr("Grain")); p.edgeL1 = s(tr("Edge L1")); p.edgeL2 = s(tr("Edge L2")); p.edgeW1 = s(tr("Edge W1"));
     p.edgeW2 = s(tr("Edge W2")); p.operations = s(tr("Operations"));
+    p.shape = s(tr("Shape")); p.outlineArea = s(tr("Outline area (m2)")); p.outlineEdges = s(tr("Outline edges"));
 
     auto& c = l.cutList;
     c.material = p.material; c.thickness = p.thickness; c.cutLength = p.cutLength; c.cutWidth = p.cutWidth;
@@ -21,6 +22,7 @@ production::Localisation ProductionText::localisation() {
     c.grain = p.grain; c.rotationAllowed = s(tr("Rotation allowed")); c.edgeL1 = p.edgeL1; c.edgeL2 = p.edgeL2;
     c.edgeW1 = p.edgeW1; c.edgeW2 = p.edgeW2; c.name = p.name; c.operations = p.operations;
     c.partNumbers = s(tr("Part numbers")); c.partIds = s(tr("Part IDs"));
+    c.shape = p.shape; c.outlineArea = p.outlineArea; c.outlineEdges = p.outlineEdges;
 
     auto& m = l.materials;
     m.material = p.material; m.thickness = p.thickness; m.parts = s(tr("Parts"));
@@ -44,6 +46,7 @@ production::Localisation ProductionText::localisation() {
     x.number = p.number; x.assembly = p.assembly; x.partId = p.partId; x.name = p.name;
     x.holes = s(tr("Holes (count x diameter @ face)")); x.holeCount = s(tr("Holes")); x.grooves = s(tr("Grooves"));
     x.grooveLength = s(tr("Groove length")); x.pockets = s(tr("Pockets"));
+    x.routedContours = s(tr("Routed contours")); x.routingLength = s(tr("Routing length"));
 
     auto& lb = l.labels;
     lb.number = p.number; lb.project = s(tr("Project")); lb.assembly = p.assembly; lb.name = p.name;
@@ -71,6 +74,7 @@ production::Localisation ProductionText::localisation() {
     t.suppliedSheetCount = s(tr("supplied sheet count"));
     t.totalIsLowerBound = s(tr("lower bound (materials at area lower bound)"));
     t.totalIncomplete = s(tr("incomplete (some prices unknown)"));
+    t.shaped = s(tr("shaped"));
     using R = domain::PartRole;
     t.roles = {{R::Side, s(tr("Side"))},           {R::Top, s(tr("Top"))},
                {R::Bottom, s(tr("Bottom"))},       {R::Shelf, s(tr("Shelf"))},
@@ -103,6 +107,7 @@ production::LabelText ProductionText::labelText() {
     production::LabelText t;
     t.cut = s(tr("Cut"));
     t.number = s(tr("No."));
+    t.shaped = s(tr("Shaped"));
     return t;
 }
 

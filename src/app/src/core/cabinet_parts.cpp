@@ -30,7 +30,7 @@ template <class Selection> auto& field(Selection& s, HardwareRole role) {
 
 project::Command overrideCommand(const furniture::CabinetDefinition& cabinet, const std::string& slot,
                                  const furniture::PartOverride& o) {
-    const bool empty = !o.material && o.edges.empty();
+    const bool empty = !o.material && o.edges.empty() && !o.contour;
     return project::commands::setPartOverride(
         cabinet.id.str(), slot, empty ? std::nullopt : std::optional<furniture::PartOverride>(o));
 }
@@ -147,7 +147,10 @@ project::Command partEdgeCommand(const furniture::CabinetDefinition& cabinet, co
 
 project::Command clearPartOverrideCommand(const furniture::CabinetDefinition& cabinet,
                                           const std::string& slot) {
-    return project::commands::setPartOverride(cabinet.id.str(), slot, std::nullopt);
+    // The shape is edited in its own section and survives "Remove override".
+    furniture::PartOverride o;
+    o.contour = currentOverride(cabinet, slot).contour;
+    return overrideCommand(cabinet, slot, o);
 }
 
 } // namespace fos::app

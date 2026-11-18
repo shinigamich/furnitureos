@@ -11,11 +11,12 @@ fos_add_module(project
         src/codec_project.cpp
         src/file.cpp
         src/commands.cpp
+        src/commands_nesting.cpp
         src/document.cpp
         src/outputs.cpp
         src/limits.cpp
     DEPS fos::core fos::geometry fos::parametric fos::domain fos::machining fos::hardware fos::furniture
-         fos::production fos::cutting fos::cutting_model fos::drawings fos::formats nlohmann_json::nlohmann_json)
+         fos::production fos::cutting fos::cutting_model fos::nesting fos::nesting_model fos::drawings fos::formats nlohmann_json::nlohmann_json)
 target_compile_definitions(fos_project PRIVATE FOS_PROJECT_APP_VERSION="${PROJECT_VERSION}")
 
 fos_add_tests(project
@@ -25,4 +26,5 @@ fos_add_tests(project
         tests/document_tests.cpp
         tests/scenario_tests.cpp
         tests/limits_tests.cpp
-        tests/contour_tests.cpp)
+        tests/contour_tests.cpp
+        tests/nesting_tests.cpp)

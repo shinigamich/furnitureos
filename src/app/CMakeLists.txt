@@ -24,7 +24,8 @@ add_library(fos_app_core STATIC
     src/core/drawing_request.cpp
     src/core/interior_rows.cpp
     src/core/cabinet_parts.cpp
-    src/core/drawing_edits.cpp)
+    src/core/drawing_edits.cpp
+    src/core/contour_rows.cpp)
 add_library(fos::app_core ALIAS fos_app_core)
 # moc (Qt 6.4) cannot parse libstdc++ C++20 concepts with the compiler predefines (see viewport).
 set_target_properties(fos_app_core PROPERTIES AUTOMOC ON AUTOMOC_COMPILER_PREDEFINES OFF)
@@ -44,7 +45,8 @@ if(FOS_BUILD_TESTS)
         tests/core/interior_tests.cpp
         tests/core/cabinet_parts_tests.cpp
         tests/core/drawing_edit_tests.cpp
-        tests/core/cutting_settings_tests.cpp)
+        tests/core/cutting_settings_tests.cpp
+        tests/core/contour_tests.cpp)
     target_link_libraries(fos_app_core_tests PRIVATE fos::app_core Qt6::Test GTest::gtest GTest::gmock)
     fos_set_warnings(fos_app_core_tests PRIVATE)
     gtest_discover_tests(fos_app_core_tests DISCOVERY_TIMEOUT 60
@@ -88,7 +90,9 @@ set(FOS_APP_GUI_SOURCES
     src/gui/settings.hpp
     src/gui/settings.cpp
     src/gui/enum_text.hpp
-    src/gui/enum_text.cpp)
+    src/gui/enum_text.cpp
+    src/gui/shape_editor.hpp
+    src/gui/shape_editor.cpp)
 
 # Everything except main.cpp goes into a static library shared by the executable and the
 # GUI smoke test.
@@ -129,7 +133,7 @@ qt_add_translations(furnitureos
 if(FOS_BUILD_TESTS)
     # GUI smoke test: needs an X display; run under xvfb-run when available. Without a
     # display the test skips itself (label `gui`).
-    add_executable(fos_app_gui_tests tests/gui/gui_smoke_tests.cpp)
+    add_executable(fos_app_gui_tests tests/gui/gui_smoke_tests.cpp tests/gui/shape_gui_tests.cpp)
     target_link_libraries(fos_app_gui_tests PRIVATE fos_app_gui Qt6::Test GTest::gtest)
     fos_set_warnings(fos_app_gui_tests PRIVATE)
     # The test loads the compiled Ukrainian catalogue from the build tree.

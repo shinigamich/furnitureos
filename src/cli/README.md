@@ -19,8 +19,8 @@ generator refuses, so it has no parts) it still writes the output of the good it
 `fos <command>: INCOMPLETE OUTPUT: … Item(s) that could not be generated and are MISSING from this output: <ids>.`
 followed by every error diagnostic to stderr (`fos cut` also puts it into `cutting-summary.txt`) and exits 1.
 
-Every command prints its usage with `--help`; `fos --help` lists the commands. `fos nest` does not exist:
-projects contain no polygon (true-shape) parts yet.
+Every command prints its usage with `--help`; `fos --help` lists the commands. There is no separate `fos nest`:
+`fos cut` nests the shaped parts.
 
 ## Commands
 
@@ -173,6 +173,52 @@ Wrote 2 sheet SVG(s) and cutting-summary.txt to cutting
 (exit code 0)
 ```
 
+**Shaped parts** (ADR-0008: arcs, non-rectangular corners or cut-outs) are not sawn. `project::cuttingPlans` leaves
+them out of the guillotine jobs (Info `cutting.adapter.routed`) and nests them true-shape per material with the
+project nesting settings (`.fosp` `cutting.nesting`, project README §2.6; defaults tool 8 mm, clearance 0, chord
+tolerance 0.1, margins 10, 20 iterations, seed 12345). The nesting is also a **heuristic**; every layout is checked by
+`nesting::validateNest`; nest sheets are written as `<dir>/<material>-nest-<n>.svg`. A material can have both kinds.
+Exit 1 also for nesting failures or validateNest errors. Output for a project with a shaped shelf (R 30 front
+corners) and a 1200 × 600 worktop with an R 20 sink cut-out and a Ø 35 tap hole (contours set with the project
+commands; the CLI has no contour editing):
+
+```text
+$ fos cut kitchen.fosp --out-dir cutting
+Cutting plans of 'Kitchen'
+Layouts are produced by a HEURISTIC optimiser; utilisation is that of the layout found, which is in general not optimal.
+Shaped parts are nested by a true-shape HEURISTIC for routing; those layouts are not optimal either.
+
+Material mat.generic.pb18 "Particleboard 18 mm (generic)" (18 mm)
+  kerf 4 mm, trim left/right/bottom/top 10/10/10/10 mm
+  pieces: 8 required, 8 placed, 0 unplaced
+  sheet 1: mat.generic.pb18/sheet 2800 x 2070 mm, 8 pieces, utilisation 33.42 % of the sheet (33.99 % of the usable area), 16 cuts -> mat.generic.pb18-sheet-1.svg
+  total: 1 sheet(s), placed area 1.937 m2 of 5.796 m2 sheet area = utilisation 33.42 % (heuristic result)
+  sheet count lower bound (area): 1 - sheet count proven minimal
+  strategy: heuristic: sort=longer-side, split=shorter-leftover-axis, fit=best-area-fit, orientation=best-of-both, stock=largest-first
+  validator (cutting::validateLayout): no findings
+  SHAPED parts (routed, true-shape nesting HEURISTIC - not optimal): 2 part(s)
+    tool 8 mm + clearance 0 mm, chord tolerance 0.1 mm -> part spacing 8.2 mm, edge spacing 8.1 mm; margins left/right/bottom/top 10/10/10/10 mm; 20 iterations, seed 12345
+    parts: 2 required, 2 placed, 0 unplaced
+    nest sheet 1: mat.generic.pb18/sheet, 2 part(s), used length 618.1 mm, utilisation 19.49 % of the sheet -> mat.generic.pb18-nest-1.svg
+    total: 1 sheet(s), part area 1.1295 m2 (net of cut-outs 0.9289 m2) of 5.796 m2 = utilisation 19.49 % (heuristic result, 20 improvement iterations)
+    validator (nesting::validateNest): no findings
+
+Material mat.generic.hdf3 "HDF 3 mm (generic)" (3 mm)
+  kerf 4 mm, trim left/right/bottom/top 10/10/10/10 mm
+  pieces: 1 required, 1 placed, 0 unplaced
+  sheet 1: mat.generic.hdf3/sheet 2800 x 2070 mm, 1 pieces, utilisation 8.46 % of the sheet (8.6 % of the usable area), 6 cuts -> mat.generic.hdf3-sheet-1.svg
+  total: 1 sheet(s), placed area 0.4903 m2 of 5.796 m2 sheet area = utilisation 8.46 % (heuristic result)
+  sheet count lower bound (area): 1 - sheet count proven minimal
+  strategy: heuristic: sort=area, split=shorter-leftover-axis, fit=best-area-fit, orientation=best-of-both, stock=largest-first
+  validator (cutting::validateLayout): no findings
+
+Diagnostics: 2
+  [info] cutting.adapter.routed (cab1/shelf.1): Part 'Shelf' (cab1/shelf.1) has a non-rectangular outline or cut-outs; it is not in any guillotine cutting job and must be nested and routed (see the nesting jobs).
+  [info] cutting.adapter.routed (top/panel): Part 'Worktop' (top/panel) has a non-rectangular outline or cut-outs; it is not in any guillotine cutting job and must be nested and routed (see the nesting jobs).
+Wrote 2 sheet SVG(s) and 1 nesting sheet SVG(s) and cutting-summary.txt to cutting
+(exit code 0)
+```
+
 ### `fos drawing`
 
 An item id gives the assembly drawing (front view, top view below, left view to the right — ISO first angle — with automatic dimensions and the project's stored drawing edits); a part id gives the part drawing. `--svg` writes the sheet at exact scale (`width="420mm" height="297mm" viewBox="0 0 420 297"`, 100 mm calibration line); `--dxf` writes the first view in model space at 1:1 mm (DXF R12). `--paper A4|A3|A2|A1` (landscape; `--portrait`), `--scale fit|1:N`. An explicit scale that does not fit is an error, never silently changed. Stale text overrides are reported as warnings.
@@ -300,6 +346,66 @@ G0 X418.500 Y510.000 Z23.000
 …
 ```
 
+**Shaped parts:** `fos cam` routes the raw outline (and every cut-out, first) with the cam module's contour routing
+(radius compensation in the program, exact G2/G3 arcs, climb), passing the resolved model to `CamOptions::model` and
+`SimulationOptions::model` (edge bands of the raw outline). The clamped blank is the part's bounding box grown by
+`--blank-allowance` per side (default **10 mm** for shaped parts, 0 … 1000). A shaped part without other operations on
+that face still gets a program (the contour). `--blank-allowance > 0` on a rectangular part is refused (exit 2) — such
+parts are sawn to size. Any simulation error refuses the program (exit 1, nothing written).
+
+```text
+$ fos cam kitchen.fosp cab1/shelf.1 --face A --out shelf-A.nc
+Part cab1/shelf.1 "Shelf" 762 x 540 x 18 mm, 0 operations, face A up
+Machine: FurnitureOS demo profile — not a real machine (fictional, verified: no)
+Shaped part: outline routed; blank allowance 10 mm -> blank 782 x 560 x 18 mm
+Machining validation: no findings
+Machinable in this setup: 0
+Needs the other face up: 0
+UNSUPPORTED (not in this program): 0
+CAM diagnostics:
+  [warning] cam.profile.unverified (FurnitureOS demo profile — not a real machine): Machine profile 'FurnitureOS demo profile — not a real machine' (controller: 'fictional controller (demo profile — not a real machine)') is NOT verified: Demo profile — not a real machine. Not verified against any physical machine or controller.
+  [warning] cam.contour.rounded_corner (cab1/shelf.1): The outline ('contour.outline') of 'Shelf' has 2 sharp corner(s) the end mill cannot reach; they are left rounded with radius 4 mm (first at machine X 790, Y 60).
+Contour routing: 1
+  contour.outline (outline, tool outside)
+Simulation: 0 errors, 0 warnings; 1 tool change(s), rapid 189.5 mm, cutting 13171.4 mm, estimated 275 s (estimate, no acceleration)
+Wrote shelf-A.nc (Generic ISO G-code (RS-274 style), UNVERIFIED)
+verifiedForMachine: false - UNVERIFIED output for a fictional demo machine; review before any use.
+Review before use:
+…
+(exit code 0)
+```
+
+```text
+$ fos cam kitchen.fosp cab1/side.left --face B --out x.nc --blank-allowance 10
+fos cam: --blank-allowance applies to shaped (routed) parts only; 'cab1/side.left' is rectangular and is sawn to size, so its stock is the part itself.
+Run 'fos cam --help' for usage.
+(exit code 2)
+```
+
+Lines 16–32 of `shelf-A.nc` (lead-in arc, then the R 32 tool-centre arcs of the R 28 raw corners — R 30 finished minus
+the 2 mm front band — with the 4 mm tool radius):
+
+```text
+(==================================================================)
+G21 G90 G17 G94
+G0 Z60.000
+T13 M6
+S18000 M3
+(OPERATION contour.outline)
+G0 X407.000 Y578.000 Z60.000
+G0 X407.000 Y578.000 Z23.000
+G1 X407.000 Y578.000 Z14.000 F1000.0
+G3 X411.000 Y574.000 Z14.000 I4.000 J0.000 F3000.0
+G1 X796.000 Y574.000 Z14.000 F3000.0
+G1 X796.000 Y56.000 Z14.000 F3000.0
+G1 X793.749 Y56.000 Z14.000 F3000.0
+G2 X762.000 Y28.000 Z14.000 I-31.749 J4.000 F3000.0
+G1 X60.000 Y28.000 Z14.000 F3000.0
+G2 X28.251 Y56.000 Z14.000 I0.000 J32.000 F3000.0
+G1 X26.000 Y56.000 Z14.000 F3000.0
+…
+```
+
 ### `fos export-obj`
 
 Wavefront OBJ of the resolved model (every part a box at its finished size, project frame, mm, Z up) and `<stem>.mtl` beside it.
@@ -316,8 +422,12 @@ Wrote 10 parts to kitchen.obj (+ MTL beside it)
   messages, written files (CSV row text, SVG paper size, DXF, labels, OBJ object count, G-code header), refusals
   that leave the file unchanged, the simulator-error refusal of `fos cam` (3300 mm side outside the demo envelope),
   edge holes reported unsupported, determinism.
+* `src/cli/tests/cli_shaped_tests.cpp`: a shelf with R 30 front corners — `fos cut` writes guillotine and nesting
+  SVGs (8 sawn pieces, 1 nested part, part spacing 8.2 mm, validateNest clean); `fos cam` routes it (blank 782 × 560
+  at the default allowance, 772 × 550 with `--blank-allowance 5`, G2/G3, simulation clean); the option is refused for
+  a rectangular part and for negative values.
 * `src/cli/tests/cli_binary_tests.cpp`: runs the real `fos` executable as a process (exit codes 0/1/2, output).
-* `tests/` (`fos_scenario_tests`): cross-module end-to-end scenarios A–E with hand-computed expectations; built by
+* `tests/` (`fos_scenario_tests`): cross-module end-to-end scenarios A–F with hand-computed expectations; built by
   the root CMakeLists for a full configure and by this directory's CMakeLists when `FOS_MODULES` lists `cli`.
 
 ## Limitations

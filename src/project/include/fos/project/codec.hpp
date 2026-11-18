@@ -21,6 +21,8 @@ formats::Json toJson(const furniture::Section& section);
 formats::Json toJson(const furniture::CabinetDefinition& cabinet); ///< Without the "type" tag.
 formats::Json toJson(const drawings::DrawingEdits& edits);
 formats::Json toJson(const CuttingSettings& settings);
+/// Every field is written (README 2.6 "nesting").
+formats::Json toJson(const NestingSettings& settings);
 formats::Json toJson(const Item& item);                            ///< With "type" and preserved keys.
 /// Part / panel contour (README "ContourSpec"); every field is written (lossless).
 formats::Json toJson(const furniture::ContourSpec& contour);
