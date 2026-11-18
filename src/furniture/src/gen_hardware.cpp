@@ -162,6 +162,15 @@ core::Result<hardware::Placement> place(Gen& g, const Job& j, const domain::Hard
         }
         return hardware::placeHinges(door, parts[j.b], hinge, c);
     }
+    case JobKind::Slide: {
+        auto def = lookup(j.slide, "drawer slide");
+        if (!def) return def.error();
+        hardware::DrawerSlideConfig c;
+        c.instanceId = id;
+        c.slideLength = j.slideLength;
+        if (j.sharedPanel) c.maxCabinetHoleDepth = sharedHoleDepthLimit(parts[j.b].thickness);
+        return hardware::placeDrawerSlides(parts[j.a], parts[j.b], def.value(), c);
+    }
     case JobKind::Handle: {
         auto def = lookup(sel.handle, "handle");
         if (!def) return def.error();

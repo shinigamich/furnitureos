@@ -53,7 +53,7 @@ struct SectionTreeStats {
 SectionTreeStats sectionTreeStats(const Section& root);
 
 /// Upper bound of the number of parts generate() makes: kMaxCarcassParts + dividers +
-/// shelves + fronts.
+/// shelves + fronts (a drawer with a box counts 6: front + 5 box parts).
 std::size_t estimatePartCount(const Section& root);
 
 /// Checks the STRUCTURAL limits of the interior tree: shelves per section and per cabinet,

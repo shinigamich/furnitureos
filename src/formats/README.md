@@ -13,6 +13,7 @@ This file is the public documentation of the FurnitureOS file formats handled he
 | Libraries | `library.hpp` | `.foslib` import / export / merge |
 | OBJ | `obj_export.hpp` | Wavefront OBJ + MTL export (write-only) |
 | CSV | `csv_materials.hpp` | Material list import (read-only) |
+| DXF | `dxf_import.hpp` | 2D outline import (ASCII DXF) for panels (read-only) |
 | Hash | `sha256.hpp` | SHA-256 (own implementation, FIPS 180-4) |
 
 Conventions: all lengths are millimetres, angles do not occur, text is UTF-8. Expected failures are returned as
@@ -459,6 +460,39 @@ Two entries with different ids but identical content are not detected as duplica
   `row 4, column 'thickness': expected a positive number, got 'abc'.` (first 50 are shown).
 * **Not supported**: export, colours, textures, availability, multi-line fields, other separators, edge band or
   hardware lists.
+
+### 5.3 DXF outline import — import only (`dxf_import.hpp`)
+
+`importDxf(text, options)` / `importDxfFile(path, options)` read 2D outlines from **ASCII DXF** (R12 through
+current; the publicly documented group-code format), `importPanelShape(loops)` turns them into a panel outline.
+
+* **Entities**: `LINE`, `ARC`, `CIRCLE`, `LWPOLYLINE` (bulges, closed flag 70 bit 1), 2D `POLYLINE` / `VERTEX` /
+  `SEQEND` (bulges; spline-frame control vertices are skipped, the fitted vertices used). Z is ignored. Entities
+  with extrusion (0,0,-1) (mirrored OCS) are mirrored back into world XY; other extrusions are reported.
+* **Not supported (reported as `formats.dxf.*` warnings, never dropped silently)**: `INSERT` / blocks
+  (`insert_unsupported`: explode them first), `SPLINE`, `ELLIPSE`, `HATCH`, text, dimensions, 3D polylines,
+  meshes and every other entity (`entity_unsupported`, one line per type with count and first line). Binary DXF
+  is an error. The `BLOCKS`, `TABLES`, `OBJECTS` sections are skipped.
+* **Units**: `$INSUNITS` 1 in (25.4), 2 ft (304.8), 4 mm, 5 cm, 6 m; absent or 0 = mm with warning
+  `units_assumed`; other codes are an error unless `options.units` overrides the file. Output is always mm.
+* **Layers**: `options.layer` keeps only that layer (case-insensitive); the skipped count is an Info.
+* **Chaining**: closed polylines and circles are loops directly; `LINE`, `ARC` and open polylines are joined end to
+  end when endpoints are within `chainTolerance` (default 0.01 mm, (0, 10]); several candidates = nearest one plus
+  warning `ambiguous_junction`. Chains that do not close are reported with their end points and gap
+  (`open_chain`). Collinear straight pieces are merged; arcs over 180 degrees and bulges > 1 are split, so every
+  output bulge is within [-1, 1]. Loops that self-intersect are reported (`invalid_loop`). Output loops are CCW.
+* **Panel shape**: the largest-area loop is the outline; loops strictly inside it are cut-outs (largest first; one
+  inside / touching / crossing an accepted cut-out, or outside the outline, is reported as `loop_ignored`).
+  Everything is moved so the outline's bounding box starts at (0, 0); coordinates within 1e-9 of a 1e-6 mm grid are
+  snapped. Each cut-out is classified as Circle, Rectangle (axis-parallel, optional equal corner radius) or Other.
+* **Untrusted input**: text ≤ `maxBytes` (32 MiB), ≤ `maxEntities` (100 000) entities, ≤ `maxLoopVertices`
+  (10 000) per loop, coordinates ≤ 1e8 mm, ≤ 1000 loops / 20 000 segments per panel; the endpoint search is
+  grid-indexed and bounded per lookup (no quadratic blow-up). Malformed input — a group code that is not an
+  integer, a number that does not parse or is not finite, a pair or section cut off, no `ENTITIES`, no `EOF` — is a
+  `ParseError` naming the line: `DXF line 24: group code 40 needs a finite number, found '1O.5'.`
+* **Not supported**: export (see `drawings` for DXF output), blocks, splines/ellipses (no approximation is made),
+  hatches as cut-outs, paper space selection, text/dimensions, binary DXF, DXF with `$INSUNITS` other than the five
+  listed units (use `options.units`).
 
 ---
 

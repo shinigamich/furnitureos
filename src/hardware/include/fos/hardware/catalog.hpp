@@ -61,6 +61,29 @@
 ///    height_min                 95
 ///    height_max                 120
 ///    (Screw-on fitting; no drilling parameters, data only.)
+///
+///  hw.slide_ball_bearing  kind DrawerSlide "Ball-bearing drawer slide, side-mounted (generic)"
+///  hw.slide_undermount    kind DrawerSlide "Concealed undermount runner (generic)"
+///    (rules and meaning: drawer_slides.hpp)          ball-bearing  undermount
+///    undermount                 0 = side-mounted, 1 = undermount   0          1
+///    length_min / length_max    nominal lengths                    250 / 650  250 / 600
+///    length_step                                                   50         50
+///    depth_allowance            usable depth needed = L + this     0          3
+///    box_length_deduction       box length = L - this              0          10
+///    bottom_recess              min. height of the box bottom      0          13
+///                               above the box underside
+///    min_box_height             lowest drawer box (side height)    50         70
+///    side_clearance             gap per side (side-mounted)        12.7       -
+///    inner_width_deduction      box inner width = opening - this   -          42
+///    max_side_thickness         thickest box side (undermount)     -          16
+///    hole_line_height           hole line above box underside      22.5       7
+///    cabinet_hole_first / _pitch  along the slide from its front   37 / 128   37 / 128
+///    drawer_hole_first / _pitch                                    32 / 128   20 / 224
+///    hole_end_margin            last hole to the slide's rear end  20         20
+///    cabinet_hole_diameter / _depth  (system / euro-screw holes)   5 / 12     5 / 12
+///    drawer_hole_diameter / _depth   (screw pilot holes)           2.5 / 8    2.5 / 10
+///    (Typical values; unverified. Undermount drawer holes are in the LOWER EDGE of the box
+///     side, ball-bearing ones in its outer face.)
 namespace fos::hardware {
 
 namespace keys {
@@ -91,6 +114,27 @@ inline constexpr const char* kBoltAnchorDepth = "bolt_anchor_depth";
 inline constexpr const char* kHeightNominal = "height_nominal";
 inline constexpr const char* kHeightMin = "height_min";
 inline constexpr const char* kHeightMax = "height_max";
+inline constexpr const char* kUndermount = "undermount";
+inline constexpr const char* kLengthMin = "length_min";
+inline constexpr const char* kLengthMax = "length_max";
+inline constexpr const char* kLengthStep = "length_step";
+inline constexpr const char* kDepthAllowance = "depth_allowance";
+inline constexpr const char* kBoxLengthDeduction = "box_length_deduction";
+inline constexpr const char* kBottomRecess = "bottom_recess";
+inline constexpr const char* kMinBoxHeight = "min_box_height";
+inline constexpr const char* kSideClearance = "side_clearance";
+inline constexpr const char* kInnerWidthDeduction = "inner_width_deduction";
+inline constexpr const char* kMaxSideThickness = "max_side_thickness";
+inline constexpr const char* kHoleLineHeight = "hole_line_height";
+inline constexpr const char* kCabinetHoleFirst = "cabinet_hole_first";
+inline constexpr const char* kCabinetHolePitch = "cabinet_hole_pitch";
+inline constexpr const char* kDrawerHoleFirst = "drawer_hole_first";
+inline constexpr const char* kDrawerHolePitch = "drawer_hole_pitch";
+inline constexpr const char* kHoleEndMargin = "hole_end_margin";
+inline constexpr const char* kCabinetHoleDiameter = "cabinet_hole_diameter";
+inline constexpr const char* kCabinetHoleDepth = "cabinet_hole_depth";
+inline constexpr const char* kDrawerHoleDiameter = "drawer_hole_diameter";
+inline constexpr const char* kDrawerHoleDepth = "drawer_hole_depth";
 } // namespace keys
 
 namespace ids {
@@ -101,6 +145,8 @@ inline constexpr const char* kShelfPin5 = "hw.shelf_pin_5";
 inline constexpr const char* kCam15 = "hw.cam_15";
 inline constexpr const char* kHandleBar128 = "hw.handle_bar_128";
 inline constexpr const char* kFootAdjustable = "hw.foot_adjustable";
+inline constexpr const char* kSlideBallBearing = "hw.slide_ball_bearing";
+inline constexpr const char* kSlideUndermount = "hw.slide_undermount";
 } // namespace ids
 
 /// The generic catalogue, in the fixed order of the list above. unitCost is 0 (unknown).

@@ -28,9 +28,10 @@ domain::Part panel(const char* name, double l, double w, double t) {
 
 TEST(Catalog, EveryEntryIsGenericAndUnverified) {
     const auto cat = builtinCatalog();
-    ASSERT_EQ(cat.size(), 7u);
-    const char* expectedIds[] = {"hw.hinge_cup_35", "hw.confirmat_7x50", "hw.dowel_8x30", "hw.shelf_pin_5",
-                                 "hw.cam_15",       "hw.handle_bar_128", "hw.foot_adjustable"};
+    ASSERT_EQ(cat.size(), 9u);
+    const char* expectedIds[] = {"hw.hinge_cup_35",    "hw.confirmat_7x50", "hw.dowel_8x30",
+                                 "hw.shelf_pin_5",     "hw.cam_15",         "hw.handle_bar_128",
+                                 "hw.foot_adjustable", "hw.slide_ball_bearing", "hw.slide_undermount"};
     for (std::size_t i = 0; i < cat.size(); ++i) {
         const auto& d = cat[i];
         EXPECT_EQ(d.id.str(), expectedIds[i]);

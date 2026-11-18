@@ -42,16 +42,19 @@ void Gen::error(std::string code, std::string message, std::string entity) {
     diagnostics.push_back({core::Severity::Error, std::move(code), std::move(message), std::move(entity)});
 }
 
-namespace {
 domain::MaterialId roleMaterial(const MaterialAssignment& m, MaterialRole role) {
     switch (role) {
     case MaterialRole::Carcass: return m.carcass;
     case MaterialRole::Back: return m.back;
     case MaterialRole::Front: return m.front.empty() ? m.carcass : m.front;
+    case MaterialRole::Drawer: return m.drawer.empty() ? m.carcass : m.drawer;
+    case MaterialRole::DrawerBottom:
+        if (!m.drawerBottom.empty()) return m.drawerBottom;
+        if (!m.back.empty()) return m.back;
+        return m.drawer.empty() ? m.carcass : m.drawer;
     }
     return m.carcass;
 }
-} // namespace
 
 std::size_t Gen::addPart(const std::string& slot, std::string name, domain::PartRole role, MaterialRole material,
                          double length, double width, double thickness, const Transform& placement, const Edges& edges) {

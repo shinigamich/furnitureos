@@ -46,6 +46,15 @@ struct SectionSize {
     bool operator==(const SectionSize&) const = default;
 };
 
+/// Drawer boxes behind the fronts of a drawer stack (README "Drawer boxes"). One box per
+/// drawer front, carried by a pair of slides of the definition `slide` (kind DrawerSlide,
+/// e.g. hardware::ids::kSlideBallBearing or kSlideUndermount) in the hardware library.
+struct DrawerBoxSpec {
+    domain::HardwareId slide{hardware::ids::kSlideBallBearing};
+    DrawerBottomMount bottom = DrawerBottomMount::Grooved;
+    bool operator==(const DrawerBoxSpec&) const = default;
+};
+
 /// A front closing the opening of a section (see README "Fronts"). For every generated front
 /// (door or drawer front) face A is the inner, cabinet-side face and face B the visible face.
 struct FrontSpec {
@@ -56,6 +65,9 @@ struct FrontSpec {
     HandlePosition handle = HandlePosition::Center;
     /// DrawerStack only: one entry per drawer front, BOTTOM to TOP; at least one.
     std::vector<SectionSize> drawerHeights;
+    /// DrawerStack only: std::nullopt = fronts only; set = a drawer box with slides behind
+    /// every front of the stack (ignored for doors).
+    std::optional<DrawerBoxSpec> drawerBox;
     bool operator==(const FrontSpec&) const = default;
 };
 
@@ -107,6 +119,8 @@ struct MaterialAssignment {
     domain::MaterialId carcass; ///< Sides, top, bottom, rails, shelves, partitions, plinth.
     domain::MaterialId back;    ///< Required unless the back is BackMount::None.
     domain::MaterialId front;   ///< Doors and drawer fronts; empty = same as carcass.
+    domain::MaterialId drawer;  ///< Drawer-box sides, inner fronts, backs; empty = same as carcass.
+    domain::MaterialId drawerBottom; ///< Drawer-box bottoms; empty = the back material (or `drawer` without one).
     domain::EdgeBandId visibleEdge;                ///< Front edges of carcass parts; empty id = raw.
     std::optional<domain::EdgeBandId> hiddenEdge;  ///< Exposed end edges at through corners; unset = raw.
     std::optional<domain::EdgeBandId> frontEdge;   ///< All four edges of fronts; unset = visibleEdge.

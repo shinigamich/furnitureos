@@ -49,6 +49,47 @@ std::vector<HardwareDefinition> builtinCatalog() {
                 {{kHoleSpacing, 128.0}, {kHoleDiameter, 5.0}}),
         generic(ids::kFootAdjustable, HardwareKind::Foot, "Adjustable cabinet foot 100 mm (generic)",
                 {{kHeightNominal, 100.0}, {kHeightMin, 95.0}, {kHeightMax, 120.0}}),
+        generic(ids::kSlideBallBearing, HardwareKind::DrawerSlide, "Ball-bearing drawer slide, side-mounted (generic)",
+                {{kUndermount, 0.0},
+                 {kLengthMin, 250.0},
+                 {kLengthMax, 650.0},
+                 {kLengthStep, 50.0},
+                 {kDepthAllowance, 0.0},
+                 {kBoxLengthDeduction, 0.0},
+                 {kBottomRecess, 0.0},
+                 {kMinBoxHeight, 50.0},
+                 {kSideClearance, 12.7},
+                 {kHoleLineHeight, 22.5},
+                 {kCabinetHoleFirst, 37.0},
+                 {kCabinetHolePitch, 128.0},
+                 {kDrawerHoleFirst, 32.0},
+                 {kDrawerHolePitch, 128.0},
+                 {kHoleEndMargin, 20.0},
+                 {kCabinetHoleDiameter, 5.0},
+                 {kCabinetHoleDepth, 12.0},
+                 {kDrawerHoleDiameter, 2.5},
+                 {kDrawerHoleDepth, 8.0}}),
+        generic(ids::kSlideUndermount, HardwareKind::DrawerSlide, "Concealed undermount runner (generic)",
+                {{kUndermount, 1.0},
+                 {kLengthMin, 250.0},
+                 {kLengthMax, 600.0},
+                 {kLengthStep, 50.0},
+                 {kDepthAllowance, 3.0},
+                 {kBoxLengthDeduction, 10.0},
+                 {kBottomRecess, 13.0},
+                 {kMinBoxHeight, 70.0},
+                 {kInnerWidthDeduction, 42.0},
+                 {kMaxSideThickness, 16.0},
+                 {kHoleLineHeight, 7.0},
+                 {kCabinetHoleFirst, 37.0},
+                 {kCabinetHolePitch, 128.0},
+                 {kDrawerHoleFirst, 20.0},
+                 {kDrawerHolePitch, 224.0},
+                 {kHoleEndMargin, 20.0},
+                 {kCabinetHoleDiameter, 5.0},
+                 {kCabinetHoleDepth, 12.0},
+                 {kDrawerHoleDiameter, 2.5},
+                 {kDrawerHoleDepth, 10.0}}),
     };
 }
 
@@ -69,6 +110,11 @@ std::vector<std::string> requiredParams(HardwareKind kind) {
     case HardwareKind::Dowel: return {kDiameter, kLength, kFaceDepth, kEdgeDepth};
     case HardwareKind::ShelfSupport: return {kHoleDiameter, kHoleDepth};
     case HardwareKind::Handle: return {kHoleSpacing, kHoleDiameter};
+    case HardwareKind::DrawerSlide:
+        return {kUndermount,       kLengthMin,       kLengthMax,        kLengthStep,          kDepthAllowance,
+                kBoxLengthDeduction, kBottomRecess,  kMinBoxHeight,     kHoleLineHeight,      kCabinetHoleFirst,
+                kCabinetHolePitch, kDrawerHoleFirst, kDrawerHolePitch,  kHoleEndMargin,       kCabinetHoleDiameter,
+                kCabinetHoleDepth, kDrawerHoleDiameter, kDrawerHoleDepth};
     default: return {};
     }
 }

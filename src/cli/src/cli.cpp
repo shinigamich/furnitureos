@@ -18,7 +18,7 @@ struct CommandEntry {
     Handler handler;
 };
 
-constexpr std::array<CommandEntry, 10> kCommands{{
+constexpr std::array<CommandEntry, 11> kCommands{{
     {"new", "Create a project file, optionally with one cabinet from a template.", detail::cmdNew},
     {"info", "Show items, parameters, part counts and diagnostics of a project.", detail::cmdInfo},
     {"set", "Set a parameter of an item to a value or an expression and save.", detail::cmdSet},
@@ -29,6 +29,7 @@ constexpr std::array<CommandEntry, 10> kCommands{{
     {"labels", "Part labels as SVG pages.", detail::cmdLabels},
     {"cam", "UNVERIFIED G-code for one face of one part (fictional demo machine).", detail::cmdCam},
     {"export-obj", "Wavefront OBJ (+ MTL) of the resolved model.", detail::cmdExportObj},
+    {"import-dxf", "Add a free panel whose outline (and cut-outs) come from an ASCII DXF file.", detail::cmdImportDxf},
 }};
 
 } // namespace

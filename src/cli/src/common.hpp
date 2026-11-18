@@ -102,5 +102,6 @@ int cmdCut(const std::vector<std::string>& args, Io& io);
 int cmdDrawing(const std::vector<std::string>& args, Io& io);
 int cmdCam(const std::vector<std::string>& args, Io& io);
 int cmdExportObj(const std::vector<std::string>& args, Io& io);
+int cmdImportDxf(const std::vector<std::string>& args, Io& io);
 
 } // namespace fos::cli::detail

@@ -140,7 +140,9 @@ Enumerations of the furniture module are written with their **stable `toString()
 **MaterialAssignment** — closed: `carcass`, `back`, `front`, `visibleEdge` (strings, `""` = none / same as
 carcass / raw, see furniture `definition.hpp`), `hiddenEdge`, `frontEdge` (string or `null` = unset),
 `overrides` (object slot id → `{ "material": id|null, "edges": { "l1"|"l2"|"w1"|"w2": id|null } }`; a present
-edge key with `null` means "raw edge", an absent key means "no override"). An override may also carry
+edge key with `null` means "raw edge", an absent key means "no override"). `drawer`, `drawerBottom`
+(drawer-box materials, strings; written only when assigned — absent = the defaults of furniture `definition.hpp` —
+so older files are unchanged byte for byte). An override may also carry
 `"contour"`: Contour (written only when set, so files without contours are unchanged byte for byte).
 
 **Contour** (`furniture::ContourSpec`, furniture README "Contoured parts") — closed; every key is written
@@ -165,7 +167,9 @@ defaults = the generic built-in ids).
 **Section** — closed: `size` (`{kind, value, expression}`; Fixed/Weight need `value > 0`, Expression a
 non-empty `expression`), `split`, `shelfCount` (integer 0 … 100), `front` (Front, absent/null = none),
 `children` (array of Section, at most 50). Front — closed: `kind` (R), `overlay`, `hingeSide`, `hinges` (bool),
-`handle`, `drawerHeights` (array of size objects, bottom to top, at most 30). Section-tree rules (child counts,
+`handle`, `drawerHeights` (array of size objects, bottom to top, at most 30), `drawerBox` (closed object
+`{ "slide": hardware id (R, non-empty), "bottom": "Grooved" | "NailedUnder" }`; written only when set, absent =
+fronts only, so files without drawer boxes are unchanged byte for byte). Section-tree rules (child counts,
 sizes) are checked by the generator and reported as item diagnostics, except the hard limits of §2.8, which reject
 the file.
 

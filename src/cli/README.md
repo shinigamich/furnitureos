@@ -416,6 +416,28 @@ Wrote 10 parts to kitchen.obj (+ MTL beside it)
 (exit code 0)
 ```
 
+### `fos import-dxf`
+
+Adds a free horizontal panel whose outline and cut-outs come from an ASCII DXF file (rules: `src/formats/README.md`
+§5.3) and saves the project atomically. `--name` is required; `--material ID` and/or `--thickness T` choose the
+material (thickness alone = first library material of that thickness, by id). Options: `--id`, `--layer`,
+`--units mm|cm|m|in|ft`, `--tolerance MM` (chaining, default 0.01), `--skip-unsupported-cutouts`. The outline is
+stored as a Custom `ContourSpec` with numeric vertices (editable afterwards); circle cut-outs become Circle
+cut-outs, axis-parallel (rounded) rectangles Rectangle cut-outs. Any other cut-out shape refuses the import
+(exit 1, nothing saved) unless `--skip-unsupported-cutouts` leaves it out with a warning.
+
+```text
+$ fos import-dxf kitchen.fosp worktop.dxf --name "Work top" --material mat.generic.pb18
+Imported 'Work top' as item work-top (part work-top/panel), material mat.generic.pb18 (18 mm).
+Outline: 1200 x 600 mm, 4 segments (0 arcs); cut-outs: 2 (1 circle, 1 rectangle).
+DXF: 3 entities, unit mm, 3 closed outline(s).
+Saved kitchen.fosp
+(exit code 0)
+```
+
+Exit codes: 0 imported; 1 refused (no closed outline, unsupported cut-out, panel invalid) or saved with model
+errors; 2 usage error, unreadable / malformed DXF (message names the DXF line), unreadable / unwritable project.
+
 ## Tests
 
 * `src/cli/tests/cli_tests.cpp` (`fos_cli_tests`): every command in-process on a temporary project — exit codes,

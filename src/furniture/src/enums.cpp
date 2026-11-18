@@ -38,8 +38,11 @@ constexpr Table<OverlayKind, 3> kOverlayKind{{{OverlayKind::Full, "Full"}, {Over
 constexpr Table<HingeSide, 2> kHingeSide{{{HingeSide::Left, "Left"}, {HingeSide::Right, "Right"}}};
 constexpr Table<HandlePosition, 4> kHandlePosition{{{HandlePosition::None, "None"}, {HandlePosition::Center, "Center"},
                                                    {HandlePosition::Top, "Top"}, {HandlePosition::Bottom, "Bottom"}}};
-constexpr Table<MaterialRole, 3> kMaterialRole{{{MaterialRole::Carcass, "Carcass"}, {MaterialRole::Back, "Back"},
-                                               {MaterialRole::Front, "Front"}}};
+constexpr Table<MaterialRole, 5> kMaterialRole{{{MaterialRole::Carcass, "Carcass"}, {MaterialRole::Back, "Back"},
+                                               {MaterialRole::Front, "Front"}, {MaterialRole::Drawer, "Drawer"},
+                                               {MaterialRole::DrawerBottom, "DrawerBottom"}}};
+constexpr Table<DrawerBottomMount, 2> kDrawerBottomMount{{{DrawerBottomMount::Grooved, "Grooved"},
+                                                         {DrawerBottomMount::NailedUnder, "NailedUnder"}}};
 constexpr Table<PanelOrientation, 3> kPanelOrientation{{{PanelOrientation::Horizontal, "Horizontal"},
                                                        {PanelOrientation::VerticalSide, "VerticalSide"},
                                                        {PanelOrientation::VerticalFront, "VerticalFront"}}};
@@ -71,6 +74,7 @@ FOS_FURNITURE_ENUM(PanelOrientation, kPanelOrientation)
 FOS_FURNITURE_ENUM(ContourKind, kContourKind)
 FOS_FURNITURE_ENUM(ArcDirection, kArcDirection)
 FOS_FURNITURE_ENUM(CutoutKind, kCutoutKind)
+FOS_FURNITURE_ENUM(DrawerBottomMount, kDrawerBottomMount)
 #undef FOS_FURNITURE_ENUM
 
 } // namespace fos::furniture

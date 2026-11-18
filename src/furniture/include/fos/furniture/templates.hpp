@@ -26,7 +26,7 @@ CabinetDefinition wallCabinet(domain::AssemblyId id, const TemplateMaterials& ma
 /// upper section with 3 shelves; one full-height door hinged left.
 CabinetDefinition tallCabinet(domain::AssemblyId id, const TemplateMaterials& materials);
 /// 600 x 820 x 560; feet 100; full top; grooved back; stack of 4 drawer FRONTS (bottom two
-/// double height). No drawer boxes are generated (see README limitations).
+/// double height). Fronts only; set FrontSpec::drawerBox for drawer boxes with slides.
 CabinetDefinition drawerUnit(domain::AssemblyId id, const TemplateMaterials& materials);
 /// 1000 x 2200 x 580; plinth panel 80; one partition (two equal sections: 4 shelves left,
 /// 1 shelf right); pair of doors over the whole front.

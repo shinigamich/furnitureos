@@ -43,7 +43,13 @@ enum class FrontKind { Door, DoorPair, DrawerStack };
 enum class OverlayKind { Full, Half, Inset };
 enum class HingeSide { Left, Right };
 enum class HandlePosition { None, Center, Top, Bottom };
-enum class MaterialRole { Carcass, Back, Front };
+/// Drawer: drawer-box sides, inner front and back; DrawerBottom: drawer-box bottoms.
+enum class MaterialRole { Carcass, Back, Front, Drawer, DrawerBottom };
+/// How the bottom of a drawer box is fixed (definition.hpp DrawerBoxSpec).
+enum class DrawerBottomMount {
+    Grooved,     ///< In grooves milled into the sides, the inner front and the back.
+    NailedUnder, ///< Full-size panel nailed / screwed under the sides, front and back.
+};
 enum class PanelOrientation {
     Horizontal,    ///< length -> +X, width -> +Y, thickness -> +Z (shelf, worktop).
     VerticalSide,  ///< length -> +Z, width -> +Y, thickness -> -X (like a cabinet side).
@@ -80,6 +86,7 @@ const char* toString(PanelOrientation) noexcept;
 const char* toString(ContourKind) noexcept;
 const char* toString(ArcDirection) noexcept;
 const char* toString(CutoutKind) noexcept;
+const char* toString(DrawerBottomMount) noexcept;
 
 /// Inverse of toString for every enum above; std::nullopt for unknown text (case-sensitive).
 template <class E> std::optional<E> fromString(std::string_view text) noexcept;
@@ -99,5 +106,6 @@ template <> std::optional<PanelOrientation> fromString<PanelOrientation>(std::st
 template <> std::optional<ContourKind> fromString<ContourKind>(std::string_view) noexcept;
 template <> std::optional<ArcDirection> fromString<ArcDirection>(std::string_view) noexcept;
 template <> std::optional<CutoutKind> fromString<CutoutKind>(std::string_view) noexcept;
+template <> std::optional<DrawerBottomMount> fromString<DrawerBottomMount>(std::string_view) noexcept;
 
 } // namespace fos::furniture

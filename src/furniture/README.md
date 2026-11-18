@@ -28,12 +28,13 @@ parameter PINS it (`pinnedParameters`); pinned parameters are not rewritten by o
 `side.left`, `side.right`, `bottom`, `top` or `rail.front` + `rail.back`, `plinth`, `back`;
 `partition.<path>.<k>` and `fixed_shelf.<path>.<k>` (k-th divider of the section at `<path>`),
 `shelf.<path>.<i>` (adjustable shelves, bottom to top), `door.<path>` / `door.<path>.left|right`,
-`drawer.<path>.<i>` (bottom to top). Section paths: root `""`, children `1`, `2`, `2.1`, ... Empty
+`drawer.<path>.<i>` (bottom to top) and, with a drawer box, `drawer.<path>.<i>.side.left|side.right|box_front|box_back|bottom`.
+Section paths: root `""`, children `1`, `2`, `2.1`, ... Empty
 path segments are skipped (`shelf.1` for the root's first shelf). Ids depend only on the tree
 position, so changing a shelf count only adds/removes the trailing ids of that section.
 Hardware instances: `hw.joint.<edge slot>.<face slot>`, `hw.pins.<shelf slot>`,
-`hw.hinges.<door slot>`, `hw.handle.<front slot>`, `hw.feet`; back grooves have source
-`<cabinet>/rule.back_groove`.
+`hw.hinges.<door slot>`, `hw.handle.<front slot>`, `hw.slide.<drawer slot>.left|right`, `hw.feet`; back grooves
+have source `<cabinet>/rule.back_groove`, drawer-bottom grooves `<cabinet>/rule.drawer_bottom_groove`.
 
 ## Interior
 
@@ -101,6 +102,38 @@ face B the visible outer face.** Doors: length vertical, width along x. Drawer f
 (grain horizontal), width from the top edge downwards (L1 = top edge). Handle holes are THROUGH holes
 recorded on face A (the same (u, v) on face B is where they leave the visible face); hinge cups are
 drilled into face A.
+
+## Drawer boxes
+
+`FrontSpec::drawerBox` (`DrawerBoxSpec{slide, bottom}`, DrawerStack only; `std::nullopt` = fronts only) puts a
+box behind EVERY front of the stack, carried by two slides of the definition `slide` (kind DrawerSlide; generic
+`hw.slide_ball_bearing` (default) or `hw.slide_undermount`, hardware README). Sizing (all from the resolved
+graph, so width / depth / drawer-height changes regenerate the box; rules of `hardware/drawer_slides.hpp`):
+
+* **Optional parameters** (add a custom parameter of that name to override; defaults in mm):
+  `drawer_box_top_clearance` 25, `drawer_box_bottom_clearance` 15, `drawer_box_rear_clearance` 10,
+  `drawer_box_front_setback` 0, `drawer_bottom_groove_offset` 10, `drawer_bottom_groove_depth` 6,
+  `drawer_bottom_clearance` 1 (play at the groove bottom). Negative values are refused.
+* **Depth**: the box front is at y0 = `drawer_box_front_setback` (+ `front_thickness` for inset fronts). Slide
+  length L = largest nominal length with L + depth_allowance ≤ `interior_depth` − y0 − rear clearance (default
+  cabinet, depth 560, overlay back: 550). Box length = L − box_length_deduction.
+* **Width**: ball-bearing: opening − 2 · side_clearance (600 wide: 564 − 2 · 12.7 = 538.6); undermount:
+  opening − inner_width_deduction + 2 · side thickness (sides ≤ max_side_thickness). Centred in the opening.
+* **Height**: from max(front bottom, opening bottom) + bottom clearance to min(front top, opening top) − top
+  clearance (a middle drawer: front height − 40); at least the slide's `min_box_height`.
+* **Parts** (material role `Drawer` = `MaterialAssignment::drawer`, empty → carcass; `DrawerBottom` =
+  `drawerBottom`, empty → back material, else drawer; thicknesses from the material library): two sides
+  (length along y, role DrawerSide, upper edge `visibleEdge`), inner front and back between the sides
+  (role DrawerBack), bottom (role DrawerBottom). `Grooved` bottom: grooves (bottom thickness + `groove_fit`
+  wide, `drawer_bottom_groove_depth` deep, through) on the inner faces of all four, lower groove edge
+  max(groove offset, slide bottom_recess) above the box underside; the bottom enters each groove by depth −
+  play. `NailedUnder`: a full-size bottom under the box (sides H − bottom thickness); refused for slides
+  that need a raised bottom (undermount).
+* **Slides**: one `placeDrawerSlides` job per side after all parts exist; a divider as carrying panel limits
+  the cabinet holes to the shared-panel depth.
+* **Errors** (generation fails, edits are refused; messages name the drawer slot and numbers): usable depth
+  too shallow for the shortest slide, box too low, sides too thick for an undermount runner, missing slide
+  definition or drawer material. The interpenetration self-check covers the boxes (bottoms lie in grooves).
 
 ## Hinges and shelves
 
@@ -194,7 +227,8 @@ See generate.hpp for the full list of codes.
 
 ## Limitations
 
-* No drawer boxes or runners are generated (fronts only).
+* Drawer boxes: no box corner joints (dowels / screws) are drilled, no rear hook hole for undermount runners,
+  one box option per stack, rectangular boxes only; slide hole rows are taken from the generic definitions.
 * Inset doors get no hinges (no rule available; warning `furniture.front.inset_hinges`).
 * The interpenetration check compares bounding boxes (exact for the axis-aligned panels generated here).
 * Hinge heights are not snapped to a 32 mm system row.

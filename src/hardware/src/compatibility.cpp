@@ -13,7 +13,9 @@ using namespace detail;
 core::Diagnostics paramProblems(const domain::HardwareDefinition& def) {
     core::Diagnostics out;
     for (const auto& key : requiredParams(def.kind)) {
-        const bool allowZero = key == keys::kPilotExtraDepth;
+        const bool allowZero = key == keys::kPilotExtraDepth || key == keys::kUndermount ||
+                               key == keys::kDepthAllowance || key == keys::kBoxLengthDeduction ||
+                               key == keys::kBottomRecess;
         const auto r = requireParam(def, key, allowZero);
         if (r.ok()) continue;
         const bool missing = def.params.find(key) == def.params.end();

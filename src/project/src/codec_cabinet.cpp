@@ -267,7 +267,27 @@ Json frontJson(const furniture::FrontSpec& f) {
     Json heights = Json::array();
     for (const auto& h : f.drawerHeights) heights.push_back(sizeJson(h));
     j["drawerHeights"] = std::move(heights);
+    if (f.drawerBox) { // absent = no drawer boxes (files written before drawer boxes stay byte-identical)
+        Json box = Json::object();
+        box["slide"] = f.drawerBox->slide.str();
+        box["bottom"] = furniture::toString(f.drawerBox->bottom);
+        j["drawerBox"] = std::move(box);
+    }
     return j;
+}
+
+core::Result<furniture::DrawerBoxSpec> drawerBoxFromJson(const Json& json, std::string_view path) {
+    using namespace furniture;
+    Reader r(json, path, "a drawer box");
+    DrawerBoxSpec b;
+    std::string slide;
+    r.text("slide", slide, true, true);
+    r.token("bottom", b.bottom, furnitureEnum<DrawerBottomMount>(),
+            furnitureTokens({DrawerBottomMount::Grooved, DrawerBottomMount::NailedUnder}));
+    r.rejectUnknown();
+    if (!r.ok()) return r.error();
+    b.slide = domain::HardwareId(slide);
+    return b;
 }
 
 core::Result<furniture::FrontSpec> frontFromJson(const Json& json, std::string_view path) {
@@ -284,6 +304,7 @@ core::Result<furniture::FrontSpec> frontFromJson(const Json& json, std::string_v
             furnitureTokens({HandlePosition::None, HandlePosition::Center, HandlePosition::Top, HandlePosition::Bottom}));
     r.limitArray("drawerHeights", furniture::limits::kMaxDrawerHeights, "drawer heights");
     r.array("drawerHeights", f.drawerHeights, sizeFromJson);
+    r.nested("drawerBox", f.drawerBox, drawerBoxFromJson);
     r.rejectUnknown();
     if (!r.ok()) return r.error();
     return f;
@@ -367,6 +388,9 @@ Json materialsJson(const furniture::MaterialAssignment& m) {
     j["visibleEdge"] = m.visibleEdge.str();
     j["hiddenEdge"] = m.hiddenEdge ? Json(m.hiddenEdge->str()) : Json(nullptr);
     j["frontEdge"] = m.frontEdge ? Json(m.frontEdge->str()) : Json(nullptr);
+    // Written only when assigned, so files without drawer-box materials stay byte-identical.
+    if (!m.drawer.empty()) j["drawer"] = m.drawer.str();
+    if (!m.drawerBottom.empty()) j["drawerBottom"] = m.drawerBottom.str();
     Json overrides = Json::object();
     for (const auto& [slot, o] : m.overrides) overrides[slot] = overrideJson(o);
     j["overrides"] = std::move(overrides);
@@ -377,19 +401,23 @@ core::Result<furniture::MaterialAssignment> materialsFromJson(const Json& json, 
     Reader r(json, path, "a material assignment");
     furniture::MaterialAssignment m;
     std::string carcass, back, front, visible;
-    std::optional<std::string> hidden, frontEdge;
+    std::optional<std::string> hidden, frontEdge, drawer, drawerBottom;
     r.text("carcass", carcass);
     r.text("back", back);
     r.text("front", front);
     r.text("visibleEdge", visible);
     r.optionalText("hiddenEdge", hidden, true);
     r.optionalText("frontEdge", frontEdge, true);
+    r.optionalText("drawer", drawer, true);
+    r.optionalText("drawerBottom", drawerBottom, true);
     m.carcass = domain::MaterialId(carcass);
     m.back = domain::MaterialId(back);
     m.front = domain::MaterialId(front);
     m.visibleEdge = domain::EdgeBandId(visible);
     if (hidden) m.hiddenEdge = domain::EdgeBandId(*hidden);
     if (frontEdge) m.frontEdge = domain::EdgeBandId(*frontEdge);
+    if (drawer) m.drawer = domain::MaterialId(*drawer);
+    if (drawerBottom) m.drawerBottom = domain::MaterialId(*drawerBottom);
     if (const Json* ov = r.find("overrides"); ov != nullptr) {
         if (!ov->is_object()) r.failAt("overrides", "expected an object keyed by slot id, got " + describe(*ov));
         else

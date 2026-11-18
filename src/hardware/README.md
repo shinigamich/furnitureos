@@ -50,6 +50,27 @@ All parameters are millimetres in `HardwareDefinition::params`. Constants for th
 | | | `height_min` | 95 | |
 | | | `height_max` | 120 | |
 
+| `hw.slide_ball_bearing` | DrawerSlide | `undermount` | 0 | side-mounted |
+| | | `length_min` / `length_max` / `length_step` | 250 / 650 / 50 | nominal lengths |
+| | | `depth_allowance` | 0 | usable depth needed = L + this |
+| | | `box_length_deduction` / `bottom_recess` | 0 / 0 | |
+| | | `min_box_height` | 50 | |
+| | | `side_clearance` | 12.7 | gap per side; box width = opening − 2 · this |
+| | | `hole_line_height` | 22.5 | hole line above the box underside (cabinet and drawer rows) |
+| | | `cabinet_hole_first` / `_pitch` | 37 / 128 | from the slide front, while ≤ L − `hole_end_margin` (20) |
+| | | `drawer_hole_first` / `_pitch` | 32 / 128 | outer face of the box side |
+| | | `cabinet_hole_diameter` / `_depth` | 5 / 12 | |
+| | | `drawer_hole_diameter` / `_depth` | 2.5 / 8 | |
+| `hw.slide_undermount` | DrawerSlide | `undermount` | 1 | concealed runner |
+| | | `length_min` / `length_max` / `length_step` | 250 / 600 / 50 | |
+| | | `depth_allowance` / `box_length_deduction` | 3 / 10 | |
+| | | `bottom_recess` / `min_box_height` | 13 / 70 | box bottom raised ≥ 13 |
+| | | `inner_width_deduction` / `max_side_thickness` | 42 / 16 | box inner width = opening − 42 |
+| | | `hole_line_height` | 7 | cabinet hole line above the box underside |
+| | | `cabinet_hole_first` / `_pitch` | 37 / 128 | |
+| | | `drawer_hole_first` / `_pitch` | 20 / 224 | pilot holes in the LOWER EDGE of the box side |
+| | | `cabinet_hole_diameter` / `_depth`, `drawer_hole_*` | 5 / 12, 2.5 / 10 | |
+
 The cam connector and the foot are **data only**: no placement rule uses them yet.
 
 ## Placement rules
@@ -68,6 +89,7 @@ error that names the parts and the numbers involved.
 | `placeShelfSupports` | `shelf_supports.hpp` | 4 pins under a horizontal shelf, on the inner faces of the two sides; pin centre = shelf underside − pin radius. |
 | `placeHinges`, `hingeCount`, `hingePositions` | `hinges.hpp` | Cup hinges for an overlay door on a vertical side: cup holes in the door, mounting-plate hole pairs in the side. |
 | `placeHandle` | `handle.hpp` | Two through holes for a handle on a vertical front; centred or offset from an edge; horizontal or vertical. |
+| `placeDrawerSlides`, `selectSlideLength`, `drawerBoxOuterWidth`, `drawerBoxLength`, `slideNominalLengths` | `drawer_slides.hpp` | Drawer-box sizing rules and one slide's holes: cabinet row on the cabinet side's face towards the drawer, drawer row on the box side (outer face, or lower edge for undermount). Checks the side gap against the rule (± 0.5), that the slide is a nominal length and ends within the cabinet side, hole depths. Errors name parts and numbers (e.g. "The usable depth of 240 mm is too shallow for the shortest drawer slide …"). |
 
 Compatibility checks returning diagnostics are in `compatibility.hpp` (codes `hardware.*`), the aggregated
 hardware list of a model in `hardware_list.hpp`.
@@ -81,3 +103,5 @@ hardware list of a model in `hardware_list.hpp`.
   angled hinges). Hinge heights are not snapped to an existing System-32 row of the side.
 * `placeHandle`: vertical fronts only; "left" is defined by assembly coordinates (see `handle.hpp`).
 * No door weight is computed; the weight class is an input.
+* Drawer slides: rows are not snapped to an existing System-32 row; no load rating / extension type; the
+  undermount rear hook hole and locking devices are not modelled (only pilot holes in the side's lower edge).

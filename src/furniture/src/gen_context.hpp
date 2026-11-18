@@ -4,6 +4,7 @@
 /// Internal state shared by the generator stages (carcass, back, interior, fronts, hardware).
 #include "fos/furniture/generate.hpp"
 #include "fos/furniture/parameters.hpp"
+#include "fos/hardware/drawer_slides.hpp"
 #include "fos/hardware/handle.hpp"
 
 #include <array>
@@ -38,13 +39,13 @@ enum class EdgeUse { Raw, Visible, Hidden, Front };
 /// Indexed by domain::EdgeSide (L1, L2, W1, W2).
 using Edges = std::array<EdgeUse, 4>;
 
-enum class JobKind { Corner, ShelfPins, Hinges, Handle };
+enum class JobKind { Corner, ShelfPins, Hinges, Handle, Slide };
 /// A deferred hardware placement; run after all parts exist (gen_hardware.cpp).
 struct Job {
     JobKind kind = JobKind::Corner;
     std::string instance;   ///< Instance id suffix after "<cabinet>/".
-    std::size_t a = 0;      ///< Corner: face part. ShelfPins: shelf. Hinges: door. Handle: front.
-    std::size_t b = 0;      ///< Corner: edge part. ShelfPins: left support. Hinges: carrying panel.
+    std::size_t a = 0;      ///< Corner: face part. ShelfPins: shelf. Hinges: door. Handle: front. Slide: box side.
+    std::size_t b = 0;      ///< Corner: edge part. ShelfPins: left support. Hinges / Slide: carrying panel.
     std::size_t c = 0;      ///< ShelfPins: right support.
     JointFastener fastener = JointFastener::None; ///< Corner.
     /// Hinges: the carrying panel is a divider. Corner: the FACE part is a divider. ShelfPins:
@@ -52,6 +53,8 @@ struct Job {
     bool sharedPanel = false;
     bool sharedC = false; ///< ShelfPins: the right (c) support is a divider.
     hardware::HandleConfig handle;
+    domain::HardwareId slide; ///< Slide: definition id (DrawerBoxSpec::slide).
+    double slideLength = 0;   ///< Slide: nominal length, mm.
 };
 
 /// The panels bounding a section (indices into Gen::assembly.parts).
@@ -82,6 +85,12 @@ struct Gen {
 
     /// Value of a parameter of the resolved graph (all standard names exist).
     double v(const char* name) const { return values.at(name); }
+    /// Value of an OPTIONAL parameter (a custom parameter the user may add to the graph, e.g.
+    /// the drawer-box clearances); `fallback` when the graph does not define it.
+    double opt(const char* name, double fallback) const {
+        const auto it = values.find(name);
+        return it == values.end() ? fallback : it->second;
+    }
     std::string partId(const std::string& slot) const { return def.id.str() + "/" + slot; }
     /// Index of the part with this slot; parts.size() when absent.
     std::size_t index(const std::string& slot) const;
@@ -93,6 +102,9 @@ struct Gen {
     std::size_t addPart(const std::string& slot, std::string name, domain::PartRole role, MaterialRole material,
                         double length, double width, double thickness, const Transform& placement, const Edges& edges);
 };
+
+/// Material of a role (empty ids fall back as documented in MaterialAssignment).
+domain::MaterialId roleMaterial(const MaterialAssignment& m, MaterialRole role);
 
 /// "a.b" joining of slot segments; empty segments are skipped ("door", "", "left" -> "door.left").
 std::string joinSlot(std::initializer_list<std::string_view> segments);
@@ -110,6 +122,11 @@ core::Result<Bounds> buildCarcass(Gen& g);
 core::Result<void> buildBack(Gen& g);
 core::Result<void> buildInterior(Gen& g, const Bounds& rootBounds);
 core::Result<void> buildFront(Gen& g, const FrontSpec& spec, const std::string& path, const Box& box, const Bounds& bounds);
+/// Drawer box (README "Drawer boxes") behind the drawer front `frontSlot` whose front spans
+/// z in [fz0, fz1]; `box` / `bounds` are the section's opening and bounding panels.
+/// Schedules the two slide jobs. Errors (ConstraintViolation / NotFound) name the drawer.
+core::Result<void> buildDrawerBox(Gen& g, const FrontSpec& spec, const std::string& frontSlot, double fz0, double fz1,
+                                  const Box& box, const Bounds& bounds);
 void runHardware(Gen& g);
 /// Refuses an assembly with more than limits::kMaxPartsPerAssembly parts or a part whose
 /// length / width / thickness is not finite, not > 0 or above limits::kMaxDimension

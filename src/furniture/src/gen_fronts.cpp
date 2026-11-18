@@ -85,6 +85,8 @@ core::Result<void> buildFront(Gen& g, const FrontSpec& spec, const std::string& 
                 g.addPart(slot, "Drawer front " + std::to_string(i + 1), domain::PartRole::DrawerFront, role, x1 - x0, h,
                           ft, Transform::fromAxes(kRight, kDown, {x0, yInner - ft, z + h}), all);
             handleJob(g, part, slot, spec, false, false);
+            if (spec.drawerBox)
+                if (auto r = buildDrawerBox(g, spec, slot, z, z + h, box, b); !r) return r;
             z += heights.value()[i] + gap;
         }
         return {};
