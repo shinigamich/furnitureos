@@ -916,7 +916,7 @@
     </message>
     <message>
         <source>Drawer unit with boxes</source>
-        <translation>Тумба з ящиками-коробами</translation>
+        <translation>Тумба з шухлядами (з коробами)</translation>
     </message>
 </context>
 <context>
