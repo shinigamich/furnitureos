@@ -12,6 +12,7 @@ fos_add_module(cli_core
         src/cmd_drawing.cpp
         src/cmd_cam.cpp
         src/cmd_import.cpp
+        src/cmd_export_dxf.cpp
         src/cmd_linear.cpp
     DEPS fos::core fos::geometry fos::domain fos::machining fos::furniture fos::validation fos::production
          fos::cutting fos::cutting_model fos::nesting fos::nesting_model fos::linear fos::drawings fos::cam fos::formats fos::project)

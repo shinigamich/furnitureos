@@ -87,5 +87,31 @@ TEST_F(CliImportDxf, BadInputExitCodes) {
               kExitUsageOrIo);
 }
 
+TEST_F(CliImportDxf, ExportDxfRoundTripsThroughImport) {
+    ASSERT_EQ(fos({"import-dxf", project, write("w.dxf", kWorktop), "--name", "Work top", "--thickness", "18"}).code,
+              kExitOk);
+    const std::string out = dir.file("top.dxf");
+    const auto e = fos({"export-dxf", project, out, "--part", "work-top/panel"});
+    ASSERT_EQ(e.code, kExitOk) << e.err;
+    EXPECT_TRUE(contains(e.out, "Wrote 1 part(s)")) << e.out;
+    const std::string text = readFile(out);
+    EXPECT_TRUE(contains(text, "AC1009"));
+    EXPECT_TRUE(contains(text, "\nCUTOUTS\n"));
+    // Re-importing the exported file reproduces the panel (same summary line as the first import).
+    const auto again = fos({"import-dxf", project, out, "--name", "Copy", "--thickness", "18"});
+    ASSERT_EQ(again.code, kExitOk) << again.err;
+    EXPECT_TRUE(contains(again.out, "Outline: 1200 x 600 mm, 4 segments (0 arcs); cut-outs: 2 (1 circle, 1 rectangle)"))
+        << again.out;
+
+    const std::string each = dir.file("parts");
+    const auto f = fos({"export-dxf", project, each, "--one-file-per-part", "--finished"});
+    ASSERT_EQ(f.code, kExitOk) << f.err;
+    EXPECT_TRUE(std::filesystem::exists(u8path(each + "/work-top_panel.dxf")));
+    EXPECT_TRUE(std::filesystem::exists(u8path(each + "/copy_panel.dxf")));
+    EXPECT_EQ(fos({"export-dxf", project, out, "--part", "no/such"}).code, kExitUsageOrIo);
+    EXPECT_EQ(fos({"export-dxf", project}).code, kExitUsageOrIo);
+    EXPECT_EQ(fos({"export-dxf", project, out, "--spacing", "-1"}).code, kExitUsageOrIo);
+}
+
 } // namespace
 } // namespace fos::cli::test

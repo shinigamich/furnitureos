@@ -289,6 +289,11 @@ The JSON nesting of the whole file is limited to 128 levels by the container (fo
 * `assemblyDrawing(project, resolved, itemId, options)` / `partDrawing(...)`: `drawings::generate*Drawing` with the
   stored edits of the drawing id (model anchors are resolved by the drawings module).
 
+* `dxf_panel.hpp` — `buildDxfPanelItem(project, dxf, request, itemId, placement, &diags)`: a `formats::DxfImport`
+  becomes a free `PanelItem` (Custom `ContourSpec`, circle / rectangle cut-outs), `pickDxfPanelMaterial`,
+  `dxfPanelItemId` (slug, made unique). One rule set for `fos import-dxf` and the app; unsupported cut-outs →
+  `project.import_dxf.cutout_unsupported` (Error, or Warning with `skipUnsupportedCutouts`).
+
 ## 5. Limitations
 
 * The per-project parts limit is checked on the estimate (`estimatePartCount`), an upper bound; custom parameter

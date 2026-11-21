@@ -494,6 +494,38 @@ current; the publicly documented group-code format), `importPanelShape(loops)` t
   hatches as cut-outs, paper space selection, text/dimensions, binary DXF, DXF with `$INSUNITS` other than the five
   listed units (use `options.units`).
 
+### 5.4 DXF part outline export — export only (`dxf_export.hpp`)
+
+`exportPartOutlinesDxf(model, options)` writes the parts of a resolved model for CNC, nesting and cutting software.
+
+* **Dialect: ASCII DXF R12 (`$ACADVER AC1009`)**, chosen because it is the dialect every CAD/CAM program reads
+  (AutoCAD, LibreCAD, QCAD, DraftSight, nesting software). Sections: HEADER (`$ACADVER`, `$INSUNITS 4` = mm — an
+  R2000 variable that R12 readers ignore; coordinates are mm either way —, `$EXTMIN`/`$EXTMAX`), TABLES (`LTYPE`
+  CONTINUOUS, one `LAYER` per used layer plus `0`), an empty BLOCKS section, ENTITIES, EOF. No handles, no blocks,
+  no INSERTs, ASCII only (non-ASCII text as `\U+XXXX`), `\n` line ends, numbers in shortest round-trip fixed
+  notation (re-reading gives the same doubles).
+* **Entities**: closed contours are 2D `POLYLINE`/`VERTEX`/`SEQEND` with flag 70 = 1; arcs are exact vertex bulges
+  (group 42, the geometry::Contour convention) — never tessellated. Holes are `CIRCLE`s. The part id is a `TEXT`
+  (height `textHeight`, default 10 mm) above the part.
+* **Frame**: each part in its part frame seen from face A (u = x, v = y). Single file (default): parts in model
+  order in a row along +X, each shifted by `(cursor − minX, 0)` of its finished-outline bounding box (shift rounded
+  to 1e-6 mm), the cursor advancing by the box length + `spacing` (default 50 mm). `oneFilePerPart`: one file per
+  part, part frame unshifted, file name `<part id, chars outside [A-Za-z0-9._-] as _>.dxf` (made unique with -2...).
+  `partId` restricts the export to one part.
+* **Layers**: `OUTLINE` — raw outline `domain::cutContour` (before edge banding; arcs keep their centre) or, with
+  `finishedOutline`, `domain::finishedContour`; `CUTOUTS` — `PartShape` cut-outs and through pockets (face A or B);
+  `POCKETS` — blind pockets on face A; `DRILL_<d>` — holes on face A and through holes on face B, one layer per
+  diameter (`5` → `DRILL_5`, `8.5` → `DRILL_8_5`); `GROOVES` — grooves on face A as their closed rectangular
+  footprint (centre line ± width/2); `LABELS` — part id text.
+* **Not exported** (Warning `formats.dxf_export.operations_skipped`, one per part with counts): blind holes,
+  grooves and blind pockets on face B and all edge-face operations — they cannot be drawn seen from face A.
+  Depths are not encoded (layer per diameter only). Degenerate operations (diameter ≤ 0, zero-length groove,
+  pocket < 3 vertices) → Warning `formats.dxf_export.invalid_operation`.
+* **Errors**: no part / unknown `partId` (NotFound); `spacing` < 0 or `textHeight` ≤ 0 (InvalidArgument); a part
+  whose raw outline cannot be computed or whose outline is not a valid contour (InvalidArgument naming the part).
+* Round trip: `importDxf` with `layer = "OUTLINE"` returns the exported outline bit-exactly (tested on the
+  banded rounded panel: radii 49.6 / 50 mm exact).
+
 ---
 
 ## 6. Tests

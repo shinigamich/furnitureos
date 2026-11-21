@@ -416,10 +416,30 @@ Wrote 10 parts to kitchen.obj (+ MTL beside it)
 (exit code 0)
 ```
 
+### `fos export-dxf`
+
+Part outlines of the resolved model as ASCII DXF R12 (mm, `$INSUNITS 4`) for CNC / nesting / cutting software
+(format and layers: `src/formats/README.md` §5.4). Layers `OUTLINE` (raw outline before edge banding;
+`--finished`: finished outline), `CUTOUTS`, `POCKETS`, `DRILL_<d>` (holes on face A + through holes, e.g.
+`DRILL_5`, `DRILL_8_5`), `GROOVES`, `LABELS` (part id text); arcs are exact polyline bulges. Options:
+`--one-file-per-part` (second argument is a directory, created; one `<part-id>.dxf` each, part frame unshifted),
+`--part ID`, `--spacing MM` (gap between parts in a single file, default 50). Blind face-B and edge operations are
+left out with a warning.
+
+```text
+$ fos export-dxf kitchen.fosp parts.dxf --part work-top/panel
+Wrote 1 part(s) to parts.dxf
+Outline: raw (before edge banding), DXF R12, mm.
+(exit code 0)
+```
+
+Exit codes: 0 written; 1 a part cannot be exported or the model has resolve errors; 2 usage error (unknown
+`--part`, bad option, missing output directory) or I/O error. The output re-imports with `fos import-dxf`.
+
 ### `fos import-dxf`
 
 Adds a free horizontal panel whose outline and cut-outs come from an ASCII DXF file (rules: `src/formats/README.md`
-§5.3) and saves the project atomically. `--name` is required; `--material ID` and/or `--thickness T` choose the
+§5.3; conversion shared with the app in `fos/project/dxf_panel.hpp`) and saves the project atomically. `--name` is required; `--material ID` and/or `--thickness T` choose the
 material (thickness alone = first library material of that thickness, by id). Options: `--id`, `--layer`,
 `--units mm|cm|m|in|ft`, `--tolerance MM` (chaining, default 0.01), `--skip-unsupported-cutouts`. The outline is
 stored as a Custom `ContourSpec` with numeric vertices (editable afterwards); circle cut-outs become Circle

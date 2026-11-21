@@ -103,6 +103,7 @@ int cmdDrawing(const std::vector<std::string>& args, Io& io);
 int cmdCam(const std::vector<std::string>& args, Io& io);
 int cmdExportObj(const std::vector<std::string>& args, Io& io);
 int cmdImportDxf(const std::vector<std::string>& args, Io& io);
+int cmdExportDxf(const std::vector<std::string>& args, Io& io);
 int cmdLinear(const std::vector<std::string>& args, Io& io);
 int cmdEdgebandRolls(const std::vector<std::string>& args, Io& io);
 
