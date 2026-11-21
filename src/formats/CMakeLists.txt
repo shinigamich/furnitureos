@@ -21,6 +21,7 @@ fos_add_module(formats
         src/panel_shape_import.cpp
         src/csv_materials.cpp
         src/dxf_export.cpp
+        src/component.cpp
     DEPS fos::core fos::geometry fos::domain nlohmann_json::nlohmann_json)
 
 fos_add_tests(formats
@@ -36,4 +37,5 @@ fos_add_tests(formats
         tests/shape_codec_tests.cpp
         tests/obj_shape_tests.cpp
         tests/dxf_import_tests.cpp
-        tests/dxf_export_tests.cpp)
+        tests/dxf_export_tests.cpp
+        tests/component_tests.cpp)
