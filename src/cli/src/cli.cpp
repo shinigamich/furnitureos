@@ -18,13 +18,15 @@ struct CommandEntry {
     Handler handler;
 };
 
-constexpr std::array<CommandEntry, 11> kCommands{{
+constexpr std::array<CommandEntry, 13> kCommands{{
     {"new", "Create a project file, optionally with one cabinet from a template.", detail::cmdNew},
     {"info", "Show items, parameters, part counts and diagnostics of a project.", detail::cmdInfo},
     {"set", "Set a parameter of an item to a value or an expression and save.", detail::cmdSet},
     {"validate", "Run the model validation checks (exit 1 on errors).", detail::cmdValidate},
     {"report", "Production reports as text/CSV, or an HTML production sheet.", detail::cmdReport},
     {"cut", "Optimise cutting plans (heuristic) and write one SVG per sheet.", detail::cmdCut},
+    {"linear", "1D cutting plan (heuristic) for bars/profiles from a pieces CSV.", detail::cmdLinear},
+    {"edgeband-rolls", "Edge-band strips per band and the rolls needed (heuristic 1D plan).", detail::cmdEdgebandRolls},
     {"drawing", "Assembly or part drawing as SVG (exact scale) or DXF (1:1).", detail::cmdDrawing},
     {"labels", "Part labels as SVG pages.", detail::cmdLabels},
     {"cam", "UNVERIFIED G-code for one face of one part (fictional demo machine).", detail::cmdCam},
@@ -39,7 +41,7 @@ std::string overviewHelp() {
                     "FurnitureOS command-line tool (offline). Lengths are millimetres.\n\nCommands:\n";
     for (const auto& c : kCommands) {
         std::string name = c.name;
-        name.resize(12, ' ');
+        name.resize(16, ' ');
         s += "  " + name + c.summary + "\n";
     }
     s += "\nRun 'fos <command> --help' for the arguments of a command.\n"

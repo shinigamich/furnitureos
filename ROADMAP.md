@@ -71,7 +71,8 @@ ARCHITECTURE.md §4.3 (finished vs cut size for contoured and curved parts, phas
 | 11 Production hardening | Linux done (GCC + Clang, warnings as errors); Windows done (MSVC, portable ZIP in CI, T-025); macOS, installers, signing not started |
 | 12 Geometry kernel II | Done for lines and arcs (T-027–T-034); splines and nesting layouts in the desktop UI remain |
 | 21 Interoperability | DXF outline import started (T-036) |
-| 13–20, 22 | Not started |
+| 18 Linear cutting | Done: heuristic 1D optimiser with lower bound + independent validator (`fos::linear`), edge-band roll planning, `fos linear` / `fos edgeband-rolls` |
+| 13–17, 19, 20, 22 | Not started |
 
 ## Near-term priorities
 

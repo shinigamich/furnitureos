@@ -82,7 +82,23 @@ struct FrontInput {
     bool hinges = true;
     furniture::HandlePosition handle = furniture::HandlePosition::Center;
     QString drawerHeights = QStringLiteral("1*; 1*; 1*"); ///< parseSizeList syntax, bottom to top.
+    /// Drawer stack only: a drawer box behind every front (furniture::DrawerBoxSpec); false =
+    /// fronts only. Ignored for the other choices.
+    bool drawerBox = false;
+    std::string slide = std::string(hardware::ids::kSlideBallBearing); ///< DrawerSlide hardware id.
+    furniture::DrawerBottomMount drawerBottom = furniture::DrawerBottomMount::Grooved;
 };
+/// Library entries of kind DrawerSlide (id, name) in library order; `current` is appended
+/// with `missing` set when it is not among them.
+struct SlideChoice {
+    std::string id;
+    std::string name;
+    bool missing = false;
+};
+std::vector<SlideChoice> slideChoices(const furniture::Libraries& libraries, const std::string& current);
+/// The FrontSpec the editor submits (drawer heights parsed for a drawer stack). InvalidArgument
+/// for Choice::None (no spec) or an unparsable height list.
+core::Result<furniture::FrontSpec> frontSpec(const FrontInput& input);
 /// Editor state of an existing front (None for std::nullopt).
 FrontInput frontInput(const std::optional<furniture::FrontSpec>& front);
 /// commands::setFront for the input (Choice::None removes the front). Drawer heights are

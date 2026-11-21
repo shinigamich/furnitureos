@@ -98,6 +98,12 @@ Choices<furniture::HingeSide> hingeSideChoices() {
             {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Hinged right")), furniture::HingeSide::Right}};
 }
 
+Choices<furniture::DrawerBottomMount> drawerBottomChoices() {
+    using B = furniture::DrawerBottomMount;
+    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Bottom in grooves")), B::Grooved},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Bottom nailed under")), B::NailedUnder}};
+}
+
 Choices<furniture::HandlePosition> handleChoices() {
     using H = furniture::HandlePosition;
     return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "No handle")), H::None},

@@ -271,6 +271,13 @@ void InspectorPanel::buildMaterials(QVBoxLayout* layout, const std::string& item
     auto* carcass = materialBox(m.carcass.str(), {});
     auto* backMat = materialBox(m.back.str(), tr("None"));
     auto* front = materialBox(m.front.str(), tr("Same as carcass"));
+    auto* drawer = materialBox(m.drawer.str(), tr("Same as carcass"));
+    drawer->setObjectName(QStringLiteral("materialDrawer"));
+    drawer->setToolTip(tr("Drawer-box sides, inner fronts and backs."));
+    auto* drawerBottom = materialBox(m.drawerBottom.str(), tr("Same as back panel"));
+    drawerBottom->setObjectName(QStringLiteral("materialDrawerBottom"));
+    drawerBottom->setToolTip(tr("Drawer-box bottoms; the default is the back panel material "
+                                "(the drawer material when there is no back panel)."));
     auto* visible = edgeBox(m.visibleEdge.str().empty() ? std::nullopt : std::optional<std::string>(m.visibleEdge.str()),
                             tr("Raw (no edge band)"));
     auto* hidden = edgeBox(m.hiddenEdge ? std::optional<std::string>(m.hiddenEdge->str()) : std::nullopt,
@@ -280,6 +287,8 @@ void InspectorPanel::buildMaterials(QVBoxLayout* layout, const std::string& item
     form->addRow(tr("Carcass:"), carcass);
     form->addRow(tr("Back panel:"), backMat);
     form->addRow(tr("Fronts:"), front);
+    form->addRow(tr("Drawer boxes:"), drawer);
+    form->addRow(tr("Drawer bottoms:"), drawerBottom);
     form->addRow(tr("Visible edges:"), visible);
     form->addRow(tr("Hidden end edges:"), hidden);
     form->addRow(tr("Front edges:"), frontEdge);
@@ -289,6 +298,8 @@ void InspectorPanel::buildMaterials(QVBoxLayout* layout, const std::string& item
         n.carcass = domain::MaterialId(carcass->currentData().toString().toStdString());
         n.back = domain::MaterialId(backMat->currentData().toString().toStdString());
         n.front = domain::MaterialId(front->currentData().toString().toStdString());
+        n.drawer = domain::MaterialId(drawer->currentData().toString().toStdString());
+        n.drawerBottom = domain::MaterialId(drawerBottom->currentData().toString().toStdString());
         n.visibleEdge = domain::EdgeBandId(visible->currentData().toString().toStdString());
         const std::string h = hidden->currentData().toString().toStdString();
         n.hiddenEdge = h.empty() ? std::nullopt : std::optional<domain::EdgeBandId>(domain::EdgeBandId(h));
@@ -302,12 +313,14 @@ void InspectorPanel::buildMaterials(QVBoxLayout* layout, const std::string& item
             reset(carcass, m.carcass.str());
             reset(backMat, m.back.str());
             reset(front, m.front.str());
+            reset(drawer, m.drawer.str());
+            reset(drawerBottom, m.drawerBottom.str());
             reset(visible, m.visibleEdge.str());
             reset(hidden, m.hiddenEdge ? m.hiddenEdge->str() : std::string());
             reset(frontEdge, m.frontEdge ? m.frontEdge->str() : std::string());
         }
     };
-    for (QComboBox* c : {carcass, backMat, front, visible, hidden, frontEdge})
+    for (QComboBox* c : {carcass, backMat, front, drawer, drawerBottom, visible, hidden, frontEdge})
         connect(c, qOverload<int>(&QComboBox::activated), this, commit);
     layout->addWidget(box);
 }

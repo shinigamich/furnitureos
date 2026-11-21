@@ -61,6 +61,9 @@ private:
     QCheckBox* hinges_;
     QComboBox* handle_;
     QLineEdit* drawerHeights_;
+    QComboBox* drawerBox_;    ///< None / box (drawer stack only).
+    QComboBox* slide_;        ///< DrawerSlide library entries.
+    QComboBox* drawerBottom_; ///< DrawerBottomMount.
     QPushButton* applyFront_;
     QLabel* selectedTitle_;
     QLabel* error_;

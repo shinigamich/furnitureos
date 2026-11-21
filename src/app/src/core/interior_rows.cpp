@@ -225,13 +225,32 @@ FrontInput frontInput(const std::optional<furniture::FrontSpec>& front) {
     in.handle = front->handle;
     if (!front->drawerHeights.empty())
         in.drawerHeights = sizeListText(front->drawerHeights);
+    if (front->drawerBox) {
+        in.drawerBox = true;
+        in.slide = front->drawerBox->slide.str();
+        in.drawerBottom = front->drawerBox->bottom;
+    }
     return in;
 }
 
-core::Result<project::Command> frontCommand(const std::string& itemId, const std::string& path,
-                                            const FrontInput& input) {
+std::vector<SlideChoice> slideChoices(const furniture::Libraries& libraries, const std::string& current) {
+    std::vector<SlideChoice> out;
+    bool found = false;
+    for (const auto& h : libraries.hardware) {
+        if (h.kind != domain::HardwareKind::DrawerSlide)
+            continue;
+        out.push_back({h.id.str(), h.name, false});
+        found = found || h.id.str() == current;
+    }
+    if (!found && !current.empty())
+        out.push_back({current, current, true});
+    return out;
+}
+
+core::Result<furniture::FrontSpec> frontSpec(const FrontInput& input) {
+
     if (input.choice == FrontInput::Choice::None)
-        return project::commands::setFront(itemId, path, std::nullopt);
+        return core::makeError(core::ErrorCode::InvalidArgument, "No front is selected.");
     furniture::FrontSpec spec;
     spec.overlay = input.overlay;
     spec.hingeSide = input.hingeSide;
@@ -250,12 +269,24 @@ core::Result<project::Command> frontCommand(const std::string& itemId, const std
         if (!heights)
             return heights.error();
         spec.drawerHeights = std::move(heights).value();
+        if (input.drawerBox)
+            spec.drawerBox = furniture::DrawerBoxSpec{domain::HardwareId(input.slide), input.drawerBottom};
         break;
     }
     case FrontInput::Choice::None:
         break;
     }
-    return project::commands::setFront(itemId, path, spec);
+    return spec;
+}
+
+core::Result<project::Command> frontCommand(const std::string& itemId, const std::string& path,
+                                            const FrontInput& input) {
+    if (input.choice == FrontInput::Choice::None)
+        return project::commands::setFront(itemId, path, std::nullopt);
+    auto spec = frontSpec(input);
+    if (!spec)
+        return spec.error();
+    return project::commands::setFront(itemId, path, std::move(spec).value());
 }
 
 } // namespace fos::app

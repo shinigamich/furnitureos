@@ -80,8 +80,9 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 
 | ID | Task | Status | Verification |
 |---|---|---|---|
-| T-035 | Drawer boxes behind drawer fronts (sides, box front/back, grooved or nailed bottom) with generic ball-bearing / undermount slides and slide holes on cabinet and drawer | Done (engine, codec; desktop front editor does not expose it yet) | 7 focused tests |
-| T-036 | DXF outline import (LINE, ARC, CIRCLE, LWPOLYLINE, POLYLINE; units; loop chaining) into shaped panels; `fos import-dxf` | Done (CLI; no desktop action yet) | 12 focused tests incl. truncated-file robustness |
+| T-035 | Drawer boxes behind drawer fronts (sides, box front/back, grooved or nailed bottom) with generic ball-bearing / undermount slides and slide holes on cabinet and drawer; desktop front editor and drawer materials | Done | 7 engine + 4 app tests |
+| T-036 | DXF outline import (LINE, ARC, CIRCLE, LWPOLYLINE, POLYLINE; units; loop chaining) into shaped panels; `fos import-dxf`; File ▸ Import DXF outline… | Done | 12 engine tests + app core test |
+| T-037 | Linear (1D) cutting: `fos::linear` optimiser + independent validator + SVG; edge-band roll planning from the model; `fos linear`, `fos edgeband-rolls` | Done (heuristic) | 14 focused tests |
 
 ## Independent review 2026-11-12 (calculation-critical modules)
 
@@ -117,6 +118,8 @@ envelope checks, CLI exit 1 on incomplete output, single bounded plugin read, pi
   a dowel/shelf-pin hole collision in the wardrobe template at low heights.
 
 ## Known bugs and technical debt
+
+* The DXF-to-panel conversion exists twice (CLI `cmd_import.cpp` and app `dxf_panel_import.cpp`, ~100 lines); move it into a non-Qt module (project) so both share one copy.
 
 * Documents may be saved while the generator reports errors (deliberate, to allow intermediate states);
   front ends must show the diagnostics (the app and `fos set` do).

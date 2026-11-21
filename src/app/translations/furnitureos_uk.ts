@@ -1671,6 +1671,77 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Circle</source>
         <translation>Коло</translation>
     </message>
+    <message>
+        <source>Bottom in grooves</source>
+        <translation>Дно в пазах</translation>
+    </message>
+    <message>
+        <source>Bottom nailed under</source>
+        <translation>Дно прибите знизу</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::ImportDxfDialog</name>
+    <message>
+        <source>Import DXF outline</source>
+        <translation>Імпорт контуру з DXF</translation>
+    </message>
+    <message>
+        <source>File: %1</source>
+        <translation>Файл: %1</translation>
+    </message>
+    <message>
+        <source>First material of the thickness below</source>
+        <translation>Перший матеріал указаної нижче товщини</translation>
+    </message>
+    <message>
+        <source>%1 (%2 mm)</source>
+        <translation>%1 (%2 мм)</translation>
+    </message>
+    <message>
+        <source> mm</source>
+        <translation> мм</translation>
+    </message>
+    <message>
+        <source>from the material</source>
+        <translation>за матеріалом</translation>
+    </message>
+    <message>
+        <source>all layers</source>
+        <translation>усі шари</translation>
+    </message>
+    <message>
+        <source>From the file ($INSUNITS; none = mm)</source>
+        <translation>З файлу ($INSUNITS; немає = мм)</translation>
+    </message>
+    <message>
+        <source>Skip unsupported cut-outs (only circles and rectangles are imported)</source>
+        <translation>Пропустити непідтримувані вирізи (імпортуються лише кола та прямокутники)</translation>
+    </message>
+    <message>
+        <source>Name:</source>
+        <translation>Назва:</translation>
+    </message>
+    <message>
+        <source>Material:</source>
+        <translation>Матеріал:</translation>
+    </message>
+    <message>
+        <source>Thickness:</source>
+        <translation>Товщина:</translation>
+    </message>
+    <message>
+        <source>Layer:</source>
+        <translation>Шар:</translation>
+    </message>
+    <message>
+        <source>Units:</source>
+        <translation>Одиниці:</translation>
+    </message>
+    <message>
+        <source>Import</source>
+        <translation>Імпортувати</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::InspectorPanel</name>
@@ -1930,6 +2001,26 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>%1 of %2 outline segments banded</source>
         <translation>%1 з %2 сегментів контуру з крайкою</translation>
     </message>
+    <message>
+        <source>Drawer-box sides, inner fronts and backs.</source>
+        <translation>Боковини, внутрішні передні стінки та задні стінки ящиків.</translation>
+    </message>
+    <message>
+        <source>Same as back panel</source>
+        <translation>Як задня стінка</translation>
+    </message>
+    <message>
+        <source>Drawer-box bottoms; the default is the back panel material (the drawer material when there is no back panel).</source>
+        <translation>Дна ящиків; типово — матеріал задньої стінки (матеріал ящиків, якщо задньої стінки немає).</translation>
+    </message>
+    <message>
+        <source>Drawer boxes:</source>
+        <translation>Короби ящиків:</translation>
+    </message>
+    <message>
+        <source>Drawer bottoms:</source>
+        <translation>Дна ящиків:</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::InteriorEditor</name>
@@ -2048,6 +2139,34 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     <message>
         <source>the whole interior has no size of its own</source>
         <translation>увесь внутрішній простір не має власного розміру</translation>
+    </message>
+    <message>
+        <source>None (fronts only)</source>
+        <translation>Немає (лише фасади)</translation>
+    </message>
+    <message>
+        <source>Box on slides</source>
+        <translation>Короб на напрямних</translation>
+    </message>
+    <message>
+        <source>Generates a drawer box (sides, inner front, back, bottom) and two slides behind every drawer front.</source>
+        <translation>Створює короб ящика (боковини, внутрішня передня стінка, задня стінка, дно) і дві напрямні за кожним фасадом ящика.</translation>
+    </message>
+    <message>
+        <source>Drawer boxes:</source>
+        <translation>Короби ящиків:</translation>
+    </message>
+    <message>
+        <source>Slides:</source>
+        <translation>Напрямні:</translation>
+    </message>
+    <message>
+        <source>Drawer bottom:</source>
+        <translation>Дно ящика:</translation>
+    </message>
+    <message>
+        <source>%1 (not in the library)</source>
+        <translation>%1 (немає в бібліотеці)</translation>
     </message>
 </context>
 <context>
@@ -2467,6 +2586,50 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     <message>
         <source>Clear list</source>
         <translation>Очистити список</translation>
+    </message>
+    <message>
+        <source>&amp;Import DXF outline…</source>
+        <translation>&amp;Імпорт контуру з DXF…</translation>
+    </message>
+    <message>
+        <source>Error</source>
+        <translation>Помилка</translation>
+    </message>
+    <message>
+        <source>Warning</source>
+        <translation>Попередження</translation>
+    </message>
+    <message>
+        <source>Info</source>
+        <translation>Інформація</translation>
+    </message>
+    <message>
+        <source>Import DXF outline</source>
+        <translation>Імпорт контуру з DXF</translation>
+    </message>
+    <message>
+        <source>DXF drawings (*.dxf *.DXF)</source>
+        <translation>Креслення DXF (*.dxf *.DXF)</translation>
+    </message>
+    <message>
+        <source>Cannot read the DXF file: %1</source>
+        <translation>Не вдалося прочитати файл DXF: %1</translation>
+    </message>
+    <message>
+        <source>Refused: %1</source>
+        <translation>Відхилено: %1</translation>
+    </message>
+    <message>
+        <source>DXF diagnostics:</source>
+        <translation>Діагностика DXF:</translation>
+    </message>
+    <message>
+        <source>Imported “%1”: %2 × %3 mm, %4 cut-out(s).</source>
+        <translation>Імпортовано «%1»: %2 × %3 мм, вирізів: %4.</translation>
+    </message>
+    <message>
+        <source>The panel was imported. Notes from the DXF import:</source>
+        <translation>Панель імпортовано. Примітки імпорту DXF:</translation>
     </message>
 </context>
 <context>

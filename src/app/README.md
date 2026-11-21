@@ -28,9 +28,10 @@ existing items' bounding boxes).
 | `diagnostics_rows.hpp` | generation + validation findings with part / item links, `summarize` |
 | `nesting_rows.hpp` | `NestingSummaryRow` / `nestingSummary` (numbers of the heuristic nesting plans; `problems` = Error findings of `validateNest`), `PlanKind`, `CuttingTableRow` / `cuttingTableRows`, `nestingSettingsInput`, `nestingSettingsCommand` (`setNestingSettings`), `parseNestingSeed` |
 | `cutting_rows.hpp` | `cuttingSummary` (numbers from the heuristic optimiser), `cuttingSettingsCommand` (kerf / trim, or a `CuttingSettingsInput` with kerf, trim, objective and remnant list), `cuttingSettingsInput`, `hasOwnCuttingSettings`, `useDefaultCuttingSettingsCommand`, `nextRemnantId` ("R1", "R2", …) |
-| `interior_rows.hpp` | `sectionRows` (section tree depth-first), `sectionCaption` / `sizeDescription` / `contentText`, size syntax `parseSectionSize` / `sizeText` / `parseSizeList` (`300` = fixed mm, `1*` = share, anything else = expression), `splitCommand` (equal shares), `removeSplitCommand` (split section → empty leaf, front kept), `sectionSizeCommand`, `clearInteriorCommand` (`setInterior` with an empty leaf), `FrontInput` + `frontInput` / `frontCommand` (none / door / door pair / drawer stack) |
+| `interior_rows.hpp` | `sectionRows` (section tree depth-first), `sectionCaption` / `sizeDescription` / `contentText`, size syntax `parseSectionSize` / `sizeText` / `parseSizeList` (`300` = fixed mm, `1*` = share, anything else = expression), `splitCommand` (equal shares), `removeSplitCommand` (split section → empty leaf, front kept), `sectionSizeCommand`, `clearInteriorCommand` (`setInterior` with an empty leaf), `FrontInput` + `frontInput` / `frontSpec` / `frontCommand` (none / door / door pair / drawer stack; drawer stack with optional drawer box: `drawerBox`, `slide`, `drawerBottom` → `FrontSpec::drawerBox`), `slideChoices` (library entries of kind DrawerSlide) |
 | `cabinet_parts.hpp` | `HardwareRole` (hinge, handle, shelf pin, confirmat, dowel, foot), `hardwareChoices` (library entries of the matching `HardwareKind`), `hardwareCommand`; `partSlot`, `currentOverride`, `edgeChoice`, `partMaterialCommand`, `partEdgeCommand` (cabinet rule / raw / band), `clearPartOverrideCommand` |
 | `contour_rows.hpp` | Shape editor view-model: `VertexRow`, `CutoutRow`, `ContourInput`, `contourInput(spec)`, `contourSpec(input)` (only the selected kind's fields + cut-outs; Rectangle without cut-outs = no shape; plain numbers normalised, other texts passed on as expressions; only a non-numeric bulge is refused here), `rectangleVertexRows`, `moveRow`, `ContourTarget` / `contourTarget` (cabinet slot or panel item), `currentContour`, `contourCommand` (`setPartContour` / `setPanelContour`), `applyContourInput`, `ShapeFacts` / `shapeFacts` (shaped, routed = `!isRectangularOutline`, outline area mm² via `geometry::signedArea` minus cut-outs, segments, cut-outs, banded segments), `shapeSummary` |
+| `dxf_panel_import.hpp` | File ▸ Import DXF outline: `DxfPanelRequest` (name, material id or thickness, skip unsupported cut-outs), `pickDxfPanelMaterial`, `dxfPanelItemId` (name slug, made unique), `buildDxfPanelItem(project, formats::DxfImport, request, itemId, placement)` → `DxfPanelImport` (panel item with a Custom `ContourSpec` from `formats::importPanelShape`, circle / rectangle cut-outs, diagnostics, counts). Same rules and messages as `fos import-dxf` (the CLI cannot link this Qt library, so the ~100-line conversion is mirrored here) |
 | `drawing_edits.hpp` | `drawingIdOf`, `editContext`, `findDimension`, picking: `viewAt` (sheet view placements), `dimensionAt` (distance to the primitives carrying the dimension's `elementId`, 1.5 paper mm), `elementBounds`, `nearestCorner` (every part corner through `drawings::resolveAnchor`); commands: `dimensionOffsetCommand`, `hideDimensionCommand`, `dimensionTextCommand` (records `measuredAtEdit` via `drawings::setTextOverride`), `removeEditCommand`, `addUserDimensionCommand` (two `ModelAnchor`s, id `user.dim.<n>`); `drawingEditRows` / `editRowText` (stale and orphan flags from the `EditReport`), `editFindings` |
 | `drawing_request.hpp` | `DrawingRequest`, `generateDrawing` (translated title block + calibration note), `exportDrawingSvg/Dxf/Pdf` |
 | `production_text.hpp` | `ProductionText::localisation()/htmlSheetText()/labelText()` — every production caption via `tr()` |
@@ -50,7 +51,8 @@ existing items' bounding boxes).
 * **Inspector.** Cabinet: name, then three tabs (the selected tab and interior section survive rebuilds):
   * *Parameters*: grouped by kind with units (number or expression, Enter commits; derived parameters are
     marked, a pinned one has Reset).
-  * *Construction*: construction options; materials and edge bands by role; **hardware** (hinge, handle, shelf
+  * *Construction*: construction options; materials and edge bands by role (including **Drawer boxes** /
+    **Drawer bottoms** = `MaterialAssignment::drawer` / `drawerBottom`, empty = default); **hardware** (hinge, handle, shelf
     pin, confirmat screw, dowel, foot — each a combo of the project library entries of that kind,
     `commands::setHardware`).
   * *Interior*: the section tree (columns section, size, content) with **Split vertically / Split
@@ -59,7 +61,10 @@ existing items' bounding boxes).
     fixed mm, `1*` / `2*` = share of the rest, other text = expression), **Shelves** of a leaf
     (`setShelfCount`) and the **front** of the selected section: none, single door (hinge side), door pair,
     drawer stack (heights bottom to top, `;`-separated, same size syntax), overlay, cup hinges, handle
-    position (`setFront`).
+    position (`setFront`). For a drawer stack, **Drawer boxes** none / box on slides, **Slides** (library
+    entries of kind DrawerSlide: `hw.slide_ball_bearing`, `hw.slide_undermount`) and **Drawer bottom**
+    (grooved / nailed under) → `FrontSpec::drawerBox`; the furniture module sizes the boxes and refuses
+    impossible combinations (message shown inline).
   A refused edit shows the engine's message (under the field or under the action buttons) and changes nothing.
   Panel item: name + parameters. Part: read-only finished size, cut size (`domain::cutSize`), material, grain,
   edges, operation count; for a cabinet part an **override** editor (material, and each edge L1/L2/W1/W2 as
@@ -102,6 +107,11 @@ existing items' bounding boxes).
   `commands::setDrawingEdits`); a user dimension can be re-offset, re-texted or deleted but not hidden. The
   panel lists every stored edit of the drawing (hidden / offset / text, STALE, ORPHAN) with **Remove edit**,
   and the `drawings.edits.*` findings (stale overrides, orphans, bad anchors) verbatim.
+* **Import DXF outline (File menu).** File dialog → options dialog (name, material or "first material of the
+  thickness", thickness, layer, units, skip unsupported cut-outs) → `formats::importDxfFile` +
+  `buildDxfPanelItem` → `commands::addItem` (undoable; placed right of the existing items, selected). A refusal
+  (unreadable DXF, no closed outline, unsupported cut-out, no material, panel refused) is shown in the dialog
+  with the DXF diagnostics and the dialog stays open; diagnostics of a successful import are shown in a message box.
 * **Exports (File ▸ Export).** Cut list CSV, production sheet HTML (selected or first item), part labels SVG
   (A4, 70 × 37 mm, one file per page), drawing PDF / SVG (one file per sheet) / DXF (one file per view, model
   space 1:1 mm), model OBJ + MTL.

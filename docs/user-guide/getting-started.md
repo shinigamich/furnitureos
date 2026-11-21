@@ -76,6 +76,14 @@ horizontal one), with each section's size and content. Select a section, then:
 * **Front of the section**: no front, single door (hinged left or right), door pair or drawer stack; overlay
   (full, half, inset), cup hinges, handle position. For a drawer stack enter the drawer front heights from
   bottom to top separated by `;` with the same size syntax, e.g. `140; 1*; 1*`. Press **Apply front**.
+* **Drawer boxes** (drawer stack only): "None (fronts only)" or "Box on slides". With a box, every drawer front
+  gets a box behind it — two sides, inner front, back and bottom — carried by two **slides** (the drawer-slide
+  entries of the project library: ball-bearing side-mounted or concealed undermount) with the **drawer bottom**
+  in grooves or nailed under. The box size follows the opening, the cabinet depth and the slide rules (e.g. a
+  600 mm wide cabinet with ball-bearing slides: box 538.6 mm wide). An impossible combination — a nailed-under
+  bottom on undermount runners, a cabinet too shallow for the shortest slide — is refused with the reason and
+  nothing changes. The box materials are chosen on the **Construction** tab: **Drawer boxes** (default: the
+  carcass material) and **Drawer bottoms** (default: the back panel material).
 
 Example: split the base cabinet vertically, give section 1 two shelves and keep the door pair on the whole
 interior — the browser then lists a partition (684 mm long) and two 271 × 540 mm shelves in the left section.
@@ -110,6 +118,19 @@ returns to a rectangle. The part then shows "shaped part (routed)", its outline 
 and its blank (cut) size; the 3D view, the part drawings and the production tables (Shape, Outline area, Outline
 edges, routing columns) show the real outline. Example: the open shelving template, shelf `shelf.1.1`, rounded
 corners L1 · W1 and L1 · W2 = 30 → outline area 762 × 280 − 2 × (900 − 225π) ≈ 212 974 mm².
+
+### Importing an outline from DXF
+
+**File ▸ Import DXF outline…** adds a free panel whose outline comes from an ASCII DXF drawing (R12 or later;
+lines, arcs, circles and polylines — explode blocks first; splines, ellipses and text are not imported and are
+reported). Choose the file, then the panel's **name**, **material** (or "First material of the thickness below"
+plus a **thickness**), an optional **layer**, the **units** (from the file; a file without units is read as mm)
+and whether to **skip unsupported cut-outs**. The largest closed outline becomes the panel, closed outlines inside
+it become cut-outs — circles and axis-parallel (rounded) rectangles; other shapes refuse the import unless they
+are skipped. The panel is placed to the right of the existing items as one undoable step and its Shape section
+shows the imported outline as a custom contour you can edit. A refusal (no closed outline, no material of that
+thickness, …) is shown in the dialog with the DXF notes, and nothing is added; notes of a successful import
+(e.g. "units assumed to be mm") are listed in a message box.
 
 ## 6. Drawings, annotations and exact-scale printing
 

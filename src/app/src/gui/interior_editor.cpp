@@ -123,6 +123,16 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
     drawerHeights_->setObjectName(QStringLiteral("drawerHeights"));
     drawerHeights_->setToolTip(
         tr("One size per drawer front, bottom to top, separated by “;” (e.g. 140; 1*; 1*)."));
+    drawerBox_ = narrowCombo(frontBox);
+    drawerBox_->setObjectName(QStringLiteral("drawerBox"));
+    drawerBox_->addItem(tr("None (fronts only)"), false);
+    drawerBox_->addItem(tr("Box on slides"), true);
+    drawerBox_->setToolTip(tr("Generates a drawer box (sides, inner front, back, bottom) and two slides "
+                              "behind every drawer front."));
+    slide_ = narrowCombo(frontBox);
+    slide_->setObjectName(QStringLiteral("drawerSlide"));
+    drawerBottom_ = choiceBox(drawerBottomChoices(), furniture::DrawerBottomMount::Grooved, frontBox);
+    drawerBottom_->setObjectName(QStringLiteral("drawerBottom"));
     applyFront_ = new QPushButton(tr("Apply front"), frontBox);
     applyFront_->setObjectName(QStringLiteral("applyFront"));
     frontForm->addRow(tr("Type:"), frontKind_);
@@ -131,6 +141,9 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
     frontForm->addRow(hinges_);
     frontForm->addRow(tr("Handle:"), handle_);
     frontForm->addRow(tr("Drawer heights:"), drawerHeights_);
+    frontForm->addRow(tr("Drawer boxes:"), drawerBox_);
+    frontForm->addRow(tr("Slides:"), slide_);
+    frontForm->addRow(tr("Drawer bottom:"), drawerBottom_);
     frontForm->addRow(applyFront_);
     layout->addWidget(frontBox);
 
@@ -172,9 +185,15 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
         handle_->setEnabled(any);
         hinges_->setEnabled(door);
         hingeSide_->setEnabled(choice == FrontInput::Choice::Door);
-        drawerHeights_->setEnabled(choice == FrontInput::Choice::DrawerStack);
+        const bool drawers = choice == FrontInput::Choice::DrawerStack;
+        drawerHeights_->setEnabled(drawers);
+        drawerBox_->setEnabled(drawers);
+        const bool box = drawers && drawerBox_->currentData().toBool();
+        slide_->setEnabled(box);
+        drawerBottom_->setEnabled(box);
     };
     connect(frontKind_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
+    connect(drawerBox_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
     connect(applyFront_, &QPushButton::clicked, this, [this] {
         FrontInput in;
         in.choice = valueOf<FrontInput::Choice>(frontKind_);
@@ -183,6 +202,9 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
         in.hinges = hinges_->isChecked();
         in.handle = valueOf<furniture::HandlePosition>(handle_);
         in.drawerHeights = drawerHeights_->text();
+        in.drawerBox = drawerBox_->currentData().toBool();
+        in.slide = slide_->currentData().toString().toStdString();
+        in.drawerBottom = valueOf<furniture::DrawerBottomMount>(drawerBottom_);
         run(frontCommand(itemId_, selectedPath_, in));
     });
 
@@ -267,6 +289,14 @@ void InteriorEditor::showSelected() {
     selectData(handle_, static_cast<int>(in.handle));
     hinges_->setChecked(in.hinges);
     drawerHeights_->setText(in.drawerHeights);
+    drawerBox_->setCurrentIndex(in.drawerBox ? 1 : 0);
+    slide_->clear();
+    for (const auto& c : slideChoices(session_.project().libraries, in.slide))
+        slide_->addItem(c.missing ? tr("%1 (not in the library)").arg(QString::fromStdString(c.id))
+                                  : QString::fromStdString(c.name),
+                        QString::fromStdString(c.id));
+    selectData(slide_, QString::fromStdString(in.slide));
+    selectData(drawerBottom_, static_cast<int>(in.drawerBottom));
     applyFront_->setEnabled(have);
 }
 

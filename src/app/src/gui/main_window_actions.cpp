@@ -40,6 +40,8 @@ void MainWindow::buildActions() {
     a_.exportSvg = make(tr("Drawing (SVG)…"));
     a_.exportDxf = make(tr("Drawing views (DXF)…"));
     a_.exportObj = make(tr("3D model (OBJ)…"));
+    a_.importDxf = make(tr("&Import DXF outline…"));
+    a_.importDxf->setObjectName(QStringLiteral("actionImportDxf"));
     a_.undo = make(tr("&Undo"), QKeySequence::Undo, QStyle::SP_ArrowBack);
     a_.redo = make(tr("&Redo"), QKeySequence::Redo, QStyle::SP_ArrowForward);
     a_.deleteItem = make(tr("&Delete item"), QKeySequence::Delete);
@@ -82,6 +84,7 @@ void MainWindow::buildActions() {
     connect(a_.exportSvg, &QAction::triggered, drawings_, &DrawingsWorkspace::exportSvg);
     connect(a_.exportDxf, &QAction::triggered, drawings_, &DrawingsWorkspace::exportDxf);
     connect(a_.exportObj, &QAction::triggered, this, &MainWindow::exportModelObj);
+    connect(a_.importDxf, &QAction::triggered, this, &MainWindow::importDxfOutline);
     connect(a_.undo, &QAction::triggered, this, [this] { (void)session_.undo(); });
     connect(a_.redo, &QAction::triggered, this, [this] { (void)session_.redo(); });
     connect(a_.deleteItem, &QAction::triggered, this, &MainWindow::deleteSelectedItem);
@@ -110,6 +113,7 @@ void MainWindow::buildMenus() {
     file->addAction(a_.save);
     file->addAction(a_.saveAs);
     file->addSeparator();
+    file->addAction(a_.importDxf);
     QMenu* exportMenu = file->addMenu(tr("&Export"));
     for (QAction* a : {a_.exportCsv, a_.exportHtml, a_.exportLabels}) exportMenu->addAction(a);
     exportMenu->addSeparator();

@@ -69,6 +69,7 @@ set(FOS_ALL_MODULES
     hardware
     furniture
     validation
+    linear
     production
     cutting
     nesting

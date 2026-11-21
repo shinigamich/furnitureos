@@ -96,6 +96,9 @@ public:
     /// Selects the part (and its item); empty id clears the selection.
     void selectPart(const std::string& partId);
     void selectItem(const std::string& itemId);
+    /// Largest x (mm, project frame) of the resolved assemblies' bounding boxes, 0 for an empty
+    /// project: where a new item is placed (display layout only).
+    double rightEdge() const;
     /// Id of the item whose generated assembly contains `partId`, empty when none.
     std::string itemOfPart(const std::string& partId) const;
     const domain::Part* findPart(const std::string& partId) const;
@@ -114,7 +117,6 @@ private:
     void attachObserver();
     void refresh();
     void pruneSelection();
-    double rightEdge() const;
 
     std::unique_ptr<project::Document> document_;
     std::filesystem::path path_;

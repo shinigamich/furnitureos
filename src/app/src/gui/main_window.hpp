@@ -81,6 +81,7 @@ private:
     void exportProductionHtml();
     void exportLabelsSvg();
     void exportModelObj();
+    void importDxfOutline();
     void autosaveTick();
     void applyPreferences();
     void showPreferences();
@@ -107,7 +108,7 @@ private:
 
     struct Actions {
         QAction *newProject, *open, *save, *saveAs, *print, *quit;
-        QAction *exportCsv, *exportHtml, *exportLabels, *exportPdf, *exportSvg, *exportDxf, *exportObj;
+        QAction *exportCsv, *exportHtml, *exportLabels, *exportPdf, *exportSvg, *exportDxf, *exportObj, *importDxf;
         QAction *undo, *redo, *deleteItem, *duplicateItem, *preferences;
         QAction *fitAll, *perspective, *orthographic, *shaded, *shadedEdges, *wireframe;
         QAction *about, *shortcuts;

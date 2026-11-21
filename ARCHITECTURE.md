@@ -41,9 +41,10 @@ on the ones listed for it.
 | 6 | `hardware` | Fitting catalogue, placement rules producing hardware instances + operations | …, machining |
 | 7 | `furniture` | Parametric furniture definitions (cabinets, sections, fronts), construction rules, templates -> `domain::Assembly` | core, geometry, parametric, domain, machining, hardware |
 | 8 | `validation` | Model-level checks (collisions, materials, edges, machining) -> Diagnostics | core, geometry, domain, machining |
-| 9 | `production` | BOM, cut list, edge/hardware/drilling reports, labels, cost; CSV | core, geometry, domain |
+| 9 | `production` | BOM, cut list, edge/hardware/drilling reports, labels, cost; CSV; edge-band roll planning | core, geometry, domain; `linear` (edge-band rolls only — the one exception to the table order, compiled in only when `linear` is configured) |
 | 10 | `cutting` | Rectangular guillotine cutting optimisation + layout validation (`fos::cutting`); adapter from `domain::Model` to cutting jobs in the separate target `fos::cutting_model` | core (`fos::cutting`); cutting + domain (`fos::cutting_model`) |
 | 11 | `nesting` | True-shape nesting of polygons | core, geometry |
+| 11b | `linear` | 1D cutting-stock optimisation (bars, profiles, edge-band rolls) + plan validation + SVG | core |
 | 12 | `drawings` | Views, dimensions, annotations, sheets, SVG/DXF output | core, geometry, domain |
 | 13 | `cam` | Machine profiles, toolpaths, postprocessor interface, CAM validation | core, geometry, domain, machining |
 | 14 | `formats` | Versioned JSON container, migrations, atomic save, library import/export, OBJ/DXF/CSV exchange | core, geometry, domain |
