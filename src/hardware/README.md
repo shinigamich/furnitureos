@@ -85,7 +85,7 @@ error that names the parts and the numbers involved.
 
 | Function | Header | What it does |
 |---|---|---|
-| `detectButtJoint`, `connectCorner` | `corner_joint.hpp` | Confirmats or dowels along a butt joint (edge of one panel on face A/B of another); coaxial face + edge holes, edge hole centred in the thickness. |
+| `detectButtJoint`, `connectCorner` | `corner_joint.hpp` | Confirmats or dowels along a butt joint (edge of one panel on face A/B of another); coaxial face + edge holes, edge hole centred in the thickness. Optional `CornerJointConfig::zone` limits the fasteners to part of the contact (e.g. clear of a drawer-bottom groove); end offsets are measured from the ends of contact ∩ zone, an empty intersection is an error. |
 | `placeShelfSupports` | `shelf_supports.hpp` | 4 pins under a horizontal shelf, on the inner faces of the two sides; pin centre = shelf underside − pin radius. |
 | `placeHinges`, `hingeCount`, `hingePositions` | `hinges.hpp` | Cup hinges for an overlay door on a vertical side: cup holes in the door, mounting-plate hole pairs in the side. |
 | `placeHandle` | `handle.hpp` | Two through holes for a handle on a vertical front; centred or offset from an edge; horizontal or vertical. |

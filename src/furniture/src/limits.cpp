@@ -34,7 +34,11 @@ std::size_t frontCount(const Section& s) {
     case FrontKind::Door: return 1;
     case FrontKind::DoorPair: return 2;
     case FrontKind::DrawerStack: // a front plus, with boxes, 2 sides, inner front, back and bottom
-        return s.front->drawerHeights.size() * (s.front->drawerBox ? 6 : 1);
+    {
+        std::size_t n = 0;
+        for (std::size_t i = 0; i < s.front->drawerHeights.size(); ++i) n += drawerBoxFor(*s.front, i) ? 6 : 1;
+        return n;
+    }
     }
     return 0;
 }

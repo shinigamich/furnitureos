@@ -28,6 +28,10 @@ CabinetDefinition tallCabinet(domain::AssemblyId id, const TemplateMaterials& ma
 /// 600 x 820 x 560; feet 100; full top; grooved back; stack of 4 drawer FRONTS (bottom two
 /// double height). Fronts only; set FrontSpec::drawerBox for drawer boxes with slides.
 CabinetDefinition drawerUnit(domain::AssemblyId id, const TemplateMaterials& materials);
+/// drawerUnit() with a drawer box behind every front: FrontSpec::drawerBox = DrawerBoxSpec{}
+/// (generic ball-bearing slides, grooved bottom, dowelled corners). Box material = carcass
+/// material, bottom = back material (MaterialAssignment fallbacks). Name "Drawer unit with boxes".
+CabinetDefinition drawerUnitWithBoxes(domain::AssemblyId id, const TemplateMaterials& materials);
 /// 1000 x 2200 x 580; plinth panel 80; one partition (two equal sections: 4 shelves left,
 /// 1 shelf right); pair of doors over the whole front.
 CabinetDefinition wardrobeSection(domain::AssemblyId id, const TemplateMaterials& materials);

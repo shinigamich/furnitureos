@@ -2,8 +2,9 @@
 #pragma once
 /// \file
 /// File > Import DXF outline: the options dialog (name, material, thickness, layer, units,
-/// skip unsupported cut-outs). The conversion is fos::app::buildDxfPanelItem.
-#include "fos/app/dxf_panel_import.hpp"
+/// skip unsupported cut-outs). The conversion is fos::project::buildDxfPanelItem.
+#include "fos/formats/dxf_import.hpp"
+#include "fos/project/dxf_panel.hpp"
 
 #include <QDialog>
 
@@ -20,7 +21,7 @@ class ImportDxfDialog : public QDialog {
 public:
     ImportDxfDialog(const furniture::Libraries& libraries, const QString& fileName, QWidget* parent = nullptr);
 
-    DxfPanelRequest request() const;
+    project::DxfPanelRequest request() const;
     formats::DxfImportOptions options() const;
     /// Shows a refusal under the fields (the dialog stays open with its values).
     void showRefusal(const QString& message);

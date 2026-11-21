@@ -257,6 +257,16 @@ core::Result<furniture::SectionSize> sizeFromJson(const Json& json, std::string_
     return s;
 }
 
+/// "joint" is written only when it is not the default Dowel, so files written before box
+/// joints existed stay byte-identical.
+Json drawerBoxJson(const furniture::DrawerBoxSpec& b) {
+    Json box = Json::object();
+    box["slide"] = b.slide.str();
+    box["bottom"] = furniture::toString(b.bottom);
+    if (b.joint != furniture::JointFastener::Dowel) box["joint"] = furniture::toString(b.joint);
+    return box;
+}
+
 Json frontJson(const furniture::FrontSpec& f) {
     Json j = Json::object();
     j["kind"] = furniture::toString(f.kind);
@@ -267,11 +277,12 @@ Json frontJson(const furniture::FrontSpec& f) {
     Json heights = Json::array();
     for (const auto& h : f.drawerHeights) heights.push_back(sizeJson(h));
     j["drawerHeights"] = std::move(heights);
-    if (f.drawerBox) { // absent = no drawer boxes (files written before drawer boxes stay byte-identical)
-        Json box = Json::object();
-        box["slide"] = f.drawerBox->slide.str();
-        box["bottom"] = furniture::toString(f.drawerBox->bottom);
-        j["drawerBox"] = std::move(box);
+    if (f.drawerBox) // absent = no drawer boxes (files written before drawer boxes stay byte-identical)
+        j["drawerBox"] = drawerBoxJson(*f.drawerBox);
+    if (!f.drawerBoxes.empty()) { // absent = every drawer uses drawerBox; null entry = no box
+        Json boxes = Json::array();
+        for (const auto& b : f.drawerBoxes) boxes.push_back(b ? drawerBoxJson(*b) : Json());
+        j["drawerBoxes"] = std::move(boxes);
     }
     return j;
 }
@@ -284,10 +295,20 @@ core::Result<furniture::DrawerBoxSpec> drawerBoxFromJson(const Json& json, std::
     r.text("slide", slide, true, true);
     r.token("bottom", b.bottom, furnitureEnum<DrawerBottomMount>(),
             furnitureTokens({DrawerBottomMount::Grooved, DrawerBottomMount::NailedUnder}));
+    r.token("joint", b.joint, furnitureEnum<JointFastener>(),
+            furnitureTokens({JointFastener::None, JointFastener::Confirmat, JointFastener::Dowel}));
     r.rejectUnknown();
     if (!r.ok()) return r.error();
     b.slide = domain::HardwareId(slide);
     return b;
+}
+
+/// Entry of "drawerBoxes": null = no box behind that drawer, else a drawer box object.
+core::Result<std::optional<furniture::DrawerBoxSpec>> drawerBoxEntryFromJson(const Json& json, std::string_view path) {
+    if (json.is_null()) return std::optional<furniture::DrawerBoxSpec>{};
+    auto b = drawerBoxFromJson(json, path);
+    if (!b) return b.error();
+    return std::optional<furniture::DrawerBoxSpec>{std::move(b.value())};
 }
 
 core::Result<furniture::FrontSpec> frontFromJson(const Json& json, std::string_view path) {
@@ -305,6 +326,8 @@ core::Result<furniture::FrontSpec> frontFromJson(const Json& json, std::string_v
     r.limitArray("drawerHeights", furniture::limits::kMaxDrawerHeights, "drawer heights");
     r.array("drawerHeights", f.drawerHeights, sizeFromJson);
     r.nested("drawerBox", f.drawerBox, drawerBoxFromJson);
+    r.limitArray("drawerBoxes", furniture::limits::kMaxDrawerHeights, "per-drawer boxes");
+    r.array("drawerBoxes", f.drawerBoxes, drawerBoxEntryFromJson);
     r.rejectUnknown();
     if (!r.ok()) return r.error();
     return f;

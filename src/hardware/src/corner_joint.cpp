@@ -122,7 +122,18 @@ core::Result<Placement> connectCorner(const Part& facePart, const Part& edgePart
                                : checkDowelFit(fastener, facePart, edgePart, j.edgeOnEdgePart, cfg.fit);
     if (auto r = firstError(fit); !r) return r.error();
 
-    auto positions = fastenerPositions(j.along.length(), cfg.minEndOffset, cfg.maxSpacing, cfg.count);
+    machining::Range span = j.along;
+    if (cfg.zone) {
+        span = {std::max(j.along.min, cfg.zone->min), std::min(j.along.max, cfg.zone->max)};
+        if (!(span.length() > core::kLengthEps))
+            return core::makeError(core::ErrorCode::ConstraintViolation,
+                                   "Joint between " + quoted(edgePart) + " and " + quoted(facePart) +
+                                       ": the fastener zone " + num(cfg.zone->min) + " to " + num(cfg.zone->max) +
+                                       " mm does not overlap the contact " + num(j.along.min) + " to " +
+                                       num(j.along.max) + " mm.",
+                                   edgePart.id.str());
+    }
+    auto positions = fastenerPositions(span.length(), cfg.minEndOffset, cfg.maxSpacing, cfg.count);
     if (!positions)
         return core::makeError(core::ErrorCode::ConstraintViolation,
                                "Joint between " + quoted(edgePart) + " and " + quoted(facePart) + ": " +
@@ -148,7 +159,7 @@ core::Result<Placement> connectCorner(const Part& facePart, const Part& edgePart
 
     bool first = true;
     for (const double s : positions.value()) {
-        const double u = j.along.min + s;
+        const double u = span.min + s;
         const Vec3 p = machining::faceToAssembly(edgePart, j.edgeOnEdgePart, u, vCentre);
         const auto fc = machining::assemblyToFace(facePart, j.faceOnFacePart, p);
         if (!circleOnFace(facePart, j.faceOnFacePart, fc.u, fc.v, faceD / 2))

@@ -4,15 +4,18 @@
 #include "drawings_workspace.hpp"
 #include "fos/viewport/viewport_widget.hpp"
 #include "main_window.hpp"
+#include "view_tools.hpp"
 
 #include <QAction>
 #include <QActionGroup>
 #include <QApplication>
 #include <QDockWidget>
 #include <QFileInfo>
+#include <QLabel>
 #include <QMenu>
 #include <QMenuBar>
 #include <QSettings>
+#include <QStatusBar>
 #include <QStyle>
 #include <QTabWidget>
 #include <QToolBar>
@@ -53,10 +56,17 @@ void MainWindow::buildActions() {
     a_.shaded = make(tr("&Shaded"), QKeySequence(Qt::Key_1));
     a_.shadedEdges = make(tr("Shaded with &edges"), QKeySequence(Qt::Key_2));
     a_.wireframe = make(tr("&Wireframe"), QKeySequence(Qt::Key_3));
+    a_.measure = make(tr("&Measure"), QKeySequence(Qt::Key_M));
+    a_.measure->setObjectName(QStringLiteral("actionMeasure"));
+    a_.measure->setToolTip(tr("Measure the distance between two snapped points (display only)"));
+    a_.section = make(tr("Sect&ion plane"), QKeySequence(Qt::Key_S));
+    a_.section->setObjectName(QStringLiteral("actionSection"));
+    a_.section->setToolTip(tr("Cut the 3D view with an axis-aligned plane (display only)"));
     a_.about = make(tr("&About FurnitureOS"));
     a_.shortcuts = make(tr("&Keyboard shortcuts"), QKeySequence::HelpContents);
 
-    for (QAction* a : {a_.perspective, a_.orthographic, a_.shaded, a_.shadedEdges, a_.wireframe}) a->setCheckable(true);
+    for (QAction* a : {a_.perspective, a_.orthographic, a_.shaded, a_.shadedEdges, a_.wireframe, a_.measure, a_.section})
+        a->setCheckable(true);
     auto* projection = new QActionGroup(this);
     projection->addAction(a_.perspective);
     projection->addAction(a_.orthographic);
@@ -160,6 +170,9 @@ void MainWindow::buildMenus() {
     view->addSeparator();
     view->addAction(a_.fitAll);
     view->addSeparator();
+    view->addAction(a_.measure);
+    view->addAction(a_.section);
+    view->addSeparator();
     for (QDockWidget* dock : findChildren<QDockWidget*>()) view->addAction(dock->toggleViewAction());
 
     QMenu* help = menuBar()->addMenu(tr("&Help"));
@@ -177,10 +190,42 @@ void MainWindow::buildMenus() {
     bar->addAction(a_.redo);
     bar->addSeparator();
     bar->addAction(a_.fitAll);
+    bar->addAction(a_.measure);
+    bar->addAction(a_.section);
     // Undo/redo texts carry the command label; keep the toolbar compact with fixed texts.
     bar->setToolButtonStyle(Qt::ToolButtonIconOnly);
 
     rebuildRecentMenu();
+}
+
+void MainWindow::buildViewTools() {
+    sectionBar_ = new SectionToolBar(viewport_, this);
+    addToolBar(Qt::TopToolBarArea, sectionBar_);
+    sectionBar_->setSectionEnabled(false);
+    measureLabel_ = new QLabel(this);
+    measureLabel_->setObjectName(QStringLiteral("measureStatus"));
+    measureLabel_->setVisible(false);
+    statusBar()->addWidget(measureLabel_, 2);
+    viewport_->setLengthSuffix(tr(" mm"));
+
+    connect(a_.measure, &QAction::toggled, this, [this](bool on) {
+        if (on) {
+            tabs_->setCurrentWidget(viewport_);
+            viewport_->setFocus();
+        }
+        viewport_->setMeasureMode(on);
+    });
+    connect(viewport_, &viewport::ViewportWidget::measureModeChanged, this, [this](bool on) {
+        a_.measure->setChecked(on);
+        measureLabel_->setVisible(on);
+    });
+    connect(viewport_, &viewport::ViewportWidget::measurementChanged, this,
+            [this] { measureLabel_->setText(measureStatusText(*viewport_)); });
+    connect(a_.section, &QAction::toggled, this, [this](bool on) {
+        if (on) tabs_->setCurrentWidget(viewport_);
+        sectionBar_->setSectionEnabled(on);
+    });
+    connect(sectionBar_, &SectionToolBar::offRequested, this, [this] { a_.section->setChecked(false); });
 }
 
 void MainWindow::rebuildRecentMenu() {

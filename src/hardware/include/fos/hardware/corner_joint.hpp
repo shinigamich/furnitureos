@@ -48,6 +48,12 @@ struct CornerJointConfig {
     /// Dowels only: override the definition's face_depth / edge_depth.
     std::optional<double> dowelFaceDepth;
     std::optional<double> dowelEdgeDepth;
+    /// Optional fastener zone: a range of the butting edge face's u coordinate (the same
+    /// coordinates as ButtJoint::along). When set, the fasteners are distributed over the
+    /// intersection of the contact and this zone (end offsets measured from ITS ends), e.g.
+    /// to keep them clear of a groove crossing the joint. Error when the intersection is
+    /// empty or shorter than the end offsets allow.
+    std::optional<machining::Range> zone;
     FitOptions fit;
 };
 
@@ -61,6 +67,7 @@ struct CornerJointConfig {
 ///    pilot_extra_depth) in the butting edge of `edgePart`.
 ///  * Dowel: a blind hole (diameter, face_depth) in the CONTACT face of `facePart` and a
 ///    hole (diameter, edge_depth) in the butting edge of `edgePart`.
+/// With `config.zone` the positions are measured from the start of the zone (see above).
 /// Both holes of a fastener are coaxial in the assembly frame and the edge hole is
 /// centred in the thickness of `edgePart`.
 ///

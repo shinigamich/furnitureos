@@ -27,6 +27,7 @@ class DrawingsWorkspace;
 class InspectorPanel;
 class ProductionWorkspace;
 class ProjectBrowser;
+class SectionToolBar;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -42,6 +43,7 @@ public:
     ProductionWorkspace* productionWorkspace() const noexcept { return production_; }
     CuttingWorkspace* cuttingWorkspace() const noexcept { return cutting_; }
     QTabWidget* workspaces() const noexcept { return tabs_; }
+    SectionToolBar* sectionToolBar() const noexcept { return sectionBar_; }
 
     /// Opens a project file (with recovery offer when a newer autosave/backup exists);
     /// errors are shown with the core's message. Returns true when the file was opened.
@@ -69,6 +71,7 @@ private:
     void buildActions();
     void buildMenus();
     void rebuildRecentMenu();
+    void buildViewTools(); // measure + section plane (main_window_actions.cpp)
     // main_window_files.cpp
     bool maybeSave();
     void newProject();
@@ -104,6 +107,8 @@ private:
     DiagnosticsPanel* diagnostics_ = nullptr;
     QLabel* selectionLabel_ = nullptr;
     QLabel* validationLabel_ = nullptr;
+    QLabel* measureLabel_ = nullptr;
+    SectionToolBar* sectionBar_ = nullptr;
     bool fitOnNextModel_ = true;
 
     struct Actions {
@@ -111,6 +116,7 @@ private:
         QAction *exportCsv, *exportHtml, *exportLabels, *exportPdf, *exportSvg, *exportDxf, *exportObj, *importDxf;
         QAction *undo, *redo, *deleteItem, *duplicateItem, *preferences;
         QAction *fitAll, *perspective, *orthographic, *shaded, *shadedEdges, *wireframe;
+        QAction *measure, *section;
         QAction *about, *shortcuts;
     } a_{};
     QMenu* recentMenu_ = nullptr;

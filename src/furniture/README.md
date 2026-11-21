@@ -33,7 +33,8 @@ Section paths: root `""`, children `1`, `2`, `2.1`, ... Empty
 path segments are skipped (`shelf.1` for the root's first shelf). Ids depend only on the tree
 position, so changing a shelf count only adds/removes the trailing ids of that section.
 Hardware instances: `hw.joint.<edge slot>.<face slot>`, `hw.pins.<shelf slot>`,
-`hw.hinges.<door slot>`, `hw.handle.<front slot>`, `hw.slide.<drawer slot>.left|right`, `hw.feet`; back grooves
+`hw.hinges.<door slot>`, `hw.handle.<front slot>`, `hw.slide.<drawer slot>.left|right`,
+`hw.joint.<drawer slot>.box_front|box_back.left|right` (drawer-box corners), `hw.feet`; back grooves
 have source `<cabinet>/rule.back_groove`, drawer-bottom grooves `<cabinet>/rule.drawer_bottom_groove`.
 
 ## Interior
@@ -105,8 +106,8 @@ drilled into face A.
 
 ## Drawer boxes
 
-`FrontSpec::drawerBox` (`DrawerBoxSpec{slide, bottom}`, DrawerStack only; `std::nullopt` = fronts only) puts a
-box behind EVERY front of the stack, carried by two slides of the definition `slide` (kind DrawerSlide; generic
+`FrontSpec::drawerBox` (`DrawerBoxSpec{slide, bottom, joint}`, DrawerStack only; `std::nullopt` = fronts only) puts a
+box behind EVERY front of the stack (unless overridden per drawer, below), carried by two slides of the definition `slide` (kind DrawerSlide; generic
 `hw.slide_ball_bearing` (default) or `hw.slide_undermount`, hardware README). Sizing (all from the resolved
 graph, so width / depth / drawer-height changes regenerate the box; rules of `hardware/drawer_slides.hpp`):
 
@@ -129,11 +130,36 @@ graph, so width / depth / drawer-height changes regenerate the box; rules of `ha
   max(groove offset, slide bottom_recess) above the box underside; the bottom enters each groove by depth −
   play. `NailedUnder`: a full-size bottom under the box (sides H − bottom thickness); refused for slides
   that need a raised bottom (undermount).
+* **Per-drawer boxes**: `FrontSpec::drawerBoxes` (`std::vector<std::optional<DrawerBoxSpec>>`). Empty (default)
+  = every drawer uses `drawerBox`. Otherwise exactly one entry per drawer front, aligned with `drawerHeights`
+  (bottom to top); each entry REPLACES `drawerBox` for that drawer (`std::nullopt` = front only). Another
+  size fails generation ("... has 2 per-drawer box entries but 3 drawer fronts ..."). `drawerBoxFor(front, i)`
+  returns the effective box of drawer i, `hasDrawerBoxes(front)` whether any drawer has one. Project files:
+  key `drawerBoxes` (array, `null` = no box) only when non-empty, so older files stay byte-identical.
+* **Corner joints** (`DrawerBoxSpec::joint`, default `Dowel`): each side (face part) is joined to the inner
+  front and to the back (edge parts, their end edges on the side's inner face) with `hardware::connectCorner`:
+  `Dowel` = `HardwareSelection::dowel` (blind 12 mm face hole in the side, 20 mm edge hole for the generic
+  8x30), `Confirmat` = `HardwareSelection::confirmat` (through hole from the side's outer face, pilot hole in
+  the end edge), `None` = nothing drilled. Four jobs per box (`hw.joint.<drawer>.box_front|box_back.left|right`),
+  scheduled before the slides. Fastener count / spacing: `joint_end_offset` (at most a quarter of the
+  fastener zone) and `joint_max_spacing`. GROOVE CLEARANCE RULE (grooved bottom): fasteners are placed only in
+  the zone from upper groove edge + `drawer_joint_groove_clearance` (optional parameter, default 5 mm) +
+  the largest hole radius of the fastener up to the top of the box, so at least that clearance of solid
+  board remains between every joint hole and the groove; a box too low for that zone fails generation.
+  COLLISION RULE: joint and slide holes are checked against the holes already in the part
+  (`machining::holesCollide`); an intersection is error `furniture.drawer_box.hole_collision` and the
+  fitting is not placed. With the generic slides the drawer-member holes (first at 32 / 20 mm from the box
+  front) stay clear of the dowels at half the board thickness from the box ends. Panel suitability is checked
+  by the hardware rules (the generic 8x30 dowel needs 3 mm edge walls and more than 2 mm under its 12 mm face hole: boards thicker than 14 mm).
+  Example (600 cabinet, 16 mm sides 644 high, 3 mm bottom 10 mm up): zone 13 + 5 + 4 = 22 .. 644 → 4 dowels
+  at 72, 246, 420, 594 mm above the box underside per corner.
 * **Slides**: one `placeDrawerSlides` job per side after all parts exist; a divider as carrying panel limits
   the cabinet holes to the shared-panel depth.
 * **Errors** (generation fails, edits are refused; messages name the drawer slot and numbers): usable depth
   too shallow for the shortest slide, box too low, sides too thick for an undermount runner, missing slide
   definition or drawer material. The interpenetration self-check covers the boxes (bottoms lie in grooves).
+* Template `templates::drawerUnitWithBoxes()`: `drawerUnit()` with `drawerBox = DrawerBoxSpec{}` (ball-bearing
+  slides, grooved bottom, dowelled corners) behind all four fronts; name "Drawer unit with boxes".
 
 ## Hinges and shelves
 
@@ -227,8 +253,9 @@ See generate.hpp for the full list of codes.
 
 ## Limitations
 
-* Drawer boxes: no box corner joints (dowels / screws) are drilled, no rear hook hole for undermount runners,
-  one box option per stack, rectangular boxes only; slide hole rows are taken from the generic definitions.
+* Drawer boxes: no rear hook hole / back notch for undermount runners, no fixing of the drawer front to the box
+  (front adjusters / screws), nailed bottoms get no nail positions, rectangular boxes only; slide hole rows are
+  taken from the generic definitions.
 * Inset doors get no hinges (no rule available; warning `furniture.front.inset_hinges`).
 * The interpenetration check compares bounding boxes (exact for the axis-aligned panels generated here).
 * Hinge heights are not snapped to a 32 mm system row.

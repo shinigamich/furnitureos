@@ -57,4 +57,16 @@ core::Result<Section*> findSection(Section& root, std::string_view path) {
     return const_cast<Section*>(r.value());
 }
 
+std::optional<DrawerBoxSpec> drawerBoxFor(const FrontSpec& front, std::size_t index) {
+    if (front.drawerBoxes.empty()) return front.drawerBox;
+    return index < front.drawerBoxes.size() ? front.drawerBoxes[index] : std::nullopt;
+}
+
+bool hasDrawerBoxes(const FrontSpec& front) {
+    if (front.drawerBoxes.empty()) return front.drawerBox.has_value();
+    for (const auto& b : front.drawerBoxes)
+        if (b) return true;
+    return false;
+}
+
 } // namespace fos::furniture

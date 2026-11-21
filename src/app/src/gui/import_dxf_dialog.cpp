@@ -67,8 +67,9 @@ ImportDxfDialog::ImportDxfDialog(const furniture::Libraries& libraries, const QS
     form->addRow(buttons);
 }
 
-DxfPanelRequest ImportDxfDialog::request() const {
-    DxfPanelRequest r;
+project::DxfPanelRequest ImportDxfDialog::request() const {
+    project::DxfPanelRequest r;
+    r.skipOptionLabel = "\"Skip unsupported cut-outs\"";
     r.name = name_->text().trimmed().toStdString();
     r.materialId = material_->currentData().toString().toStdString();
     if (thickness_->value() > 0) r.thickness = thickness_->value();
@@ -116,10 +117,10 @@ void MainWindow::importDxfOutline() {
             continue;
         }
         const project::Project& p = session_.project();
-        const DxfPanelRequest req = dialog.request();
-        const std::string id = dxfPanelItemId(p, req.name);
+        const project::DxfPanelRequest req = dialog.request();
+        const std::string id = project::dxfPanelItemId(p, req.name);
         core::Diagnostics found;
-        auto built = buildDxfPanelItem(p, dxf.value(), req, id,
+        auto built = project::buildDxfPanelItem(p, dxf.value(), req, id,
                                        geometry::Transform::translation({session_.rightEdge(), 0, 0}), &found);
         QString message = built ? QString() : QString::fromStdString(built.error().message);
         if (built) {
@@ -134,7 +135,7 @@ void MainWindow::importDxfOutline() {
             continue;
         }
         session_.selectItem(id);
-        const DxfPanelImport& s = built.value();
+        const project::DxfPanelImport& s = built.value();
         statusBar()->showMessage(tr("Imported “%1”: %2 × %3 mm, %4 cut-out(s).")
                                      .arg(QString::fromStdString(req.name),
                                           QString::fromStdString(core::formatLength(s.length)),

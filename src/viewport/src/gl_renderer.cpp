@@ -22,6 +22,7 @@ uniform mat4 uView;
 uniform mat4 uProj;
 uniform sampler2D uState;
 uniform vec3 uHighlight;
+uniform vec4 uClip;
 out vec3 vNormal;
 out vec3 vColor;
 flat out int vSel;
@@ -32,7 +33,8 @@ void main() {
     vSel = (flags >> 1) & 1;
     vColor = vSel == 1 ? uHighlight : s.rgb;
     vNormal = mat3(uView) * aNormal;
-    if ((flags & 1) == 0) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
+    if ((flags & 1) == 0) { gl_ClipDistance[0] = 1.0; gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
+    gl_ClipDistance[0] = dot(vec4(aPos, 1.0), uClip);
     gl_Position = uProj * uView * vec4(aPos, 1.0);
 }
 )";
@@ -58,13 +60,15 @@ uniform mat4 uProj;
 uniform sampler2D uState;
 uniform vec3 uHighlight;
 uniform vec3 uEdgeColor;
+uniform vec4 uClip;
 out vec3 vColor;
 void main() {
     int i = int(aPart + 0.5);
     vec4 s = texelFetch(uState, ivec2(i % 1024, i / 1024), 0);
     int flags = int(s.a * 255.0 + 0.5);
     vColor = ((flags >> 1) & 1) == 1 ? uHighlight * 0.75 : uEdgeColor;
-    if ((flags & 1) == 0) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
+    if ((flags & 1) == 0) { gl_ClipDistance[0] = 1.0; gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
+    gl_ClipDistance[0] = dot(vec4(aPos, 1.0), uClip);
     gl_Position = uProj * uView * vec4(aPos, 1.0);
 }
 )";
@@ -151,10 +155,12 @@ bool GlRenderer::initialize(std::string& error, std::pair<int, int> minimum) {
         !build(colorProgram_, kColorVs, kColorFs, error))
         return false;
 
-    for (auto* b : {&meshVbo_, &meshIbo_, &lineVbo_, &gridVbo_, &triadVbo_}) {
+    for (auto* b : {&meshVbo_, &meshIbo_, &lineVbo_, &gridVbo_, &triadVbo_, &capVbo_}) {
         b->create();
         b->setUsagePattern(QOpenGLBuffer::StaticDraw);
     }
+    capVbo_.setUsagePattern(QOpenGLBuffer::DynamicDraw);
+    capVao_.create();
     meshVao_.create();
     lineVao_.create();
     gridVao_.create();
@@ -179,7 +185,8 @@ bool GlRenderer::initialize(std::string& error, std::pair<int, int> minimum) {
     glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(LineVertex), reinterpret_cast<void*>(3 * sizeof(float)));
     lineVao_.release();
 
-    for (auto [vao, vbo] : {std::pair{&gridVao_, &gridVbo_}, std::pair{&triadVao_, &triadVbo_}}) {
+    for (auto [vao, vbo] :
+         {std::pair{&gridVao_, &gridVbo_}, std::pair{&triadVao_, &triadVbo_}, std::pair{&capVao_, &capVbo_}}) {
         vao->bind();
         vbo->bind();
         glEnableVertexAttribArray(0);
@@ -220,7 +227,8 @@ void GlRenderer::uploadGeometry(const Scene& scene) {
     meshIndexCount_ = static_cast<int>(buf.indices.size());
     lineVertexCount_ = static_cast<int>(buf.lines.size());
 
-    const auto grid = makeGrid(scene.allBounds());
+    bounds_ = scene.allBounds();
+    const auto grid = makeGrid(bounds_);
     gridVbo_.bind();
     gridVbo_.allocate(grid.data(), static_cast<int>(grid.size() * sizeof(ColorVertex)));
     gridVbo_.release();
@@ -251,11 +259,20 @@ void GlRenderer::uploadState(const Scene& scene) {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void GlRenderer::render(const Camera& camera, DisplayMode mode, int dw, int dh, double dpr) {
+void GlRenderer::render(const Camera& camera, DisplayMode mode, int dw, int dh, double dpr,
+                        const std::optional<SectionPlane>& section) {
     glViewport(0, 0, dw, dh);
     glClearColor(kBackgroundR / 255.f, kBackgroundG / 255.f, kBackgroundB / 255.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    capsDrawn_ = false;
     if (!ready_) return;
+    QVector4D clip(0, 0, 0, 1); // always >= 0: nothing clipped
+    if (section) {
+        const auto e = section->equation();
+        clip = QVector4D(float(e[0]), float(e[1]), float(e[2]), float(e[3]));
+        glEnable(GL_CLIP_DISTANCE0);
+    }
+    const bool caps = section && mode != DisplayMode::Wireframe && meshIndexCount_ > 0 && stencilBits() > 0;
 
     const QMatrix4x4 view = toQt(camera.viewMatrix());
     const QMatrix4x4 proj = toQt(camera.projectionMatrix());
@@ -272,7 +289,8 @@ void GlRenderer::render(const Camera& camera, DisplayMode mode, int dw, int dh, 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, stateTexture_);
     if (mode != DisplayMode::Wireframe && meshIndexCount_ > 0) {
-        glEnable(GL_CULL_FACE);
+        // Without caps the inside of cut parts must stay visible (back faces drawn).
+        if (!section || caps) glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
         // Push faces back so that coincident edge lines win the depth test (no z-fighting).
         glEnable(GL_POLYGON_OFFSET_FILL);
@@ -283,11 +301,36 @@ void GlRenderer::render(const Camera& camera, DisplayMode mode, int dw, int dh, 
         meshProgram_.setUniformValue("uState", 0);
         meshProgram_.setUniformValue("uHighlight", highlight);
         meshProgram_.setUniformValue("uLightDir", QVector3D(0.35f, 0.55f, 0.76f).normalized());
+        meshProgram_.setUniformValue("uClip", clip);
         meshVao_.bind();
         glDrawElements(GL_TRIANGLES, meshIndexCount_, GL_UNSIGNED_INT, nullptr);
-        meshVao_.release();
         glDisable(GL_POLYGON_OFFSET_FILL);
         glDisable(GL_CULL_FACE);
+        if (caps) {
+            // Stencil pass: toggle bit 0 for every clipped surface fragment along each pixel ray
+            // (no depth test, both facings). Odd parity = the plane point is inside material.
+            glEnable(GL_STENCIL_TEST);
+            glStencilMask(0x01);
+            glClearStencil(0);
+            glClear(GL_STENCIL_BUFFER_BIT);
+            glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+            glDepthMask(GL_FALSE);
+            glDisable(GL_DEPTH_TEST);
+            glStencilFunc(GL_ALWAYS, 0, 0x01);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_INVERT);
+            glDrawElements(GL_TRIANGLES, meshIndexCount_, GL_UNSIGNED_INT, nullptr);
+            glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+            glDepthMask(GL_TRUE);
+            glEnable(GL_DEPTH_TEST);
+        }
+        meshVao_.release();
+        if (caps) {
+            glDisable(GL_CLIP_DISTANCE0);
+            drawCaps(*section, proj * view);
+            glEnable(GL_CLIP_DISTANCE0);
+            glDisable(GL_STENCIL_TEST);
+            capsDrawn_ = true;
+        }
     }
     if (mode != DisplayMode::Shaded && lineVertexCount_ > 0) {
         lineProgram_.bind();
@@ -297,11 +340,13 @@ void GlRenderer::render(const Camera& camera, DisplayMode mode, int dw, int dh, 
         lineProgram_.setUniformValue("uHighlight", highlight);
         lineProgram_.setUniformValue("uEdgeColor", mode == DisplayMode::Wireframe ? QVector3D(0.2f, 0.22f, 0.26f)
                                                                                  : QVector3D(0.25f, 0.22f, 0.18f));
+        lineProgram_.setUniformValue("uClip", clip);
         lineVao_.bind();
         glDrawArrays(GL_LINES, 0, lineVertexCount_);
         lineVao_.release();
     }
     glBindTexture(GL_TEXTURE_2D, 0);
+    if (section) glDisable(GL_CLIP_DISTANCE0);
 
     // Axis triad (X red, Y green, Z blue) in the bottom-left corner: rotation only.
     const int size = static_cast<int>(std::lround(90 * dpr));
@@ -320,11 +365,56 @@ void GlRenderer::render(const Camera& camera, DisplayMode mode, int dw, int dh, 
     glViewport(0, 0, dw, dh);
 }
 
+int GlRenderer::stencilBits() {
+    GLint fbo = 0;
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &fbo);
+    const GLenum attachment = fbo == 0 ? GL_STENCIL : GL_STENCIL_ATTACHMENT;
+    GLint type = GL_NONE, bits = 0;
+    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, attachment, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &type);
+    if (type != GL_NONE)
+        glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, attachment, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE,
+                                              &bits);
+    while (glGetError() != GL_NO_ERROR) {
+    } // a driver that rejects the query reports no stencil
+    return type == GL_NONE ? 0 : bits;
+}
+
+void GlRenderer::drawCaps(const SectionPlane& section, const QMatrix4x4& viewProj) {
+    // Quad on the plane covering all parts (+10 mm), drawn where the stencil parity is odd.
+    if (bounds_.empty()) return;
+    const geometry::Vec3 lo = bounds_.min - geometry::Vec3{10, 10, 10}, hi = bounds_.max + geometry::Vec3{10, 10, 10};
+    const float r = kCapR / 255.f, g = kCapG / 255.f, b = kCapB / 255.f;
+    auto corner = [&](double u, double v) {
+        const float p = float(section.position);
+        switch (section.axis) {
+        case SectionAxis::X: return ColorVertex{p, float(u), float(v), r, g, b};
+        case SectionAxis::Y: return ColorVertex{float(u), p, float(v), r, g, b};
+        case SectionAxis::Z: break;
+        }
+        return ColorVertex{float(u), float(v), p, r, g, b};
+    };
+    double u0 = lo.x, u1 = hi.x, v0 = lo.z, v1 = hi.z; // Y axis: (x, z)
+    if (section.axis == SectionAxis::X) u0 = lo.y, u1 = hi.y;
+    if (section.axis == SectionAxis::Z) v0 = lo.y, v1 = hi.y;
+    const ColorVertex quad[6] = {corner(u0, v0), corner(u1, v0), corner(u1, v1),
+                                 corner(u0, v0), corner(u1, v1), corner(u0, v1)};
+    glStencilFunc(GL_EQUAL, 1, 0x01);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+    colorProgram_.bind();
+    colorProgram_.setUniformValue("uMvp", viewProj);
+    capVao_.bind();
+    capVbo_.bind();
+    capVbo_.allocate(quad, sizeof(quad));
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    capVbo_.release();
+    capVao_.release();
+}
+
 void GlRenderer::destroy() {
     if (stateTexture_) glDeleteTextures(1, &stateTexture_);
     stateTexture_ = 0;
-    for (auto* b : {&meshVbo_, &meshIbo_, &lineVbo_, &gridVbo_, &triadVbo_}) b->destroy();
-    for (auto* v : {&meshVao_, &lineVao_, &gridVao_, &triadVao_}) v->destroy();
+    for (auto* b : {&meshVbo_, &meshIbo_, &lineVbo_, &gridVbo_, &triadVbo_, &capVbo_}) b->destroy();
+    for (auto* v : {&meshVao_, &lineVao_, &gridVao_, &triadVao_, &capVao_}) v->destroy();
     meshProgram_.removeAllShaders();
     lineProgram_.removeAllShaders();
     colorProgram_.removeAllShaders();

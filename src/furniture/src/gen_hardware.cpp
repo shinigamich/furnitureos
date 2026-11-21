@@ -95,7 +95,12 @@ core::Result<hardware::Placement> place(Gen& g, const Job& j, const domain::Hard
         if (!joint) return joint.error();
         hardware::CornerJointConfig c;
         c.instanceId = id;
-        c.minEndOffset = std::min(g.v(p::kJointEndOffset), joint.value().along.length() / 4);
+        // End offsets: joint_end_offset, at most a quarter of the fastener span (the contact,
+        // or its part inside the zone of a drawer-box joint).
+        const machining::Range along = joint.value().along;
+        const double span = j.zone ? std::min(along.max, j.zone->max) - std::max(along.min, j.zone->min) : along.length();
+        c.minEndOffset = std::min(g.v(p::kJointEndOffset), std::max(span, 0.0) / 4);
+        c.zone = j.zone;
         c.maxSpacing = g.v(p::kJointMaxSpacing);
         if (j.sharedPanel) {
             const auto& prm = def.value().params;
@@ -198,6 +203,8 @@ std::size_t indexOfId(const Gen& g, const domain::PartId& id) {
 /// drilled into the same part (machining::holesCollide, e.g. the confirmat or dowel of a
 /// partition end in a low cabinet), the description of the first such pair is returned and
 /// the whole pin set of that shelf is dropped (furniture.shelf_pins.dropped). Empty = clear.
+/// Also used for drawer-box joints and slides (Job::refuseCollisions), which fail instead
+/// (furniture.drawer_box.hole_collision).
 std::string pinCollision(const Gen& g, const hardware::Placement& placement) {
     for (const auto& po : placement.operations) {
         const std::size_t i = indexOfId(g, po.part);
@@ -251,6 +258,15 @@ void runHardware(Gen& g) {
     for (const Job& j : g.jobs) {
         const domain::HardwareInstanceId id(g.partId(j.instance));
         auto placement = place(g, j, id);
+        if (placement && j.refuseCollisions) {
+            if (const std::string why = pinCollision(g, placement.value()); !why.empty()) {
+                g.error("furniture.drawer_box.hole_collision",
+                        "Hardware '" + id.str() + "' was not placed: " + why +
+                            ". Change the drawer-box joint fastener or the drawer height.",
+                        id.str());
+                continue;
+            }
+        }
         if (placement && j.kind == JobKind::ShelfPins) {
             if (const std::string why = pinCollision(g, placement.value()); !why.empty()) {
                 const domain::Part& shelf = g.assembly.parts[j.a];

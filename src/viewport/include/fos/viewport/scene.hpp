@@ -3,6 +3,7 @@
 #include "fos/core/diagnostic.hpp"
 #include "fos/domain/model.hpp"
 #include "fos/geometry/ray.hpp"
+#include "fos/viewport/section.hpp"
 
 #include <cstdint>
 #include <optional>
@@ -67,7 +68,29 @@ public:
     /// part frame and intersected with the part's display mesh (geometry::intersectRayMesh), so
     /// a ray through a cut-out or past a rounded corner MISSES the part (accurate to the chord
     /// tolerance of the mesh, see shapeChordTolerance()).
+    /// With a section plane set (setSection), parts entirely on the removed side are never
+    /// hit, and a cut part is hit only on its kept side: either on its surface or on the cap
+    /// where the plane passes through its material (box: exact; contoured: by the facing of
+    /// the first mesh hit beyond the plane, exact for the watertight display mesh).
     std::optional<std::size_t> pick(const geometry::Ray3& ray) const;
+
+    /// Result of pickHit(): part index, ray parameter and hit point (project frame, mm).
+    struct PickHit {
+        std::size_t index = 0;
+        double t = 0;
+        geometry::Vec3 point;
+    };
+    /// Like pick(), with the hit parameter and point.
+    std::optional<PickHit> pickHit(const geometry::Ray3& ray) const;
+
+    /// Section plane applied to picking and snapping (display only; nullopt = no section).
+    void setSection(const std::optional<SectionPlane>& plane) { section_ = plane; }
+    const std::optional<SectionPlane>& section() const noexcept { return section_; }
+    /// True when a section plane is set and part `index` lies entirely on its removed side.
+    bool isSectionRemoved(std::size_t index) const noexcept;
+
+    /// Feature edges of part `index` in its PART frame (box edges or contour feature edges).
+    const std::vector<geometry::Edge3>& localEdges(std::size_t index) const;
 
     /// Display mesh of part `index` in its PART frame: the contour extrusion for contoured parts
     /// (viewport::makeShapedPartGeometry at shapeChordTolerance(L, W)), otherwise
@@ -96,6 +119,7 @@ private:
     std::vector<std::vector<geometry::Edge3>> edges_; // per part, part frame
     core::Diagnostics diagnostics_;
     std::vector<std::string> hidden_, isolated_, selected_; // sorted
+    std::optional<SectionPlane> section_;
 };
 
 } // namespace fos::viewport

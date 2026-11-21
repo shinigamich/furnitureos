@@ -10,6 +10,7 @@
 #include <QOpenGLVertexArrayObject>
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 
@@ -19,6 +20,8 @@ namespace fos::viewport::detail {
 
 /// Highlight colour of selected parts (sRGB 0..255).
 inline constexpr int kHighlightR = 255, kHighlightG = 140, kHighlightB = 0;
+/// Flat colour of section caps (sRGB 0..255).
+inline constexpr int kCapR = 120, kCapG = 84, kCapB = 60;
 /// Background colour (sRGB 0..255).
 inline constexpr int kBackgroundR = 236, kBackgroundG = 238, kBackgroundB = 242;
 
@@ -44,7 +47,14 @@ public:
     void uploadState(const Scene& scene);
 
     /// Draws one frame. `deviceWidth/Height` are the framebuffer size in device pixels.
-    void render(const Camera& camera, DisplayMode mode, int deviceWidth, int deviceHeight, double dpr);
+    /// With `section`, part geometry (faces and edges, not the grid) is clipped by
+    /// gl_ClipDistance[0]; in the shaded modes the cut faces are capped with kCapColor using the
+    /// stencil buffer (parity of the clipped surfaces along each pixel ray) when the bound
+    /// framebuffer has stencil bits, otherwise back faces are drawn so cut parts look open.
+    void render(const Camera& camera, DisplayMode mode, int deviceWidth, int deviceHeight, double dpr,
+                const std::optional<SectionPlane>& section = std::nullopt);
+    /// True when the last render() with a section drew stencil caps.
+    bool capsDrawn() const noexcept { return capsDrawn_; }
 
     /// Release the GL objects (context must be current).
     void destroy();
@@ -56,6 +66,12 @@ private:
     QOpenGLBuffer meshVbo_{QOpenGLBuffer::VertexBuffer}, meshIbo_{QOpenGLBuffer::IndexBuffer};
     QOpenGLBuffer lineVbo_{QOpenGLBuffer::VertexBuffer}, gridVbo_{QOpenGLBuffer::VertexBuffer};
     QOpenGLBuffer triadVbo_{QOpenGLBuffer::VertexBuffer};
+    QOpenGLVertexArrayObject capVao_;
+    QOpenGLBuffer capVbo_{QOpenGLBuffer::VertexBuffer};
+    geometry::Aabb bounds_; // all parts, for the cap quad
+    bool capsDrawn_ = false;
+    int stencilBits();
+    void drawCaps(const SectionPlane& section, const QMatrix4x4& viewProj);
     GLuint stateTexture_ = 0;
     int stateRows_ = 0;
     int meshIndexCount_ = 0, lineVertexCount_ = 0, gridVertexCount_ = 0;

@@ -225,6 +225,41 @@
     </message>
 </context>
 <context>
+    <name>MeasureStatus</name>
+    <message>
+        <source>corner</source>
+        <translation>кут</translation>
+    </message>
+    <message>
+        <source>outline vertex</source>
+        <translation>вершина контуру</translation>
+    </message>
+    <message>
+        <source>edge midpoint</source>
+        <translation>середина ребра</translation>
+    </message>
+    <message>
+        <source>face centre</source>
+        <translation>центр грані</translation>
+    </message>
+    <message>
+        <source>surface point</source>
+        <translation>точка поверхні</translation>
+    </message>
+    <message>
+        <source>Distance %1 mm (ΔX %2, ΔY %3, ΔZ %4 mm)</source>
+        <translation>Відстань %1 мм (ΔX %2, ΔY %3, ΔZ %4 мм)</translation>
+    </message>
+    <message>
+        <source>Measure: click the first point. Esc cancels.</source>
+        <translation>Вимірювання: клацніть першу точку. Esc — скасувати.</translation>
+    </message>
+    <message>
+        <source>Measure: click the second point. Esc cancels.</source>
+        <translation>Вимірювання: клацніть другу точку. Esc — скасувати.</translation>
+    </message>
+</context>
+<context>
     <name>ProductionText</name>
     <message>
         <source>No.</source>
@@ -2631,6 +2666,26 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>The panel was imported. Notes from the DXF import:</source>
         <translation>Панель імпортовано. Примітки імпорту DXF:</translation>
     </message>
+    <message>
+        <source>&amp;Measure</source>
+        <translation>&amp;Виміряти</translation>
+    </message>
+    <message>
+        <source>Measure the distance between two snapped points (display only)</source>
+        <translation>Виміряти відстань між двома прив’язаними точками (лише відображення)</translation>
+    </message>
+    <message>
+        <source>Sect&amp;ion plane</source>
+        <translation>Площина &amp;перерізу</translation>
+    </message>
+    <message>
+        <source>Cut the 3D view with an axis-aligned plane (display only)</source>
+        <translation>Розрізати 3D-вигляд площиною, паралельною осям (лише відображення)</translation>
+    </message>
+    <message>
+        <source> mm</source>
+        <translation> мм</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::NestingSettingsForm</name>
@@ -2818,6 +2873,53 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     <message>
         <source>Size (mm)</source>
         <translation>Розмір (мм)</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::SectionToolBar</name>
+    <message>
+        <source>Section plane</source>
+        <translation>Площина перерізу</translation>
+    </message>
+    <message>
+        <source>Section:</source>
+        <translation>Переріз:</translation>
+    </message>
+    <message>
+        <source>X (left–right)</source>
+        <translation>X (ліво–право)</translation>
+    </message>
+    <message>
+        <source>Y (front–back)</source>
+        <translation>Y (перед–зад)</translation>
+    </message>
+    <message>
+        <source>Z (height)</source>
+        <translation>Z (висота)</translation>
+    </message>
+    <message>
+        <source> mm</source>
+        <translation> мм</translation>
+    </message>
+    <message>
+        <source>Position of the plane along the axis (project frame)</source>
+        <translation>Положення площини вздовж осі (система координат проєкту)</translation>
+    </message>
+    <message>
+        <source>Flip</source>
+        <translation>Перевернути</translation>
+    </message>
+    <message>
+        <source>Keep the other side of the plane</source>
+        <translation>Залишити інший бік площини</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>Вимкнути</translation>
+    </message>
+    <message>
+        <source>Remove the section plane</source>
+        <translation>Прибрати площину перерізу</translation>
     </message>
 </context>
 <context>

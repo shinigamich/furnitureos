@@ -10,6 +10,7 @@
 #include "fos/app/window_title.hpp"
 #include "fos/core/units.hpp"
 #include "fos/viewport/viewport_widget.hpp"
+#include "view_tools.hpp"
 #include "inspector_panel.hpp"
 #include "production_workspace.hpp"
 #include "project_browser.hpp"
@@ -55,6 +56,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), preferences_(Pref
     buildActions();
     buildMenus();
     buildStatusBar();
+    buildViewTools();
 
     connect(&session_, &Session::documentReplaced, this, [this] { fitOnNextModel_ = true; });
     connect(&session_, &Session::projectChanged, this, [this] {
@@ -64,6 +66,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), preferences_(Pref
         } else {
             viewport_->setModel(domain::Model{}, false);
         }
+        sectionBar_->updateRange();
         syncViewportSelection();
         updateUndoRedo();
         updateStatus();

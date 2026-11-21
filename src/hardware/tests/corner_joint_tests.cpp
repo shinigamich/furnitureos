@@ -331,3 +331,29 @@ TEST(ConnectCorner, WholeCarcassValidatesCleanAndReappliesIdempotently) {
     EXPECT_NE(bad.error().message.find("'nope'"), std::string::npos);
     EXPECT_EQ(c.a.hardware.size(), 5u);
 }
+
+TEST(ConnectCorner, FastenerZoneRestrictsPositions) {
+    Cabinet c;
+    // Contact 0..560 along the bottom's W1 edge; zone 100..400 -> span 300, end offsets 50:
+    // ceil((300 - 100) / 250) + 1 = 2 fasteners at 100 + 50 = 150 and 100 + 250 = 350.
+    CornerJointConfig cfg = config("cab1/hw.zone");
+    cfg.zone = machining::Range{100, 400};
+    const auto r = connectCorner(c.left, c.bottom, def(ids::kDowel8x30), cfg);
+    ASSERT_TRUE(r.ok()) << r.error().message;
+    const auto& s = *r.value().operationsFor(c.left.id);
+    ASSERT_EQ(s.size(), 2u);
+    expectHole(s[0], Hole{Face::B, 9, 150, 8, 12, false});
+    expectHole(s[1], Hole{Face::B, 9, 350, 8, 12, false});
+    // A zone reaching past the contact is clipped to it: 300..900 -> 300..560 (span 260):
+    // ceil(160 / 250) + 1 = 2 fasteners at 350 and 510.
+    cfg.zone = machining::Range{300, 900};
+    const auto clipped = connectCorner(c.left, c.bottom, def(ids::kDowel8x30), cfg);
+    ASSERT_TRUE(clipped.ok()) << clipped.error().message;
+    EXPECT_NEAR(hole((*clipped.value().operationsFor(c.left.id))[1]).v, 510, 1e-9);
+    // A zone outside the contact is an error naming both ranges.
+    cfg.zone = machining::Range{600, 700};
+    const auto bad = connectCorner(c.left, c.bottom, def(ids::kDowel8x30), cfg);
+    ASSERT_FALSE(bad.ok());
+    EXPECT_NE(bad.error().message.find("does not overlap the contact 0 to 560 mm"), std::string::npos)
+        << bad.error().message;
+}

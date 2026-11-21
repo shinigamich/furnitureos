@@ -6,8 +6,10 @@
 #include "fos/furniture/parameters.hpp"
 #include "fos/hardware/drawer_slides.hpp"
 #include "fos/hardware/handle.hpp"
+#include "fos/machining/face.hpp"
 
 #include <array>
+#include <optional>
 #include <cstddef>
 #include <string>
 #include <unordered_map>
@@ -55,6 +57,11 @@ struct Job {
     hardware::HandleConfig handle;
     domain::HardwareId slide; ///< Slide: definition id (DrawerBoxSpec::slide).
     double slideLength = 0;   ///< Slide: nominal length, mm.
+    /// Corner (drawer-box joints): fastener zone along the joint (CornerJointConfig::zone).
+    std::optional<machining::Range> zone;
+    /// Drawer-box joints and slides: a new hole that intersects a hole already drilled into
+    /// the same part fails the placement (furniture.drawer_box.hole_collision).
+    bool refuseCollisions = false;
 };
 
 /// The panels bounding a section (indices into Gen::assembly.parts).
@@ -122,11 +129,13 @@ core::Result<Bounds> buildCarcass(Gen& g);
 core::Result<void> buildBack(Gen& g);
 core::Result<void> buildInterior(Gen& g, const Bounds& rootBounds);
 core::Result<void> buildFront(Gen& g, const FrontSpec& spec, const std::string& path, const Box& box, const Bounds& bounds);
-/// Drawer box (README "Drawer boxes") behind the drawer front `frontSlot` whose front spans
-/// z in [fz0, fz1]; `box` / `bounds` are the section's opening and bounding panels.
-/// Schedules the two slide jobs. Errors (ConstraintViolation / NotFound) name the drawer.
-core::Result<void> buildDrawerBox(Gen& g, const FrontSpec& spec, const std::string& frontSlot, double fz0, double fz1,
-                                  const Box& box, const Bounds& bounds);
+/// Drawer box `ds` (README "Drawer boxes"; the effective drawerBoxFor() of this drawer) behind
+/// the drawer front `frontSlot` of the stack `spec` whose front spans z in [fz0, fz1]; `box` /
+/// `bounds` are the section's opening and bounding panels. Schedules the four corner-joint
+/// jobs (unless ds.joint is None) and then the two slide jobs. Errors (ConstraintViolation /
+/// NotFound) name the drawer.
+core::Result<void> buildDrawerBox(Gen& g, const FrontSpec& spec, const DrawerBoxSpec& ds, const std::string& frontSlot,
+                                  double fz0, double fz1, const Box& box, const Bounds& bounds);
 void runHardware(Gen& g);
 /// Refuses an assembly with more than limits::kMaxPartsPerAssembly parts or a part whose
 /// length / width / thickness is not finite, not > 0 or above limits::kMaxDimension

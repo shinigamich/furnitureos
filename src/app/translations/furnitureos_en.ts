@@ -225,6 +225,41 @@
     </message>
 </context>
 <context>
+    <name>MeasureStatus</name>
+    <message>
+        <source>corner</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>outline vertex</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>edge midpoint</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>face centre</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>surface point</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Distance %1 mm (ΔX %2, ΔY %3, ΔZ %4 mm)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Measure: click the first point. Esc cancels.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Measure: click the second point. Esc cancels.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>ProductionText</name>
     <message>
         <source>No.</source>
@@ -2624,6 +2659,26 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>The panel was imported. Notes from the DXF import:</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>&amp;Measure</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Measure the distance between two snapped points (display only)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sect&amp;ion plane</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cut the 3D view with an axis-aligned plane (display only)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> mm</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::NestingSettingsForm</name>
@@ -2810,6 +2865,53 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
     <message>
         <source>Size (mm)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::SectionToolBar</name>
+    <message>
+        <source>Section plane</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Section:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>X (left–right)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Y (front–back)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Z (height)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Position of the plane along the axis (project frame)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Flip</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Keep the other side of the plane</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove the section plane</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

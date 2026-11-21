@@ -15,6 +15,8 @@ namespace fos::furniture {
 ///   furniture.edge.missing_band             warning  edge band id not in the library (edge left raw)
 ///   furniture.hardware.missing_definition   error    selected fitting not in the hardware library
 ///   furniture.hardware.placement_failed     error    a hardware rule refused (message says why)
+///   furniture.drawer_box.hole_collision     error    a drawer-box joint or slide hole would intersect a
+///                                                    hole already drilled into the same part (not placed)
 ///   furniture.front.inset_hinges            warning  inset doors get no hinges (no rule available)
 ///   furniture.plinth.feet_height            warning  plinth height outside the foot's adjustment range
 ///   furniture.parameter.*                   warning  violated Warning-severity constraints

@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 namespace fos::viewport {
 using geometry::Vec3;
@@ -96,28 +97,84 @@ geometry::Aabb Scene::allBounds() const {
     return b;
 }
 
-std::optional<std::size_t> Scene::pick(const geometry::Ray3& ray) const {
-    std::optional<std::size_t> best;
-    double bestT = 0;
+namespace {
+/// Ray parameter interval [lo, hi] (hi may be +inf) on the kept side of a plane whose signed
+/// distance along the ray is s(t) = s0 + t * ds; empty when lo > hi.
+struct Interval {
+    double lo = 0, hi = std::numeric_limits<double>::infinity();
+    bool empty() const noexcept { return lo > hi; }
+};
+Interval keptInterval(double s0, double ds) {
+    Interval k;
+    if (ds == 0) {
+        if (s0 < 0) k.lo = 1, k.hi = 0; // parallel, entirely on the removed side
+        return k;
+    }
+    const double tPlane = -s0 / ds;
+    if (ds > 0)
+        k.lo = std::max(0.0, tPlane);
+    else
+        k.hi = tPlane; // lo stays 0; empty when tPlane < 0
+    return k;
+}
+} // namespace
+
+bool Scene::isSectionRemoved(std::size_t i) const noexcept {
+    if (!section_ || i >= parts_.size()) return false;
+    return classify(*section_, geometry::Aabb::fromSize(parts_[i].size).transformed(parts_[i].world)) ==
+           SectionSide::Removed;
+}
+
+std::optional<Scene::PickHit> Scene::pickHit(const geometry::Ray3& ray) const {
+    std::optional<PickHit> best;
     for (std::size_t i = 0; i < parts_.size(); ++i) {
         if (!isVisible(i)) continue;
-        const auto hit = geometry::intersectRayOrientedBox(ray, parts_[i].size, parts_[i].world);
-        if (!hit) continue;
-        double t = hit->t;
-        if (parts_[i].contoured) {
-            // Rigid transform: the ray parameter is the same in the part frame.
-            const geometry::Transform inv = parts_[i].world.inverse();
-            const geometry::Ray3 local{inv.applyPoint(ray.origin), inv.applyVector(ray.direction)};
-            const auto mh = geometry::intersectRayMesh(local, meshes_[i]);
-            if (!mh) continue;
-            t = mh->t;
+        const ScenePart& part = parts_[i];
+        SectionSide side = SectionSide::Kept;
+        if (section_) side = classify(*section_, geometry::Aabb::fromSize(part.size).transformed(part.world));
+        if (side == SectionSide::Removed) continue;
+        // Rigid transform: the ray parameter is the same in the part frame.
+        const geometry::Transform inv = part.world.inverse();
+        const geometry::Ray3 local{inv.applyPoint(ray.origin), inv.applyVector(ray.direction)};
+        std::optional<double> t;
+        if (side == SectionSide::Kept) {
+            if (part.contoured) {
+                if (!geometry::intersectRayAabb(local, geometry::Aabb::fromSize(part.size))) continue;
+                if (const auto mh = geometry::intersectRayMesh(local, meshes_[i])) t = mh->t;
+            } else if (const auto hit = geometry::intersectRayOrientedBox(ray, part.size, part.world)) {
+                t = hit->t;
+            }
+        } else {
+            const Interval k = keptInterval(section_->signedDistance(ray.origin),
+                                            dot(section_->keptNormal(), ray.direction));
+            if (k.empty()) continue;
+            if (!part.contoured) {
+                // Convex box: the visible point is the later of box entry and plane crossing.
+                const auto r = geometry::intersectRayAabb(local, geometry::Aabb::fromSize(part.size));
+                if (r && std::max(r->tMin, k.lo) <= std::min(r->tMax, k.hi)) t = std::max(r->tMin, k.lo);
+            } else if (k.lo > 0) {
+                // The ray enters the kept side at k.lo: a back face as the first hit beyond the
+                // plane means the plane point is inside the material (the cap is hit).
+                const geometry::Ray3 from{local.at(k.lo), local.direction};
+                if (const auto mh = geometry::intersectRayMesh(from, meshes_[i]))
+                    t = mh->frontFace ? k.lo + mh->t : k.lo;
+            } else if (const auto mh = geometry::intersectRayMesh(local, meshes_[i]); mh && mh->t <= k.hi) {
+                t = mh->t;
+            }
         }
-        if (!best || t < bestT) {
-            best = i;
-            bestT = t;
-        }
+        if (t && (!best || *t < best->t)) best = PickHit{i, *t, ray.at(*t)};
     }
     return best;
+}
+
+std::optional<std::size_t> Scene::pick(const geometry::Ray3& ray) const {
+    const auto hit = pickHit(ray);
+    return hit ? std::optional<std::size_t>(hit->index) : std::nullopt;
+}
+
+const std::vector<geometry::Edge3>& Scene::localEdges(std::size_t index) const {
+    static const std::vector<geometry::Edge3> kEmpty;
+    return index < edges_.size() ? edges_[index] : kEmpty;
 }
 
 const geometry::TriangleMesh& Scene::localMesh(std::size_t index) const {

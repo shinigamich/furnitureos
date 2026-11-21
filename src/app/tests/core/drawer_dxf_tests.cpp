@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Drawer boxes in the front editor (FrontInput -> FrontSpec) and File > Import DXF outline
-// (buildDxfPanelItem) into a project.
+// (project::buildDxfPanelItem) into a project.
 #include "fos/app/contour_rows.hpp"
-#include "fos/app/dxf_panel_import.hpp"
 #include "fos/app/interior_rows.hpp"
 #include "fos/app/templates.hpp"
+#include "fos/project/dxf_panel.hpp"
 #include "test_support.hpp"
 
 #include <numbers>
@@ -93,12 +93,13 @@ TEST(DxfPanelImport, RoundedPlateWithHoleIntoProject) {
     s.newProject();
     auto dxf = formats::importDxf(roundedPlateDxf());
     ASSERT_TRUE(dxf.ok()) << dxf.error().message;
-    DxfPanelRequest req;
+    project::DxfPanelRequest req;
+    req.skipOptionLabel = "\"Skip unsupported cut-outs\"";
     req.name = "Table top";
     req.thickness = 18;
-    const std::string id = dxfPanelItemId(s.project(), req.name);
+    const std::string id = project::dxfPanelItemId(s.project(), req.name);
     EXPECT_EQ(id, "table-top");
-    auto built = buildDxfPanelItem(s.project(), dxf.value(), req, id, geometry::Transform::identity());
+    auto built = project::buildDxfPanelItem(s.project(), dxf.value(), req, id, geometry::Transform::identity());
     ASSERT_TRUE(built.ok()) << built.error().message;
     EXPECT_DOUBLE_EQ(built.value().length, 400);
     EXPECT_DOUBLE_EQ(built.value().width, 300);
@@ -120,19 +121,19 @@ TEST(DxfPanelImport, RoundedPlateWithHoleIntoProject) {
     EXPECT_NEAR(shapeFacts(*p).outlineArea, expected, 0.01);
     EXPECT_EQ(shapeFacts(*p).cutouts, 1u);
     // Undoable; the id is now taken.
-    EXPECT_EQ(dxfPanelItemId(s.project(), req.name), "table-top-2");
+    EXPECT_EQ(project::dxfPanelItemId(s.project(), req.name), "table-top-2");
     ASSERT_TRUE(s.undo().ok());
     EXPECT_EQ(part(s, "table-top/panel"), nullptr);
 
     // Refusals name the problem.
     req.thickness = 99;
-    auto noMaterial = buildDxfPanelItem(s.project(), dxf.value(), req, id, geometry::Transform::identity());
+    auto noMaterial = project::buildDxfPanelItem(s.project(), dxf.value(), req, id, geometry::Transform::identity());
     ASSERT_FALSE(noMaterial.ok());
     EXPECT_EQ(noMaterial.error().message, "The project library has no material 99 mm thick.");
     req.thickness.reset();
     formats::DxfImport empty;
     req.materialId = s.project().libraries.materials.front().id.str();
-    EXPECT_FALSE(buildDxfPanelItem(s.project(), empty, req, id, geometry::Transform::identity()).ok());
+    EXPECT_FALSE(project::buildDxfPanelItem(s.project(), empty, req, id, geometry::Transform::identity()).ok());
 }
 
 } // namespace

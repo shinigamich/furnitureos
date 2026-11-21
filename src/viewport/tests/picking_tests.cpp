@@ -6,6 +6,7 @@
 #include "fos/domain/fixtures.hpp"
 
 #include <QCoreApplication>
+#include <QKeyEvent>
 #include <QMouseEvent>
 
 #include <gtest/gtest.h>
@@ -141,4 +142,62 @@ TEST(Picking, ProjectionSwitchKeepsFraming) {
     EXPECT_DOUBLE_EQ(f.w.camera().halfHeightAtTarget(), hh);
     f.w.setDisplayMode(viewport::DisplayMode::Wireframe);
     EXPECT_EQ(f.w.displayMode(), viewport::DisplayMode::Wireframe);
+}
+
+// Section plane Y = 560.5 keeping y >= 560.5 (flip): the shelf (y 20..560) lies entirely on the
+// removed side and is never picked; the centre ray reaches the back (y 560..563), which is cut.
+// With Y = 300 (keep y >= 300) the shelf is cut and the ray hits its cap at y = 300.
+TEST(Picking, SectionPlaneIgnoresRemovedParts) {
+    for (auto proj : {Projection::Perspective, Projection::Orthographic}) {
+        Fixture f;
+        f.w.setProjection(proj);
+        f.w.setViewPreset(ViewPreset::Front);
+        f.w.setSectionPlane(viewport::SectionPlane{viewport::SectionAxis::Y, 560.5, true});
+        EXPECT_EQ(f.w.partAt(centre(f.w)), "cab1/back");
+        f.w.setSectionPlane(viewport::SectionPlane{viewport::SectionAxis::Y, 300, true});
+        EXPECT_EQ(f.w.partAt(centre(f.w)), "cab1/shelf.1");
+        // Keep y <= 10: everything the centre ray could hit is removed.
+        f.w.setSectionPlane(viewport::SectionPlane{viewport::SectionAxis::Y, 10, false});
+        EXPECT_EQ(f.w.partAt(centre(f.w)), "");
+        // A click on the removed shelf selects nothing.
+        f.w.setSectionPlane(viewport::SectionPlane{viewport::SectionAxis::Y, 560.5, true});
+        f.w.setHiddenParts({"cab1/back"});
+        QString clicked = QStringLiteral("unset");
+        QObject::connect(&f.w, &ViewportWidget::partClicked, [&](const QString& id, bool) { clicked = id; });
+        sendMouse(f.w, QEvent::MouseButtonPress, centre(f.w), Qt::LeftButton);
+        sendMouse(f.w, QEvent::MouseButtonRelease, centre(f.w), Qt::LeftButton);
+        EXPECT_EQ(clicked, QString());
+        f.w.setSectionPlane(std::nullopt);
+        EXPECT_EQ(f.w.partAt(centre(f.w)), "cab1/shelf.1");
+    }
+}
+
+// Measure mode: two clicks on snapped corners give the distance and no selection request.
+// Front ortho view: shelf front corners (18, 20, 369) and (782, 20, 369): distance 764.
+TEST(Picking, MeasureTwoCornersAndEscape) {
+    Fixture f;
+    f.w.setProjection(Projection::Orthographic);
+    f.w.setViewPreset(ViewPreset::Front);
+    f.w.setHiddenParts({"cab1/side.left", "cab1/side.right", "cab1/top", "cab1/bottom", "cab1/back"});
+    int clicks = 0;
+    QObject::connect(&f.w, &ViewportWidget::partClicked, [&](const QString&, bool) { ++clicks; });
+    f.w.setMeasureMode(true);
+    for (geometry::Vec3 p : {geometry::Vec3{18, 20, 369}, geometry::Vec3{782, 20, 369}}) {
+        const auto px = f.w.camera().projectToPixel(p);
+        ASSERT_TRUE(px);
+        const QPoint q(int(px->x) + 2, int(px->y) + 1);
+        sendMouse(f.w, QEvent::MouseButtonPress, q, Qt::LeftButton);
+        sendMouse(f.w, QEvent::MouseButtonRelease, q, Qt::LeftButton);
+    }
+    EXPECT_EQ(clicks, 0);
+    const auto m = f.w.measurement();
+    ASSERT_TRUE(m);
+    EXPECT_NEAR(m->distance(), 764.0, 1e-6);
+    EXPECT_NEAR(m->delta().x, 764.0, 1e-6);
+    QKeyEvent esc(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier);
+    QCoreApplication::sendEvent(&f.w, &esc);
+    EXPECT_FALSE(f.w.measurement());
+    EXPECT_TRUE(f.w.measureMode());
+    QCoreApplication::sendEvent(&f.w, &esc);
+    EXPECT_FALSE(f.w.measureMode());
 }

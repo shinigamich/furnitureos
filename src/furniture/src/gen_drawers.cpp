@@ -21,6 +21,7 @@ constexpr OptionalParam kFrontSetback{"drawer_box_front_setback", 0};
 constexpr OptionalParam kGrooveOffset{"drawer_bottom_groove_offset", 10};
 constexpr OptionalParam kGrooveDepth{"drawer_bottom_groove_depth", 6};
 constexpr OptionalParam kBottomPlay{"drawer_bottom_clearance", 1};
+constexpr OptionalParam kJointGrooveClearance{"drawer_joint_groove_clearance", 5};
 
 void addBottomGroove(Gen& g, std::size_t i, domain::Face face, double v, double width, double depth) {
     domain::Part& part = g.assembly.parts[i];
@@ -32,12 +33,24 @@ void addBottomGroove(Gen& g, std::size_t i, domain::Face face, double v, double 
     part.operations.push_back(std::move(op));
 }
 
+/// Largest hole radius (mm) the corner fastener `kind` of the cabinet's hardware selection
+/// drills (dowel: diameter / 2; confirmat: max(through, pilot) / 2); 0 when the definition
+/// is missing (the joint job then reports furniture.hardware.missing_definition).
+double fastenerRadius(const Gen& g, JointFastener kind) {
+    const domain::HardwareDefinition* d =
+        g.libs.findHardware(kind == JointFastener::Confirmat ? g.def.hardware.confirmat : g.def.hardware.dowel);
+    if (!d) return 0;
+    double r = 0;
+    for (const char* key : {hardware::keys::kDiameter, hardware::keys::kThroughDiameter, hardware::keys::kPilotDiameter})
+        if (const auto it = d->params.find(key); it != d->params.end()) r = std::max(r, it->second / 2);
+    return r;
+}
+
 } // namespace
 
-core::Result<void> buildDrawerBox(Gen& g, const FrontSpec& spec, const std::string& frontSlot, double fz0, double fz1,
-                                  const Box& box, const Bounds& b) {
+core::Result<void> buildDrawerBox(Gen& g, const FrontSpec& spec, const DrawerBoxSpec& ds, const std::string& frontSlot,
+                                  double fz0, double fz1, const Box& box, const Bounds& b) {
     namespace p = param;
-    const DrawerBoxSpec& ds = *spec.drawerBox;
     const std::string owner = g.partId(frontSlot);
     const std::string label = "Drawer box behind '" + frontSlot + "' of cabinet '" + g.def.id.str() + "'";
     const auto fail = [&](const std::string& why) {
@@ -66,7 +79,7 @@ core::Result<void> buildDrawerBox(Gen& g, const FrontSpec& spec, const std::stri
 
     std::map<std::string, double> o;
     for (const OptionalParam& op : {kTopClearance, kBottomClearance, kRearClearance, kFrontSetback, kGrooveOffset,
-                                    kGrooveDepth, kBottomPlay}) {
+                                    kGrooveDepth, kBottomPlay, kJointGrooveClearance}) {
         const double v = g.opt(op.name, op.fallback);
         if (!std::isfinite(v) || v < 0) return fail("parameter '" + std::string(op.name) + "' is " + num(v) +
                                                     " mm; it must be zero or positive.");
@@ -149,6 +162,40 @@ core::Result<void> buildDrawerBox(Gen& g, const FrontSpec& spec, const std::stri
                   Transform::fromAxes(kRight, kBack, {x0, y0, zLow}), raw);
     }
 
+    // Corner joints (sides = face parts, inner front / back = edge parts), scheduled before
+    // the slides. GROOVE CLEARANCE RULE: with a grooved bottom the fasteners stay in the zone
+    // from (upper groove edge + drawer_joint_groove_clearance + fastener hole radius) to the
+    // top of the box, so at least the clearance of solid material remains between every
+    // joint hole and the groove (the groove runs through all four parts). The joint u
+    // coordinate is the edge part's local y = height above the underside of the side.
+    if (ds.joint != JointFastener::None) {
+        std::optional<machining::Range> zone;
+        if (grooved) {
+            const double grooveTop = bottomRise + tb + g.v(p::kGrooveFit) / 2;
+            const double start = grooveTop + o[kJointGrooveClearance.name] + fastenerRadius(g, ds.joint);
+            if (start >= sideH - core::kLengthEps)
+                return fail("the corner joints need the zone above " + num(start) +
+                            " mm (groove top + clearance + fastener radius) but the box sides are only " + num(sideH) +
+                            " mm high. Make the drawer front higher or set the box joint to None.");
+            zone = machining::Range{start, sideH};
+        }
+        const auto jointJob = [&](std::size_t side, std::size_t edge, const std::string& name) {
+            Job j;
+            j.kind = JobKind::Corner;
+            j.instance = "hw.joint." + name;
+            j.a = side;
+            j.b = edge;
+            j.fastener = ds.joint;
+            j.zone = zone;
+            j.refuseCollisions = true;
+            g.jobs.push_back(std::move(j));
+        };
+        jointJob(left, inner, slot("box_front.left"));
+        jointJob(right, inner, slot("box_front.right"));
+        jointJob(left, back, slot("box_back.left"));
+        jointJob(right, back, slot("box_back.right"));
+    }
+
     const auto slideJob = [&](std::size_t side, std::size_t panel, bool outer, const char* which) {
         Job j;
         j.kind = JobKind::Slide;
@@ -158,6 +205,7 @@ core::Result<void> buildDrawerBox(Gen& g, const FrontSpec& spec, const std::stri
         j.sharedPanel = !outer;
         j.slide = ds.slide;
         j.slideLength = slideLength.value();
+        j.refuseCollisions = true;
         g.jobs.push_back(std::move(j));
     };
     slideJob(left, b.left, b.leftOuter, "left");

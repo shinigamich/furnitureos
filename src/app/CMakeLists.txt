@@ -26,8 +26,7 @@ add_library(fos_app_core STATIC
     src/core/interior_rows.cpp
     src/core/cabinet_parts.cpp
     src/core/drawing_edits.cpp
-    src/core/contour_rows.cpp
-    src/core/dxf_panel_import.cpp)
+    src/core/contour_rows.cpp)
 add_library(fos::app_core ALIAS fos_app_core)
 # moc (Qt 6.4) cannot parse libstdc++ C++20 concepts with the compiler predefines (see viewport).
 set_target_properties(fos_app_core PROPERTIES AUTOMOC ON AUTOMOC_COMPILER_PREDEFINES OFF)
@@ -99,7 +98,9 @@ set(FOS_APP_GUI_SOURCES
     src/gui/shape_editor.hpp
     src/gui/shape_editor.cpp
     src/gui/import_dxf_dialog.hpp
-    src/gui/import_dxf_dialog.cpp)
+    src/gui/import_dxf_dialog.cpp
+    src/gui/view_tools.hpp
+    src/gui/view_tools.cpp)
 
 # Everything except main.cpp goes into a static library shared by the executable and the
 # GUI smoke test.

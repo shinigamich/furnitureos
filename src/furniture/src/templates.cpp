@@ -79,6 +79,13 @@ CabinetDefinition drawerUnit(domain::AssemblyId id, const TemplateMaterials& m) 
     return def;
 }
 
+CabinetDefinition drawerUnitWithBoxes(domain::AssemblyId id, const TemplateMaterials& m) {
+    CabinetDefinition def = drawerUnit(std::move(id), m);
+    def.name = "Drawer unit with boxes";
+    def.interior.front->drawerBox = DrawerBoxSpec{};
+    return def;
+}
+
 CabinetDefinition wardrobeSection(domain::AssemblyId id, const TemplateMaterials& m) {
     ConstructionOptions o;
     o.plinth = PlinthKind::SidesToFloor;

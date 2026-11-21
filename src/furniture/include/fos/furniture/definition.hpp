@@ -52,6 +52,10 @@ struct SectionSize {
 struct DrawerBoxSpec {
     domain::HardwareId slide{hardware::ids::kSlideBallBearing};
     DrawerBottomMount bottom = DrawerBottomMount::Grooved;
+    /// Corner joints of the box (sides to inner front and back, README "Drawer boxes"):
+    /// Dowel (HardwareSelection::dowel, default), Confirmat (HardwareSelection::confirmat,
+    /// through the sides) or None (nothing drilled; the box is assembled by other means).
+    JointFastener joint = JointFastener::Dowel;
     bool operator==(const DrawerBoxSpec&) const = default;
 };
 
@@ -68,8 +72,19 @@ struct FrontSpec {
     /// DrawerStack only: std::nullopt = fronts only; set = a drawer box with slides behind
     /// every front of the stack (ignored for doors).
     std::optional<DrawerBoxSpec> drawerBox;
+    /// DrawerStack only: per-drawer boxes. Empty (default) = every drawer uses `drawerBox`.
+    /// Otherwise exactly one entry per drawer front (aligned with `drawerHeights`, BOTTOM to
+    /// TOP); each entry REPLACES `drawerBox` for its drawer (std::nullopt = no box behind that
+    /// front). A size mismatch fails generation. Use drawerBoxFor() to read the effective box.
+    std::vector<std::optional<DrawerBoxSpec>> drawerBoxes;
     bool operator==(const FrontSpec&) const = default;
 };
+
+/// Effective box of drawer `index` (0-based, bottom to top) of `front`: drawerBoxes[index]
+/// when drawerBoxes is not empty (std::nullopt when index is out of range), else drawerBox.
+std::optional<DrawerBoxSpec> drawerBoxFor(const FrontSpec& front, std::size_t index);
+/// True when at least one drawer of `front` gets a box (drawerBoxFor of some index is set).
+bool hasDrawerBoxes(const FrontSpec& front);
 
 /// Node of the interior layout tree. PATHS: the root has the empty path ""; the k-th child
 /// (1-based) of a section with path P has path "P.k" ("k" below the root), e.g. "2.1".

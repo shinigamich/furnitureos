@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include "fos/domain/model.hpp"
+#include "fos/viewport/section.hpp"
+#include "fos/viewport/snap.hpp"
 
 #include <QOpenGLWidget>
 
@@ -61,11 +63,46 @@ public:
     /// Replace the camera (orientation, target, distance, projection).
     void setCamera(const Camera& camera);
 
+    // --- Measurement tool (phase 15; display only, never changes the model) ---------------
+    /// In measure mode the cursor snaps (fos/viewport/snap.hpp) and two left clicks give a
+    /// distance; clicks then never emit partClicked. Dragging still orbits/pans. Esc clears the
+    /// current points, a second Esc leaves measure mode (measureModeChanged(false)). A third
+    /// click starts a new measurement. Leaving the mode clears the points.
+    void setMeasureMode(bool on);
+    bool measureMode() const;
+    /// Clears the measured points (stays in measure mode).
+    void cancelMeasurement();
+    /// Picked points (0, 1 or 2), project frame, mm.
+    std::vector<SnapPoint> measurePoints() const;
+    /// The completed measurement (two points), else nullopt.
+    std::optional<Measurement> measurement() const;
+    /// Snap point under the cursor in measure mode (nullopt over empty space / not measuring).
+    std::optional<SnapPoint> hoverSnap() const;
+    /// Simulates the cursor at widget-local `position` in measure mode: updates hoverSnap()
+    /// exactly as a mouse move does (also used by tests without a GL context).
+    void updateHoverSnap(const QPoint& position);
+    /// Unit suffix of the in-view distance label (default " mm"; the app passes a translation).
+    void setLengthSuffix(const QString& suffix);
+
+    // --- Section view (phase 15; display only) ----------------------------------------------
+    /// Axis-aligned clipping plane (nullopt = off). Geometry on the removed side is clipped in
+    /// the shader (gl_ClipDistance); cut faces get a flat cap colour (stencil caps) when the
+    /// framebuffer has a stencil buffer, otherwise the clipped geometry is drawn open with
+    /// back faces visible. Picking (partAt, clicks) and snapping ignore removed geometry.
+    void setSectionPlane(const std::optional<SectionPlane>& plane);
+    std::optional<SectionPlane> sectionPlane() const;
+    /// Bounds of all parts (project frame, mm; empty without parts), e.g. for the slider range.
+    geometry::Aabb modelBounds() const;
+
 signals:
     /// Left click on a part (empty id = click on empty space). `additive` = Ctrl/Shift held.
     void partClicked(const QString& partId, bool additive);
     /// Double click on a part (application typically isolates or edits it).
     void partDoubleClicked(const QString& partId);
+    /// Measure mode: points or the hover snap changed.
+    void measurementChanged();
+    /// Measure mode switched (also when Esc leaves it).
+    void measureModeChanged(bool on);
 
 protected:
     void initializeGL() override;
@@ -76,6 +113,8 @@ protected:
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseDoubleClickEvent(QMouseEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
+    void leaveEvent(QEvent* event) override;
 
 private:
     struct Impl;

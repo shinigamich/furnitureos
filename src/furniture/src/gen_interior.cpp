@@ -23,6 +23,12 @@ core::Result<void> checkTree(const Gen& g, const Section& s, const std::string& 
                                    "dividers). Put inset fronts on the leaf sections or use a Full / Half overlay.", g);
         if (s.front->kind == FrontKind::DrawerStack && s.front->drawerHeights.empty())
             return invalid(label + " has a drawer stack without any drawer front; add at least one height entry.", g);
+        if (s.front->kind == FrontKind::DrawerStack && !s.front->drawerBoxes.empty() &&
+            s.front->drawerBoxes.size() != s.front->drawerHeights.size())
+            return invalid(label + " has " + std::to_string(s.front->drawerBoxes.size()) +
+                               " per-drawer box entries but " + std::to_string(s.front->drawerHeights.size()) +
+                               " drawer fronts; give one entry per drawer (or none to use the stack-wide drawer box).",
+                           g);
     }
     if (s.split == SplitDirection::None) {
         if (!s.children.empty())

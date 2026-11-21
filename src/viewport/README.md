@@ -73,10 +73,47 @@ Hidden, non-isolated and zero/non-finite-size parts are not pickable.
 * orbiting frame including `grabFramebuffer()` readback of 1280×800: **≈ 26 ms** (≈ 38 fps upper bound
   on a software rasteriser; hardware GPUs are far faster).
 
+## Measurement tool (phase 15)
+
+`setMeasureMode(true)` (app action "Measure", key M). Qt-free math in `fos/viewport/snap.hpp`:
+
+* **Snap candidates** (`partSnapPoints`): box parts give 8 corners, 12 edge midpoints, 6 face centres;
+  contoured parts give the outline corners on faces A and B (ends of the vertical feature edges, i.e. where
+  the tangent turns by > 1°) and the midpoints of those vertical edges. Points on the removed side of a
+  section plane are dropped.
+* **`snapAt`**: nearest candidate of any visible part within 12 logical px of the cursor whose occlusion ray
+  (from the point, 0.05 mm off, toward the viewer) hits no part; ties by kind (corner, outline vertex, edge
+  midpoint, face centre), then part/candidate order. Otherwise the free surface/cap point under the cursor
+  (`Scene::pickHit`), else nothing.
+* Two left clicks give a `Measurement` (distance, signed ΔX/ΔY/ΔZ = b − a); a third click starts a new one;
+  dragging still orbits/pans; clicks emit no `partClicked`. Esc clears the points, a second Esc leaves the
+  mode (`measureModeChanged(false)`). Overlay (QPainter after the GL frame): line (dashed rubber band while
+  picking the second point), point dots, snap marker shaped by kind, distance label at the midpoint.
+  `measurementChanged()` lets the app show the numbers in its status bar. Never touches the model.
+
+## Section view (phase 15)
+
+`setSectionPlane(SectionPlane{axis, position mm, flip})` / `std::nullopt` (`fos/viewport/section.hpp`).
+`flip = false` keeps `coordinate <= position`, `true` keeps `>=`.
+
+* Faces and edges are clipped in the vertex shaders with `gl_ClipDistance[0]` (the grid is not clipped).
+* **Caps**: in the shaded modes the renderer toggles stencil bit 0 for every clipped surface fragment
+  (no depth test, both facings), then draws one quad on the plane (covering all parts + 10 mm) in the flat
+  cap colour (120, 84, 60) where the parity is odd, i.e. where the plane passes through material. One cap
+  colour for all parts; parity assumes parts do not overlap and that the near plane does not cut a part.
+  When the framebuffer has no stencil bits, no caps are drawn and back-face culling is turned off so cut
+  parts are shown open (documented fallback).
+* **Picking/snapping**: parts whose world box is entirely on the removed side are never hit; cut box parts
+  are hit at the later of box entry and plane crossing (surface or cap); cut contoured parts are hit at the
+  cap when the first mesh hit beyond the plane is a back face, else at that hit.
+
 ## Tests
 
 * `fos_viewport_tests` (offscreen Qt platform, no GL): camera presets/projection/matrices/fit/zoom/pan,
-  scene flattening and visibility, picking on `fixtures::basicCabinet()`, click vs drag signals.
+  scene flattening and visibility, picking on `fixtures::basicCabinet()`, click vs drag signals;
+  `snap_tests.cpp`: measurement math, snap candidates, radius/occlusion/cap snapping, section classification;
+  picking with a section plane (removed shelf not picked, cut shelf picked at its cap) and a two-click
+  measurement with Esc handling.
 * `viewport_gl` (CTest label `gl`, run through `xvfb-run -a` when available): renders the fixture and
   checks pixels (part vs background, highlight colour, hidden part). Each test `GTEST_SKIP`s with the
   reason when no windowing platform / OpenGL 3.3 core context is available. Set
@@ -91,5 +128,9 @@ Hidden, non-isolated and zero/non-finite-size parts are not pickable.
 * Line width is 1 device pixel (wide lines are not available in core profile).
 * No GPU-side frustum culling or LOD; all parts are always submitted (one draw call each for faces and
   edges).
+* Section caps have one flat colour (not per material) and no hatch; the cap of overlapping parts has
+  wrong parity. The GL cap path is not covered by an automated pixel test.
+* Measurement snapping has no edge-nearest-point or arc-centre snaps, and contoured parts offer no face
+  centres. The measurement is not stored in the project.
 * `moc` of Qt 6.4 cannot parse libstdc++'s C++20 concepts, so the target sets
   `AUTOMOC_COMPILER_PREDEFINES OFF` (applies only to moc, not to compilation).
