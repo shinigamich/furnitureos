@@ -19,6 +19,7 @@ furniture::CabinetDefinition makeDefinition(TemplateKind kind, const std::string
     case TemplateKind::WallCabinet: return t::wallCabinet(aid, materials);
     case TemplateKind::TallCabinet: return t::tallCabinet(aid, materials);
     case TemplateKind::DrawerUnit: return t::drawerUnit(aid, materials);
+    case TemplateKind::DrawerUnitWithBoxes: return t::drawerUnitWithBoxes(aid, materials);
     case TemplateKind::WardrobeSection: return t::wardrobeSection(aid, materials);
     case TemplateKind::OpenShelving: return t::openShelving(aid, materials);
     }
@@ -30,7 +31,7 @@ furniture::CabinetDefinition makeDefinition(TemplateKind kind, const std::string
 const std::vector<TemplateKind>& allTemplates() {
     static const std::vector<TemplateKind> kinds{TemplateKind::BaseCabinet,  TemplateKind::WallCabinet,
                                                  TemplateKind::TallCabinet,  TemplateKind::DrawerUnit,
-                                                 TemplateKind::WardrobeSection, TemplateKind::OpenShelving};
+                                                 TemplateKind::DrawerUnitWithBoxes, TemplateKind::WardrobeSection, TemplateKind::OpenShelving};
     return kinds;
 }
 
@@ -40,6 +41,8 @@ QString templateTitle(TemplateKind kind) {
     case TemplateKind::WallCabinet: return QCoreApplication::translate("fos::app::Templates", "Wall cabinet");
     case TemplateKind::TallCabinet: return QCoreApplication::translate("fos::app::Templates", "Tall cabinet");
     case TemplateKind::DrawerUnit: return QCoreApplication::translate("fos::app::Templates", "Drawer unit");
+    case TemplateKind::DrawerUnitWithBoxes:
+        return QCoreApplication::translate("fos::app::Templates", "Drawer unit with boxes");
     case TemplateKind::WardrobeSection: return QCoreApplication::translate("fos::app::Templates", "Wardrobe section");
     case TemplateKind::OpenShelving: return QCoreApplication::translate("fos::app::Templates", "Open shelving");
     }
@@ -52,6 +55,7 @@ const char* templateToken(TemplateKind kind) noexcept {
     case TemplateKind::WallCabinet: return "wall";
     case TemplateKind::TallCabinet: return "tall";
     case TemplateKind::DrawerUnit: return "drawers";
+    case TemplateKind::DrawerUnitWithBoxes: return "drawer-boxes";
     case TemplateKind::WardrobeSection: return "wardrobe";
     case TemplateKind::OpenShelving: return "shelving";
     }

@@ -914,6 +914,10 @@
         <source>Open shelving</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Drawer unit with boxes</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::WindowTitle</name>

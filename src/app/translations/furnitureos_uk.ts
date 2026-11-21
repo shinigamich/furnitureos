@@ -914,6 +914,10 @@
         <source>Open shelving</source>
         <translation>Відкритий стелаж</translation>
     </message>
+    <message>
+        <source>Drawer unit with boxes</source>
+        <translation>Тумба з ящиками-коробами</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::WindowTitle</name>
