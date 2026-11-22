@@ -78,6 +78,8 @@ TEST(Fronts, HalfOverlayDoorsShareAPartitionAndAHingeOnItIsLimited) {
     EXPECT_THAT(holes(a, "side.left", "hw.hinges.door.1"),
                 ElementsAre(Hole{Face::B, 94.5, 37, 5, 13, false}, Hole{Face::B, 126.5, 37, 5, 13, false},
                             Hole{Face::B, 593.5, 37, 5, 13, false}, Hole{Face::B, 625.5, 37, 5, 13, false}));
+    ASSERT_NE(instance(a, "hw.hinges.door.2"), nullptr);
+    EXPECT_EQ(instance(a, "hw.hinges.door.2")->definition.str(), hardware::ids::kHingeCup35Half); // 9.5 mm crank
     EXPECT_THAT(errorsOf(r.diagnostics), IsEmpty());
     EXPECT_THAT(interpenetrations(a), IsEmpty());
 }
@@ -153,10 +155,11 @@ TEST(Fronts, DrawerFrontFaceAIsTheInnerFaceAndHandleHolesGoThrough) {
     EXPECT_THAT(errorsOf(machining::validateOperations(drawer)), IsEmpty());
 }
 
-TEST(Fronts, InsetDoorGetsNoHingesAndAWarning) {
+TEST(Fronts, InsetDoorWithoutInsetHingeInLibraryGetsNoHingesAndAWarning) {
     CabinetDefinition d = defaultCabinet();
     d.interior.front = front(FrontKind::Door);
     d.interior.front->overlay = OverlayKind::Inset;
+    d.hardware.hingeInset = domain::HardwareId("hw.not_in_library");
     const GenerationResult r = gen(d);
     // Inset gap 2: x 20..580, z 20..700, y 0..18 inside the carcass.
     expectBox(part(r.assembly, "door"), {20, 0, 20}, {580, 18, 700});

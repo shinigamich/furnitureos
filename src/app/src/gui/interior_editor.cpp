@@ -180,7 +180,8 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
     auto updateFrontFields = [this] {
         const auto choice = valueOf<FrontInput::Choice>(frontKind_);
         const bool any = choice != FrontInput::Choice::None;
-        const bool door = choice == FrontInput::Choice::Door || choice == FrontInput::Choice::DoorPair;
+        const bool door = choice == FrontInput::Choice::Door || choice == FrontInput::Choice::DoorPair ||
+                          choice == FrontInput::Choice::Flap;
         overlay_->setEnabled(any);
         handle_->setEnabled(any);
         hinges_->setEnabled(door);

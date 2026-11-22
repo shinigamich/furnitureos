@@ -65,7 +65,9 @@ struct FrontSpec {
     FrontKind kind = FrontKind::Door;
     OverlayKind overlay = OverlayKind::Full;
     HingeSide hingeSide = HingeSide::Left; ///< Single door only (a pair hinges on both sides).
-    bool hinges = true;                    ///< Doors: place cup hinges (not available for Inset).
+    /// Doors / flaps: place cup hinges (crank chosen by `overlay`); Flap: also the two lift
+    /// mechanisms. false = front only.
+    bool hinges = true;
     HandlePosition handle = HandlePosition::Center;
     /// DrawerStack only: one entry per drawer front, BOTTOM to TOP; at least one.
     std::vector<SectionSize> drawerHeights;
@@ -145,7 +147,10 @@ struct MaterialAssignment {
 
 /// Catalogue ids of the fittings used by the generator (defaults: generic built-in catalogue).
 struct HardwareSelection {
-    domain::HardwareId hinge{hardware::ids::kHingeCup35};
+    domain::HardwareId hinge{hardware::ids::kHingeCup35};           ///< Full overlay (0 mm crank).
+    domain::HardwareId hingeHalf{hardware::ids::kHingeCup35Half};   ///< Half-overlay fronts.
+    domain::HardwareId hingeInset{hardware::ids::kHingeCup35Inset}; ///< Inset fronts.
+    domain::HardwareId lift{hardware::ids::kLiftGeneric};           ///< Flap lift mechanism (one per side).
     domain::HardwareId handle{hardware::ids::kHandleBar128};
     domain::HardwareId shelfPin{hardware::ids::kShelfPin5};
     domain::HardwareId confirmat{hardware::ids::kConfirmat7x50};

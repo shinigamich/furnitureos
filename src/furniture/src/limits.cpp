@@ -31,7 +31,8 @@ std::string num(double v) {
 std::size_t frontCount(const Section& s) {
     if (!s.front) return 0;
     switch (s.front->kind) {
-    case FrontKind::Door: return 1;
+    case FrontKind::Door:
+    case FrontKind::Flap: return 1;
     case FrontKind::DoorPair: return 2;
     case FrontKind::DrawerStack: // a front plus, with boxes, 2 sides, inner front, back and bottom
     {

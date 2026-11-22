@@ -41,14 +41,17 @@ enum class EdgeUse { Raw, Visible, Hidden, Front };
 /// Indexed by domain::EdgeSide (L1, L2, W1, W2).
 using Edges = std::array<EdgeUse, 4>;
 
-enum class JobKind { Corner, ShelfPins, Hinges, Handle, Slide };
+enum class JobKind { Corner, ShelfPins, Hinges, Handle, Slide, Lift };
 /// A deferred hardware placement; run after all parts exist (gen_hardware.cpp).
 struct Job {
     JobKind kind = JobKind::Corner;
     std::string instance;   ///< Instance id suffix after "<cabinet>/".
     std::size_t a = 0;      ///< Corner: face part. ShelfPins: shelf. Hinges: door. Handle: front. Slide: box side.
     std::size_t b = 0;      ///< Corner: edge part. ShelfPins: left support. Hinges / Slide: carrying panel.
-    std::size_t c = 0;      ///< ShelfPins: right support.
+    std::size_t c = 0;      ///< ShelfPins: right support. Lift: panel above the flap.
+    /// Hinges: hinge definition chosen from the front's overlay (empty = HardwareSelection::hinge).
+    domain::HardwareId hinge;
+    bool flap = false;      ///< Hinges: top-hinged flap (hinge axis X, b = panel above).
     JointFastener fastener = JointFastener::None; ///< Corner.
     /// Hinges: the carrying panel is a divider. Corner: the FACE part is a divider. ShelfPins:
     /// the left (b) support is a divider. Such panels follow the shared-panel rule above.

@@ -31,8 +31,8 @@ constexpr Table<SplitDirection, 3> kSplitDirection{{{SplitDirection::None, "None
                                                    {SplitDirection::Horizontal, "Horizontal"}}};
 constexpr Table<SizeKind, 3> kSizeKind{{{SizeKind::Fixed, "Fixed"}, {SizeKind::Weight, "Weight"},
                                        {SizeKind::Expression, "Expression"}}};
-constexpr Table<FrontKind, 3> kFrontKind{{{FrontKind::Door, "Door"}, {FrontKind::DoorPair, "DoorPair"},
-                                         {FrontKind::DrawerStack, "DrawerStack"}}};
+constexpr Table<FrontKind, 4> kFrontKind{{{FrontKind::Door, "Door"}, {FrontKind::DoorPair, "DoorPair"},
+                                         {FrontKind::DrawerStack, "DrawerStack"}, {FrontKind::Flap, "Flap"}}};
 constexpr Table<OverlayKind, 3> kOverlayKind{{{OverlayKind::Full, "Full"}, {OverlayKind::Half, "Half"},
                                              {OverlayKind::Inset, "Inset"}}};
 constexpr Table<HingeSide, 2> kHingeSide{{{HingeSide::Left, "Left"}, {HingeSide::Right, "Right"}}};

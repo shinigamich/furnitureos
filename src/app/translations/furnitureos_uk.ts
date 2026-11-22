@@ -223,6 +223,10 @@
         <source>Section “%1” is not split.</source>
         <translation>Секцію «%1» не поділено.</translation>
     </message>
+    <message>
+        <source>lift-up flap</source>
+        <translation>підйомний фасад</translation>
+    </message>
 </context>
 <context>
     <name>MeasureStatus</name>
@@ -1718,6 +1722,10 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Bottom nailed under</source>
         <translation>Дно прибите знизу</translation>
     </message>
+    <message>
+        <source>Lift-up flap</source>
+        <translation>Підйомний фасад</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::ImportDxfDialog</name>
@@ -2545,6 +2553,14 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     <message>
         <source>&amp;Wireframe</source>
         <translation>&amp;Каркас</translation>
+    </message>
+    <message>
+        <source>&amp;Realistic materials</source>
+        <translation>&amp;Реалістичні матеріали</translation>
+    </message>
+    <message>
+        <source>Show material colours, wood grain, textures and edge bands</source>
+        <translation>Показати кольори матеріалів, текстуру деревини, зображення та крайки</translation>
     </message>
     <message>
         <source>&amp;About FurnitureOS</source>

@@ -2,6 +2,7 @@
 /// Runs the deferred hardware placements through the rules of fos::hardware.
 #include "fos/hardware/corner_joint.hpp"
 #include "fos/hardware/hinges.hpp"
+#include "fos/hardware/lift.hpp"
 #include "fos/hardware/shelf_supports.hpp"
 #include "fos/machining/validation.hpp"
 #include "gen_context.hpp"
@@ -141,11 +142,21 @@ core::Result<hardware::Placement> place(Gen& g, const Job& j, const domain::Hard
         return placed;
     }
     case JobKind::Hinges: {
-        auto def = lookup(sel.hinge, "hinge");
+        auto def = lookup(j.hinge.empty() ? sel.hinge : j.hinge, "hinge");
         if (!def) return def.error();
         hardware::HingeConfig c;
         c.instanceId = id;
         c.offsetFromTop = c.offsetFromBottom = g.v(p::kHingeOffset);
+        if (j.flap) {
+            // Top-hinged flap: axis X, positions from the flap's left end, count from the
+            // table applied to the flap width (heuristic), no shelf avoidance (panel above).
+            c.axis = {1, 0, 0};
+            c.maxFrontGap = std::max(c.maxFrontGap, g.v(p::kFrontOffset));
+            const auto hinge = j.sharedPanel
+                                   ? limitDepth(def.value(), hardware::keys::kPlateHoleDepth, g.v(p::kThickness))
+                                   : def.value();
+            return hardware::placeHinges(parts[j.a], parts[j.b], hinge, c);
+        }
         c.maxFrontGap = std::max(c.maxFrontGap, g.v(p::kFrontOffset));
         const auto hinge =
             j.sharedPanel ? limitDepth(def.value(), hardware::keys::kPlateHoleDepth, g.v(p::kThickness)) : def.value();
@@ -175,6 +186,14 @@ core::Result<hardware::Placement> place(Gen& g, const Job& j, const domain::Hard
         c.slideLength = j.slideLength;
         if (j.sharedPanel) c.maxCabinetHoleDepth = sharedHoleDepthLimit(parts[j.b].thickness);
         return hardware::placeDrawerSlides(parts[j.a], parts[j.b], def.value(), c);
+    }
+    case JobKind::Lift: {
+        auto def = lookup(sel.lift, "lift mechanism");
+        if (!def) return def.error();
+        hardware::LiftConfig c;
+        c.instanceId = id;
+        if (j.sharedPanel) c.maxSideHoleDepth = sharedHoleDepthLimit(parts[j.b].thickness);
+        return hardware::placeLiftMechanism(parts[j.a], parts[j.b], parts[j.c], def.value(), c);
     }
     case JobKind::Handle: {
         auto def = lookup(sel.handle, "handle");

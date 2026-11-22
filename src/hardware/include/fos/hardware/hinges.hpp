@@ -53,11 +53,27 @@ struct HingeConfig {
     double maxFrontGap = 5.0;
     /// The hinged door edge may project this far beyond the OUTER face of the side.
     double maxSideOverhang = 5.0;
+    /// Hinge axis in the assembly frame; must be a unit assembly axis. Z (default) for a
+    /// side-hung door; X for a top-hinged flap (the "side" is then the panel above the flap,
+    /// "heights" / positions / offsets are measured along X from the flap's left end, and
+    /// the count rule is applied to the flap width).
+    geometry::Vec3 axis{0, 0, 1};
     FitOptions fit; ///< minRemainingMaterial: cup depth must be < door thickness - this (default 2 mm).
 };
 
-/// Cup hinges for an OVERLAY door hung on a vertical cabinet side (both parts in the same
-/// assembly frame, hinge axis parallel to assembly Z).
+/// Cup hinges for a door hung on a cabinet panel (both parts in the same assembly frame,
+/// hinge axis = HingeConfig::axis; Z: door on a vertical side, X: flap on the panel above).
+///
+/// CRANK / OVERLAY: overlay = how far the hinged door edge reaches over the side's inner
+/// face (negative = the edge stays inside the opening by that gap). A hinge definition with
+/// both optional keys overlay_min / overlay_max (cranked hinges: hw.hinge_cup_35_half,
+/// hw.hinge_cup_35_inset) accepts exactly that overlay range; one without them (0 mm crank,
+/// hw.hinge_cup_35) accepts 0 .. side thickness + maxSideOverhang (overlay doors only).
+/// INSET PLATE LINE: when the door's inner face lies behind the side's front edge (inset
+/// door), its outer face must be 0 .. maxFrontGap behind that edge (recess r) and the plate
+/// line is measured from the door's inner face: plate line behind the side's front edge =
+/// r + door thickness + plate_line_from_front_edge (flush 18 mm door: 18 + 37 = 55). For
+/// overlay doors it stays plate_line_from_front_edge behind the front edge.
 ///
 /// Derived from the placements: the door's inner face (the one facing the side), the
 /// side's inner face (the one facing the door's centre), the hinged door edge (the
@@ -72,8 +88,9 @@ struct HingeConfig {
 ///    32 mm hole row of the side.)
 ///
 /// Errors (nothing is guessed): door not perpendicular to the side / hinge axis not
-/// vertical; door not in front of the side within maxFrontGap; inset door (hinged edge
-/// inside the cabinet) or door not at the side; door too narrow for the cup; cup or plate
+/// parallel to the axis; overlay door not in front of the side within maxFrontGap; inset
+/// door not flush / recessed within maxFrontGap; overlay outside the hinge's range (inset
+/// door with a hinge without range) or door not at the side; door too narrow for the cup; cup or plate
 /// holes too deep (see checkHingeFit); a plate hole would miss the side panel; no rule
 /// for the door height.
 /// Result: one instance (quantity = hinge count, parts {door, side}, position = lowest cup

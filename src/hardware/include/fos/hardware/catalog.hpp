@@ -84,6 +84,33 @@
 ///    drawer_hole_diameter / _depth   (screw pilot holes)           2.5 / 8    2.5 / 10
 ///    (Typical values; unverified. Undermount drawer holes are in the LOWER EDGE of the box
 ///     side, ball-bearing ones in its outer face.)
+///
+///  hw.hinge_cup_35_half   kind Hinge  "Cup hinge 35 mm, half overlay, 9.5 mm crank (generic)"
+///  hw.hinge_cup_35_inset  kind Hinge  "Cup hinge 35 mm, inset, 16 mm crank (generic)"
+///    cup / plate drilling as hw.hinge_cup_35 (35 x 13 cup 21.5 from the edge, plate line 37,
+///    2 x 5 x 13 plate holes 32 apart), plus (OPTIONAL keys for any Hinge, see hinges.hpp):
+///                                                    half    inset
+///    crank          arm crank (documentation)        9.5     16
+///    overlay_min    supported door overlay on the    4       -4
+///    overlay_max    side, mm (negative = inset gap)  10      0
+///    GENERIC model: a 0 mm-crank (full overlay) arm overlays about 16 mm; each mm of crank
+///    takes 1 mm off (half: 6.5, inset: 0 = door edge flush with the side's inner face); the
+///    range adds the usual adjustment. hw.hinge_cup_35 is the 0 mm-crank variant (no range
+///    keys: legacy overlay check). Inset plate line: see placeHinges.
+///
+///  hw.lift_generic   kind LiftMechanism  "Lift mechanism for top-hinged flaps (generic)"
+///    side_hole_from_front       37    first hole in the cabinet side behind its front edge
+///    side_hole_spacing          32    second hole this far further back (same height)
+///    side_hole_below_top        40    hole line below the underside of the panel above the flap
+///    side_hole_diameter / _depth  5 / 12
+///    flap_hole_from_side_edge   50    flap holes from the flap's edge at that side, inward
+///    flap_hole_from_top_edge    100   first flap hole below the flap's top edge
+///    flap_hole_spacing          32    second flap hole this far further down
+///    flap_hole_diameter / _depth  4 / 10
+///    cabinet_height_min / _max  240 / 600  height of the cabinet side the mechanism fits
+///    cabinet_depth_min          250   depth of the cabinet side needed for the mechanism body
+///    power_factor_min / _max    400 / 1800  flap height (mm) x flap weight (kg) range
+///    (Typical values for a small lift stay; unverified. One mechanism per side.)
 namespace fos::hardware {
 
 namespace keys {
@@ -135,6 +162,24 @@ inline constexpr const char* kCabinetHoleDiameter = "cabinet_hole_diameter";
 inline constexpr const char* kCabinetHoleDepth = "cabinet_hole_depth";
 inline constexpr const char* kDrawerHoleDiameter = "drawer_hole_diameter";
 inline constexpr const char* kDrawerHoleDepth = "drawer_hole_depth";
+inline constexpr const char* kCrank = "crank";
+inline constexpr const char* kOverlayMin = "overlay_min";
+inline constexpr const char* kOverlayMax = "overlay_max";
+inline constexpr const char* kSideHoleFromFront = "side_hole_from_front";
+inline constexpr const char* kSideHoleSpacing = "side_hole_spacing";
+inline constexpr const char* kSideHoleBelowTop = "side_hole_below_top";
+inline constexpr const char* kSideHoleDiameter = "side_hole_diameter";
+inline constexpr const char* kSideHoleDepth = "side_hole_depth";
+inline constexpr const char* kFlapHoleFromSideEdge = "flap_hole_from_side_edge";
+inline constexpr const char* kFlapHoleFromTopEdge = "flap_hole_from_top_edge";
+inline constexpr const char* kFlapHoleSpacing = "flap_hole_spacing";
+inline constexpr const char* kFlapHoleDiameter = "flap_hole_diameter";
+inline constexpr const char* kFlapHoleDepth = "flap_hole_depth";
+inline constexpr const char* kCabinetHeightMin = "cabinet_height_min";
+inline constexpr const char* kCabinetHeightMax = "cabinet_height_max";
+inline constexpr const char* kCabinetDepthMin = "cabinet_depth_min";
+inline constexpr const char* kPowerFactorMin = "power_factor_min";
+inline constexpr const char* kPowerFactorMax = "power_factor_max";
 } // namespace keys
 
 namespace ids {
@@ -147,6 +192,9 @@ inline constexpr const char* kHandleBar128 = "hw.handle_bar_128";
 inline constexpr const char* kFootAdjustable = "hw.foot_adjustable";
 inline constexpr const char* kSlideBallBearing = "hw.slide_ball_bearing";
 inline constexpr const char* kSlideUndermount = "hw.slide_undermount";
+inline constexpr const char* kHingeCup35Half = "hw.hinge_cup_35_half";
+inline constexpr const char* kHingeCup35Inset = "hw.hinge_cup_35_inset";
+inline constexpr const char* kLiftGeneric = "hw.lift_generic";
 } // namespace ids
 
 /// The generic catalogue, in the fixed order of the list above. unitCost is 0 (unknown).

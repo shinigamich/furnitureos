@@ -113,6 +113,9 @@ QString contentText(const SectionRow& row) {
         case furniture::FrontKind::DrawerStack:
             front = InteriorText::tr("drawers: %1").arg(row.front->drawerHeights.size());
             break;
+        case furniture::FrontKind::Flap:
+            front = InteriorText::tr("lift-up flap");
+            break;
         }
         text += QStringLiteral("; ") + front;
     }
@@ -218,6 +221,9 @@ FrontInput frontInput(const std::optional<furniture::FrontSpec>& front) {
     case furniture::FrontKind::DrawerStack:
         in.choice = FrontInput::Choice::DrawerStack;
         break;
+    case furniture::FrontKind::Flap:
+        in.choice = FrontInput::Choice::Flap;
+        break;
     }
     in.overlay = front->overlay;
     in.hingeSide = front->hingeSide;
@@ -262,6 +268,9 @@ core::Result<furniture::FrontSpec> frontSpec(const FrontInput& input) {
         break;
     case FrontInput::Choice::DoorPair:
         spec.kind = furniture::FrontKind::DoorPair;
+        break;
+    case FrontInput::Choice::Flap:
+        spec.kind = furniture::FrontKind::Flap;
         break;
     case FrontInput::Choice::DrawerStack: {
         spec.kind = furniture::FrontKind::DrawerStack;

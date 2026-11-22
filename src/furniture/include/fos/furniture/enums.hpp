@@ -39,7 +39,8 @@ enum class SizeKind {
     Weight,     ///< Share of the remaining space proportional to `value`.
     Expression, ///< `expression` over the cabinet's parameter graph, in millimetres.
 };
-enum class FrontKind { Door, DoorPair, DrawerStack };
+/// Flap: one front hinged at its TOP edge to the panel above (lift-up flap, see README).
+enum class FrontKind { Door, DoorPair, DrawerStack, Flap };
 enum class OverlayKind { Full, Half, Inset };
 enum class HingeSide { Left, Right };
 enum class HandlePosition { None, Center, Top, Bottom };

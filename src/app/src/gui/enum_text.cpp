@@ -83,7 +83,8 @@ Choices<FrontInput::Choice> frontChoices() {
     return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "No front")), C::None},
             {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Single door")), C::Door},
             {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Door pair")), C::DoorPair},
-            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Drawer stack")), C::DrawerStack}};
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Drawer stack")), C::DrawerStack},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Lift-up flap")), C::Flap}};
 }
 
 Choices<furniture::OverlayKind> overlayChoices() {

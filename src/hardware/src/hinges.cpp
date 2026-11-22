@@ -64,7 +64,13 @@ core::Result<Placement> placeHinges(const Part& door, const Part& side, const do
     };
     if (auto r = firstError(checkHingeFit(hinge, door, side, cfg.fit)); !r) return r.error();
 
-    const Vec3 up{0, 0, 1};
+    // Hinge axis: an assembly axis (Z = side-hung door, X = top-hinged flap). "Heights" below
+    // are positions along this axis.
+    const Vec3 up = cfg.axis;
+    if (!(isParallel(up, {1, 0, 0}) || isParallel(up, {0, 1, 0}) || isParallel(up, {0, 0, 1})) ||
+        std::fabs(length(up) - 1) > 1e-9)
+        return fail("The hinge axis (" + num(up.x) + ", " + num(up.y) + ", " + num(up.z) + ") for door " + quoted(door) +
+                        " must be a unit assembly axis (X, Y or Z).", door);
     const Vec3 doorC = centreInAssembly(door), sideC = centreInAssembly(side);
 
     // Inner faces: the door face looking at the side, the side face looking at the door.
@@ -83,25 +89,38 @@ core::Result<Placement> placeHinges(const Part& door, const Part& side, const do
         return fail("Door " + quoted(door) + " is not perpendicular to " + quoted(side) +
                         "; hinges can only be placed between a door and a side at a right angle.", door);
     if (!isPerpendicular(nD, up) || !isPerpendicular(nS, up))
-        return fail("Door " + quoted(door) + " and " + quoted(side) +
-                        " must both be vertical (hinge axis along the assembly Z axis); flap doors are not supported.",
+        return fail("Door " + quoted(door) + " and " + quoted(side) + " must both be parallel to the hinge axis (" +
+                        num(up.x) + ", " + num(up.y) + ", " + num(up.z) + ").",
                     door);
     const auto df = machining::faceFrameInAssembly(door, doorFace);
     if (!isParallel(df.uAxis, up) && !isParallel(df.vAxis, up))
-        return fail("Door " + quoted(door) + " is rotated in its own plane; its length or width must be vertical.", door);
+        return fail("Door " + quoted(door) + " is rotated in its own plane; its length or width must run along the hinge axis.", door);
     const auto sf = machining::faceFrameInAssembly(side, sideFace);
     if (!isParallel(sf.uAxis, up) && !isParallel(sf.vAxis, up))
-        return fail(quoted(side) + " is rotated in its own plane; its length or width must be vertical.", side);
+        return fail(quoted(side) + " is rotated in its own plane; its length or width must run along the hinge axis.", side);
 
     const machining::Range doorZ = extentAlong(door, up);      // door bottom/top
     const machining::Range doorS = extentAlong(door, nS);      // door across its width, towards the cabinet inside
     const double doorHeight = doorZ.length(), doorWidth = doorS.length();
     const double sideInner = dot(sf.origin, nS);
-    const double hingedEdge = doorS.min; // the vertical door edge at the side
-    if (hingedEdge > sideInner + core::kLengthEps)
+    const double hingedEdge = doorS.min; // the door edge at the side (parallel to the axis)
+    const auto ovMinIt = hinge.params.find(keys::kOverlayMin), ovMaxIt = hinge.params.find(keys::kOverlayMax);
+    const bool ranged = ovMinIt != hinge.params.end() && ovMaxIt != hinge.params.end();
+    const double overlay = sideInner - hingedEdge; // > 0: the door covers the side's front edge
+    const std::string what = hinge.name.empty() ? hinge.id.str() : hinge.name;
+    if (ranged) {
+        const double lo = ovMinIt->second, hi = ovMaxIt->second;
+        if (!std::isfinite(lo) || !std::isfinite(hi) || lo > hi)
+            return fail("Hinge '" + what + "' has an invalid overlay range " + num(lo) + " .. " + num(hi) + " mm.", door);
+        if (overlay < lo - core::kLengthEps || overlay > hi + core::kLengthEps)
+            return fail("Door " + quoted(door) + " overlays " + quoted(side) + " by " + num(overlay) +
+                            " mm (negative: its hinged edge stays inside the opening), but hinge '" + what +
+                            "' supports an overlay of " + num(lo) + " .. " + num(hi) +
+                            " mm; choose a hinge with a matching crank.", door);
+    } else if (hingedEdge > sideInner + core::kLengthEps)
         return fail("The hinged edge of door " + quoted(door) + " lies " + num(hingedEdge - sideInner) +
                         " mm inside the inner face of " + quoted(side) +
-                        "; inset doors and doors not reaching the side are not supported by this rule.", door);
+                        "; inset doors need an inset hinge (overlay_min / overlay_max); doors not reaching the side cannot be hinged.", door);
     if (hingedEdge < sideInner - side.thickness - cfg.maxSideOverhang - core::kLengthEps)
         return fail("The hinged edge of door " + quoted(door) + " projects " +
                         num(sideInner - side.thickness - hingedEdge) + " mm beyond the outer face of " + quoted(side) +
@@ -112,7 +131,20 @@ core::Result<Placement> placeHinges(const Part& door, const Part& side, const do
     const double sideFront = extentAlong(side, nD).min; // front edge of the side
     const double doorInner = dot(df.origin, nD);
     const double frontGap = sideFront - doorInner;
-    if (frontGap < -0.1 || frontGap > cfg.maxFrontGap + core::kLengthEps)
+    // INSET RULE: a door whose inner face lies behind the side's front edge stands inside the
+    // carcass; its outer face must be flush with or recessed behind the front edge (0 ..
+    // maxFrontGap) and the plate line is measured from the door's inner face instead of the
+    // side's front edge: plate line = sideFront + recess + door thickness + plate_line.
+    const bool insetDoor = doorInner > sideFront + 0.1;
+    double plateRef = sideFront;
+    if (insetDoor) {
+        const double recess = doorInner - door.thickness - sideFront;
+        if (recess < -0.1 || recess > cfg.maxFrontGap + core::kLengthEps)
+            return fail("The outer face of inset door " + quoted(door) + " is " + num(recess) +
+                            " mm behind the front edge of " + quoted(side) + "; it must be within 0.." +
+                            num(cfg.maxFrontGap) + " mm (flush or slightly recessed).", door);
+        plateRef = doorInner;
+    } else if (frontGap < -0.1 || frontGap > cfg.maxFrontGap + core::kLengthEps)
         return fail("The inner face of door " + quoted(door) + " is " + num(frontGap) + " mm in front of the front edge of " +
                         quoted(side) + "; it must be within 0.." + num(cfg.maxFrontGap) +
                         " mm for an overlay door on this side.", door);
@@ -160,7 +192,6 @@ core::Result<Placement> placeHinges(const Part& door, const Part& side, const do
                                    door.id.str());
     }
 
-    const std::string what = hinge.name.empty() ? hinge.id.str() : hinge.name;
     OpWriter w(cfg.instanceId);
     domain::HardwareInstance inst;
     inst.id = cfg.instanceId;
@@ -182,7 +213,7 @@ core::Result<Placement> placeHinges(const Part& door, const Part& side, const do
         w.add(door, domain::Hole{doorFace, dc.u, dc.v, cupD, cupDepth, false},
               what + ": cup, hinge " + std::to_string(i) + " of " + std::to_string(count));
         for (const double dz : {-plateSpacing / 2, plateSpacing / 2}) {
-            const auto sc = machining::assemblyToFace(side, sideFace, point(sideInner, z + dz, sideFront + plateLine));
+            const auto sc = machining::assemblyToFace(side, sideFace, point(sideInner, z + dz, plateRef + plateLine));
             if (!circleOnFace(side, sideFace, sc.u, sc.v, plateD / 2))
                 return fail("The mounting-plate hole of hinge " + std::to_string(i) + " for door " + quoted(door) +
                                 " at (" + num(sc.u) + ", " + num(sc.v) + ") on face " + domain::toString(sideFace) +

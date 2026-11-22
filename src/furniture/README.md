@@ -104,6 +104,26 @@ face B the visible outer face.** Doors: length vertical, width along x. Drawer f
 recorded on face A (the same (u, v) on face B is where they leave the visible face); hinge cups are
 drilled into face A.
 
+### Hinge crank by overlay
+
+Full → `HardwareSelection::hinge` (0 mm crank), Half → `hingeHalf` (`hw.hinge_cup_35_half`, 9.5 mm),
+Inset → `hingeInset` (`hw.hinge_cup_35_inset`, 16 mm); see hardware README for the overlay ranges and the
+inset plate line (flush 18 mm inset door: plates 18 + 37 = 55 mm behind the side's front edge). A full-overlay
+door on a shared panel keeps the full-overlay hinge (legacy check). If the half / inset hinge is not in the
+hardware library (old project libraries): Half falls back to `hinge` with warning
+`furniture.front.half_overlay_hinge`, Inset gets no hinges with warning `furniture.front.inset_hinges`.
+
+### Flap (`FrontKind::Flap`)
+
+One front (slot `flap.<path>`, role Door, same size rule as a single door) hinged at its TOP edge to the
+panel above the section (carcass top or a fixed shelf). With `hinges = true`: cup hinges `hw.hinges.<slot>`
+(hinge axis X, crank by overlay, count from the table applied to the flap width, `hinge_offset` from each
+end; cups on the flap's inner face, plates under the panel above) and one lift mechanism per side
+`hw.lift.<slot>.left|right` (`HardwareSelection::lift`, default `hw.lift_generic`). A section closed by
+stretcher rails cannot take a flap (generation error). Lift range errors (cabinet too low / tall / shallow)
+are `furniture.hardware.placement_failed`. The handle is horizontal. `hinges = false` = front only.
+Project files: `kind: "Flap"`; `hardware.hingeHalf|hingeInset|lift` written only when not default.
+
 ## Drawer boxes
 
 `FrontSpec::drawerBox` (`DrawerBoxSpec{slide, bottom, joint}`, DrawerStack only; `std::nullopt` = fronts only) puts a
@@ -256,7 +276,6 @@ See generate.hpp for the full list of codes.
 * Drawer boxes: no rear hook hole / back notch for undermount runners, no fixing of the drawer front to the box
   (front adjusters / screws), nailed bottoms get no nail positions, rectangular boxes only; slide hole rows are
   taken from the generic definitions.
-* Inset doors get no hinges (no rule available; warning `furniture.front.inset_hinges`).
 * The interpenetration check compares bounding boxes (exact for the axis-aligned panels generated here).
 * Hinge heights are not snapped to a 32 mm system row.
 * Contours: hardware rules do not know the outline (a fitting in a removed area is reported, not moved);

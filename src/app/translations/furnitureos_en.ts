@@ -223,6 +223,10 @@
         <source>%1 stacked</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>lift-up flap</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MeasureStatus</name>
@@ -1713,6 +1717,10 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Bottom nailed under</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Lift-up flap</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::ImportDxfDialog</name>
@@ -2537,6 +2545,14 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
     <message>
         <source>&amp;Wireframe</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Realistic materials</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show material colours, wood grain, textures and edge bands</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

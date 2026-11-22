@@ -316,7 +316,7 @@ core::Result<furniture::FrontSpec> frontFromJson(const Json& json, std::string_v
     Reader r(json, path, "a front");
     FrontSpec f;
     r.token("kind", f.kind, furnitureEnum<FrontKind>(),
-            furnitureTokens({FrontKind::Door, FrontKind::DoorPair, FrontKind::DrawerStack}), true);
+            furnitureTokens({FrontKind::Door, FrontKind::DoorPair, FrontKind::DrawerStack, FrontKind::Flap}), true);
     r.token("overlay", f.overlay, furnitureEnum<OverlayKind>(),
             furnitureTokens({OverlayKind::Full, OverlayKind::Half, OverlayKind::Inset}));
     r.token("hingeSide", f.hingeSide, furnitureEnum<HingeSide>(), furnitureTokens({HingeSide::Left, HingeSide::Right}));
@@ -500,6 +500,11 @@ Json hardwareJson(const furniture::HardwareSelection& h) {
     j["confirmat"] = h.confirmat.str();
     j["dowel"] = h.dowel.str();
     j["foot"] = h.foot.str();
+    // Written only when changed from the default so older files stay byte-identical.
+    const furniture::HardwareSelection defaults;
+    if (h.hingeHalf != defaults.hingeHalf) j["hingeHalf"] = h.hingeHalf.str();
+    if (h.hingeInset != defaults.hingeInset) j["hingeInset"] = h.hingeInset.str();
+    if (h.lift != defaults.lift) j["lift"] = h.lift.str();
     return j;
 }
 
@@ -517,6 +522,9 @@ core::Result<furniture::HardwareSelection> hardwareFromJson(const Json& json, st
     id("confirmat", h.confirmat);
     id("dowel", h.dowel);
     id("foot", h.foot);
+    id("hingeHalf", h.hingeHalf);
+    id("hingeInset", h.hingeInset);
+    id("lift", h.lift);
     r.rejectUnknown();
     if (!r.ok()) return r.error();
     return h;

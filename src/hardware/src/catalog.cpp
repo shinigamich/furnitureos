@@ -18,6 +18,23 @@ HardwareDefinition generic(const char* id, HardwareKind kind, const char* name, 
     d.custom["origin"] = "FurnitureOS generic catalogue; typical dimensions, not from a manufacturer data sheet";
     return d;
 }
+/// Cup hinge with a cranked arm. Same cup and plate drilling as hw.hinge_cup_35; `crank`
+/// documents the arm offset and [overlay_min, overlay_max] the door overlay it supports
+/// (generic: about 16 mm nominal overlay at 0 mm crank, minus the crank, plus adjustment).
+HardwareDefinition crankHinge(const char* id, const char* name, double crank, double ovMin, double ovMax) {
+    using namespace keys;
+    return generic(id, HardwareKind::Hinge, name,
+                   {{kCupDiameter, 35.0},
+                    {kCupDepth, 13.0},
+                    {kCupCenterFromDoorEdge, 21.5},
+                    {kPlateLineFromFrontEdge, 37.0},
+                    {kPlateHoleSpacing, 32.0},
+                    {kPlateHoleDiameter, 5.0},
+                    {kPlateHoleDepth, 13.0},
+                    {kCrank, crank},
+                    {kOverlayMin, ovMin},
+                    {kOverlayMax, ovMax}});
+}
 } // namespace
 
 std::vector<HardwareDefinition> builtinCatalog() {
@@ -90,6 +107,24 @@ std::vector<HardwareDefinition> builtinCatalog() {
                  {kCabinetHoleDepth, 12.0},
                  {kDrawerHoleDiameter, 2.5},
                  {kDrawerHoleDepth, 10.0}}),
+        crankHinge(ids::kHingeCup35Half, "Cup hinge 35 mm, half overlay, 9.5 mm crank (generic)", 9.5, 4.0, 10.0),
+        crankHinge(ids::kHingeCup35Inset, "Cup hinge 35 mm, inset, 16 mm crank (generic)", 16.0, -4.0, 0.0),
+        generic(ids::kLiftGeneric, HardwareKind::LiftMechanism, "Lift mechanism for top-hinged flaps (generic)",
+                {{kSideHoleFromFront, 37.0},
+                 {kSideHoleSpacing, 32.0},
+                 {kSideHoleBelowTop, 40.0},
+                 {kSideHoleDiameter, 5.0},
+                 {kSideHoleDepth, 12.0},
+                 {kFlapHoleFromSideEdge, 50.0},
+                 {kFlapHoleFromTopEdge, 100.0},
+                 {kFlapHoleSpacing, 32.0},
+                 {kFlapHoleDiameter, 4.0},
+                 {kFlapHoleDepth, 10.0},
+                 {kCabinetHeightMin, 240.0},
+                 {kCabinetHeightMax, 600.0},
+                 {kCabinetDepthMin, 250.0},
+                 {kPowerFactorMin, 400.0},
+                 {kPowerFactorMax, 1800.0}}),
     };
 }
 
@@ -115,6 +150,10 @@ std::vector<std::string> requiredParams(HardwareKind kind) {
                 kBoxLengthDeduction, kBottomRecess,  kMinBoxHeight,     kHoleLineHeight,      kCabinetHoleFirst,
                 kCabinetHolePitch, kDrawerHoleFirst, kDrawerHolePitch,  kHoleEndMargin,       kCabinetHoleDiameter,
                 kCabinetHoleDepth, kDrawerHoleDiameter, kDrawerHoleDepth};
+    case HardwareKind::LiftMechanism:
+        return {kSideHoleFromFront, kSideHoleSpacing,  kSideHoleBelowTop, kSideHoleDiameter, kSideHoleDepth,
+                kFlapHoleFromSideEdge, kFlapHoleFromTopEdge, kFlapHoleSpacing, kFlapHoleDiameter, kFlapHoleDepth,
+                kCabinetHeightMin, kCabinetHeightMax, kCabinetDepthMin, kPowerFactorMin, kPowerFactorMax};
     default: return {};
     }
 }

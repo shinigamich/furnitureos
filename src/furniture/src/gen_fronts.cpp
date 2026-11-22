@@ -26,6 +26,33 @@ void handleJob(Gen& g, std::size_t front, const std::string& slot, const FrontSp
     g.jobs.push_back(std::move(j));
 }
 
+/// CRANK RULE: the hinge for a front follows its overlay kind: Full -> HardwareSelection::hinge
+/// (0 mm crank), Half -> hingeHalf (9.5 mm crank), Inset -> hingeInset (16 mm crank). When the
+/// half / inset hinge is not in the hardware library (e.g. a project library saved before
+/// those entries existed), Half falls back to `hinge` with warning
+/// furniture.front.half_overlay_hinge and Inset gets no hinges with warning
+/// furniture.front.inset_hinges (std::nullopt).
+std::optional<domain::HardwareId> hingeFor(Gen& g, OverlayKind overlay, const std::string& name,
+                                           const std::string& slot) {
+    const HardwareSelection& sel = g.def.hardware;
+    const std::string who = "'" + name + "' (" + slot + ") of cabinet '" + g.def.id.str() + "'";
+    if (overlay == OverlayKind::Full) return sel.hinge;
+    if (overlay == OverlayKind::Half) {
+        if (g.libs.findHardware(sel.hingeHalf)) return sel.hingeHalf;
+        g.warn("furniture.front.half_overlay_hinge",
+               "Front " + who + " is half overlay but the half-overlay hinge '" + sel.hingeHalf.str() +
+                   "' is not in the hardware library; the full-overlay hinge '" + sel.hinge.str() + "' was used.",
+               g.partId(slot));
+        return sel.hinge;
+    }
+    if (g.libs.findHardware(sel.hingeInset)) return sel.hingeInset;
+    g.warn("furniture.front.inset_hinges",
+           "Front " + who + " is inset but the inset hinge '" + sel.hingeInset.str() +
+               "' is not in the hardware library, so no hinges were placed.",
+           g.partId(slot));
+    return std::nullopt;
+}
+
 } // namespace
 
 core::Result<void> buildFront(Gen& g, const FrontSpec& spec, const std::string& path, const Box& box, const Bounds& b) {
@@ -99,23 +126,57 @@ core::Result<void> buildFront(Gen& g, const FrontSpec& spec, const std::string& 
         const std::size_t part = g.addPart(slot, name, domain::PartRole::Door, role, z1 - z0, xb - xa, ft,
                                            Transform::fromAxes(kUp, kRight, {xa, yInner - ft, z0}), all);
         if (spec.hinges) {
-            if (inset) {
-                g.warn("furniture.front.inset_hinges",
-                       "Door '" + name + "' (" + slot + ") of cabinet '" + g.def.id.str() +
-                           "' is inset; no hinge rule for inset doors is available, so no hinges were placed.",
-                       g.partId(slot));
-            } else {
+            if (const auto hinge = hingeFor(g, spec.overlay, name, slot)) {
                 Job j;
                 j.kind = JobKind::Hinges;
                 j.instance = "hw.hinges." + slot;
                 j.a = part;
                 j.b = hingeLeft ? b.left : b.right;
                 j.sharedPanel = hingeLeft ? !b.leftOuter : !b.rightOuter;
+                j.hinge = *hinge;
                 g.jobs.push_back(std::move(j));
             }
         }
         handleJob(g, part, slot, spec, true, hingeLeft);
     };
+    if (spec.kind == FrontKind::Flap) {
+        // Lift-up flap: a door-shaped front hinged at its top edge to the panel above the
+        // section (hinge axis X), held open by one lift mechanism on each side.
+        const std::string slot = joinSlot({"flap", path});
+        const std::size_t part = g.addPart(slot, "Flap", domain::PartRole::Door, role, z1 - z0, x1 - x0, ft,
+                                           Transform::fromAxes(kUp, kRight, {x0, yInner - ft, z0}), all);
+        if (spec.hinges) {
+            if (b.top.size() != 1)
+                return core::makeError(core::ErrorCode::ConstraintViolation,
+                                       label + ": a flap is hinged to the panel above it, but the section is closed "
+                                       "by " + std::to_string(b.top.size()) + " stretcher rails; use a full top panel "
+                                       "or place the flap below a fixed shelf.",
+                                       g.def.id.str());
+            if (const auto hinge = hingeFor(g, spec.overlay, "Flap", slot)) {
+                Job j;
+                j.kind = JobKind::Hinges;
+                j.instance = "hw.hinges." + slot;
+                j.a = part;
+                j.b = b.top[0];
+                j.sharedPanel = !b.topOuter;
+                j.hinge = *hinge;
+                j.flap = true;
+                g.jobs.push_back(std::move(j));
+                for (const bool left : {true, false}) {
+                    Job l;
+                    l.kind = JobKind::Lift;
+                    l.instance = "hw.lift." + slot + (left ? ".left" : ".right");
+                    l.a = part;
+                    l.b = left ? b.left : b.right;
+                    l.c = b.top[0];
+                    l.sharedPanel = left ? !b.leftOuter : !b.rightOuter;
+                    g.jobs.push_back(std::move(l));
+                }
+            }
+        }
+        handleJob(g, part, slot, spec, false, false); // horizontal handle
+        return {};
+    }
     if (spec.kind == FrontKind::Door) {
         addDoor(joinSlot({"door", path}), "Door", x0, x1, spec.hingeSide == HingeSide::Left);
         return {};

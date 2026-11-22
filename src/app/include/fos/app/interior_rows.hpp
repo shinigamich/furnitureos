@@ -75,7 +75,7 @@ project::Command clearInteriorCommand(const std::string& itemId);
 
 /// What the front editor shows / submits.
 struct FrontInput {
-    enum class Choice { None, Door, DoorPair, DrawerStack };
+    enum class Choice { None, Door, DoorPair, DrawerStack, Flap };
     Choice choice = Choice::None;
     furniture::OverlayKind overlay = furniture::OverlayKind::Full;
     furniture::HingeSide hingeSide = furniture::HingeSide::Left;
