@@ -21,6 +21,7 @@ class ViewportWidget;
 
 namespace fos::app::gui {
 
+class ComponentBrowser;
 class CuttingWorkspace;
 class DiagnosticsPanel;
 class DrawingsWorkspace;
@@ -42,6 +43,7 @@ public:
     DrawingsWorkspace* drawingsWorkspace() const noexcept { return drawings_; }
     ProductionWorkspace* productionWorkspace() const noexcept { return production_; }
     CuttingWorkspace* cuttingWorkspace() const noexcept { return cutting_; }
+    ComponentBrowser* componentBrowser() const noexcept { return components_; }
     QTabWidget* workspaces() const noexcept { return tabs_; }
     SectionToolBar* sectionToolBar() const noexcept { return sectionBar_; }
 
@@ -93,6 +95,7 @@ private:
     void showAbout();
     void deleteSelectedItem();
     void duplicateSelectedItem();
+    void saveSelectedAsComponent();
 
     Session session_;
     Preferences preferences_;
@@ -107,6 +110,7 @@ private:
     ProjectBrowser* browser_ = nullptr;
     InspectorPanel* inspector_ = nullptr;
     DiagnosticsPanel* diagnostics_ = nullptr;
+    ComponentBrowser* components_ = nullptr;
     QLabel* selectionLabel_ = nullptr;
     QLabel* validationLabel_ = nullptr;
     QLabel* measureLabel_ = nullptr;
@@ -116,7 +120,7 @@ private:
     struct Actions {
         QAction *newProject, *open, *save, *saveAs, *print, *quit;
         QAction *exportCsv, *exportHtml, *exportLabels, *exportPdf, *exportSvg, *exportDxf, *exportObj, *importDxf;
-        QAction *undo, *redo, *deleteItem, *duplicateItem, *preferences;
+        QAction *undo, *redo, *deleteItem, *duplicateItem, *saveAsComponent, *preferences;
         QAction *fitAll, *perspective, *orthographic, *shaded, *shadedEdges, *wireframe, *realistic;
         QAction *measure, *section;
         QAction *about, *shortcuts;

@@ -2,13 +2,18 @@
 #include "dialogs.hpp"
 
 #include "fos/app/autosave.hpp"
+#include "fos/app/component_browser.hpp"
 
 #include <QAction>
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
+#include <QFileDialog>
 #include <QFormLayout>
+#include <QHBoxLayout>
+#include <QListWidget>
+#include <QPushButton>
 #include <QHeaderView>
 #include <QLabel>
 #include <QSpinBox>
@@ -69,6 +74,32 @@ PreferencesDialog::PreferencesDialog(const Preferences& current, QWidget* parent
     auto* form = new QFormLayout;
     form->addRow(tr("Language:"), language_);
     form->addRow(tr("Autosave every:"), autosave_);
+
+    componentFolders_ = new QListWidget(this);
+    componentFolders_->setObjectName(QStringLiteral("componentFolders"));
+    componentFolders_->addItems(current.componentFolders);
+    componentFolders_->setMinimumHeight(90);
+    auto* addFolder = new QPushButton(tr("Add folder…"), this);
+    auto* removeFolder = new QPushButton(tr("Remove"), this);
+    connect(addFolder, &QPushButton::clicked, this, [this] {
+        const QString dir = QFileDialog::getExistingDirectory(this, tr("Component library folder"));
+        if (!dir.isEmpty() && componentFolders_->findItems(dir, Qt::MatchExactly).isEmpty())
+            componentFolders_->addItem(dir);
+    });
+    connect(removeFolder, &QPushButton::clicked, this, [this] { delete componentFolders_->currentItem(); });
+    auto* folderButtons = new QHBoxLayout;
+    folderButtons->addWidget(addFolder);
+    folderButtons->addWidget(removeFolder);
+    folderButtons->addStretch(1);
+    const QString defaultFolder = QString::fromStdString(defaultComponentFolder(false).string());
+    auto* folderNote = new QLabel(tr("When the list is empty, the per-user folder is used: %1").arg(defaultFolder), this);
+    folderNote->setWordWrap(true);
+    auto* folderBox = new QVBoxLayout;
+    folderBox->addWidget(componentFolders_);
+    folderBox->addLayout(folderButtons);
+    folderBox->addWidget(folderNote);
+    form->addRow(tr("Component folders:"), folderBox);
+
     auto* layout = new QVBoxLayout(this);
     layout->addLayout(form);
     auto* note = new QLabel(tr("A change of language takes effect when the application is restarted. "
@@ -83,6 +114,7 @@ Preferences PreferencesDialog::preferences() const {
     Preferences p;
     p.language = language_->currentData().toString();
     p.autosaveMinutes = autosave_->value();
+    for (int i = 0; i < componentFolders_->count(); ++i) p.componentFolders << componentFolders_->item(i)->text();
     return p;
 }
 

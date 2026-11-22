@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "main_window.hpp"
 
+#include "component_browser.hpp"
 #include "cutting_workspace.hpp"
 #include "diagnostics_panel.hpp"
 #include "drawings_workspace.hpp"
@@ -138,6 +139,10 @@ void MainWindow::buildDocks() {
     dock(tr("Project browser"), QStringLiteral("browserDock"), browser_, Qt::LeftDockWidgetArea);
     auto* insp = dock(tr("Properties"), QStringLiteral("inspectorDock"), inspector_, Qt::RightDockWidgetArea);
     auto* diag = dock(tr("Diagnostics"), QStringLiteral("diagnosticsDock"), diagnostics_, Qt::BottomDockWidgetArea);
+    components_ = new ComponentBrowser(session_, this);
+    auto* comps = dock(tr("Components"), QStringLiteral("componentsDock"), components_, Qt::LeftDockWidgetArea);
+    tabifyDockWidget(findChild<QDockWidget*>(QStringLiteral("browserDock")), comps);
+    findChild<QDockWidget*>(QStringLiteral("browserDock"))->raise();
     resizeDocks({insp}, {420}, Qt::Horizontal);
     resizeDocks({diag}, {160}, Qt::Vertical);
 }
@@ -194,6 +199,7 @@ void MainWindow::updateUndoRedo() {
     const bool item = !session_.selection().itemId.empty();
     a_.deleteItem->setEnabled(item);
     a_.duplicateItem->setEnabled(item);
+    a_.saveAsComponent->setEnabled(item);
 }
 
 void MainWindow::syncViewportSelection() {

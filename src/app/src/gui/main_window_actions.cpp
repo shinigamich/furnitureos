@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Menus, toolbar and actions of the main window.
+#include "component_browser.hpp"
 #include "dialogs.hpp"
 #include "drawings_workspace.hpp"
 #include "fos/viewport/viewport_widget.hpp"
@@ -49,6 +50,8 @@ void MainWindow::buildActions() {
     a_.redo = make(tr("&Redo"), QKeySequence::Redo, QStyle::SP_ArrowForward);
     a_.deleteItem = make(tr("&Delete item"), QKeySequence::Delete);
     a_.duplicateItem = make(tr("D&uplicate item"), QKeySequence(Qt::CTRL | Qt::Key_D));
+    a_.saveAsComponent = make(tr("Save as &component…"));
+    a_.saveAsComponent->setObjectName(QStringLiteral("actionSaveAsComponent"));
     a_.preferences = make(tr("&Preferences…"), QKeySequence::Preferences);
     a_.fitAll = make(tr("&Fit all"), QKeySequence(Qt::Key_F));
     a_.perspective = make(tr("&Perspective"), QKeySequence(Qt::Key_P));
@@ -105,6 +108,8 @@ void MainWindow::buildActions() {
     connect(a_.redo, &QAction::triggered, this, [this] { (void)session_.redo(); });
     connect(a_.deleteItem, &QAction::triggered, this, &MainWindow::deleteSelectedItem);
     connect(a_.duplicateItem, &QAction::triggered, this, &MainWindow::duplicateSelectedItem);
+    connect(a_.saveAsComponent, &QAction::triggered, this, &MainWindow::saveSelectedAsComponent);
+    connect(components_, &ComponentBrowser::saveAsComponentRequested, this, &MainWindow::saveSelectedAsComponent);
     connect(a_.preferences, &QAction::triggered, this, &MainWindow::showPreferences);
     connect(a_.fitAll, &QAction::triggered, viewport_, &viewport::ViewportWidget::fitAll);
     connect(a_.perspective, &QAction::triggered, this, [this] { viewport_->setProjection(viewport::Projection::Perspective); });
@@ -150,6 +155,7 @@ void MainWindow::buildMenus() {
         add->addAction(templateTitle(kind) + QStringLiteral("…"), this, [this, kind] { addFromTemplateDialog(kind); });
     edit->addAction(a_.duplicateItem);
     edit->addAction(a_.deleteItem);
+    edit->addAction(a_.saveAsComponent);
     edit->addSeparator();
     edit->addAction(a_.preferences);
 

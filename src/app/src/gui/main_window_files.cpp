@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // File lifecycle (new / open / save / autosave / recovery), exports and small dialogs.
+#include "component_browser.hpp"
 #include "dialogs.hpp"
 #include "fos/app/autosave.hpp"
 #include "fos/app/production_text.hpp"
@@ -213,6 +214,7 @@ void MainWindow::applyPreferences() {
     const int ms = autosaveIntervalMs(preferences_.autosaveMinutes);
     if (ms > 0) autosaveTimer_->start(ms);
     else autosaveTimer_->stop();
+    components_->setFolders(effectiveComponentFolders(preferences_));
 }
 
 void MainWindow::showPreferences() {
@@ -251,6 +253,35 @@ void MainWindow::duplicateSelectedItem() {
     if (id.empty()) return;
     auto r = session_.duplicateItem(id);
     if (!r) showError(tr("Duplicate item"), r.error());
+}
+
+void MainWindow::saveSelectedAsComponent() {
+    const std::string id = session_.selection().itemId;
+    const project::Item* item = session_.project().findItem(id);
+    if (!item) {
+        QMessageBox::information(this, tr("Save as component"), tr("Select an item (cabinet or panel) first."));
+        return;
+    }
+    SaveComponentDialog dialog(QString::fromStdString(item->name()), components_->model().library().categories(),
+                               effectiveComponentFolders(preferences_), this);
+    if (dialog.exec() != QDialog::Accepted) return;
+    auto r = saveItemAsComponent(session_.project(), id, dialog.meta(), dialog.folder());
+    if (!r && r.error().code == core::ErrorCode::AlreadyExists) {
+        if (QMessageBox::question(this, tr("Save as component"),
+                                  tr("%1\nReplace it?").arg(QString::fromStdString(r.error().message))) !=
+            QMessageBox::Yes)
+            return;
+        r = saveItemAsComponent(session_.project(), id, dialog.meta(), dialog.folder(), true);
+    }
+    if (!r) {
+        showError(tr("Save as component"), r.error());
+        return;
+    }
+    // Show the folder in the browser when it is not one of the configured folders yet.
+    auto folders = components_->model().folders();
+    if (std::find(folders.begin(), folders.end(), dialog.folder()) == folders.end()) folders.push_back(dialog.folder());
+    components_->setFolders(folders);
+    statusBar()->showMessage(tr("Component saved to %1").arg(QString::fromStdString(r.value().string())), 8000);
 }
 
 // --- exports ---------------------------------------------------------------------------

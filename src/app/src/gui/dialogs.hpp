@@ -10,6 +10,7 @@
 class QAction;
 class QComboBox;
 class QDoubleSpinBox;
+class QListWidget;
 class QSpinBox;
 
 namespace fos::app::gui {
@@ -36,6 +37,7 @@ public:
 private:
     QComboBox* language_;
     QSpinBox* autosave_;
+    QListWidget* componentFolders_; ///< Empty list = default per-user folder.
 };
 
 /// Lists the shortcuts of the given actions (read from the actions themselves).

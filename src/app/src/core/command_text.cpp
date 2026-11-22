@@ -37,6 +37,7 @@ namespace {
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Edit project properties"),
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Change project settings"),
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Edit custom project data"),
+    QT_TRANSLATE_NOOP("fos::app::CommandText", "Insert component {0} as {1}"),
     // Section commands on the root section (empty path {1}), see commandText().
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Change the whole interior of {0}"),
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Set shelf count of the whole interior of {0} to {2}"),

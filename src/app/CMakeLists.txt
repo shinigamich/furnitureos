@@ -27,7 +27,8 @@ add_library(fos_app_core STATIC
     src/core/cabinet_parts.cpp
     src/core/drawing_edits.cpp
     src/core/contour_rows.cpp
-    src/core/resize.cpp)
+    src/core/resize.cpp
+    src/core/component_browser.cpp)
 add_library(fos::app_core ALIAS fos_app_core)
 # moc (Qt 6.4) cannot parse libstdc++ C++20 concepts with the compiler predefines (see viewport).
 set_target_properties(fos_app_core PROPERTIES AUTOMOC ON AUTOMOC_COMPILER_PREDEFINES OFF)
@@ -50,7 +51,8 @@ if(FOS_BUILD_TESTS)
         tests/core/cutting_settings_tests.cpp
         tests/core/contour_tests.cpp
         tests/core/drawer_dxf_tests.cpp
-        tests/core/resize_tests.cpp)
+        tests/core/resize_tests.cpp
+        tests/core/component_tests.cpp)
     target_link_libraries(fos_app_core_tests PRIVATE fos::app_core Qt6::Test GTest::gtest GTest::gmock)
     fos_set_warnings(fos_app_core_tests PRIVATE)
     gtest_discover_tests(fos_app_core_tests DISCOVERY_TIMEOUT 60
@@ -102,7 +104,9 @@ set(FOS_APP_GUI_SOURCES
     src/gui/import_dxf_dialog.hpp
     src/gui/import_dxf_dialog.cpp
     src/gui/view_tools.hpp
-    src/gui/view_tools.cpp)
+    src/gui/view_tools.cpp
+    src/gui/component_browser.hpp
+    src/gui/component_browser.cpp)
 
 # Everything except main.cpp goes into a static library shared by the executable and the
 # GUI smoke test.
