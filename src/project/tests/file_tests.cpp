@@ -131,7 +131,8 @@ TEST(File, SaveLoadSaveIsByteIdenticalAndLossless) {
 
 TEST(File, SlidingDoorCabinetRoundTripsByteIdentical) {
     // Wardrobe section (1000 wide) with its pair of hinged doors replaced by sliding doors whose
-    // count is an expression (width 1000 > 900 -> 3 doors), running in a non-default track system.
+    // count is an expression (width 1000 <= 1500 -> 2 doors; 3 would be 341 mm < the 400 mm
+    // minimum), running in a non-default track system.
     Project p = newProject(meta());
     domain::HardwareDefinition track;
     for (const auto& h : p.libraries.hardware)
@@ -146,19 +147,20 @@ TEST(File, SlidingDoorCabinetRoundTripsByteIdentical) {
     c.hardware.slidingSystem = domain::HardwareId("hw.sliding_custom");
     furniture::FrontSpec front;
     front.kind = furniture::FrontKind::SlidingDoors;
-    front.sliding.countExpression = "if(width > 900, 3, 2)";
-    ASSERT_TRUE(furniture::setFront(c, p.libraries, "", front).ok());
+    front.sliding.countExpression = "if(width > 1500, 3, 2)";
+    const auto set = furniture::setFront(c, p.libraries, "", front);
+    ASSERT_TRUE(set.ok()) << set.error().message;
     p.items.push_back(cab);
     const Resolved before = resolved(p);
     std::size_t doors = 0;
     for (const auto& a : before.model.assemblies)
         for (const auto& part : a.parts) doors += part.role == domain::PartRole::Door ? 1u : 0u;
-    EXPECT_EQ(doors, 3u);
+    EXPECT_EQ(doors, 2u);
 
     const std::string first = serialized(p);
     const auto j = formats::Json::parse(first);
     const auto& jc = j["payload"]["project"]["items"][0];
-    EXPECT_NE(jc.dump().find("\"countExpression\":\"if(width > 900, 3, 2)\""), std::string::npos) << jc.dump();
+    EXPECT_NE(jc.dump().find("\"countExpression\":\"if(width > 1500, 3, 2)\""), std::string::npos) << jc.dump();
     EXPECT_NE(jc.dump().find("\"slidingSystem\":\"hw.sliding_custom\""), std::string::npos) << jc.dump();
 
     auto loaded = parseProject(first);
