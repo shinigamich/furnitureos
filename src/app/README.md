@@ -35,6 +35,7 @@ existing items' bounding boxes).
 | `drawing_request.hpp` | `DrawingRequest`, `generateDrawing` (translated title block + calibration note), `exportDrawingSvg/Dxf/Pdf` |
 | `production_text.hpp` | `ProductionText::localisation()/htmlSheetText()/labelText()` — every production caption via `tr()` |
 | `resize.hpp` | Direct modelling: `ResizeAxis`, `ResizeHandle`, `ResizeTarget` / `resizeTarget(session, itemId)` (cabinet: nominal envelope from width/depth/height; panel: box of its part), `resizeParameter` (panel axes by orientation), `resizeCommand` (ONE combined command, see Behaviour), `applyResize`, `resizeLabel` ("W", "H", "D", "L") |
+| `component_browser.hpp` | Component library view-model: `defaultComponentFolder` (AppDataLocation`/components`, created on first use), `ComponentBrowserModel` (`rescan(folders)` → scan diagnostics, `rows(tag, search)` = categories with matching entries, uncategorised last), `ComponentDetails` / `componentDetails` (name, description, author, tags, "W × H × D mm" preview size, embedded materials / edge bands / hardware as "Name (id)"), `componentConflicts` (entries `planComponentInsert(RenameWithNewId)` would rename = same id, different content), `insertComponentIntoSession` (`insertComponent`, id `cab<n>` / `panel<n>`, placed at `rightEdge()`, selected, one undo step), `componentFileName`, `saveItemAsComponent` (`makeComponent` + `saveComponents` into `<folder>/<id>.foscomp`; `AlreadyExists` unless overwrite), `parseTagList` |
 | `recent_files.hpp`, `autosave.hpp`, `window_title.hpp`, `command_text.hpp`, `version.hpp` | MRU list in QSettings; `autosaveDue`, `recoveryOffer`, untitled autosave location; "name* — FurnitureOS"; translated undo labels with item names |
 
 ## Behaviour
@@ -129,6 +130,20 @@ existing items' bounding boxes).
   Document merging was not used (the two commands have different merge keys; merging is for repeated edits of
   one value). A refused value shows "Resize refused: <core message>" in the status bar; the model is unchanged.
   Snap 1 mm, Shift 10 mm; Esc cancels a drag; hidden in measure mode.
+* **Components dock** (tabbed with the project browser; `src/gui/component_browser.cpp`): scans the library
+  folders of Edit ▸ Preferences ▸ Component folders (empty list = the per-user folder
+  `QStandardPaths::AppDataLocation/components`, created on first use). Tree by category, tag combo ("All tags"),
+  search over name / id / description / category / tags; the details pane shows description, preview size
+  (generated bounding box: depth includes the fronts), category, tags, author, embedded entries and the file.
+  The status line counts components and scan problems (messages in its tooltip). **Insert** (button, double
+  click, context menu) runs `componentConflicts`; when it is non-empty a dialog lists the conflicting ids and
+  asks Keep existing (Skip) / Replace / Add under new ids (RenameWithNewId, ids `<item>.lib1`, …); then
+  `insertComponentIntoSession` — undo label "Insert component <name> as <id>". **Save as component…** (Edit menu,
+  browser context menu; needs a selected item): name, category (existing ones offered), comma-separated tags,
+  description, author, library folder (configured ones or "Other folder…"); an existing file is replaced only
+  after confirmation; the browser rescans (an "other" folder is shown until the next Preferences change).
+  The application does not load plugins yet, so plugin-contributed components (`LoadReport::components`) are not
+  listed.
 * **Section plane** (View menu, toolbar, key S; checkable): shows the `SectionToolBar` (axis X/Y/Z, slider +
   spin box in mm over the model bounds along the axis — re-read on every model change — "Flip" and "Off")
   and applies `ViewportWidget::setSectionPlane`; unchecking or "Off" removes the plane. Display only.
@@ -148,7 +163,12 @@ means Ukrainian for a Ukrainian system locale, English otherwise.
 
 ## Tests
 
-* `fos_app_core_tests` (GoogleTest, `QT_QPA_PLATFORM=offscreen`): resize handles (`resize_tests.cpp`: target of
+* `fos_app_core_tests` (GoogleTest, `QT_QPA_PLATFORM=offscreen`): component browser (`component_tests.cpp`: base
+  cabinet saved as `comp.base-600.foscomp` into a temp folder, second save refused with AlreadyExists, scan with a
+  missing folder → one `missing_path` warning, tag + search filter, details, preview width / height = template
+  size, inserted into a new project as `cab1` with the original part count, second copy at x = right edge, two
+  undos → empty; a changed material with the same id is one conflict and RenameWithNewId adds `cab1.lib1`;
+  broken file → `load_failed`; file-name / tag helpers; unknown item → NotFound); resize handles (`resize_tests.cpp`: target of
   a 800 × 820 × 560 cabinet, +X 800 → 900 and one undo, −X 800 → 900 moves the origin −100 mm and one undo restores
   width and placement, −Y of a 90°-rotated cabinet moves along its own axis, refused value / −Z / unknown item
   leave the project unchanged, panel axes by orientation); interior editor (size syntax; split vertically
@@ -193,6 +213,8 @@ means Ukrainian for a Ukrainian system locale, English otherwise.
 
 * Core diagnostics, part names generated by the furniture module ("Left side") and library names are English
   data, not UI strings; they are not translated.
+* Components: no thumbnails, no plugin components (no plugin loading in the app), a component saved to an
+  "other" folder is not added to the Preferences list, and inserted items are not linked to their component file.
 * Not editable in the UI yet (although the project commands exist): panel items' material / orientation,
   custom parameters (add / remove), library entries, the remaining cutting options (minimum remnant size,
   stages, first cut), project metadata. Drawing edits other than dimension offset / text / hide and user

@@ -61,11 +61,12 @@ TEST(ComponentBrowser, SaveScanInsertUndo) {
     EXPECT_EQ(details.name, "Base 600");
     EXPECT_EQ(details.tags, (QStringList{"kitchen", "base"}));
     EXPECT_FALSE(details.materials.isEmpty());
-    // Preview size = the template's own size (width × height × depth).
+    // Preview size = the generated bounding box: width and height are the template's own
+    // size; the depth also includes the front in front of the carcass (583 > 560 mm).
     const TemplateSize ts = defaultTemplateSize(TemplateKind::BaseCabinet);
     EXPECT_DOUBLE_EQ(entry.component.meta.previewSize.width, ts.width);
     EXPECT_DOUBLE_EQ(entry.component.meta.previewSize.height, ts.height);
-    EXPECT_DOUBLE_EQ(entry.component.meta.previewSize.depth, ts.depth);
+    EXPECT_GT(entry.component.meta.previewSize.depth, ts.depth);
 
     Session target;
     target.newProject();

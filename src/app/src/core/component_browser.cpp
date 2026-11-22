@@ -15,7 +15,8 @@ namespace fs = std::filesystem;
 
 namespace {
 
-QString tr(const char* text) { return QCoreApplication::translate("fos::app::ComponentBrowser", text); }
+#define FOS_CB_TEXT(text) QT_TRANSLATE_NOOP("fos::app::ComponentBrowser", text)
+QString translated(const char* text) { return QCoreApplication::translate("fos::app::ComponentBrowser", text); }
 QString q(const std::string& s) { return QString::fromStdString(s); }
 
 bool matches(const project::Component& c, const QString& search) {
@@ -79,7 +80,7 @@ ComponentDetails componentDetails(const project::ComponentEntry& entry) {
     d.source = q(entry.source);
     for (const auto& t : c.meta.tags) d.tags << q(t);
     const auto& s = c.meta.previewSize;
-    d.size = tr("%1 × %2 × %3 mm").arg(sizeText(s.width), sizeText(s.height), sizeText(s.depth));
+    d.size = translated(FOS_CB_TEXT("%1 × %2 × %3 mm")).arg(sizeText(s.width), sizeText(s.height), sizeText(s.depth));
     d.materials = entryNames(c.library.materials);
     d.edgeBands = entryNames(c.library.edgeBands);
     d.hardware = entryNames(c.library.hardware);
@@ -93,9 +94,9 @@ core::Result<QStringList> componentConflicts(const project::Project& project, co
     QStringList out;
     for (const auto& e : plan.value().entries) {
         if (e.action != formats::MergeAction::Renamed) continue;
-        const QString kind = e.category == formats::LibraryCategory::Material   ? tr("material")
-                             : e.category == formats::LibraryCategory::EdgeBand ? tr("edge band")
-                                                                                 : tr("hardware");
+        const QString kind = e.category == formats::LibraryCategory::Material   ? translated(FOS_CB_TEXT("material"))
+                             : e.category == formats::LibraryCategory::EdgeBand ? translated(FOS_CB_TEXT("edge band"))
+                                                                                 : translated(FOS_CB_TEXT("hardware"));
         out << QStringLiteral("%1: %2").arg(kind, q(e.incomingId));
     }
     return out;

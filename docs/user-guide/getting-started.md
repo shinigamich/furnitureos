@@ -186,6 +186,24 @@ this material** removes the material's own settings. Each of these is an undoabl
 Shaped parts whose outline is not a plain rectangle are not cut on the saw: they are listed above the settings as
 **Routed parts — nested separately** (name, material, blank size) and are not part of the saw layouts.
 
+## 8a. Component library
+
+A **component** is a cabinet or free panel saved together with the materials, edge bands and hardware it uses, so
+it can be reused in any project. Components live in `.foscomp` files in library folders.
+
+* **Components** dock (next to the project browser; View menu to show it): components by category, filtered by
+  tag and a search text. Selecting one shows its description, size (width × height × depth, including fronts),
+  author, tags and the materials / hardware it brings along.
+* **Insert** (button, double click or context menu) adds the component to the project to the right of the existing
+  items; Undo removes it again. If the project already has a *different* material, edge band or hardware entry
+  with the same id, a dialog lists those ids and asks whether to keep the project's entries, replace them (this
+  changes every item that uses them) or add the component's entries under new ids.
+* **Edit ▸ Save as component…** (also in the dock's context menu) saves the selected item with a name, category,
+  tags (comma-separated), description and author into a library folder. An existing file is only replaced after
+  you confirm.
+* Library folders are set in **Edit ▸ Preferences ▸ Component folders**. With an empty list, your personal folder
+  in the application data directory is used (it is created automatically).
+
 ## 9. Saving, backups and recovery
 
 * **File ▸ Save / Save As** write a `.fosp` file atomically (a crash never leaves a half-written file) and keep

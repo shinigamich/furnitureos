@@ -716,6 +716,25 @@
     </message>
 </context>
 <context>
+    <name>fos::app::ComponentBrowser</name>
+    <message>
+        <source>%1 × %2 × %3 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>material</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>edge band</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>hardware</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>fos::app::CommandText</name>
     <message>
         <source>Set {1} of {0} to {2}</source>
@@ -851,6 +870,10 @@
     </message>
     <message>
         <source>Split the whole interior of {0} into {2}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Insert component {0} as {1}</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1073,6 +1096,110 @@
     </message>
     <message>
         <source>Vertical dimension, measures %1 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::ComponentBrowser</name>
+    <message>
+        <source>Search components</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Insert</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Refresh</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n component(s)</source>
+        <translation>
+            <numerusform>%n component</numerusform>
+            <numerusform>%n components</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n component(s), %1 problem(s) while reading the folders</source>
+        <translation>
+            <numerusform>%n component, %1 problem(s) while reading the folders</numerusform>
+            <numerusform>%n components, %1 problem(s) while reading the folders</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>All tags</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Uncategorised</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No components found. Use &quot;Save as component…&quot; to add the selected item, or add library folders in Preferences.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Size (W × H × D):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Category:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tags:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Author:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Materials:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edge bands:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hardware:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>File:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Insert component</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Save selected item as component…</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::ComponentConflictDialog</name>
+    <message>
+        <source>Library conflicts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The component &quot;%1&quot; contains library entries whose ids are already used by different entries of this project:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Keep the project&apos;s entries (the component uses them)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Replace the project&apos;s entries (affects every item that uses them)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add the component&apos;s entries under new ids</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2742,6 +2869,31 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Resize refused: %1</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Components</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Save as component</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select an item (cabinet or panel) first.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1
+Replace it?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Component saved to %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Save as &amp;component…</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::NestingSettingsForm</name>
@@ -2848,6 +3000,26 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>A change of language takes effect when the application is restarted. Messages from the engineering core (diagnostics) are always in English.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Add folder…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Component library folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>When the list is empty, the per-user folder is used: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Component folders:</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::ProductionWorkspace</name>
@@ -2928,6 +3100,49 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
     <message>
         <source>Size (mm)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::SaveComponentDialog</name>
+    <message>
+        <source>Save as component</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>comma-separated, e.g. kitchen, base</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Other folder…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Component library folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Name:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Category:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tags:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Description:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Author:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Library folder:</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
