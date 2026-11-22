@@ -111,7 +111,7 @@ LibraryRefs libraryReferences(const Item& item) {
         }
         const auto& h = c->hardware;
         for (const auto* id : {&h.hinge, &h.hingeHalf, &h.hingeInset, &h.lift, &h.handle, &h.shelfPin, &h.confirmat,
-                                &h.dowel, &h.foot})
+                                &h.dowel, &h.foot, &h.slidingSystem})
             addId(r.hardware, id->str());
         collectSection(r, c->interior);
     } else {
