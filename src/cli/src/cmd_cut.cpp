@@ -85,41 +85,15 @@ void printNesting(std::ostream& s, const project::NestingPlan& plan, const proje
 
 } // namespace
 
-int cmdCut(const std::vector<std::string>& args, Io& io) {
-    auto parsed = parseArgs(args, {{"out-dir"}});
-    if (!parsed)
-        return usageError(io, "cut", parsed.error().message);
-    const ParsedArgs& a = parsed.value();
-    if (a.help) {
-        io.out << kCutHelp;
-        return kExitOk;
-    }
-    if (a.positional.size() != 1)
-        return usageError(io, "cut", "expected exactly one project file.");
-    auto loaded = loadProjectOrReport(io, "cut", a.positional[0]);
-    if (!loaded)
-        return kExitUsageOrIo;
-    const std::filesystem::path dir = pathFromUtf8(a.value("out-dir").value_or("."));
-    if (!ensureOutputDirectory(io, "cut", dir))
-        return kExitUsageOrIo;
-
-    const auto plans = project::cuttingPlans(loaded->resolved, loaded->project.cutting);
+std::string cuttingPlansText(const project::CuttingPlans& plans, const project::NestingSettings& nestingSettings,
+                             const std::filesystem::path& dir,
+                             std::vector<std::pair<std::filesystem::path, std::string>>& files, std::size_t& nestFiles) {
     std::ostringstream s;
-    s << "Cutting plans of '" << loaded->project.metadata.name << "'\n"
-      << "Layouts are produced by a HEURISTIC optimiser; utilisation is that of the layout found, which is "
-         "in "
-         "general not optimal.\n";
-    const std::string incomplete = resolveErrorNotice("cut", *loaded);
-    if (!incomplete.empty())
-        s << incomplete;
     if (plans.materials.empty())
         s << "No parts to cut.\n";
     if (!plans.nestingPlans.empty())
         s << "Shaped parts are nested by a true-shape HEURISTIC for routing; those layouts are not optimal "
              "either.\n";
-    std::vector<std::pair<std::filesystem::path, std::string>> files;
-    std::size_t nestFiles = 0;
-    const project::NestingSettings nestingSettings = loaded->project.cutting.nestingSettings();
     for (const auto& material : plans.materials) {
         if (!material.guillotine) {
             const auto& nj = plans.nestingPlans[*material.nesting].job;
@@ -182,6 +156,39 @@ int cmdCut(const std::vector<std::string>& args, Io& io) {
     std::ostringstream d;
     printDiagnostics(d, plans.diagnostics);
     s << d.str();
+    return s.str();
+}
+
+int cmdCut(const std::vector<std::string>& args, Io& io) {
+    auto parsed = parseArgs(args, {{"out-dir"}});
+    if (!parsed)
+        return usageError(io, "cut", parsed.error().message);
+    const ParsedArgs& a = parsed.value();
+    if (a.help) {
+        io.out << kCutHelp;
+        return kExitOk;
+    }
+    if (a.positional.size() != 1)
+        return usageError(io, "cut", "expected exactly one project file.");
+    auto loaded = loadProjectOrReport(io, "cut", a.positional[0]);
+    if (!loaded)
+        return kExitUsageOrIo;
+    const std::filesystem::path dir = pathFromUtf8(a.value("out-dir").value_or("."));
+    if (!ensureOutputDirectory(io, "cut", dir))
+        return kExitUsageOrIo;
+
+    const auto plans = project::cuttingPlans(loaded->resolved, loaded->project.cutting);
+    std::ostringstream s;
+    s << "Cutting plans of '" << loaded->project.metadata.name << "'\n"
+      << "Layouts are produced by a HEURISTIC optimiser; utilisation is that of the layout found, which is "
+         "in "
+         "general not optimal.\n";
+    const std::string incomplete = resolveErrorNotice("cut", *loaded);
+    if (!incomplete.empty())
+        s << incomplete;
+    std::vector<std::pair<std::filesystem::path, std::string>> files;
+    std::size_t nestFiles = 0;
+    s << cuttingPlansText(plans, loaded->project.cutting.nestingSettings(), dir, files, nestFiles);
 
     for (const auto& [path, content] : files)
         if (!writeOutputFile(io, "cut", path, content))

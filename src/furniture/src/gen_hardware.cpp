@@ -4,6 +4,7 @@
 #include "fos/hardware/hinges.hpp"
 #include "fos/hardware/lift.hpp"
 #include "fos/hardware/shelf_supports.hpp"
+#include "fos/hardware/sliding_doors.hpp"
 #include "fos/machining/validation.hpp"
 #include "gen_context.hpp"
 
@@ -194,6 +195,21 @@ core::Result<hardware::Placement> place(Gen& g, const Job& j, const domain::Hard
         c.instanceId = id;
         if (j.sharedPanel) c.maxSideHoleDepth = sharedHoleDepthLimit(parts[j.b].thickness);
         return hardware::placeLiftMechanism(parts[j.a], parts[j.b], parts[j.c], def.value(), c);
+    }
+    case JobKind::SlidingTrack: {
+        auto def = lookup(sel.slidingSystem, "sliding door system");
+        if (!def) return def.error();
+        hardware::SlidingTrackConfig c = j.track;
+        c.instanceId = id;
+        if (j.sharedPanel) c.maxHoleDepth = sharedHoleDepthLimit(parts[j.a].thickness);
+        return hardware::placeSlidingTrack(parts[j.a], def.value(), c);
+    }
+    case JobKind::SlidingRollers: {
+        auto def = lookup(sel.slidingSystem, "sliding door system");
+        if (!def) return def.error();
+        hardware::SlidingRollerConfig c;
+        c.instanceId = id;
+        return hardware::placeSlidingDoorRollers(parts[j.a], def.value(), c);
     }
     case JobKind::Handle: {
         auto def = lookup(sel.handle, "handle");

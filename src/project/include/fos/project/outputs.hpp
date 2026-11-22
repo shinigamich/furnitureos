@@ -35,6 +35,8 @@ struct ProductionReports {
 
 /// All production reports of resolved.model (each generator's own diagnostics stay in its report).
 ProductionReports productionReports(const Resolved& resolved, const ProductionOptions& options = {});
+/// Same for any model (used by production batches, batch.hpp).
+ProductionReports productionReports(const domain::Model& model, const ProductionOptions& options = {});
 
 /// One material's cutting job and its optimised, independently validated layout.
 struct CuttingPlan {
@@ -90,6 +92,10 @@ nesting::ModelSettings nestingModelSettings(const NestingSettings& settings);
 /// with settings.nestingSettings() (nestingModelSettings), nesting::nest (iterations, seed) and
 /// nesting::validateNest.
 CuttingPlans cuttingPlans(const Resolved& resolved, const ProjectCuttingSettings& settings,
+                          const cutting::Options& options = {});
+/// Same for any model (cuttingPlans(resolved, ...) is cuttingPlans(resolved.model, ...)); used by
+/// production batches (batch.hpp).
+CuttingPlans cuttingPlans(const domain::Model& model, const ProjectCuttingSettings& settings,
                           const cutting::Options& options = {});
 
 /// Assembly drawing of item `itemId` with the stored edits of assemblyDrawingId(itemId)

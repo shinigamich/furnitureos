@@ -59,6 +59,18 @@ struct DrawerBoxSpec {
     bool operator==(const DrawerBoxSpec&) const = default;
 };
 
+/// Sliding doors of a section (FrontKind::SlidingDoors, README "Sliding doors").
+struct SlidingDoorSpec {
+    /// Number of doors (kMinSlidingDoors..kMaxSlidingDoors) when `countExpression` is empty.
+    int count = 2;
+    /// Optional expression over the cabinet's parameter graph (e.g. "if(width > 2000, 3, 2)");
+    /// it must evaluate to a whole number in kMinSlidingDoors..kMaxSlidingDoors.
+    std::string countExpression;
+    bool operator==(const SlidingDoorSpec&) const = default;
+};
+inline constexpr int kMinSlidingDoors = 2;
+inline constexpr int kMaxSlidingDoors = 6;
+
 /// A front closing the opening of a section (see README "Fronts"). For every generated front
 /// (door or drawer front) face A is the inner, cabinet-side face and face B the visible face.
 struct FrontSpec {
@@ -68,7 +80,11 @@ struct FrontSpec {
     /// Doors / flaps: place cup hinges (crank chosen by `overlay`); Flap: also the two lift
     /// mechanisms. false = front only.
     bool hinges = true;
+    /// Sliding doors: None = no handle; any other value = one recessed grip (a Pocket on the
+    /// visible face B) centred on the door width, at the given height.
     HandlePosition handle = HandlePosition::Center;
+    /// SlidingDoors only: door count (ignored for other kinds).
+    SlidingDoorSpec sliding;
     /// DrawerStack only: one entry per drawer front, BOTTOM to TOP; at least one.
     std::vector<SectionSize> drawerHeights;
     /// DrawerStack only: std::nullopt = fronts only; set = a drawer box with slides behind
@@ -151,6 +167,7 @@ struct HardwareSelection {
     domain::HardwareId hingeHalf{hardware::ids::kHingeCup35Half};   ///< Half-overlay fronts.
     domain::HardwareId hingeInset{hardware::ids::kHingeCup35Inset}; ///< Inset fronts.
     domain::HardwareId lift{hardware::ids::kLiftGeneric};           ///< Flap lift mechanism (one per side).
+    domain::HardwareId slidingSystem{hardware::ids::kSlidingGeneric}; ///< Track system of sliding doors.
     domain::HardwareId handle{hardware::ids::kHandleBar128};
     domain::HardwareId shelfPin{hardware::ids::kShelfPin5};
     domain::HardwareId confirmat{hardware::ids::kConfirmat7x50};

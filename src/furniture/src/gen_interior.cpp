@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 /// Interior: recursive section tree -> partitions, fixed shelves, adjustable shelves, fronts.
 #include "gen_context.hpp"
+#include <algorithm>
 
 namespace fos::furniture::detail {
 namespace {
@@ -18,9 +19,14 @@ core::Result<void> checkTree(const Gen& g, const Section& s, const std::string& 
         if (coveredByFront)
             return invalid(label + " has a front, but an enclosing section already has one covering it. Remove one of the "
                                    "two fronts.", g);
-        if (s.front->overlay == OverlayKind::Inset && s.split != SplitDirection::None)
+        if (s.front->kind != FrontKind::SlidingDoors && s.front->overlay == OverlayKind::Inset &&
+            s.split != SplitDirection::None)
             return invalid(label + " is split by dividers and cannot take an inset front (it would collide with the "
                                    "dividers). Put inset fronts on the leaf sections or use a Full / Half overlay.", g);
+        if (s.front->kind == FrontKind::SlidingDoors && s.front->sliding.countExpression.empty() &&
+            (s.front->sliding.count < kMinSlidingDoors || s.front->sliding.count > kMaxSlidingDoors))
+            return invalid(label + " has " + std::to_string(s.front->sliding.count) + " sliding doors; use " +
+                               std::to_string(kMinSlidingDoors) + " to " + std::to_string(kMaxSlidingDoors) + ".", g);
         if (s.front->kind == FrontKind::DrawerStack && s.front->drawerHeights.empty())
             return invalid(label + " has a drawer stack without any drawer front; add at least one height entry.", g);
         if (s.front->kind == FrontKind::DrawerStack && !s.front->drawerBoxes.empty() &&
@@ -68,7 +74,13 @@ void corner(Gen& g, std::size_t facePart, std::size_t edgePart, const std::strin
 core::Result<void> buildShelves(Gen& g, const Section& s, const std::string& path, const Box& box, const Bounds& b) {
     namespace p = param;
     if (s.shelfCount == 0) return {};
-    const double T = g.v(p::kThickness), clearance = g.v(p::kShelfClearance), setback = g.v(p::kShelfSetback);
+    const double T = g.v(p::kThickness), clearance = g.v(p::kShelfClearance);
+    // INTERIOR DEPTH RULE (sliding doors): shelves start behind the tracks (box.y0) and keep
+    // the rear edge of a normal shelf, i.e. they lose the depth taken by the tracks.
+    const double setback = std::max(g.v(p::kShelfSetback), box.y0);
+    const double shelfDepth = box.y0 > g.v(p::kShelfSetback)
+                                  ? std::min(g.v(p::kShelfDepth), g.v(p::kInteriorDepth) - setback)
+                                  : g.v(p::kShelfDepth);
     const int n = s.shelfCount;
     const double height = box.z1 - box.z0, length = box.x1 - box.x0 - 2 * clearance;
     // n shelves of thickness T leave n + 1 equal clear spaces.
@@ -89,7 +101,7 @@ core::Result<void> buildShelves(Gen& g, const Section& s, const std::string& pat
         const std::string slot = joinSlot({"shelf", path, std::to_string(i)});
         const double z = box.z0 + i * space + (i - 1) * T;
         const std::size_t shelf =
-            g.addPart(slot, "Shelf", domain::PartRole::Shelf, MaterialRole::Carcass, length, g.v(p::kShelfDepth), T,
+            g.addPart(slot, "Shelf", domain::PartRole::Shelf, MaterialRole::Carcass, length, shelfDepth, T,
                       Transform::translation({box.x0 + clearance, setback, z}),
                       Edges{EdgeUse::Visible, EdgeUse::Raw, EdgeUse::Raw, EdgeUse::Raw});
         g.shelfCarriers.emplace_back(shelf, b.left);
@@ -109,11 +121,18 @@ core::Result<void> buildShelves(Gen& g, const Section& s, const std::string& pat
     return {};
 }
 
-core::Result<void> buildSection(Gen& g, const Section& s, const std::string& path, const Box& box, const Bounds& b) {
+core::Result<void> buildSection(Gen& g, const Section& s, const std::string& path, const Box& outer, const Bounds& b) {
     namespace p = param;
-    const double T = g.v(p::kThickness), depth = g.v(p::kInteriorDepth);
-    if (s.front)
-        if (auto r = buildFront(g, *s.front, path, box, b); !r) return r;
+    Box box = outer;
+    if (s.front && s.front->kind == FrontKind::SlidingDoors) {
+        auto y0 = buildSlidingDoors(g, *s.front, path, outer, b);
+        if (!y0) return y0.error();
+        box.y0 = std::max(outer.y0, y0.value());
+    } else if (s.front) {
+        if (auto r = buildFront(g, *s.front, path, outer, b); !r) return r;
+    }
+    // Dividers span the usable interior: from box.y0 (0, or behind sliding-door tracks) to the back.
+    const double T = g.v(p::kThickness), depth = g.v(p::kInteriorDepth) - box.y0;
     if (s.split == SplitDirection::None) return buildShelves(g, s, path, box, b);
 
     const bool vertical = s.split == SplitDirection::Vertical;
@@ -146,7 +165,7 @@ core::Result<void> buildSection(Gen& g, const Section& s, const std::string& pat
             const std::string slot = joinSlot({"partition", path, k});
             const std::size_t part =
                 g.addPart(slot, "Partition", domain::PartRole::Partition, MaterialRole::Carcass, box.z1 - box.z0, depth, T,
-                          Transform::fromAxes(kUp, kBack, {pos + T, 0, box.z0}),
+                          Transform::fromAxes(kUp, kBack, {pos + T, box.y0, box.z0}),
                           Edges{EdgeUse::Visible, EdgeUse::Raw, EdgeUse::Raw, EdgeUse::Raw});
             for (const std::size_t f : b.bottom) corner(g, f, part, slot, !b.bottomOuter);
             for (const std::size_t f : b.top) corner(g, f, part, slot, !b.topOuter);
@@ -155,7 +174,7 @@ core::Result<void> buildSection(Gen& g, const Section& s, const std::string& pat
             const std::string slot = joinSlot({"fixed_shelf", path, k});
             const std::size_t part =
                 g.addPart(slot, "Fixed shelf", domain::PartRole::Shelf, MaterialRole::Carcass, box.x1 - box.x0, depth, T,
-                          Transform::translation({box.x0, 0, pos}),
+                          Transform::translation({box.x0, box.y0, pos}),
                           Edges{EdgeUse::Visible, EdgeUse::Raw, EdgeUse::Raw, EdgeUse::Raw});
             g.shelfCarriers.emplace_back(part, b.left);
             g.shelfCarriers.emplace_back(part, b.right);

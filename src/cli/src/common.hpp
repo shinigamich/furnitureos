@@ -16,6 +16,11 @@
 #include <string_view>
 #include <vector>
 
+namespace fos::project {
+struct CuttingPlans;
+struct NestingSettings;
+} // namespace fos::project
+
 namespace fos::cli::detail {
 
 struct Io {
@@ -91,6 +96,13 @@ bool ensureOutputDirectory(Io& io, std::string_view command, const std::filesyst
 /// A file-name-safe version of an id: every character outside [A-Za-z0-9._-] becomes '_'.
 std::string safeFileName(std::string_view id);
 
+/// Per-material cutting / nesting report text of `plans` followed by their diagnostics (shared by
+/// `fos cut` and `fos batch cut`). Appends the sheet SVGs to write (paths in `dir`) to `files`
+/// and counts the nesting SVGs among them in `nestFiles`.
+std::string cuttingPlansText(const project::CuttingPlans& plans, const project::NestingSettings& nestingSettings,
+                             const std::filesystem::path& dir,
+                             std::vector<std::pair<std::filesystem::path, std::string>>& files, std::size_t& nestFiles);
+
 // Command entry points (args exclude the command name).
 int cmdNew(const std::vector<std::string>& args, Io& io);
 int cmdComponent(const std::vector<std::string>& args, Io& io);
@@ -107,5 +119,6 @@ int cmdImportDxf(const std::vector<std::string>& args, Io& io);
 int cmdExportDxf(const std::vector<std::string>& args, Io& io);
 int cmdLinear(const std::vector<std::string>& args, Io& io);
 int cmdEdgebandRolls(const std::vector<std::string>& args, Io& io);
+int cmdBatch(const std::vector<std::string>& args, Io& io);
 
 } // namespace fos::cli::detail

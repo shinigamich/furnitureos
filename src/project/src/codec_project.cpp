@@ -333,7 +333,9 @@ core::Result<NestingSettings> nestingFromJson(const Json& json, std::string_view
     return s;
 }
 
-core::Result<ProjectCuttingSettings> projectCuttingFromJson(const Json& json, std::string_view path) {
+} // namespace
+
+core::Result<ProjectCuttingSettings> projectCuttingSettingsFromJson(const Json& json, std::string_view path) {
     Reader r(json, path, "the cutting settings");
     ProjectCuttingSettings c;
     r.nested("defaults", c.defaults, cuttingSettingsFromJson);
@@ -348,7 +350,16 @@ core::Result<ProjectCuttingSettings> projectCuttingFromJson(const Json& json, st
     return c;
 }
 
-} // namespace
+
+Json toJson(const ProjectCuttingSettings& c) {
+    Json cut = Json::object();
+    cut["defaults"] = toJson(c.defaults);
+    Json perMaterial = Json::object();
+    for (const auto& [id, s] : c.materials) perMaterial[id] = toJson(s);
+    cut["materials"] = std::move(perMaterial);
+    if (c.nesting) cut["nesting"] = toJson(*c.nesting);
+    return cut;
+}
 
 Json projectToJson(const Project& p) {
     Json j = Json::object();
@@ -368,13 +379,7 @@ Json projectToJson(const Project& p) {
     Json edits = Json::object();
     for (const auto& [id, e] : p.drawingEdits) edits[id] = toJson(e);
     j["drawingEdits"] = std::move(edits);
-    Json cut = Json::object();
-    cut["defaults"] = toJson(p.cutting.defaults);
-    Json perMaterial = Json::object();
-    for (const auto& [id, s] : p.cutting.materials) perMaterial[id] = toJson(s);
-    cut["materials"] = std::move(perMaterial);
-    if (p.cutting.nesting) cut["nesting"] = toJson(*p.cutting.nesting);
-    j["cutting"] = std::move(cut);
+    j["cutting"] = toJson(p.cutting);
     j["settings"] = settingsJson(p.settings);
     j["custom"] = p.custom.is_object() ? p.custom : Json::object();
     appendExtra(j, p.extra);
@@ -389,7 +394,7 @@ core::Result<Project> projectFromJson(const Json& payload, std::string_view path
     r.limitArray("items", limits::kMaxItems, "furniture items");
     r.array("items", p.items, itemFromJson);
     readKeyedObject(r, "drawingEdits", p.drawingEdits, drawingEditsFromJson, "drawing id");
-    r.nested("cutting", p.cutting, projectCuttingFromJson);
+    r.nested("cutting", p.cutting, projectCuttingSettingsFromJson);
     r.nested("settings", p.settings, settingsFromJson);
     if (const Json* c = r.find("custom"); c != nullptr) {
         if (!c->is_object()) r.failAt("custom", "expected an object, got " + describe(*c));

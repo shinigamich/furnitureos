@@ -75,7 +75,7 @@ project::Command clearInteriorCommand(const std::string& itemId);
 
 /// What the front editor shows / submits.
 struct FrontInput {
-    enum class Choice { None, Door, DoorPair, DrawerStack, Flap };
+    enum class Choice { None, Door, DoorPair, DrawerStack, Flap, SlidingDoors };
     Choice choice = Choice::None;
     furniture::OverlayKind overlay = furniture::OverlayKind::Full;
     furniture::HingeSide hingeSide = furniture::HingeSide::Left;
@@ -87,6 +87,9 @@ struct FrontInput {
     bool drawerBox = false;
     std::string slide = std::string(hardware::ids::kSlideBallBearing); ///< DrawerSlide hardware id.
     furniture::DrawerBottomMount drawerBottom = furniture::DrawerBottomMount::Grooved;
+    /// Sliding doors only: door count, a whole number 2..6 or an expression over the
+    /// cabinet parameters (furniture::SlidingDoorSpec::countExpression).
+    QString slidingDoors = QStringLiteral("2");
 };
 /// Library entries of kind DrawerSlide (id, name) in library order; `current` is appended
 /// with `missing` set when it is not among them.
@@ -96,8 +99,10 @@ struct SlideChoice {
     bool missing = false;
 };
 std::vector<SlideChoice> slideChoices(const furniture::Libraries& libraries, const std::string& current);
-/// The FrontSpec the editor submits (drawer heights parsed for a drawer stack). InvalidArgument
-/// for Choice::None (no spec) or an unparsable height list.
+/// The FrontSpec the editor submits (drawer heights parsed for a drawer stack; for sliding
+/// doors a whole number in `slidingDoors` is the count, other text the count expression).
+/// InvalidArgument for Choice::None (no spec), an unparsable height list, an empty door count
+/// or a whole number outside 2..6.
 core::Result<furniture::FrontSpec> frontSpec(const FrontInput& input);
 /// Editor state of an existing front (None for std::nullopt).
 FrontInput frontInput(const std::optional<furniture::FrontSpec>& front);

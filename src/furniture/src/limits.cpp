@@ -6,6 +6,7 @@
 #include "fos/core/units.hpp"
 #include "fos/furniture/parameters.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <string>
@@ -34,6 +35,10 @@ std::size_t frontCount(const Section& s) {
     case FrontKind::Door:
     case FrontKind::Flap: return 1;
     case FrontKind::DoorPair: return 2;
+    case FrontKind::SlidingDoors: // an expression is only known after evaluation: assume the maximum
+        return s.front->sliding.countExpression.empty()
+                   ? static_cast<std::size_t>(std::clamp(s.front->sliding.count, 0, kMaxSlidingDoors))
+                   : static_cast<std::size_t>(kMaxSlidingDoors);
     case FrontKind::DrawerStack: // a front plus, with boxes, 2 sides, inner front, back and bottom
     {
         std::size_t n = 0;

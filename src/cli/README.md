@@ -246,6 +246,28 @@ Wrote 10 labels on 1 page(s) to labels
 (exit code 0)
 ```
 
+### `fos batch`
+
+Production batches: several projects (orders) produced together (`.fosbatch`, schema in
+src/project/README.md "Production batches").
+
+```text
+fos batch new <file.fosbatch> --name N [--date D] [--notes T]      # refuses to overwrite
+fos batch add <file.fosbatch> <project.fosp> [--qty K] [--key KEY] [--note T]
+fos batch report <file.fosbatch> --type cutlist|summary|hardware [--csv]
+fos batch cut <file.fosbatch> [--out-dir DIR]
+fos batch labels <file.fosbatch> --svg-dir DIR
+```
+
+`add` stores the project path relative to the batch file and checks that the project loads;
+adding an already listed project adds K to its quantity. Part ids in every output are
+`<project key>/<part id>` (`<key>#<n>/<part id>` for the copies of a quantity > 1 project).
+`cut` writes the same SVGs and `cutting-summary.txt` as `fos cut` (shared code), with the batch
+cutting settings. `labels` prints batch, project and order copy on each label. A missing or
+broken project, a library conflict (same id, different data) or a refused material substitution
+is printed (`INCOMPLETE BATCH`, project marked `[LEFT OUT]`), the other projects are still
+produced and the exit code is 1. With `--csv` the batch header and diagnostics go to stderr.
+
 ### `fos cam`
 
 UNVERIFIED 3-axis program for the operations on face A or B of one part, using the FICTIONAL **"FurnitureOS demo profile — not a real machine"** and a fictional tool library (`fos/cli/demo_cam.hpp`: drills 3 4 5 7 8 10 12 15 20 35 mm, end mills 4 6 8 mm; stock min corner at machine (20, 20, 0)). The program is simulated independently and the generic ISO postprocessor refuses output when the simulation reports any error (exit 1). Operations on the other face are listed as needing the other setup, edge operations and pockets as UNSUPPORTED — never silently dropped. `verifiedForMachine` is always false.

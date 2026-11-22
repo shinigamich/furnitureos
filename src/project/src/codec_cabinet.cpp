@@ -284,7 +284,25 @@ Json frontJson(const furniture::FrontSpec& f) {
         for (const auto& b : f.drawerBoxes) boxes.push_back(b ? drawerBoxJson(*b) : Json());
         j["drawerBoxes"] = std::move(boxes);
     }
+    // Sliding doors: written for that kind (or a non-default spec) only, so older files stay
+    // byte-identical; "countExpression" only when set.
+    if (f.kind == furniture::FrontKind::SlidingDoors || f.sliding != furniture::SlidingDoorSpec{}) {
+        Json s = Json::object();
+        s["count"] = f.sliding.count;
+        if (!f.sliding.countExpression.empty()) s["countExpression"] = f.sliding.countExpression;
+        j["sliding"] = std::move(s);
+    }
     return j;
+}
+
+core::Result<furniture::SlidingDoorSpec> slidingFromJson(const Json& json, std::string_view path) {
+    Reader r(json, path, "sliding doors");
+    furniture::SlidingDoorSpec s;
+    r.integerInRange("count", s.count, furniture::kMinSlidingDoors, furniture::kMaxSlidingDoors);
+    r.text("countExpression", s.countExpression);
+    r.rejectUnknown();
+    if (!r.ok()) return r.error();
+    return s;
 }
 
 core::Result<furniture::DrawerBoxSpec> drawerBoxFromJson(const Json& json, std::string_view path) {
@@ -316,7 +334,9 @@ core::Result<furniture::FrontSpec> frontFromJson(const Json& json, std::string_v
     Reader r(json, path, "a front");
     FrontSpec f;
     r.token("kind", f.kind, furnitureEnum<FrontKind>(),
-            furnitureTokens({FrontKind::Door, FrontKind::DoorPair, FrontKind::DrawerStack, FrontKind::Flap}), true);
+            furnitureTokens({FrontKind::Door, FrontKind::DoorPair, FrontKind::DrawerStack, FrontKind::Flap,
+                             FrontKind::SlidingDoors}),
+            true);
     r.token("overlay", f.overlay, furnitureEnum<OverlayKind>(),
             furnitureTokens({OverlayKind::Full, OverlayKind::Half, OverlayKind::Inset}));
     r.token("hingeSide", f.hingeSide, furnitureEnum<HingeSide>(), furnitureTokens({HingeSide::Left, HingeSide::Right}));
@@ -328,6 +348,7 @@ core::Result<furniture::FrontSpec> frontFromJson(const Json& json, std::string_v
     r.nested("drawerBox", f.drawerBox, drawerBoxFromJson);
     r.limitArray("drawerBoxes", furniture::limits::kMaxDrawerHeights, "per-drawer boxes");
     r.array("drawerBoxes", f.drawerBoxes, drawerBoxEntryFromJson);
+    r.nested("sliding", f.sliding, slidingFromJson);
     r.rejectUnknown();
     if (!r.ok()) return r.error();
     return f;
@@ -505,6 +526,7 @@ Json hardwareJson(const furniture::HardwareSelection& h) {
     if (h.hingeHalf != defaults.hingeHalf) j["hingeHalf"] = h.hingeHalf.str();
     if (h.hingeInset != defaults.hingeInset) j["hingeInset"] = h.hingeInset.str();
     if (h.lift != defaults.lift) j["lift"] = h.lift.str();
+    if (h.slidingSystem != defaults.slidingSystem) j["slidingSystem"] = h.slidingSystem.str();
     return j;
 }
 
@@ -525,6 +547,7 @@ core::Result<furniture::HardwareSelection> hardwareFromJson(const Json& json, st
     id("hingeHalf", h.hingeHalf);
     id("hingeInset", h.hingeInset);
     id("lift", h.lift);
+    id("slidingSystem", h.slidingSystem);
     r.rejectUnknown();
     if (!r.ok()) return r.error();
     return h;

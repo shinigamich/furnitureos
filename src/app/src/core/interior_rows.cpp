@@ -116,6 +116,12 @@ QString contentText(const SectionRow& row) {
         case furniture::FrontKind::Flap:
             front = InteriorText::tr("lift-up flap");
             break;
+        case furniture::FrontKind::SlidingDoors:
+            front = row.front->sliding.countExpression.empty()
+                        ? InteriorText::tr("sliding doors: %1").arg(row.front->sliding.count)
+                        : InteriorText::tr("sliding doors: %1").arg(
+                              QString::fromStdString(row.front->sliding.countExpression));
+            break;
         }
         text += QStringLiteral("; ") + front;
     }
@@ -224,7 +230,13 @@ FrontInput frontInput(const std::optional<furniture::FrontSpec>& front) {
     case furniture::FrontKind::Flap:
         in.choice = FrontInput::Choice::Flap;
         break;
+    case furniture::FrontKind::SlidingDoors:
+        in.choice = FrontInput::Choice::SlidingDoors;
+        break;
     }
+    in.slidingDoors = front->sliding.countExpression.empty()
+                          ? QString::number(front->sliding.count)
+                          : QString::fromStdString(front->sliding.countExpression);
     in.overlay = front->overlay;
     in.hingeSide = front->hingeSide;
     in.hinges = front->hinges;
@@ -272,6 +284,24 @@ core::Result<furniture::FrontSpec> frontSpec(const FrontInput& input) {
     case FrontInput::Choice::Flap:
         spec.kind = furniture::FrontKind::Flap;
         break;
+    case FrontInput::Choice::SlidingDoors: {
+        spec.kind = furniture::FrontKind::SlidingDoors;
+        const QString text = input.slidingDoors.trimmed();
+        if (text.isEmpty())
+            return core::makeError(core::ErrorCode::InvalidArgument,
+                                   "Enter the number of sliding doors (2 to 6) or an expression.");
+        bool isNumber = false;
+        const int n = text.toInt(&isNumber);
+        if (isNumber) {
+            if (n < furniture::kMinSlidingDoors || n > furniture::kMaxSlidingDoors)
+                return core::makeError(core::ErrorCode::InvalidArgument,
+                                       "A sliding front has 2 to 6 doors; " + std::to_string(n) + " was entered.");
+            spec.sliding.count = n;
+        } else {
+            spec.sliding.countExpression = text.toStdString();
+        }
+        break;
+    }
     case FrontInput::Choice::DrawerStack: {
         spec.kind = furniture::FrontKind::DrawerStack;
         auto heights = parseSizeList(input.drawerHeights);

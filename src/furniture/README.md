@@ -28,13 +28,14 @@ parameter PINS it (`pinnedParameters`); pinned parameters are not rewritten by o
 `side.left`, `side.right`, `bottom`, `top` or `rail.front` + `rail.back`, `plinth`, `back`;
 `partition.<path>.<k>` and `fixed_shelf.<path>.<k>` (k-th divider of the section at `<path>`),
 `shelf.<path>.<i>` (adjustable shelves, bottom to top), `door.<path>` / `door.<path>.left|right`,
-`drawer.<path>.<i>` (bottom to top) and, with a drawer box, `drawer.<path>.<i>.side.left|side.right|box_front|box_back|bottom`.
+`sliding.<path>.<n>` (sliding doors, left to right), `drawer.<path>.<i>` (bottom to top) and, with a drawer box, `drawer.<path>.<i>.side.left|side.right|box_front|box_back|bottom`.
 Section paths: root `""`, children `1`, `2`, `2.1`, ... Empty
 path segments are skipped (`shelf.1` for the root's first shelf). Ids depend only on the tree
 position, so changing a shelf count only adds/removes the trailing ids of that section.
 Hardware instances: `hw.joint.<edge slot>.<face slot>`, `hw.pins.<shelf slot>`,
 `hw.hinges.<door slot>`, `hw.handle.<front slot>`, `hw.slide.<drawer slot>.left|right`,
-`hw.joint.<drawer slot>.box_front|box_back.left|right` (drawer-box corners), `hw.feet`; back grooves
+`hw.joint.<drawer slot>.box_front|box_back.left|right` (drawer-box corners), `hw.track.<path>.top|bottom`,
+`hw.rollers.<sliding slot>`, `hw.feet`; recessed grips of sliding doors have source `<cabinet>/rule.sliding_grip`; back grooves
 have source `<cabinet>/rule.back_groove`, drawer-bottom grooves `<cabinet>/rule.drawer_bottom_groove`.
 
 ## Interior
@@ -123,6 +124,30 @@ end; cups on the flap's inner face, plates under the panel above) and one lift m
 stretcher rails cannot take a flap (generation error). Lift range errors (cabinet too low / tall / shallow)
 are `furniture.hardware.placement_failed`. The handle is horizontal. `hinges = false` = front only.
 Project files: `kind: "Flap"`; `hardware.hingeHalf|hingeInset|lift` written only when not default.
+
+### Sliding doors (`FrontKind::SlidingDoors`)
+
+Inset doors running in the two-lane track system `HardwareSelection::slidingSystem` (default
+`hw.sliding_generic`; rules `hardware/sliding_doors.hpp`), usually on the root section. `FrontSpec::sliding`:
+`count` (2..6) or `countExpression` (graph expression giving a whole number 2..6, e.g.
+`if(width > 2000, 3, 2)`). `overlay`, `hingeSide` and `hinges` are ignored. Parts `sliding.<path>.<n>` (role
+Door, front material, face B visible at the lane's front face): width = (opening + (n − 1) · overlap) / n,
+height = opening − deduction, odd doors in the back lane, even doors in the front lane (part custom
+`furniture.sliding_plane` = `back` / `front`). Example 1800 × 2400 × 600 wardrobe (opening 1764 × 2364):
+2 doors 897 × 2324 (x 18..915 back lane y 55..73, x 885..1782 front lane y 20..38), 3 doors 608 wide at
+x 18 / 596 / 1174. Tracks `hw.track.<path>.top|bottom` (length = opening width) with their screw holes in
+the panel above (must be a full panel: stretcher rails fail generation) and below (shared-panel depth limit
+on a fixed shelf); `hw.rollers.<slot>` = 4 roller / guide holes on each door's rear face. Handle: `None` = no
+grip; otherwise one recessed grip (Pocket on face B, centred on the door width; Center = mid height, Top /
+Bottom = centre `handle_end_offset` from that edge; optional parameters `sliding_grip_length` 200,
+`sliding_grip_width` 40, `sliding_grip_depth` 8).
+**Interior depth rule:** partitions, fixed shelves and adjustable shelves of the section and all its
+descendants start at y = `interiorFrontY` = track setback + track depth + interior clearance (95 mm generic)
+and end at the back, i.e. their depth is `interior_depth − 95` (shelves: min(`shelf_depth`, that)); the
+standard parameters are not changed. Errors (generation fails, edits are refused): cabinet too shallow for the
+tracks (e.g. depth 300: only 205 mm remain behind them, 250 needed), doors too narrow / wide, count outside
+2..6 or a non-integer expression, missing system definition. Project files: `kind: "SlidingDoors"`, front key
+`sliding: {count, countExpression?}` and `hardware.slidingSystem` written only when used / not default.
 
 ## Drawer boxes
 

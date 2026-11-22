@@ -19,6 +19,9 @@ fos_add_module(project
         src/components.cpp
         src/component_insert.cpp
         src/component_library.cpp
+        src/batch_document.cpp
+        src/batch_merge.cpp
+        src/batch_outputs.cpp
     DEPS fos::core fos::geometry fos::parametric fos::domain fos::machining fos::hardware fos::furniture
          fos::production fos::cutting fos::cutting_model fos::nesting fos::nesting_model fos::drawings fos::formats nlohmann_json::nlohmann_json)
 target_compile_definitions(fos_project PRIVATE FOS_PROJECT_APP_VERSION="${PROJECT_VERSION}")
@@ -33,4 +36,5 @@ fos_add_tests(project
         tests/contour_tests.cpp
         tests/nesting_tests.cpp
         tests/dxf_panel_tests.cpp
-        tests/component_tests.cpp)
+        tests/component_tests.cpp
+        tests/batch_tests.cpp)

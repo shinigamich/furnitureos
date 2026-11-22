@@ -40,7 +40,9 @@ enum class SizeKind {
     Expression, ///< `expression` over the cabinet's parameter graph, in millimetres.
 };
 /// Flap: one front hinged at its TOP edge to the panel above (lift-up flap, see README).
-enum class FrontKind { Door, DoorPair, DrawerStack, Flap };
+/// SlidingDoors: 2..6 doors running in a two-lane top / bottom track inside the opening
+/// (README "Sliding doors"; system HardwareSelection::slidingSystem).
+enum class FrontKind { Door, DoorPair, DrawerStack, Flap, SlidingDoors };
 enum class OverlayKind { Full, Half, Inset };
 enum class HingeSide { Left, Right };
 enum class HandlePosition { None, Center, Top, Bottom };

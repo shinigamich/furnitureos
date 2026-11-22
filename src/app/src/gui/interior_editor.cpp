@@ -123,6 +123,11 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
     drawerHeights_->setObjectName(QStringLiteral("drawerHeights"));
     drawerHeights_->setToolTip(
         tr("One size per drawer front, bottom to top, separated by “;” (e.g. 140; 1*; 1*)."));
+    // Sliding door count: found again by object name (the editor's header is not changed).
+    auto* slidingDoors = new QLineEdit(frontBox);
+    slidingDoors->setObjectName(QStringLiteral("slidingDoors"));
+    slidingDoors->setToolTip(tr("Number of sliding doors (2 to 6) or an expression over the cabinet "
+                                "parameters, e.g. if(width > 2000, 3, 2)."));
     drawerBox_ = narrowCombo(frontBox);
     drawerBox_->setObjectName(QStringLiteral("drawerBox"));
     drawerBox_->addItem(tr("None (fronts only)"), false);
@@ -140,6 +145,7 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
     frontForm->addRow(tr("Single door:"), hingeSide_);
     frontForm->addRow(hinges_);
     frontForm->addRow(tr("Handle:"), handle_);
+    frontForm->addRow(tr("Sliding doors:"), slidingDoors);
     frontForm->addRow(tr("Drawer heights:"), drawerHeights_);
     frontForm->addRow(tr("Drawer boxes:"), drawerBox_);
     frontForm->addRow(tr("Slides:"), slide_);
@@ -186,6 +192,9 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
         handle_->setEnabled(any);
         hinges_->setEnabled(door);
         hingeSide_->setEnabled(choice == FrontInput::Choice::Door);
+        overlay_->setEnabled(any && choice != FrontInput::Choice::SlidingDoors);
+        if (auto* sliding = findChild<QLineEdit*>(QStringLiteral("slidingDoors")))
+            sliding->setEnabled(choice == FrontInput::Choice::SlidingDoors);
         const bool drawers = choice == FrontInput::Choice::DrawerStack;
         drawerHeights_->setEnabled(drawers);
         drawerBox_->setEnabled(drawers);
@@ -203,6 +212,8 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
         in.hinges = hinges_->isChecked();
         in.handle = valueOf<furniture::HandlePosition>(handle_);
         in.drawerHeights = drawerHeights_->text();
+        if (const auto* sliding = findChild<QLineEdit*>(QStringLiteral("slidingDoors")))
+            in.slidingDoors = sliding->text();
         in.drawerBox = drawerBox_->currentData().toBool();
         in.slide = slide_->currentData().toString().toStdString();
         in.drawerBottom = valueOf<furniture::DrawerBottomMount>(drawerBottom_);
@@ -290,6 +301,8 @@ void InteriorEditor::showSelected() {
     selectData(handle_, static_cast<int>(in.handle));
     hinges_->setChecked(in.hinges);
     drawerHeights_->setText(in.drawerHeights);
+    if (auto* sliding = findChild<QLineEdit*>(QStringLiteral("slidingDoors")))
+        sliding->setText(in.slidingDoors);
     drawerBox_->setCurrentIndex(in.drawerBox ? 1 : 0);
     slide_->clear();
     for (const auto& c : slideChoices(session_.project().libraries, in.slide))

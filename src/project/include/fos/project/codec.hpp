@@ -38,6 +38,10 @@ core::Result<drawings::DrawingEdits> drawingEditsFromJson(const formats::Json& j
 core::Result<CuttingSettings> cuttingSettingsFromJson(const formats::Json& json, std::string_view path);
 /// Strict (closed object); the spec is checked with furniture::checkContourSpec.
 core::Result<furniture::ContourSpec> contourFromJson(const formats::Json& json, std::string_view path);
+/// Project cutting settings object {"defaults", "materials", "nesting"?} (README 2.6); shared by
+/// the `.fosp` payload and the `.fosbatch` payload.
+formats::Json toJson(const ProjectCuttingSettings& settings);
+core::Result<ProjectCuttingSettings> projectCuttingSettingsFromJson(const formats::Json& json, std::string_view path);
 core::Result<Item> itemFromJson(const formats::Json& json, std::string_view path);
 
 /// The whole payload of a `.fosp` file.

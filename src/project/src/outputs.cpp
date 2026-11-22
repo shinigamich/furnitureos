@@ -17,7 +17,10 @@ ProductionOptions productionOptions(const Project& project) {
 }
 
 ProductionReports productionReports(const Resolved& resolved, const ProductionOptions& o) {
-    const domain::Model& m = resolved.model;
+    return productionReports(resolved.model, o);
+}
+
+ProductionReports productionReports(const domain::Model& m, const ProductionOptions& o) {
     ProductionReports r;
     r.parts = production::partList(m, o.scope);
     r.cutList = production::cutList(m, o.cutList, o.scope);
@@ -116,8 +119,13 @@ const NestingPlan* CuttingPlans::nestingFor(const std::string& materialId) const
 
 CuttingPlans cuttingPlans(const Resolved& resolved, const ProjectCuttingSettings& settings,
                           const cutting::Options& options) {
+    return cuttingPlans(resolved.model, settings, options);
+}
+
+CuttingPlans cuttingPlans(const domain::Model& model, const ProjectCuttingSettings& settings,
+                          const cutting::Options& options) {
     CuttingPlans out;
-    cutting::ModelCutting split = cutting::cuttingFromModel(resolved.model, adapterSettings(settings.defaults), out.diagnostics);
+    cutting::ModelCutting split = cutting::cuttingFromModel(model, adapterSettings(settings.defaults), out.diagnostics);
     out.routedParts = std::move(split.routedParts);
     std::vector<cutting::Job>& jobs = split.jobs;
     for (auto& job : jobs) {
@@ -161,7 +169,7 @@ CuttingPlans cuttingPlans(const Resolved& resolved, const ProjectCuttingSettings
         }
         out.plans.push_back(std::move(plan));
     }
-    addNestingPlans(resolved.model, settings.nestingSettings(), out);
+    addNestingPlans(model, settings.nestingSettings(), out);
     return out;
 }
 

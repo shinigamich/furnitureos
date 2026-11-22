@@ -6,6 +6,7 @@
 #include "fos/furniture/parameters.hpp"
 #include "fos/hardware/drawer_slides.hpp"
 #include "fos/hardware/handle.hpp"
+#include "fos/hardware/sliding_doors.hpp"
 #include "fos/machining/face.hpp"
 
 #include <array>
@@ -41,7 +42,7 @@ enum class EdgeUse { Raw, Visible, Hidden, Front };
 /// Indexed by domain::EdgeSide (L1, L2, W1, W2).
 using Edges = std::array<EdgeUse, 4>;
 
-enum class JobKind { Corner, ShelfPins, Hinges, Handle, Slide, Lift };
+enum class JobKind { Corner, ShelfPins, Hinges, Handle, Slide, Lift, SlidingTrack, SlidingRollers };
 /// A deferred hardware placement; run after all parts exist (gen_hardware.cpp).
 struct Job {
     JobKind kind = JobKind::Corner;
@@ -58,6 +59,9 @@ struct Job {
     bool sharedPanel = false;
     bool sharedC = false; ///< ShelfPins: the right (c) support is a divider.
     hardware::HandleConfig handle;
+    /// SlidingTrack: a = panel carrying the track; instanceId is filled in when placed.
+    /// sharedPanel limits the screw holes to the shared-panel depth. SlidingRollers: a = door.
+    hardware::SlidingTrackConfig track;
     domain::HardwareId slide; ///< Slide: definition id (DrawerBoxSpec::slide).
     double slideLength = 0;   ///< Slide: nominal length, mm.
     /// Corner (drawer-box joints): fastener zone along the joint (CornerJointConfig::zone).
@@ -76,6 +80,9 @@ struct Bounds {
 /// Clear opening of a section in the assembly frame (x across, z up).
 struct Box {
     double x0 = 0, x1 = 0, z0 = 0, z1 = 0;
+    /// Front of the usable interior (y): 0, or behind the tracks of a sliding-door section
+    /// (hardware::SlidingDoorPlan::interiorFrontY). Dividers and shelves start here.
+    double y0 = 0;
 };
 
 struct Gen {
@@ -132,6 +139,10 @@ core::Result<Bounds> buildCarcass(Gen& g);
 core::Result<void> buildBack(Gen& g);
 core::Result<void> buildInterior(Gen& g, const Bounds& rootBounds);
 core::Result<void> buildFront(Gen& g, const FrontSpec& spec, const std::string& path, const Box& box, const Bounds& bounds);
+/// Sliding doors of the section at `path` (README "Sliding doors"): door parts, track and
+/// roller jobs, recessed grips. Returns the y behind which the section's interior must stay.
+core::Result<double> buildSlidingDoors(Gen& g, const FrontSpec& spec, const std::string& path, const Box& box,
+                                       const Bounds& bounds);
 /// Drawer box `ds` (README "Drawer boxes"; the effective drawerBoxFor() of this drawer) behind
 /// the drawer front `frontSlot` of the stack `spec` whose front spans z in [fz0, fz1]; `box` /
 /// `bounds` are the section's opening and bounding panels. Schedules the four corner-joint

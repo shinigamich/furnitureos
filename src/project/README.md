@@ -346,6 +346,53 @@ Rules: at least one component; the `library` must contain every id the definitio
 The formats module (`fos/formats/component.hpp`) checks the container, metadata, library and the definition's
 `type`; the project module decodes the definition.
 
+## 4b. Production batches (`fos/project/batch.hpp`)
+
+Several projects (orders) produced together. `loadBatch(path)` loads the `.fosbatch` document and
+then each listed project ON ITS OWN (paths relative to the batch file directory): a missing or
+broken project is an Error `batch.project.load_failed` of that project and never aborts the
+others. `mergeBatch()` builds one `domain::Model`:
+
+* project key = entry `key`, or the file stem made file-name safe (`[A-Za-z0-9._-]`, others `_`);
+  two entries with the same effective key are refused (set `key` on one of them);
+* instance key = `<key>` for quantity 1, `<key>#<n>` (n = 1..K) for quantity K > 1; every
+  assembly, part and hardware-instance id becomes `<instance key>/<original id>` (hardware part
+  references follow). A project listed with quantity 3 contributes three copies, so cut-list
+  quantities, hardware and edge banding are multiplied;
+* libraries (materials, edge bands, hardware definitions) are merged by id; the same id with
+  different data (compared via the formats codec) is an Error `batch.library.conflict` that names
+  both projects, and the LATER project is left out (no part is ever cut from guessed data);
+* `materialSubstitutions` (`"a": "b"`) explicitly re-assigns every part made of `a` to stock `b`
+  (e.g. two library ids for the same board). Never silent: Info `batch.substitution.applied` per
+  affected project with the part count; a target missing from all libraries
+  (`batch.substitution.unknown_target`) or of a different thickness
+  (`batch.substitution.thickness_mismatch`) is an Error and the substitution is not applied.
+  Chains (`a`->`b`, `b`->`c`) are refused on load.
+
+Outputs reuse the project glue on the merged model (`productionReports(model)`,
+`cuttingPlans(model, settings)` are the shared overloads): `batchCutList`, `batchCuttingPlans`
+(guillotine + nesting with the batch `cutting` settings; both HEURISTICS, validated
+independently), `batchLabels` (label project text `"<batch> | <project> | order <instance key>"`),
+`batchSummary` / `batchSummaryTable` (per project and total: parts, sheets AREA LOWER BOUND,
+edge banding applied/purchase metres, hardware quantity; the total is computed on the merged
+model and can be lower than the sum of the project rows because orders share sheets).
+
+### Batch files (`.fosbatch`, container kind `furnitureos-batch`, version 1)
+
+Same envelope as `.fosp` (checksum, versioning policy; version 1 has no migrations). Payload root
+is extensible (unknown keys preserved); all other objects are closed.
+
+| key | type | meaning |
+|---|---|---|
+| `batch` | object, required | `{"name", "date", "notes"}` strings (date by convention `YYYY-MM-DD`) |
+| `projects` | array (≤ 200) | `{"path" (required, '/'-separated, relative to the batch file; absolute accepted), "quantity" (1..500, default 1), "key"? ([A-Za-z0-9._-]+), "note"?}` |
+| `cutting` | object | exactly the project `cutting` object (2.6: `defaults`, `materials`, `nesting`?) |
+| `edgeBanding` | object | `{"overhangPerEnd" ≥ 0 (mm, default 25), "wastePercent" ≥ 0 (default 0)}` |
+| `cutListGroupAcrossAssemblies` | bool | default true |
+| `materialSubstitutions` | object | material id -> material id (see above) |
+
+The quantities of all entries add up to at most 1000 copies.
+
 ## 5. Limitations
 
 * The per-project parts limit is checked on the estimate (`estimatePartCount`), an upper bound; custom parameter
