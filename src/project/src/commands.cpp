@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/project/commands.hpp"
+#include "fos/project/components.hpp"
 
 #include "fos/furniture/edit.hpp"
 #include "fos/furniture/panel.hpp"
@@ -86,38 +87,11 @@ Command cabinetEdit(std::string itemId, CommandLabel label,
 /// label carries the item id; the UI may map it to the display name.
 CommandLabel label(std::string key, std::vector<std::string> args) { return {std::move(key), std::move(args)}; }
 
-/// Library ids an item references.
-struct Refs {
-    std::vector<std::string> materials, edgeBands, hardware;
-};
-
-void addEdge(Refs& r, const std::optional<domain::EdgeBandId>& e) {
-    if (e && !e->empty()) r.edgeBands.push_back(e->str());
-}
-
-Refs referencesOf(const Item& item) {
-    Refs r;
-    if (const auto* c = item.cabinet()) {
-        const auto& m = c->materials;
-        for (const auto* id : {&m.carcass, &m.back, &m.front})
-            if (!id->empty()) r.materials.push_back(id->str());
-        if (!m.visibleEdge.empty()) r.edgeBands.push_back(m.visibleEdge.str());
-        addEdge(r, m.hiddenEdge);
-        addEdge(r, m.frontEdge);
-        for (const auto& [slot, o] : m.overrides) {
-            if (o.material) r.materials.push_back(o.material->str());
-            for (const auto& [side, e] : o.edges) addEdge(r, e);
-        }
-        const auto& h = c->hardware;
-        for (const auto* id : {&h.hinge, &h.handle, &h.shelfPin, &h.confirmat, &h.dowel, &h.foot})
-            r.hardware.push_back(id->str());
-    } else {
-        const auto& p = item.panel()->panel;
-        r.materials.push_back(p.material.str());
-        for (const auto& e : p.edges) addEdge(r, e);
-    }
-    return r;
-}
+/// Library ids an item references: delegates to project::libraryReferences(), the single
+/// complete list (drawer materials, drawer-box slides, all hardware selections) shared with
+/// components, so "in use" checks can never miss a reference.
+using Refs = LibraryRefs;
+Refs referencesOf(const Item& item) { return libraryReferences(item); }
 
 template <class T, class Pick>
 Command upsert(T entry, const char* what, Pick pick) {

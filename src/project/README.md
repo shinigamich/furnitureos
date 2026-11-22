@@ -294,6 +294,58 @@ The JSON nesting of the whole file is limited to 128 levels by the container (fo
   `dxfPanelItemId` (slug, made unique). One rule set for `fos import-dxf` and the app; unsupported cut-outs →
   `project.import_dxf.cutout_unsupported` (Error, or Warning with `skipUnsupportedCutouts`).
 
+## 4a. Component library (`fos/project/components.hpp`)
+
+A **component** is one item (cabinet or free panel) plus copies of exactly the library entries it references
+(`libraryReferences(item)`: every material of the assignment incl. drawer / drawer bottom, edge bands of the
+assignment and part overrides, override materials, every `HardwareSelection` id and the slide of every drawer
+box). It is self-contained and can be inserted into any project.
+
+```cpp
+auto c = makeComponent(project, "cab1", {.name = "Base 600", .category = "Base cabinets", .tags = {"kitchen"}});
+saveComponents("base.foscomp", {c.value()});                 // atomic, checks it loads back
+auto list = loadComponents("base.foscomp");                  // errors name the file + JSON pointer
+auto plan = planComponentInsert(project, c, formats::ConflictPolicy::RenameWithNewId, componentIdGenerator("k1"));
+doc.execute(insertComponent(c, "k1", geometry::Transform::translation({1200, 0, 0}), formats::ConflictPolicy::Skip));
+ComponentLibrary lib; auto notes = lib.scan({userDir, sharedDir});   // byCategory / byTag / find / categories / tags
+```
+
+* `makeComponent` defaults: name = item name, id = `comp.<slug>`, preview size = generated bounding box
+  (x = width, z = height, y = depth). The item is stored with identity placement.
+* `insertComponent` (undoable `Command`) merges the embedded entries with `formats::mergeLibrary` semantics
+  — `Skip` keeps the project's entry, `Replace` overwrites it in place (affects every item that uses it),
+  `RenameWithNewId` adds the incoming entry as `<item-id>.lib1`, `.lib2`, ... and rewrites the new item's
+  references — except that an entry **identical** (same JSON) to the project's entry with the same id is always
+  kept (reported `Skipped`), so built-in hardware is never duplicated. The item gets the new id (cabinet part ids
+  derive from it; a panel's part id becomes `<item-id>/panel`), the component name and the placement, and must
+  generate, otherwise nothing changes.
+* `ComponentLibrary` order is (category, name, id, source), byte-wise. Unreadable files are Error diagnostics
+  (`project.components.load_failed`), duplicate ids Warnings (`project.components.duplicate_id`, first wins),
+  missing paths Warnings. Plugin components are added with `add(componentFromRecord(record, path), source)`.
+
+### Component files (`.foscomp`, container kind `furnitureos-component`, version 1)
+
+Container as in formats README §1. Payload (the payload root and every component object are *extensible*:
+unknown keys are preserved; `previewSize` is closed):
+
+```json
+{ "components": [ {
+    "id": "comp.base-600",            // required, non-empty, unique in the file (plugins: "<plugin-id>:<local>")
+    "name": "Base 600",               // required, non-empty, unique in the file
+    "description": "", "category": "Base cabinets", "author": "",   // optional strings
+    "tags": ["kitchen", "base"],      // optional; non-empty, unique strings
+    "previewSize": {"width": 600, "height": 820, "depth": 560},     // mm, >= 0, 0 = unknown; preview only
+    "library": {"materials": [...], "edgeBands": [...], "hardware": [...]},  // .foslib payload (formats codec)
+    "definition": { "type": "cabinet", ... }   // an item object exactly as in section 2 (toJson(Item))
+} ] }
+```
+
+Rules: at least one component; the `library` must contain every id the definition references (error
+`/payload/components/<i>/library: component "<id>" references material "<x>" which is not embedded ...`);
+`definition` is decoded strictly with `itemFromJson` (errors point into `/payload/components/<i>/definition/...`).
+The formats module (`fos/formats/component.hpp`) checks the container, metadata, library and the definition's
+`type`; the project module decodes the definition.
+
 ## 5. Limitations
 
 * The per-project parts limit is checked on the estimate (`estimatePartCount`), an upper bound; custom parameter
@@ -302,6 +354,8 @@ The JSON nesting of the whole file is limited to 128 levels by the container (fo
 
 * Undo snapshots cost memory proportional to the project size per step (bounded by the undo limit).
 * Labels carry item ids, not display names.
+* Components: no thumbnails (only `previewSize`), no versioning or update of inserted components (an inserted
+  item does not remember its source component), drawing edits are not stored in a component.
 * `recoverProject` returns the newest autosave/backup that passes the container checks; if its payload then fails
   to decode the error is returned (older candidates are not tried).
 * No `.fosp` migrations exist yet (version 1); the migration path is exercised only by the formats module tests.

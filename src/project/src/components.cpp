@@ -110,7 +110,8 @@ LibraryRefs libraryReferences(const Item& item) {
             for (const auto& [side, e] : o.edges) addEdge(r, e);
         }
         const auto& h = c->hardware;
-        for (const auto* id : {&h.hinge, &h.handle, &h.shelfPin, &h.confirmat, &h.dowel, &h.foot})
+        for (const auto* id : {&h.hinge, &h.hingeHalf, &h.hingeInset, &h.lift, &h.handle, &h.shelfPin, &h.confirmat,
+                                &h.dowel, &h.foot})
             addId(r.hardware, id->str());
         collectSection(r, c->interior);
     } else {

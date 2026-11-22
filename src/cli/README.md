@@ -458,6 +458,32 @@ Saved kitchen.fosp
 Exit codes: 0 imported; 1 refused (no closed outline, unsupported cut-out, panel invalid) or saved with model
 errors; 2 usage error, unreadable / malformed DXF (message names the DXF line), unreadable / unwritable project.
 
+### `fos component`
+
+Reusable components (`.foscomp`, schema: `src/project/README.md` "Component files").
+
+```
+fos component save <project.fosp> <item-id> <out.foscomp> --name N [--category C] [--tags a,b]
+                   [--description D] [--author A] [--id ID] [--force]
+fos component list <dir|file.foscomp>...
+fos component insert <project.fosp> <file.foscomp> <component-name-or-id>
+                   [--id ITEM-ID] [--at x,y,z] [--on-conflict keep|replace|rename]
+```
+
+* `save` embeds copies of the materials, edge bands and hardware the item references (self-contained); id
+  default `comp.<slug of the name>`; an existing output is replaced only with `--force`.
+* `list` searches directories recursively, prints components grouped by category (sorted by category, name),
+  with kind, preview size (mm), tags and source file; unreadable files are reported on stderr and give exit 1.
+* `insert` adds the component as a new item (default id: first free `comp1`, `comp2`, ...) at `--at` (mm, default
+  0,0,0) through the undoable `project::insertComponent` command and saves atomically. Embedded entries that
+  exist in the project with different data: `keep` (default) uses the project's entry, `replace` overwrites it,
+  `rename` adds the component's entry as `<item-id>.libN`. Identical entries are never duplicated. Changed
+  entries are listed.
+
+Exit codes: 0 done; 1 `list` found unreadable files, or `insert` refused (item id in use, item does not
+generate; nothing saved); 2 usage error, unreadable project or component file (message names the file and a JSON
+pointer), unknown component name.
+
 ## Tests
 
 * `src/cli/tests/cli_tests.cpp` (`fos_cli_tests`): every command in-process on a temporary project — exit codes,
@@ -468,6 +494,8 @@ errors; 2 usage error, unreadable / malformed DXF (message names the DXF line), 
   SVGs (8 sawn pieces, 1 nested part, part spacing 8.2 mm, validateNest clean); `fos cam` routes it (blank 782 × 560
   at the default allowance, 772 × 550 with `--blank-allowance 5`, G2/G3, simulation clean); the option is refused for
   a rectangular part and for negative values.
+* `src/cli/tests/cli_component_tests.cpp`: `fos component save` / `list` / `insert` round trip (placement, refusals,
+  malformed file reported), `fos new --template drawers-boxed`.
 * `src/cli/tests/cli_binary_tests.cpp`: runs the real `fos` executable as a process (exit codes 0/1/2, output).
 * `tests/` (`fos_scenario_tests`): cross-module end-to-end scenarios A–F with hand-computed expectations; built by
   the root CMakeLists for a full configure and by this directory's CMakeLists when `FOS_MODULES` lists `cli`.

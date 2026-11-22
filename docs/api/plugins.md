@@ -2,8 +2,10 @@
 
 Status: implements **phase 1 of ADR-0007**: declarative data plugins only. A plugin is a directory of data
 files with a manifest. **FurnitureOS never executes plugin content**: no shared libraries, scripts,
-interpreters or processes. The only contribution kind supported now is **libraries** (`.foslib` files with
-materials, edge bands and hardware definitions, read with `formats::importLibrary`, checksums verified).
+interpreters or processes. Two contribution kinds are supported: **libraries** (`.foslib` files with
+materials, edge bands and hardware definitions, read with `formats::importLibrary`, checksums verified) and
+**components** (`.foscomp` reusable furniture components, read with `formats::importComponentFileText`,
+checksums verified; schema in `src/project/README.md` "Component files").
 
 Headers: `fos/plugins/semver.hpp`, `manifest.hpp`, `package.hpp`, `manager.hpp`. Module dependencies:
 `core`, `domain`, `formats`.
@@ -40,6 +42,7 @@ org.example.oak-boards/          <- directory name MUST equal the plugin id
 | Key | Status |
 |---|---|
 | `libraries` | **supported**: array (at most 32) of unique relative paths of `.foslib` files |
+| `components` | **supported**: array (at most 64, `PluginLimits::maxComponentFiles`) of unique relative paths of `.foscomp` files; same path rules as libraries; each file at most 16 MiB (`maxComponentBytes`, counted in the 64 MiB plugin total); at most 2000 components per plugin (`maxComponents`) |
 | `templates`, `reports`, `postprocessors`, `importers` | accepted with the warning `contribution kind "<kind>" is not supported by this version of FurnitureOS and is ignored.` (`ExtensionKind`, `isSupported()`) |
 | anything else | warning "unknown contribution kind", ignored |
 
@@ -79,6 +82,12 @@ Example (the shipped example plugin, `examples/plugins/org.furnitureos.example-m
   loaded. Because `:` cannot occur in a plugin id, two plugins can never produce the same entity id, and a plugin
   cannot produce an id of a user-created entity (UUIDs) or of a built-in one.
 * An id used twice inside one plugin (same category, across all its files) is an error.
+* **Component ids** (`/payload/components/<i>/id` of a contributed `.foscomp`) follow the same rule
+  (`<plugin-id>:<local-id>`, unique across the plugin's component files). The library entries **embedded** in a
+  component keep their ids (often generic or built-in ids such as `mat.generic.pb18`): they are never merged
+  into the application library by loading, only into a project when the user inserts the component, with the
+  conflict policy the user chooses (`project::insertComponent`: keep existing / replace / rename; identical
+  entries are never duplicated).
 
 ## 4. Safety model
 
@@ -98,7 +107,8 @@ Example (the shipped example plugin, `examples/plugins/org.furnitureos.example-m
 * **Re-validation.** `loadInto()` re-inspects each package immediately before reading it; a package whose id or
   version changed since `discover()` fails with `plugins.load.changed`.
 * **Install** validates everything loading would (manifest, permissions, paths, sizes, app compatibility,
-  every library, namespacing), copies only the manifest, the contributed libraries and top-level licence/readme
+  every library and component file, namespacing), copies only the manifest, the contributed libraries and
+  component files and top-level licence/readme
   files (no other files, no symlinks) into a hidden staging directory, validates the staged copy again and then
   renames it into `<installDir>/<id>`; the previous copy is restored if the swap fails.
 * **Remove** only deletes `<installDir>/<id>` after checking that the id is valid (so it contains no path
@@ -133,7 +143,12 @@ settings.disabledPlugins = manager.disabledIds();
 * **Duplicates**: among valid and compatible copies with the same id the highest version wins; for equal
   precedence the earlier search dir wins. The others become `Shadowed` with a message naming the winner.
   An incompatible copy never shadows a compatible one.
-* **Loading** happens in plugin-id order; `LoadReport` lists the loaded plugins with their `formats::MergeReport`.
+* **Loading** happens in plugin-id order; `LoadReport` lists the loaded plugins with their `formats::MergeReport`
+  and `componentCount`, and `LoadReport::components` holds every contributed component
+  (`PluginComponent{pluginId, file, formats::ComponentRecord record}`). Component files are loaded (and their ids
+  checked) before the libraries are merged; a failure (`plugins.load.component`) fails the plugin as a whole.
+  The plugins module validates a component at the formats level only; decode it with
+  `project::componentFromRecord(record, path)` and index it with `project::ComponentLibrary::add`.
 
 ## 6. Versioning
 
@@ -167,6 +182,8 @@ settings.disabledPlugins = manager.disabledIds();
 
 * Executable extensions of any kind (scripts, WASM, out-of-process plugins, shared libraries) — see ADR-0007
   phase 2. Contribution kinds `templates`, `reports`, `postprocessors`, `importers` are recognised but ignored.
+* Plugin components cannot refer to the plugin's own `.foslib` entries without embedding them: each component
+  is self-contained.
 * Signatures, content hashes in the manifest, a registry or downloading; plugin archives (`.zip`): install
   takes an unpacked directory.
 * SPDX expressions with parentheses; validation of SPDX identifiers against the official list.

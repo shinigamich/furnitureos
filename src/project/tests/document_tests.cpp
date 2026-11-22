@@ -235,3 +235,26 @@ TEST(Document, LabelSubstitution) {
 }
 
 } // namespace fos::project::test
+
+namespace fos::project::test {
+// Regression: "in use" checks used to ignore drawer materials and hardware selections added
+// later (half/inset hinges, lift), so removeMaterial/removeHardware could delete entries a
+// cabinet still references.
+TEST(Document, RemovingAnEntryStillUsedByDrawersOrNewHardwareIsRefused) {
+    Project p = newProject(meta());
+    Item item = baseCabinetItem();
+    auto& cab = std::get<furniture::CabinetDefinition>(item.definition);
+    cab.materials.drawer = domain::MaterialId(defaults::kMdf18);
+    p.items.push_back(item);
+    Document doc(p);
+    const std::string before = state(doc);
+    auto r = doc.execute(commands::removeMaterial(defaults::kMdf18));
+    ASSERT_FALSE(r.ok());
+    EXPECT_NE(r.error().message.find("cab1"), std::string::npos) << r.error().message;
+    r = doc.execute(commands::removeHardware(cab.hardware.hingeInset.str()));
+    ASSERT_FALSE(r.ok());
+    r = doc.execute(commands::removeHardware(cab.hardware.lift.str()));
+    ASSERT_FALSE(r.ok());
+    EXPECT_EQ(state(doc), before);
+}
+} // namespace fos::project::test
