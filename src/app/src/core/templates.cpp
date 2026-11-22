@@ -22,6 +22,8 @@ furniture::CabinetDefinition makeDefinition(TemplateKind kind, const std::string
     case TemplateKind::DrawerUnitWithBoxes: return t::drawerUnitWithBoxes(aid, materials);
     case TemplateKind::WardrobeSection: return t::wardrobeSection(aid, materials);
     case TemplateKind::OpenShelving: return t::openShelving(aid, materials);
+    case TemplateKind::BlindCornerCabinet: return t::blindCornerCabinet(aid, materials);
+    case TemplateKind::LCornerCabinet: return t::lCornerCabinet(aid, materials);
     }
     return t::baseCabinet(aid, materials);
 }
@@ -31,7 +33,8 @@ furniture::CabinetDefinition makeDefinition(TemplateKind kind, const std::string
 const std::vector<TemplateKind>& allTemplates() {
     static const std::vector<TemplateKind> kinds{TemplateKind::BaseCabinet,  TemplateKind::WallCabinet,
                                                  TemplateKind::TallCabinet,  TemplateKind::DrawerUnit,
-                                                 TemplateKind::DrawerUnitWithBoxes, TemplateKind::WardrobeSection, TemplateKind::OpenShelving};
+                                                 TemplateKind::DrawerUnitWithBoxes, TemplateKind::WardrobeSection, TemplateKind::OpenShelving,
+                                                 TemplateKind::BlindCornerCabinet, TemplateKind::LCornerCabinet};
     return kinds;
 }
 
@@ -45,6 +48,10 @@ QString templateTitle(TemplateKind kind) {
         return QCoreApplication::translate("fos::app::Templates", "Drawer unit with boxes");
     case TemplateKind::WardrobeSection: return QCoreApplication::translate("fos::app::Templates", "Wardrobe section");
     case TemplateKind::OpenShelving: return QCoreApplication::translate("fos::app::Templates", "Open shelving");
+    case TemplateKind::BlindCornerCabinet:
+        return QCoreApplication::translate("fos::app::Templates", "Blind corner cabinet");
+    case TemplateKind::LCornerCabinet:
+        return QCoreApplication::translate("fos::app::Templates", "L-shaped corner cabinet");
     }
     return {};
 }
@@ -58,6 +65,8 @@ const char* templateToken(TemplateKind kind) noexcept {
     case TemplateKind::DrawerUnitWithBoxes: return "drawer-boxes";
     case TemplateKind::WardrobeSection: return "wardrobe";
     case TemplateKind::OpenShelving: return "shelving";
+    case TemplateKind::BlindCornerCabinet: return "corner-blind";
+    case TemplateKind::LCornerCabinet: return "corner-l";
     }
     return "";
 }

@@ -285,7 +285,7 @@ int batchQuote(const std::vector<std::string>& args, Io& io) {
     options.edgeBanding = m->loaded.batch.edgeBanding;
     if (a.has("sheets")) {
         const auto plans = project::batchCuttingPlans(m->model, m->loaded.batch);
-        options.sheetUsage = sheetUsageFromPlans(plans, extra);
+        options.sheetUsage = project::quoteSheetUsage(plans, extra);
         for (const auto& d : plans.diagnostics)
             if (d.severity != core::Severity::Info) extra.push_back(d);
     }

@@ -104,12 +104,6 @@ std::string cuttingPlansText(const project::CuttingPlans& plans, const project::
                              const std::filesystem::path& dir,
                              std::vector<std::pair<std::filesystem::path, std::string>>& files, std::size_t& nestFiles);
 
-/// Sheet usage per material from cutting plans (shared by `fos quote --sheets` and `fos batch quote
-/// --sheets`): full sheets of the guillotine plans (listed remnants excluded) + nesting sheets, and
-/// the guillotine cut length. A material whose plan failed is left out (priced by area) with a
-/// cli.quote.plan_failed warning appended to `diagnostics`.
-std::map<domain::MaterialId, production::SheetUsage> sheetUsageFromPlans(const project::CuttingPlans& plans,
-                                                                         core::Diagnostics& diagnostics);
 /// "text" (default), "csv" or "json" from --format; nullopt for anything else.
 std::optional<std::string> quoteFormat(const ParsedArgs& args);
 /// JSON document of a quote (money totals as 2-decimal strings).

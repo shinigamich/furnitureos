@@ -54,6 +54,8 @@ private:
     void buildConstruction(QVBoxLayout* layout, const std::string& itemId);
     void buildMaterials(QVBoxLayout* layout, const std::string& itemId);
     void buildHardware(QVBoxLayout* layout, const std::string& itemId);
+    /// Corner group of a corner cabinet (kind, blind side, corner parameters).
+    void buildCorner(QVBoxLayout* layout, const std::string& itemId);
     void buildShape(QVBoxLayout* layout, const std::string& itemId, const std::string& partId);
     void buildPartOverride(QVBoxLayout* layout, const std::string& itemId, const std::string& partId);
     void buildNameEditor(QVBoxLayout* layout, const std::string& itemId);

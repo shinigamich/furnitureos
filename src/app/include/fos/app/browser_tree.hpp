@@ -14,7 +14,9 @@ struct BrowserNode {
     Kind kind = Kind::Item;
     std::string id;     ///< Item id, assembly id (= item id) or part id.
     std::string label;  ///< Item / assembly / part name.
-    std::string detail; ///< Part: finished size "L x W x T" (mm); assembly: envelope "W x D x H".
+    /// Part: finished size "L x W x T" (mm); assembly: envelope "W x D x H"; item: corner
+    /// summary of a corner cabinet (cornerDescription(), translated), empty otherwise.
+    std::string detail;
     bool isCabinet = false;  ///< Item nodes: cabinet (true) or free panel (false).
     bool generated = true;   ///< Item nodes: false when the generator refused the item.
     std::vector<BrowserNode> children;

@@ -6,6 +6,7 @@
 #include "fos/nesting/validate.hpp"
 
 #include <map>
+#include <set>
 
 namespace fos::project {
 
@@ -192,6 +193,41 @@ core::Result<drawings::DrawingResult> partDrawing(const Project& project, const 
     const auto it = project.drawingEdits.find(partDrawingId(partId));
     return drawings::generatePartDrawing(resolved.model, domain::PartId(partId), options,
                                          it == project.drawingEdits.end() ? kNone : it->second);
+}
+
+std::map<domain::MaterialId, production::SheetUsage> quoteSheetUsage(const CuttingPlans& plans,
+                                                                     core::Diagnostics& diagnostics) {
+    std::map<domain::MaterialId, production::SheetUsage> usage;
+    std::set<std::string> failed;
+    for (const auto& plan : plans.plans) {
+        if (!plan.result) {
+            failed.insert(plan.job.id);
+            continue;
+        }
+        auto& u = usage[domain::MaterialId(plan.job.id)];
+        for (const auto& sheet : plan.result->sheets) {
+            const bool remnant = sheet.stockIndex >= 0 &&
+                                 static_cast<std::size_t>(sheet.stockIndex) < plan.job.stock.size() &&
+                                 plan.job.stock[static_cast<std::size_t>(sheet.stockIndex)].isRemnant;
+            if (!remnant) ++u.sheets; // listed remnants are already owned: not purchased
+            u.cutLengthMm += sheet.cutLength;
+        }
+    }
+    for (const auto& plan : plans.nestingPlans) {
+        if (!plan.result) {
+            failed.insert(plan.job.materialId);
+            continue;
+        }
+        usage[domain::MaterialId(plan.job.materialId)].sheets += static_cast<int>(plan.result->sheets.size());
+    }
+    for (const auto& id : failed) {
+        usage.erase(domain::MaterialId(id));
+        diagnostics.push_back({core::Severity::Warning, "project.quote.plan_failed",
+                               "No cutting plan could be made for material '" + id +
+                                   "'; it is priced by area instead of by sheets.",
+                               id});
+    }
+    return usage;
 }
 
 } // namespace fos::project

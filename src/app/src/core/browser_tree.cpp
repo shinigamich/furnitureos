@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/app/browser_tree.hpp"
 
+#include "fos/app/corner_rows.hpp"
 #include "fos/core/units.hpp"
 
 namespace fos::app {
@@ -19,6 +20,7 @@ std::vector<BrowserNode> buildBrowserTree(const project::Project& project, const
         node.label = item.name();
         node.isCabinet = item.isCabinet();
         node.generated = false;
+        if (const auto* cabinet = item.cabinet()) node.detail = cornerDescription(*cabinet).toStdString();
         const domain::Assembly* assembly = resolved ? resolved->model.findAssembly(domain::AssemblyId(item.id())) : nullptr;
         if (assembly) {
             node.generated = true;

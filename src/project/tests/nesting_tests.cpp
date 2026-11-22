@@ -138,4 +138,48 @@ TEST(ProjectNesting, RectangularProjectsHaveNoNestingPlans) {
     EXPECT_EQ(plans.materials.size(), plans.plans.size());
 }
 
+TEST(ProjectQuote, SheetUsageSkipsOwnedRemnantsAndWarnsOnFailedPlans) {
+    CuttingPlans plans;
+    // Material A: stock 0 = full board, stock 1 = listed remnant. Three sheets: two full boards
+    // (cut length 1000 + 2000) and one remnant (cut length 500) -> 2 purchased sheets, 3500 mm.
+    CuttingPlan a;
+    a.job.id = "mat.a";
+    a.job.stock = {cutting::StockSheet{}, cutting::StockSheet{}};
+    a.job.stock[1].isRemnant = true;
+    a.result = cutting::CuttingResult{};
+    for (const auto& [index, cut] : std::vector<std::pair<int, double>>{{0, 1000}, {1, 500}, {0, 2000}}) {
+        cutting::SheetLayout sheet;
+        sheet.stockIndex = index;
+        sheet.cutLength = cut;
+        a.result->sheets.push_back(sheet);
+    }
+    plans.plans.push_back(a);
+    // Material B: guillotine plan failed, but its nesting plan worked -> left out entirely.
+    CuttingPlan b;
+    b.job.id = "mat.b";
+    plans.plans.push_back(b);
+    NestingPlan bn;
+    bn.job.materialId = "mat.b";
+    bn.result = nesting::NestResult{};
+    bn.result->sheets.resize(2);
+    plans.nestingPlans.push_back(bn);
+    // Material A also has a nesting plan with 1 sheet -> 2 + 1 = 3 sheets.
+    NestingPlan an;
+    an.job.materialId = "mat.a";
+    an.result = nesting::NestResult{};
+    an.result->sheets.resize(1);
+    plans.nestingPlans.push_back(an);
+
+    core::Diagnostics d;
+    const auto usage = quoteSheetUsage(plans, d);
+    ASSERT_EQ(usage.size(), 1u);
+    const auto& ua = usage.at(domain::MaterialId("mat.a"));
+    EXPECT_EQ(ua.sheets, 3);
+    EXPECT_DOUBLE_EQ(ua.cutLengthMm, 3500.0);
+    ASSERT_EQ(d.size(), 1u);
+    EXPECT_EQ(d[0].code, "project.quote.plan_failed");
+    EXPECT_EQ(d[0].severity, core::Severity::Warning);
+    EXPECT_EQ(d[0].entityId, "mat.b");
+}
+
 } // namespace fos::project::test

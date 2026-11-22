@@ -7,7 +7,6 @@
 #include "fos/production/quote.hpp"
 #include "fos/project/outputs.hpp"
 
-#include <set>
 
 namespace fos::cli::detail {
 namespace {
@@ -27,41 +26,6 @@ const char* kQuoteHelp =
 std::string jsonNumberText(double v) { return production::formatMoney(v); }
 
 } // namespace
-
-std::map<domain::MaterialId, production::SheetUsage> sheetUsageFromPlans(const project::CuttingPlans& plans,
-                                                                         core::Diagnostics& diagnostics) {
-    std::map<domain::MaterialId, production::SheetUsage> usage;
-    std::set<std::string> failed;
-    for (const auto& plan : plans.plans) {
-        if (!plan.result) {
-            failed.insert(plan.job.id);
-            continue;
-        }
-        auto& u = usage[domain::MaterialId(plan.job.id)];
-        for (const auto& sheet : plan.result->sheets) {
-            const bool remnant = sheet.stockIndex >= 0 &&
-                                 static_cast<std::size_t>(sheet.stockIndex) < plan.job.stock.size() &&
-                                 plan.job.stock[static_cast<std::size_t>(sheet.stockIndex)].isRemnant;
-            if (!remnant) ++u.sheets; // listed remnants are already owned: not purchased
-            u.cutLengthMm += sheet.cutLength;
-        }
-    }
-    for (const auto& plan : plans.nestingPlans) {
-        if (!plan.result) {
-            failed.insert(plan.job.materialId);
-            continue;
-        }
-        usage[domain::MaterialId(plan.job.materialId)].sheets += static_cast<int>(plan.result->sheets.size());
-    }
-    for (const auto& id : failed) {
-        usage.erase(domain::MaterialId(id));
-        diagnostics.push_back({core::Severity::Warning, "cli.quote.plan_failed",
-                               "No cutting plan could be made for material '" + id +
-                                   "'; it is priced by area instead of by sheets.",
-                               id});
-    }
-    return usage;
-}
 
 std::string quoteJson(const production::Quote& q) {
     using formats::Json;
@@ -154,7 +118,7 @@ int cmdQuote(const std::vector<std::string>& args, Io& io) {
     core::Diagnostics extra;
     if (a.has("sheets")) {
         const auto plans = project::cuttingPlans(loaded->resolved, project.cutting);
-        options.sheetUsage = sheetUsageFromPlans(plans, extra);
+        options.sheetUsage = project::quoteSheetUsage(plans, extra);
         for (const auto& d : plans.diagnostics)
             if (d.severity != core::Severity::Info) extra.push_back(d);
     }

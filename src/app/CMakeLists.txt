@@ -32,7 +32,8 @@ add_library(fos_app_core STATIC
     src/core/batch_editor.cpp
     src/core/quote_rows.cpp
     src/core/library_editor.cpp
-    src/core/library_text.cpp)
+    src/core/library_text.cpp
+    src/core/corner_rows.cpp)
 add_library(fos::app_core ALIAS fos_app_core)
 # moc (Qt 6.4) cannot parse libstdc++ C++20 concepts with the compiler predefines (see viewport).
 set_target_properties(fos_app_core PROPERTIES AUTOMOC ON AUTOMOC_COMPILER_PREDEFINES OFF)
@@ -59,7 +60,8 @@ if(FOS_BUILD_TESTS)
         tests/core/component_tests.cpp
         tests/core/batch_editor_tests.cpp
         tests/core/quote_tests.cpp
-        tests/core/library_editor_tests.cpp)
+        tests/core/library_editor_tests.cpp
+        tests/core/corner_tests.cpp)
     target_link_libraries(fos_app_core_tests PRIVATE fos::app_core Qt6::Test GTest::gtest GTest::gmock)
     fos_set_warnings(fos_app_core_tests PRIVATE)
     gtest_discover_tests(fos_app_core_tests DISCOVERY_TIMEOUT 60

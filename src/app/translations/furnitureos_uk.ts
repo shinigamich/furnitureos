@@ -1006,6 +1006,53 @@
     </message>
 </context>
 <context>
+    <name>fos::app</name>
+    <message>
+        <source>Blind corner</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>L-shaped corner</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation type="unfinished">Немає</translation>
+    </message>
+    <message>
+        <source>Left</source>
+        <translation type="unfinished">Зліва</translation>
+    </message>
+    <message>
+        <source>Right</source>
+        <translation type="unfinished">Справа</translation>
+    </message>
+    <message>
+        <source>Blind panel width</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Leg B length</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Leg B depth</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Blind corner, blind panel left, %1 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Blind corner, blind panel right, %1 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>L-shaped corner, leg B %1 × %2 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>fos::app::CommandText</name>
     <message>
         <source>Set {1} of {0} to {2}</source>
@@ -1183,6 +1230,10 @@
         <source>Import library {0}</source>
         <translation>Імпортувати бібліотеку {0}</translation>
     </message>
+    <message>
+        <source>Set blind side of {0} to {1}</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::Parameters</name>
@@ -1278,6 +1329,14 @@
     <message>
         <source>Drawer unit with boxes</source>
         <translation>Тумба з шухлядами (з коробами)</translation>
+    </message>
+    <message>
+        <source>Blind corner cabinet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>L-shaped corner cabinet</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2906,6 +2965,34 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Drawer bottoms:</source>
         <translation>Дна ящиків:</translation>
     </message>
+    <message>
+        <source>Corner</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Kind:</source>
+        <translation type="unfinished">Тип:</translation>
+    </message>
+    <message>
+        <source>Side of the fixed blind panel seen from the front; the door is hinged on the other side.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Blind side:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>parameter “%1” is missing - the cabinet cannot be generated</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Blind panel width: from the outer face of the blind-side carcass side to the centre of the gap next to the door.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Width and depth are those of leg A (rear wall); leg B runs along the left wall.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::InteriorEditor</name>
@@ -4430,6 +4517,10 @@ Circle: X, Y = centre, Radius.</source>
     <message>
         <source>All other parameters keep the template defaults and can be edited in the inspector.</source>
         <translation>Решта параметрів мають типові значення шаблону; їх можна змінити в інспекторі властивостей.</translation>
+    </message>
+    <message>
+        <source>Width and depth are those of leg A (along the rear wall); leg B is set in the Corner group of the inspector.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

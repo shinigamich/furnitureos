@@ -151,6 +151,29 @@ TEST_F(BatchFixture, MaterialConflictNamesBothProjectsAndExcludesTheLaterOne) {
     EXPECT_EQ(bm.model.assemblies.size(), 1u);
 }
 
+TEST_F(BatchFixture, MaterialCostPerM2DifferenceIsAConflict) {
+    // Only costPerSquareMeter differs (written as "costPerM2" by the formats material codec that
+    // the merge compares through), so the libraries are NOT identical and the later project is out.
+    Project c = kitchen("Bathroom C");
+    bool changed = false;
+    for (auto& m : c.libraries.materials)
+        if (m.id.str() == defaults::kParticleboard18) {
+            m.costPerSquareMeter += 7.5;
+            changed = true;
+        }
+    ASSERT_TRUE(changed);
+    ASSERT_TRUE(saveProject(dir.path / "c.fosp", c).ok());
+    Batch b = twoProjects();
+    b.entries[1].path = "c.fosp";
+    const BatchModel bm = mergeBatch(loadBatchProjects(b, dir.path));
+    const auto it = std::find_if(bm.diagnostics.begin(), bm.diagnostics.end(),
+                                 [](const core::Diagnostic& d) { return d.code == "batch.library.conflict"; });
+    ASSERT_NE(it, bm.diagnostics.end());
+    EXPECT_NE(it->message.find(defaults::kParticleboard18), std::string::npos) << it->message;
+    EXPECT_TRUE(bm.projects[0].included);
+    EXPECT_FALSE(bm.projects[1].included);
+}
+
 TEST_F(BatchFixture, SubstitutionIsAppliedVisiblyAndRefusedOnThicknessMismatch) {
     Batch b = twoProjects();
     b.materialSubstitutions[defaults::kParticleboard18] = defaults::kMdf18; // both 18 mm

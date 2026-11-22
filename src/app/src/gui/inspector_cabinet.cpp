@@ -4,6 +4,7 @@
 #include "enum_text.hpp"
 #include "form_widgets.hpp"
 #include "fos/app/cabinet_parts.hpp"
+#include "fos/app/corner_rows.hpp"
 #include "fos/app/session.hpp"
 #include "fos/core/units.hpp"
 #include "inspector_panel.hpp"
@@ -13,7 +14,9 @@
 #include <QComboBox>
 #include <QFormLayout>
 #include <QGroupBox>
+#include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
 #include <QPushButton>
 #include <QTabBar>
 #include <QTabWidget>
@@ -59,7 +62,14 @@ void InspectorPanel::buildCabinet(QVBoxLayout* layout, const std::string& itemId
     QVBoxLayout* parameters = page(tr("Parameters"));
     QVBoxLayout* construction = page(tr("Construction"));
     QVBoxLayout* interior = page(tr("Interior"));
-    buildParameters(parameters, itemId, parameterGroups(*cabinet), true);
+    if (isCornerCabinet(*cabinet)) {
+        // The corner sizes are edited in the Corner group only (one editor per parameter).
+        buildCorner(parameters, itemId);
+        buildParameters(parameters, itemId,
+                        withoutParameters(parameterGroups(*cabinet), cornerParameterNames(cabinet->corner.kind)), true);
+    } else {
+        buildParameters(parameters, itemId, parameterGroups(*cabinet), true);
+    }
     buildConstruction(construction, itemId);
     buildMaterials(construction, itemId);
     buildHardware(construction, itemId);
@@ -85,6 +95,72 @@ void InspectorPanel::buildCabinet(QVBoxLayout* layout, const std::string& itemId
     });
     cabinetTabs_ = tabs;
     layout->addWidget(tabs);
+}
+
+void InspectorPanel::buildCorner(QVBoxLayout* layout, const std::string& itemId) {
+    const furniture::CabinetDefinition& cabinet = *session_.project().findItem(itemId)->cabinet();
+    auto* box = new QGroupBox(tr("Corner"), layout->parentWidget());
+    box->setObjectName(QStringLiteral("cornerGroup"));
+    auto* form = new QFormLayout(box);
+    form->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+    auto* kind = new QLabel(cornerKindTitle(cabinet.corner.kind), box);
+    kind->setObjectName(QStringLiteral("cornerKind"));
+    form->addRow(tr("Kind:"), kind);
+    if (cabinet.corner.kind == furniture::CornerKind::Blind) {
+        auto* side = narrowCombo(box);
+        side->setObjectName(QStringLiteral("cornerBlindSide"));
+        for (auto s : {furniture::CornerSide::Left, furniture::CornerSide::Right})
+            side->addItem(cornerSideTitle(s), static_cast<int>(s));
+        side->setCurrentIndex(std::max(0, side->findData(static_cast<int>(cabinet.corner.blindSide))));
+        side->setToolTip(tr("Side of the fixed blind panel seen from the front; the door is hinged on the other side."));
+        auto* sideError = makeErrorLabel(box);
+        form->addRow(tr("Blind side:"), side);
+        form->addRow(sideError);
+        const furniture::CornerSide current = cabinet.corner.blindSide;
+        connect(side, qOverload<int>(&QComboBox::activated), this, [this, itemId, side, sideError, current] {
+            const auto chosen = static_cast<furniture::CornerSide>(side->currentData().toInt());
+            if (chosen == current) return;
+            if (!run(blindSideCommand(itemId, chosen), sideError))
+                side->setCurrentIndex(std::max(0, side->findData(static_cast<int>(current))));
+        });
+    }
+    for (const CornerParameter& p : cornerParameters(cabinet)) {
+        const QString name = QString::fromStdString(p.name);
+        auto* label = new QLabel(cornerParameterTitle(p.name), box);
+        label->setToolTip(name);
+        if (!p.row) {
+            auto* missing = new QLabel(tr("parameter “%1” is missing - the cabinet cannot be generated").arg(name), box);
+            missing->setWordWrap(true);
+            form->addRow(label, missing);
+            continue;
+        }
+        auto* field = new QWidget(box);
+        auto* v = new QVBoxLayout(field);
+        v->setContentsMargins(0, 0, 0, 0);
+        v->setSpacing(1);
+        auto* line = new QHBoxLayout;
+        auto* edit = new QLineEdit(editText(*p.row), field);
+        edit->setObjectName(QStringLiteral("param:") + name);
+        edit->setToolTip(QString::fromStdString(p.row->description));
+        line->addWidget(edit, 1);
+        if (!p.row->expression.empty()) line->addWidget(new QLabel(QStringLiteral("= ") + valueText(*p.row), field));
+        else line->addWidget(new QLabel(unitSuffix(p.row->kind), field));
+        v->addLayout(line);
+        auto* error = makeErrorLabel(field);
+        v->addWidget(error);
+        form->addRow(label, field);
+        editors_[p.name] = {edit, error};
+        connect(edit, &QLineEdit::returnPressed, this, [this, itemId, n = p.name, edit] { commitParameter(itemId, n, edit); });
+    }
+    auto* note = new QLabel(cabinet.corner.kind == furniture::CornerKind::Blind
+                                ? tr("Blind panel width: from the outer face of the blind-side carcass side to the "
+                                     "centre of the gap next to the door.")
+                                : tr("Width and depth are those of leg A (rear wall); leg B runs along the left wall."),
+                            box);
+    note->setWordWrap(true);
+    note->setStyleSheet(QStringLiteral("color: palette(mid);"));
+    form->addRow(note);
+    layout->addWidget(box);
 }
 
 void InspectorPanel::buildHardware(QVBoxLayout* layout, const std::string& itemId) {

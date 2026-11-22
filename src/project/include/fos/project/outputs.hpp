@@ -9,6 +9,7 @@
 #include "fos/nesting/from_model.hpp"
 #include "fos/nesting/types.hpp"
 #include "fos/production/production.hpp"
+#include "fos/production/quote.hpp"
 #include "fos/project/resolve.hpp"
 
 namespace fos::project {
@@ -97,6 +98,16 @@ CuttingPlans cuttingPlans(const Resolved& resolved, const ProjectCuttingSettings
 /// production batches (batch.hpp).
 CuttingPlans cuttingPlans(const domain::Model& model, const ProjectCuttingSettings& settings,
                           const cutting::Options& options = {});
+
+/// Sheet usage per material for a by-sheet quote (production::QuoteOptions::sheetUsage), from
+/// cutting plans: purchased sheets of the guillotine plan (sheets cut from listed remnants are
+/// already owned and NOT counted) plus the nesting plan's sheets, and the guillotine cut length
+/// (mm). Ordered by material id. A material whose guillotine or nesting plan failed (no result)
+/// is left out entirely, so the quote prices it by area instead, and one Warning
+/// project.quote.plan_failed (entity = material id) is appended to `diagnostics` per such
+/// material, in material id order.
+std::map<domain::MaterialId, production::SheetUsage> quoteSheetUsage(const CuttingPlans& plans,
+                                                                     core::Diagnostics& diagnostics);
 
 /// Assembly drawing of item `itemId` with the stored edits of assemblyDrawingId(itemId)
 /// applied. NotFound when the item has no generated assembly.

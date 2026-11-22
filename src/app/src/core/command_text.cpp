@@ -52,6 +52,8 @@ namespace {
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Remove hardware definition {0}"),
     // Commands built by the application itself (session.cpp).
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Recover {0} from autosave or backup"),
+    // corner_rows.cpp
+    QT_TRANSLATE_NOOP("fos::app::CommandText", "Set blind side of {0} to {1}"),
     // library_editor.cpp
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Import library {0}"),
     // quote_rows.cpp

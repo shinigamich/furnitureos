@@ -129,6 +129,50 @@ TEST(File, SaveLoadSaveIsByteIdenticalAndLossless) {
     EXPECT_EQ(formats::readFile(formats::backupPath(path, 1)).value(), first);
 }
 
+TEST(File, SlidingDoorCabinetRoundTripsByteIdentical) {
+    // Wardrobe section (1000 wide) with its pair of hinged doors replaced by sliding doors whose
+    // count is an expression (width 1000 > 900 -> 3 doors), running in a non-default track system.
+    Project p = newProject(meta());
+    domain::HardwareDefinition track;
+    for (const auto& h : p.libraries.hardware)
+        if (h.id.str() == hardware::ids::kSlidingGeneric) track = h;
+    ASSERT_EQ(track.id.str(), hardware::ids::kSlidingGeneric);
+    track.id = domain::HardwareId("hw.sliding_custom");
+    track.name = "Custom sliding system";
+    p.libraries.hardware.push_back(track);
+    Item cab;
+    cab.definition = furniture::templates::wardrobeSection(domain::AssemblyId("ward1"), defaultTemplateMaterials());
+    furniture::CabinetDefinition& c = *cab.cabinet();
+    c.hardware.slidingSystem = domain::HardwareId("hw.sliding_custom");
+    furniture::FrontSpec front;
+    front.kind = furniture::FrontKind::SlidingDoors;
+    front.sliding.countExpression = "if(width > 900, 3, 2)";
+    ASSERT_TRUE(furniture::setFront(c, p.libraries, "", front).ok());
+    p.items.push_back(cab);
+    const Resolved before = resolved(p);
+    std::size_t doors = 0;
+    for (const auto& a : before.model.assemblies)
+        for (const auto& part : a.parts) doors += part.role == domain::PartRole::Door ? 1u : 0u;
+    EXPECT_EQ(doors, 3u);
+
+    const std::string first = serialized(p);
+    const auto j = formats::Json::parse(first);
+    const auto& jc = j["payload"]["project"]["items"][0];
+    EXPECT_NE(jc.dump().find("\"countExpression\":\"if(width > 900, 3, 2)\""), std::string::npos) << jc.dump();
+    EXPECT_NE(jc.dump().find("\"slidingSystem\":\"hw.sliding_custom\""), std::string::npos) << jc.dump();
+
+    auto loaded = parseProject(first);
+    ASSERT_TRUE(loaded.ok()) << loaded.error().message;
+    EXPECT_EQ(projectToJson(loaded.value().project), projectToJson(p));
+    const furniture::CabinetDefinition* lc = loaded.value().project.items[0].cabinet();
+    ASSERT_NE(lc, nullptr);
+    ASSERT_TRUE(lc->interior.front.has_value());
+    EXPECT_EQ(*lc->interior.front, front);
+    EXPECT_EQ(lc->hardware.slidingSystem, domain::HardwareId("hw.sliding_custom"));
+    EXPECT_EQ(modelText(loaded.value().resolved.model), modelText(before.model));
+    EXPECT_EQ(serialized(loaded.value().project), first);
+}
+
 TEST(File, UnknownKeysArePreserved) {
     const std::string base = serialized(richProject());
     const std::string text = rewrite(base, [](formats::Json& payload) {

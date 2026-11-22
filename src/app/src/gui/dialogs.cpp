@@ -54,6 +54,13 @@ TemplateSizeDialog::TemplateSizeDialog(TemplateKind kind, QWidget* parent) : QDi
     auto* note = new QLabel(tr("All other parameters keep the template defaults and can be edited in the inspector."), this);
     note->setWordWrap(true);
     layout->addWidget(note);
+    if (kind == TemplateKind::LCornerCabinet) {
+        auto* legs = new QLabel(tr("Width and depth are those of leg A (along the rear wall); leg B is set in the "
+                                   "Corner group of the inspector."),
+                                this);
+        legs->setWordWrap(true);
+        layout->addWidget(legs);
+    }
     layout->addWidget(okCancel(this));
 }
 
