@@ -305,3 +305,35 @@ See generate.hpp for the full list of codes.
 * Hinge heights are not snapped to a 32 mm system row.
 * Contours: hardware rules do not know the outline (a fitting in a removed area is reported, not moved);
   cut-outs are not banded; one kind per part (no rounded corners combined with an arc edge).
+
+## Corner cabinets (`CabinetDefinition::corner`, `CornerSpec`)
+
+Templates `templates::blindCornerCabinet()` / `templates::lCornerCabinet()` (CLI `fos new --template
+corner-blind|corner-l`). Corner sizes are custom graph parameters (`corner_param` in definition.hpp); a missing one
+fails generation. Door width limits `kMinCornerDoorWidth` 150 / `kMaxCornerDoorWidth` 600 mm and
+`kMinBlindPanelWidth` 50 mm are generic rules of thumb, not manufacturer data.
+
+**Blind (`CornerKind::Blind`, `blindSide` Left / Right).** An ordinary carcass whose root front (must be a single
+`Door`, hinged on the side away from the blind panel) is split at `blind_width`, measured from the outer face of the
+blind-side carcass side to the centre of the gap: slot `blind` (role Generic, front material, same frame and height
+as the door; no fittings are generated — it is screwed on from inside) and `door`. Template 1000 x 820 x 560,
+blind left 500: blind panel x 2..498.5, door x 501.5..998 (496.5 mm) hinged right. Errors name `blind_width`, the
+panel / door width and the limit.
+
+**L-shaped (`CornerKind::LShape`).** Leg A = `width` x `depth` along the rear wall (front at y = 0), leg B =
+`corner_width_b` x `corner_depth_b` along the left wall (x = 0), towards -Y down to yF = depth - corner_width_b.
+Slots: `side.a` (end of leg A, at x = width), `side.b` (end of leg B, at y = yF, width -> +X, L2 = front edge),
+`bottom`, `top` and `shelf.<i>` (L-shaped `PartShape`, 6 straight segments, set at generation; the two front
+segments carry the band of the part's L1 edge, override L1 to change it), `plinth.a|b` (SidesToFloor), `back.a|b`
+(Overlay; A runs over the end of B at the wall corner) and `door.a` / `door.b`. Shelves: shelf_clearance from both
+end sides, front edges shelf_setback behind both fronts, rear edges on the wall lines; supported by 2 pins in each
+end side only (`hw.pins.shelf.<i>`, holes drilled by the generator with the shelf-pin catalogue dimensions; no
+mid support at the wall corner is modelled — a large shelf may need one). Doors: the Full-overlay `DoorPair` of the
+root is generated as TWO INDEPENDENT doors with generic cup hinges on their end sides (bi-fold corner hinges are not
+modelled): door A x from corner_depth_b + front_offset + front_thickness + front_gap to width - front_reveal, door B
+in the plane x = corner_depth_b + front_offset .. + front_thickness, from yF + front_reveal to flush with door A's
+outer face. Joints: side/bottom and side/top corners with the selected fasteners (the butt contact of the box is the
+real L edge), plinth to side with `dividerFastener`. Unsupported (generation error): OverSides joints, stretcher
+rails, Grooved / Inset backs, feet, dividers, other front kinds. The interpenetration self-check compares parts with
+a rectilinear outline by the rectangles of that outline (checks.hpp), so door B inside the bounding box of the L
+panels is not reported. Project files: key `corner: {kind, blindSide?}` written only for corner cabinets.
