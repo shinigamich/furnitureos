@@ -400,10 +400,37 @@ is extensible (unknown keys preserved); all other objects are closed.
 
 The quantities of all entries add up to at most 1000 copies.
 
+## 4c. Worktops (`fos/project/worktop.hpp`)
+
+`planWorktop(project, WorktopRequest)` / `addWorktop(project, request)` / undoable `commands::addWorktop(request)`
+build a kitchen worktop over a straight run of CABINET items as one or more free panel items (role `Worktop`,
+Horizontal, part id `<item>/panel`). Nothing new is stored in the file: pieces are ordinary panel items whose
+parametric contour holds the cut-outs, so cutting/nesting, CAM, DXF export and drawings handle them unchanged.
+
+* **Run.** The first listed cabinet is the reference frame (the pieces get its placement); every cabinet must share
+  its rotation, must not overlap a neighbour (> 0.5 mm) and the tops must be level within 1 mm. Gaps are bridged
+  (`project.worktop.gap` warning). Extents are the bounding boxes of the GENERATED parts (doors included).
+* **Size.** x = run ± side overhangs, front edge = foremost part − front overhang (default 20), back edge = cabinet
+  backs − back gap (default 0), underside = highest top, thickness = material thickness. No material named →
+  `mat.generic.worktop38` (38 mm, stock 4100 × 650, grain along the length, cost 0) is added to the library.
+* **Edges.** Front (L1) banded with the chosen band (named, else the first library band by id that covers the
+  thickness, else a generic `eb.generic.abs2x45` placeholder is added); back and free ends raw unless requested;
+  joint ends always raw.
+* **Joints.** Longer than the usable stock length (sheet length − cutting trims of the material, or
+  `maxPieceLength`) → the fewest equal pieces (`<id>.1`, `<id>.2`, ...) with plain BUTT JOINTS (no mitre, connector
+  bolts not modelled), each joint moved to the nearest position ≥ `minJointDistance` from every cut-out that keeps
+  all pieces within the stock length; none → refused. `project.worktop.butt_joint` notes name each joint.
+* **Cut-outs** (sink / hob): rectangle or rounded rectangle, centre x measured from the left face of the leftmost
+  cabinet, centred in depth unless a front setback is given. `WorktopRules` defaults are RULES OF THUMB (not a
+  standard, check the appliance sheet): 50 mm to front/back edge, 100 mm to a free end, 150 mm to a joint, 100 mm
+  between cut-outs. A violation refuses the request with the distances in the message.
+
 ## 5. Limitations
 
 * The per-project parts limit is checked on the estimate (`estimatePartCount`), an upper bound; custom parameter
   values are not limited (sizes derived from them are checked on the generated parts).
+* Worktops: straight runs only (no L/U corner mitres), rectangular / rounded-rectangle cut-outs only, no
+  connector-bolt pockets, no wall-profile scribing; a worktop does not follow later cabinet edits (rebuild it).
 * Rejecting a file at the 500-item limit still parses the whole (≤ 256 MiB) JSON text first.
 
 * Undo snapshots cost memory proportional to the project size per step (bounded by the undo limit).
@@ -417,7 +444,9 @@ The quantities of all entries add up to at most 1000 copies.
 
 ## 6. Tests
 
-`fos_project_tests`: default libraries; base-cabinet part and cut sizes (hand-computed); panel items and
+`fos_project_tests` (`worktop_tests.cpp`: run extent and overhangs in the reference frame, generic material/band,
+split at 2400 mm, joint moved from 2400 to 1850 by a sink keep-out, cut-out position in the second piece, rule-of-thumb
+refusals, run errors, undoable command): default libraries; base-cabinet part and cut sizes (hand-computed); panel items and
 placements; generation failure as diagnostic; structural errors; determinism; Scenario B (width 800 → 900 by
 command: bottom/rails/plinth/shelf/back +100, cut list rows, validated cutting plan, drawing overall width 900;
 undo restores the identical resolved model; redo); stored drawing edits applied; per-material cutting settings and

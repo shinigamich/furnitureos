@@ -33,9 +33,9 @@ TEST(CliWorktop, AddsWorktopWithSinkAndHob) {
     const auto r = fos({"worktop", in, "--items", "cab1,cab2,cab3", "--overhang", "25", "--sink", "700:600:450:10",
                         "--hob", "1400:500:450", "-o", out});
     ASSERT_EQ(r.code, kExitOk) << r.err;
-    EXPECT_TRUE(contains(r.out, "Worktop over 3 cabinet(s) (cab1, cab2, cab3): 1800.0 x")) << r.out;
+    EXPECT_TRUE(contains(r.out, "Worktop over 3 cabinet(s) (cab1, cab2, cab3): 1800 x")) << r.out;
     EXPECT_TRUE(contains(r.out, "One piece: item worktop.")) << r.out;
-    EXPECT_TRUE(contains(r.out, "Cut-out sink: 600.0 x 450.0 mm, centre 700.0 mm from the run start, R 10.0."));
+    EXPECT_TRUE(contains(r.out, "Cut-out sink: 600 x 450 mm, centre 700 mm from the run start, R 10."));
     auto loaded = project::loadProject(u8path(out));
     ASSERT_TRUE(loaded.ok());
     EXPECT_FALSE(core::hasErrors(loaded.value().resolved.diagnostics));
@@ -51,7 +51,7 @@ TEST(CliWorktop, AddsWorktopWithSinkAndHob) {
     writeKitchen(longRun, 7);
     const auto r2 = fos({"worktop", longRun, "--items", "cab1,cab2,cab3,cab4,cab5,cab6,cab7"});
     ASSERT_EQ(r2.code, kExitOk) << r2.err;
-    EXPECT_TRUE(contains(r2.out, "BUTT JOINTS at 2100.0 mm")) << r2.out;
+    EXPECT_TRUE(contains(r2.out, "BUTT JOINTS at 2100 mm")) << r2.out;
     EXPECT_EQ(project::loadProject(u8path(longRun)).value().project.items.size(), 9u);
 }
 

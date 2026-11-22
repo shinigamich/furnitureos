@@ -502,6 +502,28 @@ Saved kitchen.fosp
 Exit codes: 0 imported; 1 refused (no closed outline, unsupported cut-out, panel invalid) or saved with model
 errors; 2 usage error, unreadable / malformed DXF (message names the DXF line), unreadable / unwritable project.
 
+### `fos worktop`
+
+```
+fos worktop <file.fosp> --items ID[,ID...] [--overhang MM] [--left-overhang MM] [--right-overhang MM]
+            [--back-gap MM] [--material ID] [--band ID | --no-band] [--band-ends] [--band-back]
+            [--max-length MM] [--sink X:W:D[:R[:S]]] [--hob X:W:D[:R[:S]]] [--id ID] [--name N] [-o OUT.fosp]
+```
+
+Adds a worktop over a straight run of cabinets through `project::commands::addWorktop` (rules:
+`src/project/README.md` §4c) and saves to `-o` / `--out` or in place. `--overhang` is the front overhang (default
+20 mm). Cut-outs: centre X from the left face of the leftmost cabinet, size W × D, corner radius R, front setback
+S (default centred). A run longer than the usable stock is split into pieces with BUTT JOINTS, printed with their
+positions. Minimum distances are rules of thumb (50 mm edges, 100 mm free ends, 150 mm joints, 100 mm between
+cut-outs).
+
+```
+$ fos worktop kitchen.fosp --items cab1,cab2,cab3 --overhang 25 --sink 700:600:450:10 --hob 1400:500:450 -o out.fosp
+```
+
+Exit codes: 0 added; 1 refused (rule violated, run not straight, unknown item, ...; nothing saved); 2 usage error,
+unreadable / unwritable project.
+
 ### `fos component`
 
 Reusable components (`.foscomp`, schema: `src/project/README.md` "Component files").
@@ -540,6 +562,8 @@ pointer), unknown component name.
   a rectangular part and for negative values.
 * `src/cli/tests/cli_component_tests.cpp`: `fos component save` / `list` / `insert` round trip (placement, refusals,
   malformed file reported), `fos new --template drawers-boxed`.
+* `src/cli/tests/cli_worktop_tests.cpp`: `fos worktop` with sink + hob (one piece, two cut-outs, `-o` leaves the
+  input untouched), a 4200 mm run split at 2100 mm, rule-of-thumb refusal, usage errors.
 * `src/cli/tests/cli_binary_tests.cpp`: runs the real `fos` executable as a process (exit codes 0/1/2, output).
 * `tests/` (`fos_scenario_tests`): cross-module end-to-end scenarios A–F with hand-computed expectations; built by
   the root CMakeLists for a full configure and by this directory's CMakeLists when `FOS_MODULES` lists `cli`.

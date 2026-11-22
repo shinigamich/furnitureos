@@ -44,10 +44,12 @@ TEST(ProjectWorktop, SinglePieceOverTwoCabinets) {
     // Run: cab1 at x 100 .. 700, cab2 700 .. 1300 (cabinet bounds x = [0, 600] each, checked below).
     EXPECT_NEAR(cab.min.x, 0, 1e-9);
     EXPECT_NEAR(cab.max.x, 600, 1e-9);
-    // Length = (1300 + 30) - (100 - 10) = 1240; left end at x = 90.
+    // Length = (1300 + 30) - (100 - 10) = 1240; left end at project x = 90. Plan coordinates are
+    // in the frame of the FIRST LISTED cabinet (cab2 at x = 700): run start 100 - 700 = -600,
+    // left end 90 - 700 = -610.
     EXPECT_NEAR(w.length, 1240, 1e-9);
-    EXPECT_NEAR(w.left, 90, 1e-9);
-    EXPECT_NEAR(w.runStart, 100, 1e-9);
+    EXPECT_NEAR(w.left, -610, 1e-9);
+    EXPECT_NEAR(w.runStart, -600, 1e-9);
     // Depth = back (cab.max.y - 0) - front (cab.min.y - 20).
     EXPECT_NEAR(w.depth, cab.max.y - cab.min.y + 20, 1e-9);
     EXPECT_NEAR(w.top, cab.max.z, 1e-9);
@@ -70,8 +72,9 @@ TEST(ProjectWorktop, SinglePieceOverTwoCabinets) {
     EXPECT_FALSE(part->edge(domain::EdgeSide::L2).has_value());
     EXPECT_FALSE(part->edge(domain::EdgeSide::W1).has_value());
     EXPECT_FALSE(part->edge(domain::EdgeSide::W2).has_value());
-    const geometry::Aabb b = part->bounds();
+    const geometry::Aabb b = part->bounds().transformed(p.findItem("worktop")->placement()); // project frame
     EXPECT_NEAR(b.min.x, 90, 1e-9);
+    EXPECT_NEAR(b.max.x, 1330, 1e-9);
     EXPECT_NEAR(b.min.y, cab.min.y - 20, 1e-9);
     EXPECT_NEAR(b.min.z, cab.max.z, 1e-9);
     EXPECT_NEAR(b.max.z, cab.max.z + 38, 1e-9);
