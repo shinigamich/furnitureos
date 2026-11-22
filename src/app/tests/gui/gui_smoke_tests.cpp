@@ -212,11 +212,11 @@ TEST(GuiSmoke, PartOverrideHardwareDrawingEditsCutting) {
     settle();
     Session& s = w.session();
 
-    // Hardware tab lists the library's hinge.
+    // Hardware tab lists the library's hinges (full overlay, half overlay, inset).
     w.inspector()->cabinetTabs()->setCurrentIndex(1);
     auto* hinge = inspectorChild<QComboBox>(w, "hardware:0");
     ASSERT_NE(hinge, nullptr);
-    EXPECT_EQ(hinge->count(), 1);
+    EXPECT_EQ(hinge->count(), 3);
 
     // Part override: shelf material MDF from the part inspector.
     s.selectPart("cab1/shelf.1");
