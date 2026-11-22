@@ -9,6 +9,8 @@ fos_add_module(viewport
         src/shape_mesh.cpp
         src/section.cpp
         src/snap.cpp
+        src/manipulator.cpp
+        src/handle_overlay.cpp
         src/measure_overlay.cpp
         src/material_textures.cpp
         src/gl_renderer.cpp
@@ -29,6 +31,7 @@ if(FOS_BUILD_TESTS)
         tests/rect_golden_tests.cpp
         tests/shape_mesh_tests.cpp
         tests/snap_tests.cpp
+        tests/manipulator_tests.cpp
         tests/surface_tests.cpp)
     target_link_libraries(fos_viewport_tests PRIVATE fos::viewport GTest::gtest GTest::gmock)
     target_include_directories(fos_viewport_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

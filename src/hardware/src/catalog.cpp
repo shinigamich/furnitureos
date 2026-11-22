@@ -125,6 +125,30 @@ std::vector<HardwareDefinition> builtinCatalog() {
                  {kCabinetDepthMin, 250.0},
                  {kPowerFactorMin, 400.0},
                  {kPowerFactorMax, 1800.0}}),
+        generic(ids::kSlidingGeneric, HardwareKind::SlidingSystem,
+                "Sliding door system, two-lane top and bottom track (generic)",
+                {{kTopTrackHeight, 40.0},
+                 {kBottomTrackHeight, 10.0},
+                 {kTrackDepth, 80.0},
+                 {kTrackSetback, 10.0},
+                 {kPlaneFrontOffset, 10.0},
+                 {kPlanePitch, 35.0},
+                 {kDoorOverlap, 30.0},
+                 {kDoorHeightDeduction, 40.0},
+                 {kDoorBottomClearance, 15.0},
+                 {kDoorWidthMin, 400.0},
+                 {kDoorWidthMax, 1200.0},
+                 {kRollerHoleFromSideEdge, 40.0},
+                 {kRollerHoleFromBottomEdge, 30.0},
+                 {kGuideHoleFromTopEdge, 30.0},
+                 {kRollerHoleDiameter, 4.0},
+                 {kRollerHoleDepth, 10.0},
+                 {kTrackScrewEndDistance, 50.0},
+                 {kTrackScrewPitch, 300.0},
+                 {kTrackScrewDiameter, 4.0},
+                 {kTrackScrewDepth, 10.0},
+                 {kInteriorClearance, 5.0},
+                 {kInteriorDepthMin, 250.0}}),
     };
 }
 
@@ -154,6 +178,12 @@ std::vector<std::string> requiredParams(HardwareKind kind) {
         return {kSideHoleFromFront, kSideHoleSpacing,  kSideHoleBelowTop, kSideHoleDiameter, kSideHoleDepth,
                 kFlapHoleFromSideEdge, kFlapHoleFromTopEdge, kFlapHoleSpacing, kFlapHoleDiameter, kFlapHoleDepth,
                 kCabinetHeightMin, kCabinetHeightMax, kCabinetDepthMin, kPowerFactorMin, kPowerFactorMax};
+    case HardwareKind::SlidingSystem:
+        return {kTopTrackHeight, kBottomTrackHeight, kTrackDepth, kTrackSetback, kPlaneFrontOffset, kPlanePitch,
+                kDoorOverlap, kDoorHeightDeduction, kDoorBottomClearance, kDoorWidthMin, kDoorWidthMax,
+                kRollerHoleFromSideEdge, kRollerHoleFromBottomEdge, kGuideHoleFromTopEdge, kRollerHoleDiameter,
+                kRollerHoleDepth, kTrackScrewEndDistance, kTrackScrewPitch, kTrackScrewDiameter, kTrackScrewDepth,
+                kInteriorClearance, kInteriorDepthMin};
     default: return {};
     }
 }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include "fos/domain/model.hpp"
+#include "fos/viewport/manipulator.hpp"
 #include "fos/viewport/section.hpp"
 #include "fos/viewport/snap.hpp"
 
@@ -103,6 +104,26 @@ public:
     /// log one warning each and fall back to the procedural grain.
     void setTextureDirectory(const QString& directory);
 
+    // --- Resize handles (phase 15 direct modelling; the widget never changes the model) -------
+    /// Shows drag handles at the face centres of `target` (nullopt = none). Dragging a handle
+    /// moves along its axis (closest point of the mouse ray to the handle axis), shows a ghost
+    /// box and "W 912 mm" snapped to resizeStep() (Shift held: resizeCoarseStep()); releasing
+    /// emits resizeRequested() when the value changed. Esc cancels a drag. Handles are hidden and
+    /// inactive in measure mode. Replacing the target cancels a running drag.
+    void setResizeTarget(const std::optional<ResizeTarget>& target);
+    std::optional<ResizeTarget> resizeTarget() const;
+    /// Snap steps in mm (defaults 1 and 10); values <= 0 mean no snapping.
+    void setResizeSteps(double step, double coarseStep);
+    double resizeStep() const;
+    double resizeCoarseStep() const;
+    /// Index into resizeTarget()->handles of the visible handle under the widget-local pixel
+    /// position (nullopt when none, no target or in measure mode). No GL context needed.
+    std::optional<std::size_t> handleAt(const QPoint& position) const;
+    /// Handle being dragged and its current snapped value (nullopt when no drag runs).
+    std::optional<std::pair<std::size_t, double>> resizeDrag() const;
+    /// Cancels a running handle drag (no signal); also done by Esc.
+    void cancelResizeDrag();
+
 signals:
     /// Left click on a part (empty id = click on empty space). `additive` = Ctrl/Shift held.
     void partClicked(const QString& partId, bool additive);
@@ -112,6 +133,9 @@ signals:
     void measurementChanged();
     /// Measure mode switched (also when Esc leaves it).
     void measureModeChanged(bool on);
+    /// A handle drag ended with a new dimension (mm, snapped) for handle `axis`/`negative` of the
+    /// target's item. The application decides (e.g. runs an undoable parameter command).
+    void resizeRequested(const QString& itemId, fos::viewport::HandleAxis axis, bool negative, double newValue);
 
 protected:
     void initializeGL() override;

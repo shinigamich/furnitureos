@@ -111,6 +111,29 @@
 ///    cabinet_depth_min          250   depth of the cabinet side needed for the mechanism body
 ///    power_factor_min / _max    400 / 1800  flap height (mm) x flap weight (kg) range
 ///    (Typical values for a small lift stay; unverified. One mechanism per side.)
+///
+///  hw.sliding_generic  kind SlidingSystem  "Sliding door system, two-lane top and bottom track (generic)"
+///    (rules and frame: sliding_doors.hpp)
+///    top_track_height           40    top track profile height (under the panel above)
+///    bottom_track_height        10    bottom track profile height (on the panel below)
+///    track_depth                80    depth of both profiles (two lanes)
+///    track_setback              10    front edge of the tracks behind the carcass front
+///    plane_front_offset         10    front-lane door front face behind the track front edge
+///    plane_pitch                35    back-lane door front face this far behind the front lane's
+///    door_overlap               30    overlap of neighbouring doors
+///    door_height_deduction      40    door height = opening height - this (track clearance)
+///    door_bottom_clearance      15    door bottom edge above the opening bottom (25 remain on top)
+///    door_width_min / _max      400 / 1200
+///    roller_hole_from_side_edge   40  roller / guide holes in from the left and right door edge
+///    roller_hole_from_bottom_edge 30  bottom roller holes above the door bottom edge
+///    guide_hole_from_top_edge     30  top guide holes below the door top edge
+///    roller_hole_diameter / _depth  4 / 10   (rear face of the door)
+///    track_screw_end_distance   50    first / last track screw from the track ends
+///    track_screw_pitch          300   largest spacing of the track screws
+///    track_screw_diameter / _depth  4 / 10   (pilot holes in the top / bottom panel)
+///    interior_clearance         5     gap between the track rear edge and the interior
+///    interior_depth_min         250   interior depth that must remain behind the tracks
+///    (Typical values for a light wardrobe system; unverified. Data for an inset system.)
 namespace fos::hardware {
 
 namespace keys {
@@ -180,6 +203,28 @@ inline constexpr const char* kCabinetHeightMax = "cabinet_height_max";
 inline constexpr const char* kCabinetDepthMin = "cabinet_depth_min";
 inline constexpr const char* kPowerFactorMin = "power_factor_min";
 inline constexpr const char* kPowerFactorMax = "power_factor_max";
+inline constexpr const char* kTopTrackHeight = "top_track_height";
+inline constexpr const char* kBottomTrackHeight = "bottom_track_height";
+inline constexpr const char* kTrackDepth = "track_depth";
+inline constexpr const char* kTrackSetback = "track_setback";
+inline constexpr const char* kPlaneFrontOffset = "plane_front_offset";
+inline constexpr const char* kPlanePitch = "plane_pitch";
+inline constexpr const char* kDoorOverlap = "door_overlap";
+inline constexpr const char* kDoorHeightDeduction = "door_height_deduction";
+inline constexpr const char* kDoorBottomClearance = "door_bottom_clearance";
+inline constexpr const char* kDoorWidthMin = "door_width_min";
+inline constexpr const char* kDoorWidthMax = "door_width_max";
+inline constexpr const char* kRollerHoleFromSideEdge = "roller_hole_from_side_edge";
+inline constexpr const char* kRollerHoleFromBottomEdge = "roller_hole_from_bottom_edge";
+inline constexpr const char* kGuideHoleFromTopEdge = "guide_hole_from_top_edge";
+inline constexpr const char* kRollerHoleDiameter = "roller_hole_diameter";
+inline constexpr const char* kRollerHoleDepth = "roller_hole_depth";
+inline constexpr const char* kTrackScrewEndDistance = "track_screw_end_distance";
+inline constexpr const char* kTrackScrewPitch = "track_screw_pitch";
+inline constexpr const char* kTrackScrewDiameter = "track_screw_diameter";
+inline constexpr const char* kTrackScrewDepth = "track_screw_depth";
+inline constexpr const char* kInteriorClearance = "interior_clearance";
+inline constexpr const char* kInteriorDepthMin = "interior_depth_min";
 } // namespace keys
 
 namespace ids {
@@ -195,6 +240,7 @@ inline constexpr const char* kSlideUndermount = "hw.slide_undermount";
 inline constexpr const char* kHingeCup35Half = "hw.hinge_cup_35_half";
 inline constexpr const char* kHingeCup35Inset = "hw.hinge_cup_35_inset";
 inline constexpr const char* kLiftGeneric = "hw.lift_generic";
+inline constexpr const char* kSlidingGeneric = "hw.sliding_generic";
 } // namespace ids
 
 /// The generic catalogue, in the fixed order of the list above. unitCost is 0 (unknown).
