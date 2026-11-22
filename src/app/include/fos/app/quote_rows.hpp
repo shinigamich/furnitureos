@@ -44,7 +44,7 @@ project::Command resetPricingSettingsCommand();
 /// guillotine sheets taken from purchased stock (listed remnants are owned, not counted) plus
 /// nested sheets; cut length = sum of the guillotine sheets' cut lengths (mm). A material whose
 /// guillotine or nesting optimisation failed is left out (it is then priced by area) and an
-/// app.quote.plan_failed warning naming it is appended to `diagnostics`.
+/// project.quote.plan_failed warning (shared with the CLI via project::quoteSheetUsage) naming it is appended to `diagnostics`.
 std::map<domain::MaterialId, production::SheetUsage> sheetUsageFromPlans(const project::CuttingPlans& plans,
                                                                          core::Diagnostics& diagnostics);
 

@@ -158,10 +158,9 @@ TEST(File, SlidingDoorCabinetRoundTripsByteIdentical) {
     EXPECT_EQ(doors, 2u);
 
     const std::string first = serialized(p);
-    const auto j = formats::Json::parse(first);
-    const auto& jc = j["payload"]["project"]["items"][0];
-    EXPECT_NE(jc.dump().find("\"countExpression\":\"if(width > 1500, 3, 2)\""), std::string::npos) << jc.dump();
-    EXPECT_NE(jc.dump().find("\"slidingSystem\":\"hw.sliding_custom\""), std::string::npos) << jc.dump();
+    const std::string compact = formats::Json::parse(first).dump();
+    EXPECT_NE(compact.find("\"countExpression\":\"if(width > 1500, 3, 2)\""), std::string::npos);
+    EXPECT_NE(compact.find("\"slidingSystem\":\"hw.sliding_custom\""), std::string::npos);
 
     auto loaded = parseProject(first);
     ASSERT_TRUE(loaded.ok()) << loaded.error().message;

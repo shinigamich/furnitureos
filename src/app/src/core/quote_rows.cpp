@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/app/quote_rows.hpp"
 
+#include "fos/project/outputs.hpp"
+
 #include <set>
 
 namespace fos::app {
@@ -63,37 +65,7 @@ project::Command resetPricingSettingsCommand() {
 
 std::map<domain::MaterialId, production::SheetUsage> sheetUsageFromPlans(const project::CuttingPlans& plans,
                                                                          core::Diagnostics& diagnostics) {
-    std::map<domain::MaterialId, production::SheetUsage> usage;
-    std::set<std::string> failed;
-    for (const auto& plan : plans.plans) {
-        if (!plan.result) {
-            failed.insert(plan.job.id);
-            continue;
-        }
-        auto& u = usage[domain::MaterialId(plan.job.id)];
-        for (const auto& sheet : plan.result->sheets) {
-            const bool remnant = sheet.stockIndex >= 0 &&
-                                 static_cast<std::size_t>(sheet.stockIndex) < plan.job.stock.size() &&
-                                 plan.job.stock[static_cast<std::size_t>(sheet.stockIndex)].isRemnant;
-            if (!remnant) ++u.sheets; // listed remnants are already owned: not purchased
-            u.cutLengthMm += sheet.cutLength;
-        }
-    }
-    for (const auto& plan : plans.nestingPlans) {
-        if (!plan.result) {
-            failed.insert(plan.job.materialId);
-            continue;
-        }
-        usage[domain::MaterialId(plan.job.materialId)].sheets += static_cast<int>(plan.result->sheets.size());
-    }
-    for (const auto& id : failed) {
-        usage.erase(domain::MaterialId(id));
-        diagnostics.push_back({core::Severity::Warning, "app.quote.plan_failed",
-                               "No cutting plan could be made for material '" + id +
-                                   "'; it is priced by area instead of by sheets.",
-                               id});
-    }
-    return usage;
+    return project::quoteSheetUsage(plans, diagnostics);
 }
 
 core::Result<production::Quote> projectQuote(const project::Project& project, const domain::Model& model,
