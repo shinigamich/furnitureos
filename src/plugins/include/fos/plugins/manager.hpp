@@ -43,10 +43,15 @@ struct PluginLoadResult {
     std::string id;
     std::string version;
     formats::MergeReport merge; ///< Entries merged into the target (empty on failure).
+    std::size_t componentCount = 0; ///< Components this plugin contributed (in LoadReport::components).
 };
 
 struct LoadReport {
     std::vector<PluginLoadResult> loaded; ///< Successfully loaded plugins, sorted by id.
+    /// Components of the loaded plugins (contributes.components), plugin id order, then manifest
+    /// and file order. Not merged anywhere: the application indexes them (e.g.
+    /// project::ComponentLibrary::add after project::componentFromRecord).
+    std::vector<PluginComponent> components;
     core::Diagnostics diagnostics;        ///< Failures (errors) and warnings, sorted by plugin id.
 };
 
@@ -92,11 +97,13 @@ public:
     /// ConflictPolicy::Skip: an entry whose id already exists in `target` is kept unchanged
     /// (warning "plugins.load.skipped_existing"). Each plugin is all-or-nothing and a failing
     /// plugin (LoadFailed) never affects the others. Packages are re-inspected before reading.
+    /// Contributed component files are loaded first (loadPackageComponents); a plugin whose
+    /// components fail to load fails as a whole and merges nothing.
     LoadReport loadInto(formats::Library& target);
 
     /// Installs the package at `sourceDir` into <installDir>/<id> after full validation
-    /// (manifest, paths, sizes, app compatibility, loading every library and the namespace
-    /// rule). Copies only plugin.json, the contributed libraries and top-level LICENSE*/
+    /// (manifest, paths, sizes, app compatibility, loading every library and component file and
+    /// the namespace rule). Copies only plugin.json, the contributed libraries, component files and top-level LICENSE*/
     /// LICENCE*/COPYING*/README*/NOTICE* regular files, through a hidden staging directory
     /// that is re-validated before it replaces the destination. Refuses to replace a newer
     /// installed version unless options.overwriteNewer. Call discover() afterwards.

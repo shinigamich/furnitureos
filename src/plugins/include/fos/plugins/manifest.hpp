@@ -26,15 +26,19 @@ struct PluginLimits {
     std::uintmax_t maxLibraryBytes = 16 * 1024 * 1024;       ///< each contributed .foslib
     std::uintmax_t maxTotalBytes = 64 * 1024 * 1024;         ///< all contributed files of one plugin
     std::size_t maxLibraries = 32;                           ///< entries of contributes.libraries
+    std::uintmax_t maxComponentBytes = 16 * 1024 * 1024;     ///< each contributed .foscomp
+    std::size_t maxComponentFiles = 64;                      ///< entries of contributes.components
+    std::size_t maxComponents = 2000;                        ///< components of all files of one plugin
     std::size_t maxEntries = 20000;                          ///< materials + edge bands + hardware of one plugin
     int maxJsonDepth = 32;                                   ///< nesting depth of plugin.json
 };
 
-/// Kinds of contribution a manifest may list under "contributes". Only Libraries is
-/// supported by this version; the others are accepted with a warning and ignored.
-enum class ExtensionKind { Libraries, Templates, Reports, Postprocessors, Importers };
+/// Kinds of contribution a manifest may list under "contributes". Libraries (`.foslib`) and
+/// Components (`.foscomp`) are supported by this version; the others are accepted with a
+/// warning and ignored.
+enum class ExtensionKind { Libraries, Templates, Reports, Postprocessors, Importers, Components };
 const char* toString(ExtensionKind kind) noexcept; ///< The manifest key, e.g. "libraries".
-bool isSupported(ExtensionKind kind) noexcept;     ///< True only for Libraries.
+bool isSupported(ExtensionKind kind) noexcept;     ///< True for Libraries and Components.
 std::optional<ExtensionKind> extensionKindFromKey(std::string_view key) noexcept;
 
 /// Permissions a plugin may request. Phase 1 defines only "data" (read-only data files).
@@ -61,6 +65,8 @@ struct PluginManifest {
     std::vector<std::string> permissions;
     /// contributes.libraries: relative paths (forward slashes) of `.foslib` files, file order.
     std::vector<std::string> libraries;
+    /// contributes.components: relative paths (forward slashes) of `.foscomp` files, file order.
+    std::vector<std::string> components;
     /// Unsupported contribution kinds that were present (and ignored), in file order.
     std::vector<ExtensionKind> ignoredContributions;
     std::map<std::string, std::string> localizedNames; ///< Language tag -> name.

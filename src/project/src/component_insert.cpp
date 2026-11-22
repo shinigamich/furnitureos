@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/project/components.hpp"
 
+#include "fos/formats/codec.hpp"
 #include "fos/project/resolve.hpp"
+
+#include <algorithm>
 
 #include <map>
 #include <memory>
@@ -65,6 +68,50 @@ void remapItem(Item& item, const Remap& r) {
     }
 }
 
+/// Removes from `incoming` every entry that is byte-for-byte identical (same JSON encoding) to
+/// the target entry with the same id; returns their (category, id, name) in incoming order.
+template <class T>
+void dropIdentical(std::vector<T>& incoming, const std::vector<T>& target, LibraryCategory category,
+                   std::vector<formats::MergeEntry>& identical) {
+    std::vector<T> kept;
+    for (auto& e : incoming) {
+        const auto it = std::find_if(target.begin(), target.end(), [&](const T& t) { return t.id == e.id; });
+        if (it != target.end() && formats::toJson(*it) == formats::toJson(e))
+            identical.push_back({category, MergeAction::Skipped, e.id.str(), e.id.str(), e.name});
+        else
+            kept.push_back(std::move(e));
+    }
+    incoming = std::move(kept);
+}
+
+/// formats::mergeLibrary, except that incoming entries identical to the existing entry with the
+/// same id are always Skipped (never duplicated by RenameWithNewId or rewritten by Replace).
+/// Report entries keep the incoming order (materials, edge bands, hardware).
+core::Result<formats::MergeReport> mergeComponentLibrary(formats::Library& target, const formats::Library& incoming,
+                                                         formats::ConflictPolicy policy,
+                                                         const formats::IdGenerator& newId) {
+    formats::Library filtered = incoming;
+    std::vector<formats::MergeEntry> identical;
+    dropIdentical(filtered.materials, target.materials, LibraryCategory::Material, identical);
+    dropIdentical(filtered.edgeBands, target.edgeBands, LibraryCategory::EdgeBand, identical);
+    dropIdentical(filtered.hardware, target.hardware, LibraryCategory::Hardware, identical);
+    auto merged = formats::mergeLibrary(target, filtered, policy, newId);
+    if (!merged) return merged.error();
+    formats::MergeReport report;
+    auto take = [&](LibraryCategory category, const std::string& id) {
+        for (auto* list : {&merged.value().entries, &identical})
+            for (const auto& e : *list)
+                if (e.category == category && e.incomingId == id) {
+                    report.entries.push_back(e);
+                    return;
+                }
+    };
+    for (const auto& e : incoming.materials) take(LibraryCategory::Material, e.id.str());
+    for (const auto& e : incoming.edgeBands) take(LibraryCategory::EdgeBand, e.id.str());
+    for (const auto& e : incoming.hardware) take(LibraryCategory::Hardware, e.id.str());
+    return report;
+}
+
 } // namespace
 
 formats::IdGenerator componentIdGenerator(const std::string& newItemId) {
@@ -75,7 +122,7 @@ formats::IdGenerator componentIdGenerator(const std::string& newItemId) {
 core::Result<formats::MergeReport> planComponentInsert(const Project& project, const Component& component,
                                                        formats::ConflictPolicy policy, const formats::IdGenerator& newId) {
     formats::Library target = libraryOf(project);
-    return formats::mergeLibrary(target, component.library, policy, newId);
+    return mergeComponentLibrary(target, component.library, policy, newId);
 }
 
 Command insertComponent(Component component, std::string newItemId, geometry::Transform placement,
@@ -94,7 +141,7 @@ Command insertComponent(Component component, std::string newItemId, geometry::Tr
                                    "The placement of \"" + newItemId + "\" is not a proper rotation plus translation.",
                                    newItemId);
         formats::Library target = libraryOf(p);
-        auto merged = formats::mergeLibrary(target, component.library, policy,
+        auto merged = mergeComponentLibrary(target, component.library, policy,
                                             newId ? newId : componentIdGenerator(newItemId));
         if (!merged) return merged.error();
         Remap remap;

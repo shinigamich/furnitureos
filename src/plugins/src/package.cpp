@@ -20,6 +20,50 @@ core::Diagnostic error(const std::string& entity, const std::string& code, const
 
 } // namespace
 
+core::Result<std::vector<PluginComponent>> loadPackageComponents(const PluginPackage& package,
+                                                                 const PluginLimits& limits,
+                                                                 core::Diagnostics* warnings) {
+    const std::string& id = package.manifest.id;
+    std::vector<PluginComponent> out;
+    std::set<std::string> seen;
+    for (std::size_t f = 0; f < package.componentFiles.size(); ++f) {
+        const auto& file = package.componentFiles[f];
+        const std::string& rel = package.manifest.components[f];
+        auto text = readBounded(file, limits.maxComponentBytes);
+        if (!text.ok())
+            return makeError(text.error().code,
+                             "Plugin '" + id + "': component file \"" + rel + "\" cannot be read: " + text.error().message, id);
+        core::Diagnostics fileWarnings;
+        formats::LoadOptions loadOptions;
+        loadOptions.maxFileBytes = limits.maxComponentBytes;
+        auto parsed = formats::importComponentFileText(text.value(), rel, loadOptions, &fileWarnings);
+        if (!parsed.ok())
+            return makeError(parsed.error().code,
+                             "Plugin '" + id + "': component file \"" + rel + "\" cannot be loaded: " + parsed.error().message, id);
+        if (warnings)
+            for (auto& w : fileWarnings) {
+                w.entityId = id;
+                warnings->push_back(std::move(w));
+            }
+        auto& records = parsed.value().components;
+        for (std::size_t i = 0; i < records.size(); ++i) {
+            const std::string& cid = records[i].meta.id;
+            const std::string where = "Plugin '" + id + "', component file \"" + rel + "\", /payload/components/" +
+                                      std::to_string(i) + "/id: ";
+            if (auto why = checkNamespacedId(id, cid); !why.empty())
+                return makeError(ErrorCode::ConstraintViolation, where + why + ".", id);
+            if (!seen.insert(cid).second)
+                return makeError(ErrorCode::ConstraintViolation,
+                                 where + "id \"" + cid + "\" is already used by another component of this plugin.", id);
+            if (out.size() + 1 > limits.maxComponents)
+                return makeError(ErrorCode::ConstraintViolation, "Plugin '" + id + "' contributes more than " +
+                                                                     std::to_string(limits.maxComponents) + " components.", id);
+            out.push_back(PluginComponent{id, rel, std::move(records[i])});
+        }
+    }
+    return out;
+}
+
 std::string checkNamespacedId(std::string_view pluginId, std::string_view entityId) {
     const std::string prefix = std::string(pluginId) + kNamespaceSeparator;
     if (entityId.size() <= prefix.size() || entityId.compare(0, prefix.size(), prefix) != 0)
@@ -103,31 +147,36 @@ PackageInspection inspectPackage(const fs::path& pluginDir, const PluginLimits& 
     pkg.directory = resolvePath(pluginDir, ec);
     pkg.manifest = out.manifest;
     bool failed = false;
-    for (std::size_t i = 0; i < out.manifest.libraries.size(); ++i) {
-        const auto& rel = out.manifest.libraries[i];
-        const std::string ptr = "/contributes/libraries/" + std::to_string(i);
-        auto resolved = resolveInside(pkg.directory, rel);
-        if (!resolved.ok()) {
-            out.diagnostics.push_back(error(id, "plugins.package.bad_path", ptr + ": " + resolved.error().message));
-            failed = true;
-            continue;
+    auto addFiles = [&](const std::vector<std::string>& list, const char* key, std::uintmax_t maxBytes,
+                        std::vector<fs::path>& files) {
+        for (std::size_t i = 0; i < list.size(); ++i) {
+            const auto& rel = list[i];
+            const std::string ptr = std::string("/contributes/") + key + "/" + std::to_string(i);
+            auto resolved = resolveInside(pkg.directory, rel);
+            if (!resolved.ok()) {
+                out.diagnostics.push_back(error(id, "plugins.package.bad_path", ptr + ": " + resolved.error().message));
+                failed = true;
+                continue;
+            }
+            const auto size = fs::file_size(resolved.value(), ec);
+            if (ec) {
+                out.diagnostics.push_back(error(id, "plugins.package.io_error", ptr + ": cannot read the size of \"" + rel + "\": " + ec.message() + "."));
+                failed = true;
+                continue;
+            }
+            if (size > maxBytes) {
+                out.diagnostics.push_back(error(id, "plugins.package.file_too_large",
+                                                ptr + ": \"" + rel + "\" is " + std::to_string(size) +
+                                                    " bytes; the per-file limit is " + std::to_string(maxBytes) + " bytes."));
+                failed = true;
+                continue;
+            }
+            pkg.totalBytes += size;
+            files.push_back(resolved.value());
         }
-        const auto size = fs::file_size(resolved.value(), ec);
-        if (ec) {
-            out.diagnostics.push_back(error(id, "plugins.package.io_error", ptr + ": cannot read the size of \"" + rel + "\": " + ec.message() + "."));
-            failed = true;
-            continue;
-        }
-        if (size > limits.maxLibraryBytes) {
-            out.diagnostics.push_back(error(id, "plugins.package.file_too_large",
-                                            ptr + ": \"" + rel + "\" is " + std::to_string(size) +
-                                                " bytes; the per-file limit is " + std::to_string(limits.maxLibraryBytes) + " bytes."));
-            failed = true;
-            continue;
-        }
-        pkg.totalBytes += size;
-        pkg.libraryFiles.push_back(resolved.value());
-    }
+    };
+    addFiles(out.manifest.libraries, "libraries", limits.maxLibraryBytes, pkg.libraryFiles);
+    addFiles(out.manifest.components, "components", limits.maxComponentBytes, pkg.componentFiles);
     if (!failed && pkg.totalBytes > limits.maxTotalBytes) {
         out.diagnostics.push_back(error(id, "plugins.package.too_large",
                                         "The contributed files of plugin '" + id + "' total " + std::to_string(pkg.totalBytes) +

@@ -231,3 +231,51 @@ TEST(ViewportGl, ContouredWorktopShowsTheSinkOpening) {
     EXPECT_LT(colourDistance(sink, kBackground), 40);
     EXPECT_GT(colourDistance(sink, material), 30);
 }
+
+// Phase 20: Realistic material display (grain, edge bands, raw core). Screenshot via
+// FOS_VIEWPORT_REALISTIC_SCREENSHOT; frame time on the 2004-part scene.
+TEST(ViewportGl, RealisticModeScreenshotAndFrameTime) {
+    REQUIRE_GL();
+    ViewportWidget w;
+    w.resize(1280, 800);
+    domain::Model m = domain::fixtures::basicCabinet();
+    m.edgeBands[0].color = {236, 228, 210}; // light ABS on the front edges
+    w.setModel(m);
+    w.setViewPreset(ViewPreset::Isometric);
+    const QImage shaded = render(w);
+    w.setDisplayMode(viewport::DisplayMode::Realistic);
+    EXPECT_EQ(w.displayMode(), viewport::DisplayMode::Realistic);
+    QImage img = render(w);
+    if (const char* path = std::getenv("FOS_VIEWPORT_REALISTIC_SCREENSHOT")) {
+        EXPECT_TRUE(img.save(path));
+    }
+    const auto px = w.camera().projectToPixel({400, 280, 720});
+    ASSERT_TRUE(px);
+    EXPECT_GT(colourDistance(img.pixelColor(int(px->x), int(px->y)), kBackground), 30);
+    EXPECT_NE(img, shaded);
+
+    domain::Model big = m;
+    const auto proto = big.assemblies[0];
+    big.assemblies.clear();
+    for (int i = 0; i < 334; ++i) {
+        auto a = proto;
+        a.id = domain::AssemblyId("cab" + std::to_string(i));
+        for (auto& p : a.parts) p.id = domain::PartId(a.id.str() + "/" + p.id.str());
+        a.placement = geometry::Transform::translation({(i % 20) * 1000.0, (i / 20) * 1000.0, 0});
+        big.assemblies.push_back(a);
+    }
+    w.setModel(big, true);
+    img = render(w);
+    constexpr int kFrames = 20;
+    QElapsedTimer t;
+    t.start();
+    for (int i = 0; i < kFrames; ++i) {
+        viewport::Camera c = w.camera();
+        c.orbit(5, 0);
+        w.setCamera(c);
+        img = render(w);
+    }
+    std::printf("[ PERF     ] Realistic, 2004 parts, 1280x800: orbit frame incl. readback %.1f ms\n",
+                double(t.nsecsElapsed()) / 1e6 / kFrames);
+    EXPECT_FALSE(img.isNull());
+}

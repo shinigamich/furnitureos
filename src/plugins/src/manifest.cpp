@@ -190,15 +190,18 @@ const char* toString(ExtensionKind kind) noexcept {
     case ExtensionKind::Reports: return "reports";
     case ExtensionKind::Postprocessors: return "postprocessors";
     case ExtensionKind::Importers: return "importers";
+    case ExtensionKind::Components: return "components";
     }
     return "unknown";
 }
 
-bool isSupported(ExtensionKind kind) noexcept { return kind == ExtensionKind::Libraries; }
+bool isSupported(ExtensionKind kind) noexcept {
+    return kind == ExtensionKind::Libraries || kind == ExtensionKind::Components;
+}
 
 std::optional<ExtensionKind> extensionKindFromKey(std::string_view key) noexcept {
     for (auto k : {ExtensionKind::Libraries, ExtensionKind::Templates, ExtensionKind::Reports,
-                   ExtensionKind::Postprocessors, ExtensionKind::Importers})
+                   ExtensionKind::Postprocessors, ExtensionKind::Importers, ExtensionKind::Components})
         if (key == toString(k)) return k;
     return std::nullopt;
 }
@@ -457,10 +460,12 @@ ManifestValidation parseManifest(std::string_view text, const PluginLimits& limi
                 ck.error(base, "plugins.manifest.wrong_type", std::string("expected an array of relative paths, found ") + typeName(list) + ".");
                 continue;
             }
-            if (list.size() > limits.maxLibraries) {
+            const bool components = *kind == ExtensionKind::Components;
+            const std::size_t maxFiles = components ? limits.maxComponentFiles : limits.maxLibraries;
+            if (list.size() > maxFiles) {
                 ck.error(base, "plugins.manifest.too_many",
-                         std::to_string(list.size()) + " libraries are listed; the limit is " +
-                             std::to_string(limits.maxLibraries) + ".");
+                         std::to_string(list.size()) + (components ? " component files" : " libraries") +
+                             " are listed; the limit is " + std::to_string(maxFiles) + ".");
                 continue;
             }
             std::set<std::string> seen;
@@ -475,9 +480,11 @@ ManifestValidation parseManifest(std::string_view text, const PluginLimits& limi
                     ck.error(path, "plugins.manifest.bad_path", "\"" + rel + "\" is not allowed: " + why + ".");
                     continue;
                 }
-                constexpr std::string_view ext = ".foslib";
+                const std::string_view ext = components ? ".foscomp" : ".foslib";
                 if (rel.size() <= ext.size() || rel.compare(rel.size() - ext.size(), ext.size(), ext) != 0) {
-                    ck.error(path, "plugins.manifest.bad_path", "\"" + rel + "\" must name a .foslib library file.");
+                    ck.error(path, "plugins.manifest.bad_path",
+                             "\"" + rel + "\" must name a " + std::string(ext) +
+                                 (components ? " component file." : " library file."));
                     continue;
                 }
                 if (!seen.insert(pathIdentityKey(rel)).second) {
@@ -486,7 +493,7 @@ ManifestValidation parseManifest(std::string_view text, const PluginLimits& limi
                              "Windows and macOS file systems do).");
                     continue;
                 }
-                m.libraries.push_back(rel);
+                (components ? m.components : m.libraries).push_back(rel);
             }
         }
     }

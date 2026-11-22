@@ -24,7 +24,18 @@ struct ScenePart {
     /// True when the part is drawn as the extrusion of its contour (domain::hasShape and not
     /// domain::isRectangularOutline, ADR-0008); false = finished-size box (exactly as before).
     bool contoured = false;
+    // --- Realistic material display (phase 20) ---
+    bool hasGrain = false;   ///< Material::hasGrain (procedural wood grain / decor direction).
+    domain::GrainDirection grain = domain::GrainDirection::None; ///< Part::grain (None = along length).
+    int texture = -1;        ///< Index into Scene::textures() (Material::texture), -1 = none.
 };
+
+/// What a surface of a board is, for the Realistic display mode.
+enum class SurfaceKind { BoardFace = 0, BandedEdge = 1, RawEdge = 2 };
+
+/// Colour of an unbanded (raw) board edge: the particleboard-like core, darker than the decor.
+///   core = 0.75 * (0.7 * (176, 146, 108) + 0.3 * material), rounded per channel.
+domain::Color rawEdgeColor(domain::Color material) noexcept;
 
 /// Colour of parts whose material is missing from the model.
 inline constexpr domain::Color kFallbackColor{160, 160, 160};
@@ -35,6 +46,19 @@ struct MeshVertex {
     float nx, ny, nz;
     float part; ///< Index into Scene::parts() (exact for < 2^24 parts).
 };
+/// Per-vertex appearance, parallel to Scene::Buffers::vertices (same index), used by the
+/// Realistic display mode. Kept separate from MeshVertex so the geometry layout is unchanged.
+struct SurfaceVertex {
+    float r, g, b;    ///< Surface colour 0..1: material (board faces), band colour (banded edges),
+                      ///< rawEdgeColor(material) (raw edges).
+    float u, v;       ///< Surface coordinates in mm, part frame. Board faces: u along the grain,
+                      ///< v across it. Edges: u along the edge (wall tangent), v = local z.
+    float gx, gy, gz; ///< Grain direction, project frame unit vector; 0 when the material has no
+                      ///< grain. Faces: Part::grain axis; edges: along the edge.
+    float kind;       ///< SurfaceKind as float.
+    float texture;    ///< Scene::textures() index on board faces, -1 otherwise.
+};
+
 /// Vertex for edge lines: position (mm) and part index.
 struct LineVertex {
     float px, py, pz;
@@ -101,6 +125,9 @@ public:
     /// contour cannot be triangulated (the part is then shown and picked as its box).
     const core::Diagnostics& diagnostics() const noexcept { return diagnostics_; }
 
+    /// Distinct non-empty Material::texture references of the model's materials, sorted.
+    const std::vector<std::string>& textures() const noexcept { return textures_; }
+
     /// GPU geometry for ALL parts (visibility/selection are per-part state, not geometry):
     /// box parts give 24 vertices / 36 indices (geometry::makeBox) and 12 edges = 24 line
     /// vertices; contoured parts give their local mesh and feature edges (see
@@ -109,6 +136,7 @@ public:
         std::vector<MeshVertex> vertices;
         std::vector<std::uint32_t> indices;
         std::vector<LineVertex> lines;
+        std::vector<SurfaceVertex> surface; ///< One per entry of `vertices` (Realistic mode).
     };
     Buffers buildBuffers() const;
 
@@ -118,6 +146,13 @@ private:
     std::vector<geometry::TriangleMesh> meshes_;     // per part, part frame
     std::vector<std::vector<geometry::Edge3>> edges_; // per part, part frame
     core::Diagnostics diagnostics_;
+    std::vector<std::string> textures_;
+    // Per part: edge band colours (box: indexed by EdgeSide; contoured: by outer segment),
+    // wall -> outer segment map of contoured meshes (-1 = cut-out), cap vertex count.
+    std::vector<std::vector<std::optional<domain::Color>>> edgeColors_;
+    std::vector<std::vector<std::int32_t>> wallSegments_;
+    std::vector<std::size_t> capVertices_;
+    SurfaceVertex surfaceOf(std::size_t part, std::size_t vertex, geometry::Vec3 local, geometry::Vec3 normal) const;
     std::vector<std::string> hidden_, isolated_, selected_; // sorted
     std::optional<SectionPlane> section_;
 };

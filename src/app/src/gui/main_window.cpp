@@ -61,6 +61,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), preferences_(Pref
     connect(&session_, &Session::documentReplaced, this, [this] { fitOnNextModel_ = true; });
     connect(&session_, &Session::projectChanged, this, [this] {
         if (const project::Resolved* r = session_.resolved()) {
+            viewport_->setTextureDirectory(QString::fromStdString(session_.filePath().parent_path().string()));
             viewport_->setModel(r->model, fitOnNextModel_);
             fitOnNextModel_ = false;
         } else {

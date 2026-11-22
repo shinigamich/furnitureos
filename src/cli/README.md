@@ -30,7 +30,7 @@ shown in full; `…` marks lines removed from long listings.
 
 ### `fos new`
 
-Creates a `.fosp` project with the generic placeholder libraries (no manufacturer, cost 0 = unknown). `--template base|wall|tall|drawers|wardrobe|shelving` adds one cabinet (item id `cab1`, or `--item-id`); `--width/--height/--depth` are applied through the same undoable document commands the desktop application uses. `--id`/`--date` make the file reproducible (default: random UUID v4, current UTC time). An existing file is never overwritten without `--force`.
+Creates a `.fosp` project with the generic placeholder libraries (no manufacturer, cost 0 = unknown). `--template base|wall|tall|drawers|drawers-boxed|wardrobe|shelving` adds one cabinet (`drawers` = fronts only; `drawers-boxed` = the same unit with a drawer box on generic ball-bearing slides behind every front) (item id `cab1`, or `--item-id`); `--width/--height/--depth` are applied through the same undoable document commands the desktop application uses. `--id`/`--date` make the file reproducible (default: random UUID v4, current UTC time). An existing file is never overwritten without `--force`.
 
 ```text
 $ fos new kitchen.fosp --name Kitchen --author "J. Doe" --template base --width 800 --height 720 --id 0b6f6a52-6a4e-4c8e-9a3b-6f1d2c3e4f50 --date 2026-11-13T09:00:00Z

@@ -80,7 +80,9 @@ const Component* findComponent(const std::vector<Component>& components, std::st
 formats::IdGenerator componentIdGenerator(const std::string& newItemId);
 
 /// Dry run of insertComponent(): how the embedded library entries would merge into
-/// project.libraries (formats::mergeLibrary semantics). The project is not changed.
+/// project.libraries (same rules as insertComponent()). The project is not changed. Pass
+/// componentIdGenerator(newItemId) to get the ids insertComponent() would use (an empty
+/// generator means mergeLibrary's random UUIDs).
 core::Result<formats::MergeReport> planComponentInsert(const Project& project, const Component& component,
                                                        formats::ConflictPolicy policy,
                                                        const formats::IdGenerator& newId = {});
@@ -89,7 +91,9 @@ core::Result<formats::MergeReport> planComponentInsert(const Project& project, c
 ///  1. merges component.library into the project libraries with `policy`
 ///     (Skip = keep the existing entry with the same id, Replace = overwrite it in place,
 ///     RenameWithNewId = add the incoming entry under a new id from `newId`, default
-///     componentIdGenerator(newItemId));
+///     componentIdGenerator(newItemId)). An incoming entry IDENTICAL (same JSON encoding) to
+///     the existing entry with the same id is always kept as is (reported Skipped), so e.g.
+///     the built-in hardware is never duplicated by RenameWithNewId;
 ///  2. rewrites the item's references of renamed entries to their new ids;
 ///  3. appends the item with id `newItemId` (a panel's part id becomes "<newItemId>/panel"),
 ///     name component.meta.name and `placement`; cabinet part ids derive from the item id;

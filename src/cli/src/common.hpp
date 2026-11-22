@@ -93,6 +93,7 @@ std::string safeFileName(std::string_view id);
 
 // Command entry points (args exclude the command name).
 int cmdNew(const std::vector<std::string>& args, Io& io);
+int cmdComponent(const std::vector<std::string>& args, Io& io);
 int cmdInfo(const std::vector<std::string>& args, Io& io);
 int cmdSet(const std::vector<std::string>& args, Io& io);
 int cmdValidate(const std::vector<std::string>& args, Io& io);

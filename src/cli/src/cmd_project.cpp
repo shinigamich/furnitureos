@@ -16,14 +16,16 @@ namespace {
 
 const char* kNewHelp =
     "Usage: fos new <file.fosp> [--name N] [--author A]\n"
-    "               [--template base|wall|tall|drawers|wardrobe|shelving [--item-id ID]\n"
+    "               [--template base|wall|tall|drawers|drawers-boxed|wardrobe|shelving\n"
+    "                [--item-id ID]\n"
     "                [--width W] [--height H] [--depth D]]\n"
     "               [--id UUID] [--date YYYY-MM-DDTHH:MM:SSZ] [--force]\n\n"
     "Creates a project with the generic default libraries (placeholder materials, no prices).\n"
     "With --template one cabinet is added (item id 'cab1' unless --item-id is given); --width,\n"
     "--height and --depth (mm) are applied through undoable document commands.\n"
     "Template defaults (W x H x D): base 600x820x560, wall 600x720x320, tall 600x2100x560,\n"
-    "drawers 600x820x560, wardrobe 1000x2200x580, shelving 800x1800x300.\n"
+    "drawers 600x820x560 (fronts only), drawers-boxed 600x820x560 (drawer boxes on ball-bearing\n"
+    "slides behind every front), wardrobe 1000x2200x580, shelving 800x1800x300.\n"
     "--id / --date make the file reproducible (default: random UUID v4, current UTC time).\n"
     "An existing file is not overwritten unless --force is given.\n";
 
@@ -56,6 +58,7 @@ std::optional<TemplateFn> templateByName(const std::string& name) {
     if (name == "wall") return &t::wallCabinet;
     if (name == "tall") return &t::tallCabinet;
     if (name == "drawers") return &t::drawerUnit;
+    if (name == "drawers-boxed") return &t::drawerUnitWithBoxes;
     if (name == "wardrobe") return &t::wardrobeSection;
     if (name == "shelving") return &t::openShelving;
     return std::nullopt;
@@ -149,7 +152,7 @@ int cmdNew(const std::vector<std::string>& args, Io& io) {
         const auto fn = templateByName(*tname);
         if (!fn)
             return usageError(io, "new", "unknown template '" + *tname +
-                                             "' (choose base, wall, tall, drawers, wardrobe or shelving).");
+                                             "' (choose base, wall, tall, drawers, drawers-boxed, wardrobe or shelving).");
         itemId = a.value("item-id").value_or("cab1");
         if (itemId.empty()) return usageError(io, "new", "--item-id must not be empty.");
         project::Item item;

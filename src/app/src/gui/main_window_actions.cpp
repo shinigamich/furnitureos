@@ -56,6 +56,9 @@ void MainWindow::buildActions() {
     a_.shaded = make(tr("&Shaded"), QKeySequence(Qt::Key_1));
     a_.shadedEdges = make(tr("Shaded with &edges"), QKeySequence(Qt::Key_2));
     a_.wireframe = make(tr("&Wireframe"), QKeySequence(Qt::Key_3));
+    a_.realistic = make(tr("&Realistic materials"), QKeySequence(Qt::Key_4));
+    a_.realistic->setObjectName(QStringLiteral("actionRealistic"));
+    a_.realistic->setToolTip(tr("Show material colours, wood grain, textures and edge bands"));
     a_.measure = make(tr("&Measure"), QKeySequence(Qt::Key_M));
     a_.measure->setObjectName(QStringLiteral("actionMeasure"));
     a_.measure->setToolTip(tr("Measure the distance between two snapped points (display only)"));
@@ -65,7 +68,8 @@ void MainWindow::buildActions() {
     a_.about = make(tr("&About FurnitureOS"));
     a_.shortcuts = make(tr("&Keyboard shortcuts"), QKeySequence::HelpContents);
 
-    for (QAction* a : {a_.perspective, a_.orthographic, a_.shaded, a_.shadedEdges, a_.wireframe, a_.measure, a_.section})
+    for (QAction* a : {a_.perspective, a_.orthographic, a_.shaded, a_.shadedEdges, a_.wireframe, a_.realistic, a_.measure,
+                       a_.section})
         a->setCheckable(true);
     auto* projection = new QActionGroup(this);
     projection->addAction(a_.perspective);
@@ -74,11 +78,13 @@ void MainWindow::buildActions() {
     display->addAction(a_.shaded);
     display->addAction(a_.shadedEdges);
     display->addAction(a_.wireframe);
+    display->addAction(a_.realistic);
     (viewport_->projection() == viewport::Projection::Perspective ? a_.perspective : a_.orthographic)->setChecked(true);
     switch (viewport_->displayMode()) {
     case viewport::DisplayMode::Shaded: a_.shaded->setChecked(true); break;
     case viewport::DisplayMode::ShadedWithEdges: a_.shadedEdges->setChecked(true); break;
     case viewport::DisplayMode::Wireframe: a_.wireframe->setChecked(true); break;
+    case viewport::DisplayMode::Realistic: a_.realistic->setChecked(true); break;
     }
 
     connect(a_.newProject, &QAction::triggered, this, &MainWindow::newProject);
@@ -107,6 +113,7 @@ void MainWindow::buildActions() {
     connect(a_.shadedEdges, &QAction::triggered, this,
             [this] { viewport_->setDisplayMode(viewport::DisplayMode::ShadedWithEdges); });
     connect(a_.wireframe, &QAction::triggered, this, [this] { viewport_->setDisplayMode(viewport::DisplayMode::Wireframe); });
+    connect(a_.realistic, &QAction::triggered, this, [this] { viewport_->setDisplayMode(viewport::DisplayMode::Realistic); });
     connect(a_.about, &QAction::triggered, this, &MainWindow::showAbout);
     connect(a_.shortcuts, &QAction::triggered, this, [this] { ShortcutsDialog(allActions_, this).exec(); });
 }
@@ -167,6 +174,7 @@ void MainWindow::buildMenus() {
     view->addAction(a_.shaded);
     view->addAction(a_.shadedEdges);
     view->addAction(a_.wireframe);
+    view->addAction(a_.realistic);
     view->addSeparator();
     view->addAction(a_.fitAll);
     view->addSeparator();

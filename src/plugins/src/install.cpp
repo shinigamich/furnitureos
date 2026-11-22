@@ -77,6 +77,9 @@ core::Result<PluginPackage> validateForInstall(const fs::path& dir, const Plugin
     auto lib = loadPackageLibraries(*inspection.package, limits);
     if (!lib.ok())
         return makeError(lib.error().code, lib.error().message + " The plugin was not installed.", m.id);
+    auto components = loadPackageComponents(*inspection.package, limits);
+    if (!components.ok())
+        return makeError(components.error().code, components.error().message + " The plugin was not installed.", m.id);
     if (warnings)
         for (const auto& d : inspection.diagnostics)
             if (d.severity != core::Severity::Error) warnings->push_back(d);
@@ -152,6 +155,8 @@ core::Result<InstallReport> PluginManager::install(const fs::path& sourceDir, co
     if (auto r = copyOne(pkg.directory / kManifestFileName, std::string(kManifestFileName)); !r.ok()) return r.error();
     for (std::size_t i = 0; i < pkg.libraryFiles.size(); ++i)
         if (auto r = copyOne(pkg.libraryFiles[i], pkg.manifest.libraries[i]); !r.ok()) return r.error();
+    for (std::size_t i = 0; i < pkg.componentFiles.size(); ++i)
+        if (auto r = copyOne(pkg.componentFiles[i], pkg.manifest.components[i]); !r.ok()) return r.error();
     for (fs::directory_iterator it(pkg.directory, ec), end; !ec && it != end; it.increment(ec)) {
         const auto name = it->path().filename().string();
         std::error_code e;

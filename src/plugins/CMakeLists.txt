@@ -25,6 +25,7 @@ fos_add_tests(plugins
         tests/manager_tests.cpp
         tests/install_tests.cpp
         tests/example_plugin_tests.cpp
+        tests/component_plugin_tests.cpp
         tools/example_materials.cpp)
 if(TARGET fos_plugins_tests)
     target_include_directories(fos_plugins_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tools)

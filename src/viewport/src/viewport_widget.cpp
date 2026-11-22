@@ -53,6 +53,7 @@ struct ViewportWidget::Impl {
     std::vector<SnapPoint> measurePoints;
     std::optional<SnapPoint> hover;
     QString lengthSuffix = QStringLiteral(" mm");
+    QString textureDirectory;
 
     void updateSceneBounds() {
         // Near/far must contain the parts AND the floor grid (grid spans parts +- >= 1 m).
@@ -226,6 +227,14 @@ void ViewportWidget::setSectionPlane(const std::optional<SectionPlane>& plane) {
 std::optional<SectionPlane> ViewportWidget::sectionPlane() const { return d->scene.section(); }
 
 geometry::Aabb ViewportWidget::modelBounds() const { return d->scene.allBounds(); }
+
+void ViewportWidget::setTextureDirectory(const QString& directory) {
+    if (directory == d->textureDirectory) return;
+    d->textureDirectory = directory;
+    d->renderer.setTextureDirectory(directory);
+    d->geometryDirty = true;
+    update();
+}
 
 void ViewportWidget::initializeGL() {
     std::string error;

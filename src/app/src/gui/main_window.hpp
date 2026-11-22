@@ -115,7 +115,7 @@ private:
         QAction *newProject, *open, *save, *saveAs, *print, *quit;
         QAction *exportCsv, *exportHtml, *exportLabels, *exportPdf, *exportSvg, *exportDxf, *exportObj, *importDxf;
         QAction *undo, *redo, *deleteItem, *duplicateItem, *preferences;
-        QAction *fitAll, *perspective, *orthographic, *shaded, *shadedEdges, *wireframe;
+        QAction *fitAll, *perspective, *orthographic, *shaded, *shadedEdges, *wireframe, *realistic;
         QAction *measure, *section;
         QAction *about, *shortcuts;
     } a_{};

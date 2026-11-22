@@ -18,37 +18,126 @@ const char* kMeshVs = R"(#version 330 core
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in float aPart;
+layout(location = 3) in vec3 aSurfColor;
+layout(location = 4) in vec2 aUv;
+layout(location = 5) in vec3 aGrain;
+layout(location = 6) in float aKind;
+layout(location = 7) in float aTex;
 uniform mat4 uView;
 uniform mat4 uProj;
 uniform sampler2D uState;
 uniform vec3 uHighlight;
 uniform vec4 uClip;
+uniform int uRealistic;
 out vec3 vNormal;
 out vec3 vColor;
+out vec3 vViewPos;
+out vec2 vUv;
+out vec3 vGrain;
 flat out int vSel;
+flat out int vKind;
+flat out int vTex;
 void main() {
     int i = int(aPart + 0.5);
     vec4 s = texelFetch(uState, ivec2(i % 1024, i / 1024), 0);
     int flags = int(s.a * 255.0 + 0.5);
     vSel = (flags >> 1) & 1;
-    vColor = vSel == 1 ? uHighlight : s.rgb;
+    vColor = vSel == 1 ? uHighlight : (uRealistic == 1 ? aSurfColor : s.rgb);
     vNormal = mat3(uView) * aNormal;
+    vGrain = mat3(uView) * aGrain;
+    // Per-part offset so neighbouring boards do not show identical grain.
+    float seed = fract(float(i) * 0.6180339887) * 100.0;
+    vUv = aUv + vec2(seed * 7.0, seed * 3.0);
+    vKind = int(aKind + 0.5);
+    vTex = int(floor(aTex + 0.5));
+    vec4 vp = uView * vec4(aPos, 1.0);
+    vViewPos = vp.xyz;
     if ((flags & 1) == 0) { gl_ClipDistance[0] = 1.0; gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
     gl_ClipDistance[0] = dot(vec4(aPos, 1.0), uClip);
-    gl_Position = uProj * uView * vec4(aPos, 1.0);
+    gl_Position = uProj * vp;
 }
 )";
 
+// Realistic mode: procedural wood grain (value noise, bands across the grain direction u),
+// particleboard speckle on raw edges, optional image texture. Every procedural term fades out
+// as its period approaches the pixel footprint (fwidth, in mm) so distant boards show no moire.
 const char* kMeshFs = R"(#version 330 core
 in vec3 vNormal;
 in vec3 vColor;
+in vec3 vViewPos;
+in vec2 vUv;
+in vec3 vGrain;
 flat in int vSel;
+flat in int vKind;
+flat in int vTex;
 uniform vec3 uLightDir;
+uniform int uRealistic;
+uniform sampler2DArray uTex;
+uniform int uTexLayer[16];
+uniform float uTexAspect[16];
+uniform float uTexTile;
 out vec4 fragColor;
+float hash12(vec2 p) {
+    vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+}
+float vnoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    vec2 w = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash12(i), hash12(i + vec2(1, 0)), w.x), mix(hash12(i + vec2(0, 1)), hash12(i + vec2(1, 1)), w.x), w.y);
+}
 void main() {
-    float d = max(dot(normalize(vNormal), uLightDir), 0.0);
-    float k = vSel == 1 ? 0.85 + 0.15 * d : 0.40 + 0.60 * d;
-    fragColor = vec4(vColor * k, 1.0);
+    vec3 n = normalize(vNormal);
+    float d = max(dot(n, uLightDir), 0.0);
+    // Derivatives outside any branch (well-defined for the whole quad).
+    vec2 fw = max(fwidth(vUv), vec2(1e-4));
+    float tile = uTexTile;
+    int t = clamp(vTex, 0, 15);
+    vec2 tc = vec2(vUv.x / tile, vUv.y / (tile * uTexAspect[t]));
+    vec2 tdx = dFdx(tc), tdy = dFdy(tc);
+    if (uRealistic == 0 || vSel == 1) {
+        float k = vSel == 1 ? 0.85 + 0.15 * d : 0.40 + 0.60 * d;
+        fragColor = vec4(vColor * k, 1.0);
+        return;
+    }
+    vec3 base = vColor;
+    bool grain = dot(vGrain, vGrain) > 0.25;
+    if (vKind == 2) {
+        // Raw edge: particleboard chips (speckle ~1 mm and ~0.3 mm).
+        float sp = vnoise(vUv * 1.1) * 0.6 + vnoise(vUv * 3.3 + 17.0) * 0.4;
+        float amp = 0.30 * (1.0 - smoothstep(0.25, 0.9, max(fw.x, fw.y)));
+        base *= 1.0 + amp * (sp - 0.5);
+    } else if (vKind == 0 && vTex >= 0 && uTexLayer[t] >= 0) {
+        base = textureGrad(uTex, vec3(tc, float(uTexLayer[t])), tdx, tdy).rgb;
+    } else if (grain) {
+        // Bands across the grain (~9 mm apart, wobbling along it), fine pores, slow tone drift.
+        float wob = vnoise(vec2(vUv.x * 0.002, vUv.y * 0.012)) * 14.0 + vnoise(vec2(vUv.x * 0.012, vUv.y * 0.05)) * 2.5;
+        float b = 0.5 + 0.5 * sin(6.2831853 * (vUv.y + wob) / 9.0);
+        b = b * b * b;
+        float bandAmp = 0.10 * (1.0 - smoothstep(0.6, 1.8, fw.y));
+        // Long streaks (~20 mm across, ~300 mm along): the grain read from a distance.
+        float streak = vnoise(vec2(vUv.x * 0.0035, vUv.y * 0.05)) + 0.5 * vnoise(vec2(vUv.x * 0.007, vUv.y * 0.11));
+        base *= 1.0 + 0.09 * (1.0 - smoothstep(3.0, 9.0, fw.y)) * (streak / 1.5 - 0.5);
+        float pores = vnoise(vec2(vUv.x * 0.05, vUv.y * 1.6));
+        float poreAmp = 0.05 * (1.0 - smoothstep(0.12, 0.45, fw.y));
+        float tone = vnoise(vec2(vUv.x * 0.0015, vUv.y * 0.006));
+        base *= 1.0 - bandAmp * (b - 0.25) - poreAmp * (pores - 0.5) + 0.06 * (tone - 0.5);
+    }
+    vec3 v = normalize(-vViewPos);
+    vec3 h = normalize(uLightDir + v);
+    float spec;
+    if (grain && vKind != 2) {
+        // Anisotropic sheen along the grain (Kajiya-Kay).
+        vec3 tg = normalize(vGrain - n * dot(vGrain, n) + vec3(1e-6));
+        float th = dot(tg, h);
+        spec = 0.06 * pow(sqrt(max(1.0 - th * th, 0.0)), 48.0) * d;
+    } else {
+        spec = (vKind == 2 ? 0.0 : 0.05) * pow(max(dot(n, h), 0.0), 40.0);
+    }
+    // Key light plus a weak fill from the viewer so faces turned away from the key stay readable.
+    float fill = max(dot(n, v), 0.0);
+    fragColor = vec4(base * (0.36 + 0.46 * d + 0.22 * fill) + vec3(spec), 1.0);
 }
 )";
 
@@ -155,7 +244,7 @@ bool GlRenderer::initialize(std::string& error, std::pair<int, int> minimum) {
         !build(colorProgram_, kColorVs, kColorFs, error))
         return false;
 
-    for (auto* b : {&meshVbo_, &meshIbo_, &lineVbo_, &gridVbo_, &triadVbo_, &capVbo_}) {
+    for (auto* b : {&meshVbo_, &surfaceVbo_, &meshIbo_, &lineVbo_, &gridVbo_, &triadVbo_, &capVbo_}) {
         b->create();
         b->setUsagePattern(QOpenGLBuffer::StaticDraw);
     }
@@ -175,6 +264,15 @@ bool GlRenderer::initialize(std::string& error, std::pair<int, int> minimum) {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(MeshVertex), nullptr);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(MeshVertex), reinterpret_cast<void*>(3 * sizeof(float)));
     glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(MeshVertex), reinterpret_cast<void*>(6 * sizeof(float)));
+    // Realistic-mode appearance from the parallel SurfaceVertex buffer (same draw call).
+    surfaceVbo_.bind();
+    const std::pair<int, int> surf[] = {{3, 0}, {2, 3}, {3, 5}, {1, 8}, {1, 9}}; // (components, offset)
+    for (GLuint loc = 3; loc <= 7; ++loc) {
+        const auto [count, offset] = surf[loc - 3];
+        glEnableVertexAttribArray(loc);
+        glVertexAttribPointer(loc, count, GL_FLOAT, GL_FALSE, sizeof(SurfaceVertex),
+                              reinterpret_cast<void*>(static_cast<std::size_t>(offset) * sizeof(float)));
+    }
     meshVao_.release();
 
     lineVao_.bind();
@@ -207,6 +305,8 @@ bool GlRenderer::initialize(std::string& error, std::pair<int, int> minimum) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glBindTexture(GL_TEXTURE_2D, 0);
+    glGenTextures(1, &materialTexture_);
+    uploadTextures(MaterialTextures::Layout{});
     ready_ = true;
     return true;
 }
@@ -217,6 +317,10 @@ void GlRenderer::uploadGeometry(const Scene& scene) {
     meshVbo_.bind();
     meshVbo_.allocate(buf.vertices.data(), static_cast<int>(buf.vertices.size() * sizeof(MeshVertex)));
     meshVbo_.release();
+    surfaceVbo_.bind();
+    surfaceVbo_.allocate(buf.surface.data(), static_cast<int>(buf.surface.size() * sizeof(SurfaceVertex)));
+    surfaceVbo_.release();
+    uploadTextures(textures_.resolve(scene.textures(), textureDirectory_));
     meshVao_.bind(); // the element buffer binding is VAO state
     meshIbo_.bind();
     meshIbo_.allocate(buf.indices.data(), static_cast<int>(buf.indices.size() * sizeof(std::uint32_t)));
@@ -233,6 +337,33 @@ void GlRenderer::uploadGeometry(const Scene& scene) {
     gridVbo_.allocate(grid.data(), static_cast<int>(grid.size() * sizeof(ColorVertex)));
     gridVbo_.release();
     gridVertexCount_ = static_cast<int>(grid.size());
+}
+
+void GlRenderer::uploadTextures(const MaterialTextures::Layout& layout) {
+    texLayer_ = layout.layer;
+    texAspect_ = layout.aspect;
+    const auto layers = static_cast<int>(layout.images.size());
+    glBindTexture(GL_TEXTURE_2D_ARRAY, materialTexture_);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    if (layers == 0) { // keep the sampler complete: one white texel
+        texLayer_.fill(-1);
+        texAspect_.fill(1.f);
+        const std::uint8_t white[4] = {255, 255, 255, 255};
+        glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, 1, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, white);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    } else {
+        glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, kTextureLayerSize, kTextureLayerSize, layers, 0, GL_RGBA,
+                     GL_UNSIGNED_BYTE, nullptr);
+        for (int l = 0; l < layers; ++l)
+            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, l, kTextureLayerSize, kTextureLayerSize, 1, GL_RGBA,
+                            GL_UNSIGNED_BYTE, layout.images[static_cast<std::size_t>(l)].constBits());
+        glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    }
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 }
 
 void GlRenderer::uploadState(const Scene& scene) {
@@ -302,6 +433,14 @@ void GlRenderer::render(const Camera& camera, DisplayMode mode, int dw, int dh, 
         meshProgram_.setUniformValue("uHighlight", highlight);
         meshProgram_.setUniformValue("uLightDir", QVector3D(0.35f, 0.55f, 0.76f).normalized());
         meshProgram_.setUniformValue("uClip", clip);
+        meshProgram_.setUniformValue("uRealistic", mode == DisplayMode::Realistic ? 1 : 0);
+        meshProgram_.setUniformValue("uTex", 1);
+        meshProgram_.setUniformValue("uTexTile", float(kTextureTileMm));
+        meshProgram_.setUniformValueArray("uTexLayer", texLayer_.data(), kMaxTextureLayers);
+        meshProgram_.setUniformValueArray("uTexAspect", texAspect_.data(), kMaxTextureLayers, 1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, materialTexture_);
+        glActiveTexture(GL_TEXTURE0);
         meshVao_.bind();
         glDrawElements(GL_TRIANGLES, meshIndexCount_, GL_UNSIGNED_INT, nullptr);
         glDisable(GL_POLYGON_OFFSET_FILL);
@@ -332,7 +471,7 @@ void GlRenderer::render(const Camera& camera, DisplayMode mode, int dw, int dh, 
             capsDrawn_ = true;
         }
     }
-    if (mode != DisplayMode::Shaded && lineVertexCount_ > 0) {
+    if (mode != DisplayMode::Shaded && mode != DisplayMode::Realistic && lineVertexCount_ > 0) {
         lineProgram_.bind();
         lineProgram_.setUniformValue("uView", view);
         lineProgram_.setUniformValue("uProj", proj);
@@ -413,7 +552,9 @@ void GlRenderer::drawCaps(const SectionPlane& section, const QMatrix4x4& viewPro
 void GlRenderer::destroy() {
     if (stateTexture_) glDeleteTextures(1, &stateTexture_);
     stateTexture_ = 0;
-    for (auto* b : {&meshVbo_, &meshIbo_, &lineVbo_, &gridVbo_, &triadVbo_, &capVbo_}) b->destroy();
+    if (materialTexture_) glDeleteTextures(1, &materialTexture_);
+    materialTexture_ = 0;
+    for (auto* b : {&meshVbo_, &surfaceVbo_, &meshIbo_, &lineVbo_, &gridVbo_, &triadVbo_, &capVbo_}) b->destroy();
     for (auto* v : {&meshVao_, &lineVao_, &gridVao_, &triadVao_, &capVao_}) v->destroy();
     meshProgram_.removeAllShaders();
     lineProgram_.removeAllShaders();

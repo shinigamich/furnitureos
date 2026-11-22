@@ -132,6 +132,8 @@ TEST(Manifest, UnknownKeysAndUnsupportedContributionsAreWarnings) {
 
 TEST(Manifest, ExtensionKinds) {
     EXPECT_TRUE(isSupported(ExtensionKind::Libraries));
+    EXPECT_TRUE(isSupported(ExtensionKind::Components));
+    EXPECT_EQ(extensionKindFromKey("components"), ExtensionKind::Components);
     for (auto k : {ExtensionKind::Templates, ExtensionKind::Reports, ExtensionKind::Postprocessors, ExtensionKind::Importers}) {
         EXPECT_FALSE(isSupported(k));
         EXPECT_EQ(extensionKindFromKey(toString(k)), k);

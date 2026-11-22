@@ -3,12 +3,14 @@
 #include "fos/viewport/camera.hpp"
 #include "fos/viewport/scene.hpp"
 #include "fos/viewport/viewport_widget.hpp"
+#include "material_textures.hpp"
 
 #include <QOpenGLBuffer>
 #include <QOpenGLExtraFunctions>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLVertexArrayObject>
 
+#include <array>
 #include <memory>
 #include <optional>
 #include <string>
@@ -43,6 +45,9 @@ public:
 
     /// Uploads part geometry and the ground grid (on model change only).
     void uploadGeometry(const Scene& scene);
+    /// Folder against which relative Material::texture paths are resolved (takes effect on the
+    /// next uploadGeometry()).
+    void setTextureDirectory(const QString& dir) { textureDirectory_ = dir; }
     /// Uploads per-part colour/visibility/selection (cheap; on state change).
     void uploadState(const Scene& scene);
 
@@ -63,6 +68,7 @@ private:
     bool ready_ = false;
     QOpenGLShaderProgram meshProgram_, lineProgram_, colorProgram_;
     QOpenGLVertexArrayObject meshVao_, lineVao_, gridVao_, triadVao_;
+    QOpenGLBuffer surfaceVbo_{QOpenGLBuffer::VertexBuffer};
     QOpenGLBuffer meshVbo_{QOpenGLBuffer::VertexBuffer}, meshIbo_{QOpenGLBuffer::IndexBuffer};
     QOpenGLBuffer lineVbo_{QOpenGLBuffer::VertexBuffer}, gridVbo_{QOpenGLBuffer::VertexBuffer};
     QOpenGLBuffer triadVbo_{QOpenGLBuffer::VertexBuffer};
@@ -73,6 +79,12 @@ private:
     int stencilBits();
     void drawCaps(const SectionPlane& section, const QMatrix4x4& viewProj);
     GLuint stateTexture_ = 0;
+    GLuint materialTexture_ = 0; // GL_TEXTURE_2D_ARRAY of material images
+    MaterialTextures textures_;
+    QString textureDirectory_;
+    std::array<int, kMaxTextureLayers> texLayer_{};
+    std::array<float, kMaxTextureLayers> texAspect_{};
+    void uploadTextures(const MaterialTextures::Layout& layout);
     int stateRows_ = 0;
     int meshIndexCount_ = 0, lineVertexCount_ = 0, gridVertexCount_ = 0;
 };

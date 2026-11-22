@@ -82,11 +82,27 @@ core::Result<ShapedPartGeometry> makeShapedPartGeometry(const geometry::Contour&
             m.indices.push_back(base + (top ? t[2] : t[1]));
         }
     }
+    g.capVertexCount = m.positions.size();
     // Rings in the order of `v`: outer (CCW) then holes (CW); outward = right of the traversal.
     const std::vector<std::size_t>& rs = tri.value().ringStart;
     for (std::size_t r = 0; r + 1 < rs.size(); ++r) {
         const std::size_t s = rs[r], n = rs[r + 1] - rs[r];
+        // Outer ring: tessellate() keeps the contour vertices exactly, so a ring point equal to
+        // contour vertex k starts segment k; points in between belong to the current segment.
+        const auto vertexIndex = [&](Vec2 p) -> std::int32_t {
+            for (std::size_t k = 0; k < outer.vertices.size(); ++k)
+                if (outer.vertices[k].point.x == p.x && outer.vertices[k].point.y == p.y)
+                    return static_cast<std::int32_t>(k);
+            return -1;
+        };
+        std::int32_t seg = -1;
+        if (r == 0)
+            for (std::size_t i = n; i-- > 0 && seg < 0;) seg = vertexIndex(v[s + i]); // wraps around
         for (std::size_t i = 0; i < n; ++i) {
+            if (r == 0) {
+                if (const std::int32_t k = vertexIndex(v[s + i]); k >= 0) seg = k;
+            }
+            g.wallSegment.push_back(r == 0 ? seg : -1);
             const Vec2 a = v[s + i], b = v[s + (i + 1) % n];
             const Vec2 d = unit(b - a);
             const Vec3 nrm{d.y, -d.x, 0};

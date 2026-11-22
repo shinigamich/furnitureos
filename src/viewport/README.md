@@ -8,7 +8,7 @@ authoritative geometry.
 |---|---|
 | `viewport_widget.hpp` | `ViewportWidget` (QOpenGLWidget) — integration contract; additions: `camera()`, `setCamera()` |
 | `camera.hpp` | Qt-free orbit camera: presets, perspective/orthographic, matrices, pixel ⇄ ray |
-| `scene.hpp` | Qt-free display scene: flattened parts, hidden/isolated/selected state, CPU picking, vertex arrays |
+| `scene.hpp` | Qt-free display scene: flattened parts, hidden/isolated/selected state, CPU picking, vertex arrays, Realistic-mode surface attributes |
 
 ## Controls
 
@@ -72,6 +72,36 @@ Hidden, non-isolated and zero/non-finite-size parts are not pickable.
 * `setModel` + first frame (CPU mesh build + GPU upload + render + readback): **≈ 47 ms**
 * orbiting frame including `grabFramebuffer()` readback of 1280×800: **≈ 26 ms** (≈ 38 fps upper bound
   on a software rasteriser; hardware GPUs are far faster).
+
+## Realistic material display (phase 20)
+
+`DisplayMode::Realistic` (app: View → Display mode → "Realistic materials", key 4; the default stays
+`ShadedWithEdges`). Same single draw call: a second VBO with one `SurfaceVertex` per `MeshVertex`
+(`scene.hpp`, 40 bytes: surface colour, `u`/`v` in mm, grain direction, `SurfaceKind`, texture index)
+feeds attribute locations 3–7. `MeshVertex` and the golden geometry hash are unchanged.
+
+* **Board faces** (A/B): material colour; `u` runs along the grain (`Part::grain`: AlongWidth → local y,
+  otherwise local x), `v` across it; grain direction = that axis through `world`, 0 when the material has
+  no `hasGrain`.
+* **Edges**: banded edges (`Part::edges` by EdgeSide for boxes, `PartShape::outerEdges` per contour segment
+  for contoured parts via `ShapedPartGeometry::wallSegment`) take `EdgeBand::color`; raw edges and cut-out
+  walls take `rawEdgeColor(material) = 0.75·(0.7·(176,146,108) + 0.3·material)` with a particleboard
+  speckle. Edge `u` runs along the edge, `v` = local z.
+* **Procedural grain** (fragment shader, no textures): value-noise bands ~9 mm apart across the grain with
+  low-frequency wobble, fine pores, slow tone drift, ±~5–10 % brightness; plus a faint anisotropic
+  (Kajiya-Kay) sheen along the grain. Each part gets a seed offset so neighbours differ. **Anti-moiré**:
+  each term fades out by `fwidth(uv)` before its period reaches ~2 px (bands 1–3 mm/px, pores
+  0.12–0.45 mm/px, speckle 0.25–0.9 mm/px).
+* **Image textures**: `Material::texture` naming a readable image (absolute, or relative to
+  `setTextureDirectory()`, which the app sets to the project file's folder; working directory when empty)
+  is loaded with QImage, cached by absolute path, resampled to 1024², and uploaded as a layer of one
+  mip-mapped `GL_TEXTURE_2D_ARRAY` (max 16 textures; trilinear `textureGrad`). The image x axis follows the
+  grain and covers 1000 mm; y covers 1000·h/w mm. Unreadable files / library keys: one warning per
+  reference (`viewport` category) and the procedural grain is used.
+* No feature lines in Realistic mode; selection highlight and section caps work as in the other modes.
+* Frame time (llvmpipe, 2 004 parts, 1280×800, orbit frame incl. readback, same run on a loaded
+  4-core machine): Realistic **≈ 57 ms**, ShadedWithEdges **≈ 58 ms** — no measurable cost
+  (`ViewportGl.RealisticModeScreenshotAndFrameTime`; FOS_VIEWPORT_REALISTIC_SCREENSHOT saves the fixture).
 
 ## Measurement tool (phase 15)
 

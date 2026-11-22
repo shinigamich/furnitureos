@@ -4,6 +4,7 @@
 #include "fos/geometry/contour.hpp"
 #include "fos/geometry/mesh.hpp"
 
+#include <cstdint>
 #include <vector>
 
 /// Display meshes of CONTOURED parts (ADR-0008): the finished outline extruded along the part
@@ -29,6 +30,12 @@ struct ShapedPartGeometry {
     /// vertical edge at every contour vertex where the tangent turns by more than 1 degree
     /// (no lines along smooth arcs or tangent line/arc junctions).
     std::vector<geometry::Edge3> edges;
+    /// Number of cap vertices at the start of `mesh` (bottom + top); the side walls follow as
+    /// 4 vertices per quad.
+    std::size_t capVertexCount = 0;
+    /// Per side-wall quad (mesh order): index of the `outer` contour segment it approximates,
+    /// -1 for walls of cut-outs (used for the edge-band colour in the Realistic display mode).
+    std::vector<std::int32_t> wallSegment;
 };
 
 /// Extrusion of `outer` minus `cutouts` (exact contours, tessellated with geometry::tessellate

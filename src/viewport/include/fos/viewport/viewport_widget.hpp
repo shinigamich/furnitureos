@@ -27,7 +27,10 @@ class Camera;
 
 enum class ViewPreset { Front, Back, Left, Right, Top, Bottom, Isometric };
 enum class Projection { Perspective, Orthographic };
-enum class DisplayMode { Shaded, ShadedWithEdges, Wireframe };
+/// Realistic (phase 20): material colour with procedural wood grain along Part::grain for
+/// materials with `hasGrain`, Material::texture images when readable, edge-band colours on
+/// banded edges and a particleboard-like core colour on raw edges; no feature lines.
+enum class DisplayMode { Shaded, ShadedWithEdges, Wireframe, Realistic };
 
 class ViewportWidget : public QOpenGLWidget {
     Q_OBJECT
@@ -93,6 +96,12 @@ public:
     std::optional<SectionPlane> sectionPlane() const;
     /// Bounds of all parts (project frame, mm; empty without parts), e.g. for the slider range.
     geometry::Aabb modelBounds() const;
+
+    // --- Realistic material display (phase 20; display only) --------------------------------
+    /// Folder for relative Material::texture paths (normally the project file's folder; empty =
+    /// the working directory). Absolute paths are used as they are. Missing or unreadable images
+    /// log one warning each and fall back to the procedural grain.
+    void setTextureDirectory(const QString& directory);
 
 signals:
     /// Left click on a part (empty id = click on empty space). `additive` = Ctrl/Shift held.

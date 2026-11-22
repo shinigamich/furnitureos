@@ -25,7 +25,21 @@ bool validSize(Vec3 s) {
 }
 } // namespace
 
+domain::Color rawEdgeColor(domain::Color m) noexcept {
+    const auto ch = [](double core, std::uint8_t mat) {
+        return static_cast<std::uint8_t>(std::lround(0.75 * (0.7 * core + 0.3 * mat)));
+    };
+    return {ch(176, m.r), ch(146, m.g), ch(108, m.b)};
+}
+
 void Scene::setModel(const domain::Model& model) {
+    textures_.clear();
+    for (const auto& m : model.materials)
+        if (!m.texture.empty()) textures_.push_back(m.texture);
+    textures_ = sortedUnique(std::move(textures_));
+    edgeColors_.clear();
+    wallSegments_.clear();
+    capVertices_.clear();
     parts_.clear();
     valid_.clear();
     meshes_.clear();
@@ -39,6 +53,19 @@ void Scene::setModel(const domain::Model& model) {
             sp.world = a.placement * p.placement;
             const domain::Material* m = model.findMaterial(p.material);
             sp.color = m ? m->color : kFallbackColor;
+            sp.hasGrain = m && m->hasGrain;
+            sp.grain = p.grain;
+            if (m && !m->texture.empty())
+                sp.texture = static_cast<int>(std::lower_bound(textures_.begin(), textures_.end(), m->texture) -
+                                              textures_.begin());
+            const auto bandColor = [&](const std::optional<domain::EdgeBandId>& id) -> std::optional<domain::Color> {
+                if (!id) return std::nullopt;
+                const domain::EdgeBand* b = model.findEdgeBand(*id);
+                return b ? std::optional(b->color) : std::nullopt; // unknown band: shown raw
+            };
+            std::vector<std::optional<domain::Color>> bands;
+            std::vector<std::int32_t> walls;
+            std::size_t caps = 0;
             const bool ok = validSize(sp.size);
             geometry::TriangleMesh mesh;
             std::vector<geometry::Edge3> edges;
@@ -49,6 +76,9 @@ void Scene::setModel(const domain::Model& model) {
                     sp.contoured = true;
                     mesh = std::move(g.value().mesh);
                     edges = std::move(g.value().edges);
+                    walls = std::move(g.value().wallSegment);
+                    caps = g.value().capVertexCount;
+                    for (const auto& e : p.shape->outerEdges) bands.push_back(bandColor(e));
                 } else {
                     diagnostics_.push_back({core::Severity::Warning, "viewport.shape.fallback_box",
                                             "Part '" + p.name + "' is shown as its " + core::formatLength(p.length) +
@@ -61,7 +91,11 @@ void Scene::setModel(const domain::Model& model) {
             if (ok && !sp.contoured) {
                 mesh = geometry::makeBox(sp.size);
                 edges = geometry::makeBoxEdges(sp.size);
+                for (const domain::EdgeSide e : domain::kAllEdges) bands.push_back(bandColor(p.edge(e)));
             }
+            edgeColors_.push_back(std::move(bands));
+            wallSegments_.push_back(std::move(walls));
+            capVertices_.push_back(caps);
             valid_.push_back(ok);
             meshes_.push_back(std::move(mesh));
             edges_.push_back(std::move(edges));
@@ -182,6 +216,45 @@ const geometry::TriangleMesh& Scene::localMesh(std::size_t index) const {
     return index < meshes_.size() ? meshes_[index] : kEmpty;
 }
 
+SurfaceVertex Scene::surfaceOf(std::size_t i, std::size_t vtx, Vec3 q, Vec3 n) const {
+    const ScenePart& p = parts_[i];
+    const auto f = [](double v) { return static_cast<float>(v); };
+    domain::Color c = p.color;
+    SurfaceKind kind = SurfaceKind::BoardFace;
+    Vec3 grainLocal;
+    double u = 0, v = 0;
+    if (std::abs(n.z) > 0.5) { // face A or B
+        const bool alongWidth = p.grain == domain::GrainDirection::AlongWidth;
+        grainLocal = alongWidth ? Vec3{0, 1, 0} : Vec3{1, 0, 0};
+        u = alongWidth ? q.y : q.x;
+        v = alongWidth ? q.x : q.y;
+    } else { // side wall (narrow edge)
+        const Vec3 t{-n.y, n.x, 0};
+        grainLocal = t;
+        u = q.x * t.x + q.y * t.y;
+        v = q.z;
+        std::optional<domain::Color> band;
+        const auto& bands = edgeColors_[i];
+        if (p.contoured) {
+            const auto& walls = wallSegments_[i];
+            const std::size_t w = (vtx - std::min(vtx, capVertices_[i])) / 4;
+            if (w < walls.size() && walls[w] >= 0 && static_cast<std::size_t>(walls[w]) < bands.size())
+                band = bands[static_cast<std::size_t>(walls[w])];
+        } else if (bands.size() == 4) {
+            // makeBox normals: -Y = L1, +Y = L2, -X = W1, +X = W2.
+            const domain::EdgeSide side = std::abs(n.y) > std::abs(n.x) ? (n.y < 0 ? domain::EdgeSide::L1 : domain::EdgeSide::L2)
+                                                                          : (n.x < 0 ? domain::EdgeSide::W1 : domain::EdgeSide::W2);
+            band = bands[static_cast<std::size_t>(side)];
+        }
+        kind = band ? SurfaceKind::BandedEdge : SurfaceKind::RawEdge;
+        c = band ? *band : rawEdgeColor(p.color);
+    }
+    const Vec3 g = p.hasGrain ? p.world.applyVector(grainLocal) : Vec3{};
+    const bool face = kind == SurfaceKind::BoardFace;
+    return {f(c.r / 255.0), f(c.g / 255.0), f(c.b / 255.0), f(u),   f(v), f(g.x), f(g.y), f(g.z),
+            f(static_cast<int>(kind)), face ? f(p.texture) : -1.f};
+}
+
 Scene::Buffers Scene::buildBuffers() const {
     Buffers out;
     std::size_t n = 0;
@@ -189,16 +262,19 @@ Scene::Buffers Scene::buildBuffers() const {
     out.vertices.reserve(n * 24);
     out.indices.reserve(n * 36);
     out.lines.reserve(n * 24);
+    out.surface.reserve(n * 24);
     auto f = [](double v) { return static_cast<float>(v); };
     for (std::size_t i = 0; i < parts_.size(); ++i) {
         if (!valid_[i]) continue;
         const auto& p = parts_[i];
         const float idx = static_cast<float>(i);
-        const auto mesh = geometry::transformed(meshes_[i], p.world);
+        const auto& local = meshes_[i];
+        const auto mesh = geometry::transformed(local, p.world);
         const auto base = static_cast<std::uint32_t>(out.vertices.size());
         for (std::size_t v = 0; v < mesh.positions.size(); ++v) {
             const Vec3 q = mesh.positions[v], nn = mesh.normals[v];
             out.vertices.push_back({f(q.x), f(q.y), f(q.z), f(nn.x), f(nn.y), f(nn.z), idx});
+            out.surface.push_back(surfaceOf(i, v, local.positions[v], local.normals[v]));
         }
         for (auto k : mesh.indices) out.indices.push_back(base + k);
         for (const auto& e : geometry::transformed(edges_[i], p.world)) {

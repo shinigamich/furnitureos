@@ -183,6 +183,11 @@ LoadReport PluginManager::loadInto(formats::Library& target) {
             continue;
         }
         core::Diagnostics warnings;
+        auto components = loadPackageComponents(*inspection.package, options_.limits, &warnings);
+        if (!components.ok()) {
+            failWith("plugins.load.component", components.error().message);
+            continue;
+        }
         auto lib = loadPackageLibraries(*inspection.package, options_.limits, &warnings);
         if (!lib.ok()) {
             failWith("plugins.load.library", lib.error().message);
@@ -204,7 +209,9 @@ LoadReport PluginManager::loadInto(formats::Library& target) {
             report.diagnostics.push_back(std::move(w));
         }
         r->state = PluginState::Loaded;
-        report.loaded.push_back(PluginLoadResult{id, r->manifest.version.toString(), std::move(merged.value())});
+        report.loaded.push_back(PluginLoadResult{id, r->manifest.version.toString(), std::move(merged.value()),
+                                                 components.value().size()});
+        for (auto& c : components.value()) report.components.push_back(std::move(c));
     }
     return report;
 }

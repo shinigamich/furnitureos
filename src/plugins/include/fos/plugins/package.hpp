@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include "fos/core/result.hpp"
+#include "fos/formats/component.hpp"
 #include "fos/formats/library.hpp"
 #include "fos/plugins/manifest.hpp"
 
@@ -27,7 +28,8 @@ struct PluginPackage {
     std::filesystem::path directory;                ///< Canonical plugin directory.
     PluginManifest manifest;
     std::vector<std::filesystem::path> libraryFiles; ///< Canonical paths, manifest order.
-    std::uintmax_t totalBytes = 0;                   ///< Sum of the library file sizes.
+    std::vector<std::filesystem::path> componentFiles; ///< Canonical paths of contributes.components, manifest order.
+    std::uintmax_t totalBytes = 0;                   ///< Sum of the library and component file sizes.
 };
 
 /// Outcome of inspecting a package directory without loading its libraries.
@@ -40,8 +42,8 @@ struct PackageInspection {
 
 /// Validates `pluginDir`: it must be a directory, `plugin.json` must be a regular file
 /// inside it within limits.maxManifestBytes, the manifest must be valid, and every
-/// contributed library must resolve inside the directory, be at most limits.maxLibraryBytes
-/// and together at most limits.maxTotalBytes. Sizes are checked before anything is read.
+/// contributed library (component file) must resolve inside the directory, be at most
+/// limits.maxLibraryBytes (limits.maxComponentBytes) and together at most limits.maxTotalBytes. Sizes are checked before anything is read.
 PackageInspection inspectPackage(const std::filesystem::path& pluginDir, const PluginLimits& limits = {});
 
 /// Loads all contributed libraries of an inspected package and combines them into one
@@ -52,6 +54,27 @@ PackageInspection inspectPackage(const std::filesystem::path& pluginDir, const P
 /// entries. Container warnings are appended to `warnings` when given.
 core::Result<formats::Library> loadPackageLibraries(const PluginPackage& package, const PluginLimits& limits = {},
                                                     core::Diagnostics* warnings = nullptr);
+
+/// One component contributed by a plugin. The definition is validated only at the formats
+/// level here (the item codec lives in the project module): decode it with
+/// project::componentFromRecord() before use.
+struct PluginComponent {
+    std::string pluginId;
+    std::string file;                 ///< Relative path as listed in the manifest.
+    formats::ComponentRecord record;
+};
+
+/// Loads all contributed component files of an inspected package. Each file is read ONCE with
+/// readBounded(limits.maxComponentBytes) and parsed with formats::importComponentFileText
+/// (checksums verified). Errors (all-or-nothing, message names the plugin, the file and a JSON
+/// pointer): a file that fails to import, a component id not of the form
+/// "<plugin-id>:<local-id>", a component id used twice within the plugin, more than
+/// limits.maxComponents components. The ids of the library entries EMBEDDED in a component are
+/// not namespaced: they are merged into a project only when the user inserts the component,
+/// with the conflict policy the user chooses (project::insertComponent).
+core::Result<std::vector<PluginComponent>> loadPackageComponents(const PluginPackage& package,
+                                                                 const PluginLimits& limits = {},
+                                                                 core::Diagnostics* warnings = nullptr);
 
 /// Empty when `entityId` is "<pluginId>:<local>" with a non-empty local part, else the reason.
 std::string checkNamespacedId(std::string_view pluginId, std::string_view entityId);
