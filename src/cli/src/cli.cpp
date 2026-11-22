@@ -18,7 +18,7 @@ struct CommandEntry {
     Handler handler;
 };
 
-constexpr std::array<CommandEntry, 18> kCommands{{
+constexpr std::array<CommandEntry, 20> kCommands{{
     {"new", "Create a project file, optionally with one cabinet from a template.", detail::cmdNew},
     {"info", "Show items, parameters, part counts and diagnostics of a project.", detail::cmdInfo},
     {"set", "Set a parameter of an item to a value or an expression and save.", detail::cmdSet},
@@ -30,6 +30,8 @@ constexpr std::array<CommandEntry, 18> kCommands{{
     {"edgeband-rolls", "Edge-band strips per band and the rolls needed (heuristic 1D plan).", detail::cmdEdgebandRolls},
     {"drawing", "Assembly or part drawing as SVG (exact scale) or DXF (1:1).", detail::cmdDrawing},
     {"labels", "Part labels as SVG pages.", detail::cmdLabels},
+    {"packing", "Packing list for delivery: packages by weight/size, hardware bags, package labels.", detail::cmdPacking},
+    {"assembly", "Assembly sheets: generic step order from part roles, hardware per step (text/SVG).", detail::cmdAssembly},
     {"cam", "UNVERIFIED G-code for one face of one part (fictional demo machine).", detail::cmdCam},
     {"export-obj", "Wavefront OBJ (+ MTL) of the resolved model.", detail::cmdExportObj},
     {"export-dxf", "Part outlines, cut-outs, holes and grooves as DXF R12 for CNC/cutting software.", detail::cmdExportDxf},

@@ -34,6 +34,9 @@ struct Material {
     /// Price per square metre of board (project currency); 0 = unknown. Optional alternative to
     /// costPerSheet used by production::quote when materials are priced by area.
     double costPerSquareMeter = 0.0;
+    /// Board density in kg/m3; 0 = unknown. Optional; used by production::packingList to
+    /// compute package weights (never guessed when unknown).
+    double density = 0.0;
     bool available = true;
     std::map<std::string, std::string> custom; ///< User-defined properties (always preserved).
 };

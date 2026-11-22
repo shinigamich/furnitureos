@@ -87,6 +87,7 @@ Json toJson(const domain::Material& m) {
     j["texture"] = m.texture;
     j["costPerSheet"] = m.costPerSheet;
     if (m.costPerSquareMeter > 0) j["costPerM2"] = m.costPerSquareMeter; // optional, written only when set
+    if (m.density > 0) j["density"] = m.density; // optional kg/m3, written only when set
     j["available"] = m.available;
     writeCustom(j, m.custom);
     return j;
@@ -109,6 +110,7 @@ core::Result<domain::Material> materialFromJson(const Json& json, std::string_vi
     r.text("texture", m.texture);
     r.number("costPerSheet", m.costPerSheet, NumberRule::NonNegative);
     r.number("costPerM2", m.costPerSquareMeter, NumberRule::NonNegative);
+    r.number("density", m.density, NumberRule::NonNegative);
     r.boolean("available", m.available);
     r.customAndUnknown(m.custom);
     if (!r.ok()) return r.error();
