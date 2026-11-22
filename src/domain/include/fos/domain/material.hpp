@@ -31,6 +31,9 @@ struct Material {
     Color color;
     std::string texture;         ///< Optional texture reference (relative path or library key).
     double costPerSheet = 0.0;   ///< 0 = unknown.
+    /// Price per square metre of board (project currency); 0 = unknown. Optional alternative to
+    /// costPerSheet used by production::quote when materials are priced by area.
+    double costPerSquareMeter = 0.0;
     bool available = true;
     std::map<std::string, std::string> custom; ///< User-defined properties (always preserved).
 };

@@ -18,12 +18,13 @@ struct CommandEntry {
     Handler handler;
 };
 
-constexpr std::array<CommandEntry, 16> kCommands{{
+constexpr std::array<CommandEntry, 17> kCommands{{
     {"new", "Create a project file, optionally with one cabinet from a template.", detail::cmdNew},
     {"info", "Show items, parameters, part counts and diagnostics of a project.", detail::cmdInfo},
     {"set", "Set a parameter of an item to a value or an expression and save.", detail::cmdSet},
     {"validate", "Run the model validation checks (exit 1 on errors).", detail::cmdValidate},
     {"report", "Production reports as text/CSV, or an HTML production sheet.", detail::cmdReport},
+    {"quote", "Customer quote: materials, edge banding, hardware, labour, markup, tax (text/CSV/JSON).", detail::cmdQuote},
     {"cut", "Optimise cutting plans (heuristic) and write one SVG per sheet.", detail::cmdCut},
     {"linear", "1D cutting plan (heuristic) for bars/profiles from a pieces CSV.", detail::cmdLinear},
     {"edgeband-rolls", "Edge-band strips per band and the rolls needed (heuristic 1D plan).", detail::cmdEdgebandRolls},

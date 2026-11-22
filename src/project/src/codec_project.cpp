@@ -242,11 +242,72 @@ core::Result<Metadata> metadataFromJson(const Json& json, std::string_view path)
     return m;
 }
 
+Json pricingJson(const production::PricingSettings& p) {
+    Json j = Json::object();
+    j["wastePercent"] = p.wastePercent;
+    j["markupPercent"] = p.markupPercent;
+    j["taxPercent"] = p.taxPercent;
+    Json labour = Json::object();
+    if (p.labour.perCutMetre) labour["perCutMetre"] = *p.labour.perCutMetre;
+    if (p.labour.perEdgeMetre) labour["perEdgeMetre"] = *p.labour.perEdgeMetre;
+    if (p.labour.perHole) labour["perHole"] = *p.labour.perHole;
+    if (p.labour.perPart) labour["perPart"] = *p.labour.perPart;
+    j["labour"] = std::move(labour);
+    return j;
+}
+
+core::Result<production::LabourRates> labourFromJson(const Json& json, std::string_view path) {
+    Reader r(json, path, "labour rates");
+    production::LabourRates l;
+    r.optionalNumber("perCutMetre", l.perCutMetre, Num::NonNegative);
+    r.optionalNumber("perEdgeMetre", l.perEdgeMetre, Num::NonNegative);
+    r.optionalNumber("perHole", l.perHole, Num::NonNegative);
+    r.optionalNumber("perPart", l.perPart, Num::NonNegative);
+    r.rejectUnknown();
+    if (!r.ok()) return r.error();
+    return l;
+}
+
+core::Result<production::PricingSettings> pricingFromJson(const Json& json, std::string_view path) {
+    Reader r(json, path, "pricing settings");
+    production::PricingSettings p;
+    r.number("wastePercent", p.wastePercent, Num::NonNegative);
+    r.number("markupPercent", p.markupPercent, Num::NonNegative);
+    r.number("taxPercent", p.taxPercent, Num::NonNegative);
+    r.nested("labour", p.labour, labourFromJson);
+    r.rejectUnknown();
+    if (!r.ok()) return r.error();
+    if (auto c = production::checkPricingSettings(p); !c) return schemaError(std::string(path), c.error().message);
+    return p;
+}
+
+/// Material with the optional "costPerM2" key (written only when > 0). The key is handled here
+/// so that the shared formats material codec stays unchanged.
+Json materialJson(const domain::Material& m) {
+    Json j = formats::toJson(m);
+    if (m.costPerSquareMeter > 0) j["costPerM2"] = m.costPerSquareMeter;
+    return j;
+}
+
+core::Result<domain::Material> materialFromJson(const Json& json, std::string_view path) {
+    if (!json.is_object() || !json.contains("costPerM2")) return formats::materialFromJson(json, path);
+    const std::string keyPath = joinPath(path, "costPerM2");
+    auto price = readNumber(json.at("costPerM2"), keyPath, Num::NonNegative);
+    if (!price) return price.error();
+    Json rest = json;
+    rest.erase("costPerM2");
+    auto m = formats::materialFromJson(rest, path);
+    if (!m) return m.error();
+    m.value().costPerSquareMeter = price.value();
+    return m;
+}
+
 Json settingsJson(const ProjectSettings& s) {
     Json j = Json::object();
     j["backupCount"] = s.backupCount;
     j["edgeBanding"] = {{"overhangPerEnd", s.edgeBanding.overhangPerEnd}, {"wastePercent", s.edgeBanding.wastePercent}};
     j["cutListGroupAcrossAssemblies"] = s.cutListGroupAcrossAssemblies;
+    if (s.pricing) j["pricing"] = pricingJson(*s.pricing);
     appendExtra(j, s.extra);
     return j;
 }
@@ -267,6 +328,11 @@ core::Result<ProjectSettings> settingsFromJson(const Json& json, std::string_vie
     r.integerInRange("backupCount", s.backupCount, 0, limits::kMaxBackupCount);
     r.nested("edgeBanding", s.edgeBanding, edgeBandingFromJson);
     r.boolean("cutListGroupAcrossAssemblies", s.cutListGroupAcrossAssemblies);
+    if (r.find("pricing") != nullptr) {
+        production::PricingSettings pricing;
+        r.nested("pricing", pricing, pricingFromJson);
+        if (r.ok()) s.pricing = pricing;
+    }
     if (!r.ok()) return r.error();
     s.extra = r.unknown();
     return s;
@@ -275,7 +341,7 @@ core::Result<ProjectSettings> settingsFromJson(const Json& json, std::string_vie
 core::Result<furniture::Libraries> librariesFromJson(const Json& json, std::string_view path) {
     Reader r(json, path, "the libraries");
     furniture::Libraries l;
-    r.array("materials", l.materials, formats::materialFromJson);
+    r.array("materials", l.materials, materialFromJson);
     r.array("edgeBands", l.edgeBands, formats::edgeBandFromJson);
     r.array("hardware", l.hardware, formats::hardwareDefinitionFromJson);
     r.rejectUnknown();
@@ -366,7 +432,7 @@ Json projectToJson(const Project& p) {
     j["project"] = metadataJson(p.metadata);
     Json libs = Json::object();
     Json mats = Json::array(), bands = Json::array(), hw = Json::array();
-    for (const auto& m : p.libraries.materials) mats.push_back(formats::toJson(m));
+    for (const auto& m : p.libraries.materials) mats.push_back(materialJson(m));
     for (const auto& e : p.libraries.edgeBands) bands.push_back(formats::toJson(e));
     for (const auto& h : p.libraries.hardware) hw.push_back(formats::toJson(h));
     libs["materials"] = std::move(mats);

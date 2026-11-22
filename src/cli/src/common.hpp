@@ -5,6 +5,7 @@
 #include "fos/core/diagnostic.hpp"
 #include "fos/core/result.hpp"
 #include "fos/production/common.hpp"
+#include "fos/production/quote.hpp"
 #include "fos/project/file.hpp"
 
 #include <filesystem>
@@ -103,6 +104,22 @@ std::string cuttingPlansText(const project::CuttingPlans& plans, const project::
                              const std::filesystem::path& dir,
                              std::vector<std::pair<std::filesystem::path, std::string>>& files, std::size_t& nestFiles);
 
+/// Sheet usage per material from cutting plans (shared by `fos quote --sheets` and `fos batch quote
+/// --sheets`): full sheets of the guillotine plans (listed remnants excluded) + nesting sheets, and
+/// the guillotine cut length. A material whose plan failed is left out (priced by area) with a
+/// cli.quote.plan_failed warning appended to `diagnostics`.
+std::map<domain::MaterialId, production::SheetUsage> sheetUsageFromPlans(const project::CuttingPlans& plans,
+                                                                         core::Diagnostics& diagnostics);
+/// "text" (default), "csv" or "json" from --format; nullopt for anything else.
+std::optional<std::string> quoteFormat(const ParsedArgs& args);
+/// JSON document of a quote (money totals as 2-decimal strings).
+std::string quoteJson(const production::Quote& quote);
+/// Prints the quote in `format` (text to out with diagnostics; csv/json to out, `header` and
+/// diagnostics to err) followed by `extra` + quote diagnostics. Returns kExitOk, or
+/// kExitValidationErrors when the quote is incomplete or a diagnostic is an error.
+int printQuote(Io& io, const production::Quote& quote, const std::string& format, const core::Diagnostics& extra,
+               const std::string& header);
+
 // Command entry points (args exclude the command name).
 int cmdNew(const std::vector<std::string>& args, Io& io);
 int cmdComponent(const std::vector<std::string>& args, Io& io);
@@ -120,5 +137,6 @@ int cmdExportDxf(const std::vector<std::string>& args, Io& io);
 int cmdLinear(const std::vector<std::string>& args, Io& io);
 int cmdEdgebandRolls(const std::vector<std::string>& args, Io& io);
 int cmdBatch(const std::vector<std::string>& args, Io& io);
+int cmdQuote(const std::vector<std::string>& args, Io& io);
 
 } // namespace fos::cli::detail

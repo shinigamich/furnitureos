@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// fos batch new|add|report|cut|labels  (production batches, fos/project/batch.hpp)
+// fos batch new|add|report|cut|labels|quote  (production batches, fos/project/batch.hpp)
 #include "common.hpp"
 
 #include "fos/core/units.hpp"
@@ -26,7 +26,10 @@ const char* kBatchHelp =
     "      Combined cutting plans (guillotine HEURISTIC) and nesting plans (shaped parts, true-shape\n"
     "      HEURISTIC) with the batch cutting settings; SVGs + cutting-summary.txt as 'fos cut'.\n"
     "  fos batch labels <file.fosbatch> --svg-dir DIR\n"
-    "      Part labels naming batch, project and order copy on each part.\n\n"
+    "      Part labels naming batch, project and order copy on each part.\n"
+    "  fos batch quote <file.fosbatch> [--format text|csv|json] [--sheets]\n"
+    "      Quote of the merged batch (all copies) as 'fos quote'. Pricing settings and currency are\n"
+    "      those of the FIRST included project; a project with different ones is a warning.\n\n"
     "Every listed project is loaded on its own: a missing or broken project, a library conflict\n"
     "(same material id with different data) or a refused material substitution is reported and\n"
     "the other projects are still produced; the command then exits 1 (INCOMPLETE BATCH).\n";
@@ -249,6 +252,54 @@ int batchLabels(const std::vector<std::string>& args, Io& io) {
     return incomplete || core::hasErrors(set.diagnostics) ? kExitValidationErrors : kExitOk;
 }
 
+int batchQuote(const std::vector<std::string>& args, Io& io) {
+    auto parsed = parseArgs(args, {{"format"}, {"sheets", false}});
+    if (!parsed) return usageError(io, "batch quote", parsed.error().message);
+    const ParsedArgs& a = parsed.value();
+    if (a.positional.size() != 1) return usageError(io, "batch quote", "expected exactly one batch file.");
+    const auto format = quoteFormat(a);
+    if (!format) return usageError(io, "batch quote", "--format must be text, csv or json.");
+    auto m = loadMerged(io, "batch quote", a.positional[0]);
+    if (!m) return kExitUsageOrIo;
+    core::Diagnostics extra;
+    // Pricing of the first included project; other projects must agree (warning otherwise).
+    std::optional<production::PricingSettings> settings;
+    std::string firstKey;
+    for (std::size_t i = 0; i < m->model.projects.size() && i < m->loaded.projects.size(); ++i) {
+        const auto& bp = m->loaded.projects[i];
+        if (!m->model.projects[i].included || !bp.loaded) continue;
+        production::PricingSettings s = bp.loaded->project.settings.pricing.value_or(production::PricingSettings{});
+        s.currency = bp.loaded->project.metadata.currency;
+        if (!settings) {
+            settings = s;
+            firstKey = bp.key;
+        } else if (!(s == *settings)) {
+            extra.push_back({core::Severity::Warning, "cli.quote.pricing_mismatch",
+                             "Project '" + bp.key + "' has other pricing settings or currency (" + s.currency +
+                                 ") than project '" + firstKey + "' (" + settings->currency +
+                                 "); the batch quote uses those of '" + firstKey + "'.",
+                             bp.key});
+        }
+    }
+    production::QuoteOptions options;
+    options.edgeBanding = m->loaded.batch.edgeBanding;
+    if (a.has("sheets")) {
+        const auto plans = project::batchCuttingPlans(m->model, m->loaded.batch);
+        options.sheetUsage = sheetUsageFromPlans(plans, extra);
+        for (const auto& d : plans.diagnostics)
+            if (d.severity != core::Severity::Info) extra.push_back(d);
+    }
+    auto q = production::quote(m->model.model, settings.value_or(production::PricingSettings{}), options);
+    if (!q) {
+        io.err << "fos batch quote: " << q.error().message << "\n";
+        return kExitUsageOrIo;
+    }
+    bool incomplete = false;
+    const std::string header = batchHeader(*m, incomplete) + "\n";
+    const int rc = printQuote(io, q.value(), *format, extra, header);
+    return incomplete ? kExitValidationErrors : rc;
+}
+
 } // namespace
 
 int cmdBatch(const std::vector<std::string>& args, Io& io) {
@@ -268,7 +319,8 @@ int cmdBatch(const std::vector<std::string>& args, Io& io) {
     if (sub == "report") return batchReport(rest, io);
     if (sub == "cut") return batchCut(rest, io);
     if (sub == "labels") return batchLabels(rest, io);
-    return usageError(io, "batch", "unknown subcommand '" + sub + "' (new, add, report, cut, labels).");
+    if (sub == "quote") return batchQuote(rest, io);
+    return usageError(io, "batch", "unknown subcommand '" + sub + "' (new, add, report, cut, labels, quote).");
 }
 
 } // namespace fos::cli::detail

@@ -13,6 +13,7 @@
 #include "fos/furniture/panel.hpp"
 #include "fos/furniture/templates.hpp"
 #include "fos/nesting/types.hpp"
+#include "fos/production/quote.hpp"
 #include "fos/production/reports.hpp"
 
 #include <cstdint>
@@ -122,6 +123,10 @@ struct ProjectSettings {
     int backupCount = 3;                              ///< Rotating `.bakN` files kept on save (>= 0).
     production::EdgeBandingOptions edgeBanding;       ///< Overhang / waste of the edge banding report.
     bool cutListGroupAcrossAssemblies = true;         ///< production::CutListOptions::groupAcrossAssemblies.
+    /// Pricing of customer quotes (production::quote). nullopt = not configured and NOT written
+    /// (files without the key stay byte for byte the same). PricingSettings::currency is not
+    /// stored here: the quote uses Metadata::currency (the currency of the library prices).
+    std::optional<production::PricingSettings> pricing;
     formats::Json extra = formats::Json::object();    ///< Unknown keys of the file object (preserved).
 };
 

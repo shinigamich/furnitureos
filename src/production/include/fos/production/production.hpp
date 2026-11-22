@@ -8,5 +8,6 @@
 #include "fos/production/html.hpp"
 #include "fos/production/labels.hpp"
 #include "fos/production/part_list.hpp"
+#include "fos/production/quote.hpp"
 #include "fos/production/reports.hpp"
 #include "fos/production/tables.hpp"
