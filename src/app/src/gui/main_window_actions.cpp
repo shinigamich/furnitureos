@@ -5,6 +5,7 @@
 #include "drawings_workspace.hpp"
 #include "fos/viewport/viewport_widget.hpp"
 #include "main_window.hpp"
+#include "quote_workspace.hpp"
 #include "view_tools.hpp"
 
 #include <QAction>
@@ -71,6 +72,12 @@ void MainWindow::buildActions() {
     a_.section = make(tr("Sect&ion plane"), QKeySequence(Qt::Key_S));
     a_.section->setObjectName(QStringLiteral("actionSection"));
     a_.section->setToolTip(tr("Cut the 3D view with an axis-aligned plane (display only)"));
+    a_.pricingSettings = make(tr("&Pricing settings…"));
+    a_.pricingSettings->setObjectName(QStringLiteral("actionPricingSettings"));
+    a_.pricingSettings->setToolTip(tr("Waste, markup and tax percentages and labour rates of the quote"));
+    a_.showQuote = make(tr("&Quote"));
+    a_.showQuote->setObjectName(QStringLiteral("actionShowQuote"));
+    a_.showQuote->setToolTip(tr("Customer price estimate from the library prices and the pricing settings"));
     a_.about = make(tr("&About FurnitureOS"));
     a_.shortcuts = make(tr("&Keyboard shortcuts"), QKeySequence::HelpContents);
 
@@ -123,6 +130,8 @@ void MainWindow::buildActions() {
             [this] { viewport_->setDisplayMode(viewport::DisplayMode::ShadedWithEdges); });
     connect(a_.wireframe, &QAction::triggered, this, [this] { viewport_->setDisplayMode(viewport::DisplayMode::Wireframe); });
     connect(a_.realistic, &QAction::triggered, this, [this] { viewport_->setDisplayMode(viewport::DisplayMode::Realistic); });
+    connect(a_.pricingSettings, &QAction::triggered, quote_, &QuoteWorkspace::editPricingSettings);
+    connect(a_.showQuote, &QAction::triggered, this, [this] { tabs_->setCurrentWidget(quote_); });
     connect(a_.about, &QAction::triggered, this, &MainWindow::showAbout);
     connect(a_.shortcuts, &QAction::triggered, this, [this] { ShortcutsDialog(allActions_, this).exec(); });
 }
@@ -193,6 +202,10 @@ void MainWindow::buildMenus() {
     view->addAction(a_.section);
     view->addSeparator();
     for (QDockWidget* dock : findChildren<QDockWidget*>()) view->addAction(dock->toggleViewAction());
+
+    QMenu* projectMenu = menuBar()->addMenu(tr("&Project"));
+    projectMenu->addAction(a_.pricingSettings);
+    projectMenu->addAction(a_.showQuote);
 
     QMenu* help = menuBar()->addMenu(tr("&Help"));
     help->addAction(a_.shortcuts);

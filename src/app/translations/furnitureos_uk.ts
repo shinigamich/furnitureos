@@ -716,6 +716,109 @@
     </message>
 </context>
 <context>
+    <name>QuoteText</name>
+    <message>
+        <source>Material</source>
+        <translation>Матеріал</translation>
+    </message>
+    <message>
+        <source>Edge band</source>
+        <translation>Кромка</translation>
+    </message>
+    <message>
+        <source>Hardware</source>
+        <translation>Фурнітура</translation>
+    </message>
+    <message>
+        <source>Labour</source>
+        <translation>Робота</translation>
+    </message>
+    <message numerus="yes">
+        <source>INCOMPLETE: %n item(s) have no price and are NOT included in the total. Enter the missing prices in the project libraries or pricing settings.</source>
+        <translation>
+            <numerusform>НЕПОВНИЙ: %n позиція не має ціни і НЕ входить у підсумок. Введіть відсутні ціни в бібліотеках проєкту або в налаштуваннях ціноутворення.</numerusform>
+            <numerusform>НЕПОВНИЙ: %n позиції не мають ціни і НЕ входять у підсумок. Введіть відсутні ціни в бібліотеках проєкту або в налаштуваннях ціноутворення.</numerusform>
+            <numerusform>НЕПОВНИЙ: %n позицій не мають ціни і НЕ входять у підсумок. Введіть відсутні ціни в бібліотеках проєкту або в налаштуваннях ціноутворення.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Category</source>
+        <translation>Категорія</translation>
+    </message>
+    <message>
+        <source>Item</source>
+        <translation>Позиція</translation>
+    </message>
+    <message>
+        <source>Quantity</source>
+        <translation>Кількість</translation>
+    </message>
+    <message>
+        <source>Unit</source>
+        <translation>Од.</translation>
+    </message>
+    <message>
+        <source>Unit price</source>
+        <translation>Ціна за од.</translation>
+    </message>
+    <message>
+        <source>Amount</source>
+        <translation>Сума</translation>
+    </message>
+    <message>
+        <source>Note</source>
+        <translation>Примітка</translation>
+    </message>
+    <message>
+        <source>UNPRICED</source>
+        <translation>БЕЗ ЦІНИ</translation>
+    </message>
+    <message>
+        <source>Materials subtotal</source>
+        <translation>Разом матеріали</translation>
+    </message>
+    <message>
+        <source>Edge banding subtotal</source>
+        <translation>Разом кромкування</translation>
+    </message>
+    <message>
+        <source>Hardware subtotal</source>
+        <translation>Разом фурнітура</translation>
+    </message>
+    <message>
+        <source>Labour subtotal</source>
+        <translation>Разом робота</translation>
+    </message>
+    <message>
+        <source>Subtotal</source>
+        <translation>Проміжний підсумок</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n unpriced line(s) not included</source>
+        <translation>
+            <numerusform>%n рядок без ціни не враховано</numerusform>
+            <numerusform>%n рядки без ціни не враховано</numerusform>
+            <numerusform>%n рядків без ціни не враховано</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Markup %1 %</source>
+        <translation>Націнка %1 %</translation>
+    </message>
+    <message>
+        <source>Tax %1 %</source>
+        <translation>Податок %1 %</translation>
+    </message>
+    <message>
+        <source>TOTAL</source>
+        <translation>УСЬОГО</translation>
+    </message>
+    <message>
+        <source>TOTAL (%1)</source>
+        <translation>УСЬОГО (%1)</translation>
+    </message>
+</context>
+<context>
     <name>fos::app::CommandText</name>
     <message>
         <source>Set {1} of {0} to {2}</source>
@@ -856,6 +959,14 @@
     <message>
         <source>Insert component {0} as {1}</source>
         <translation>Вставити компонент {0} як {1}</translation>
+    </message>
+    <message>
+        <source>Change pricing settings</source>
+        <translation>Змінити налаштування ціноутворення</translation>
+    </message>
+    <message>
+        <source>Reset pricing settings</source>
+        <translation>Скинути налаштування ціноутворення</translation>
     </message>
 </context>
 <context>
@@ -3264,6 +3375,30 @@ Replace it?</source>
         <source>Combine several saved projects with quantities into one production run</source>
         <translation>Об’єднати кілька збережених проєктів із кількостями в одну виробничу партію</translation>
     </message>
+    <message>
+        <source>Quote</source>
+        <translation>Кошторис</translation>
+    </message>
+    <message>
+        <source>&amp;Pricing settings…</source>
+        <translation>&amp;Налаштування ціноутворення…</translation>
+    </message>
+    <message>
+        <source>Waste, markup and tax percentages and labour rates of the quote</source>
+        <translation>Відсотки відходів, націнки й податку та розцінки робіт кошторису</translation>
+    </message>
+    <message>
+        <source>&amp;Quote</source>
+        <translation>&amp;Кошторис</translation>
+    </message>
+    <message>
+        <source>Customer price estimate from the library prices and the pricing settings</source>
+        <translation>Кошторис для замовника за цінами бібліотек і налаштуваннями ціноутворення</translation>
+    </message>
+    <message>
+        <source>&amp;Project</source>
+        <translation>&amp;Проєкт</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::NestingSettingsForm</name>
@@ -3392,6 +3527,57 @@ Replace it?</source>
     </message>
 </context>
 <context>
+    <name>fos::app::gui::PricingSettingsDialog</name>
+    <message>
+        <source>Pricing settings</source>
+        <translation>Налаштування ціноутворення</translation>
+    </message>
+    <message>
+        <source>Currency:</source>
+        <translation>Валюта:</translation>
+    </message>
+    <message>
+        <source>(none)</source>
+        <translation>(немає)</translation>
+    </message>
+    <message>
+        <source>Extra board added to the cut area of materials priced by area (not used with cutting plan sheets)</source>
+        <translation>Додаткова плита до площі розкрою матеріалів, що рахуються за площею (не застосовується з листами карт розкрою)</translation>
+    </message>
+    <message>
+        <source>Waste:</source>
+        <translation>Відходи:</translation>
+    </message>
+    <message>
+        <source>Markup:</source>
+        <translation>Націнка:</translation>
+    </message>
+    <message>
+        <source>Tax:</source>
+        <translation>Податок:</translation>
+    </message>
+    <message>
+        <source>Labour per cut metre</source>
+        <translation>Робота за метр різу</translation>
+    </message>
+    <message>
+        <source>Labour per edge banding metre</source>
+        <translation>Робота за метр кромкування</translation>
+    </message>
+    <message>
+        <source>Labour per drilled hole</source>
+        <translation>Робота за отвір</translation>
+    </message>
+    <message>
+        <source>Labour per part</source>
+        <translation>Робота за деталь</translation>
+    </message>
+    <message>
+        <source>Unchecked labour rates produce no labour line. Material, edge band and hardware prices come from the project libraries.</source>
+        <translation>Невибрані розцінки не створюють рядків робіт. Ціни матеріалів, кромок і фурнітури беруться з бібліотек проєкту.</translation>
+    </message>
+</context>
+<context>
     <name>fos::app::gui::ProductionWorkspace</name>
     <message>
         <source>Cut list</source>
@@ -3471,6 +3657,73 @@ Replace it?</source>
     <message>
         <source>Size (mm)</source>
         <translation>Розмір (мм)</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::QuoteWorkspace</name>
+    <message>
+        <source>Use cutting plan sheets</source>
+        <translation>Рахувати листи з карт розкрою</translation>
+    </message>
+    <message>
+        <source>Price materials per sheet from the cutting plans of the Cutting workspace (heuristic optimiser) instead of by cut area plus waste; also gives the cut length for labour</source>
+        <translation>Рахувати матеріали за листами з карт розкрою вкладки «Розкрій» (евристичний оптимізатор) замість площі розкрою з відходами; також дає довжину різів для робіт</translation>
+    </message>
+    <message>
+        <source>Pricing settings…</source>
+        <translation>Налаштування ціноутворення…</translation>
+    </message>
+    <message>
+        <source>Export CSV…</source>
+        <translation>Експорт CSV…</translation>
+    </message>
+    <message>
+        <source>No quote: the project could not be generated (%1).</source>
+        <translation>Кошторису немає: проєкт не вдалося згенерувати (%1).</translation>
+    </message>
+    <message>
+        <source>No quote: %1</source>
+        <translation>Кошторису немає: %1</translation>
+    </message>
+    <message>
+        <source>Materials priced by sheets from the cutting plans (heuristic).</source>
+        <translation>Матеріали пораховано за листами з карт розкрою (евристика).</translation>
+    </message>
+    <message>
+        <source>Materials priced by cut area plus waste.</source>
+        <translation>Матеріали пораховано за площею розкрою з відходами.</translation>
+    </message>
+    <message>
+        <source>Currency %1 (label only, no conversion).</source>
+        <translation>Валюта %1 (лише позначка, без конвертації).</translation>
+    </message>
+    <message>
+        <source>Pricing settings are not configured (no markup, tax or labour).</source>
+        <translation>Ціноутворення не налаштоване (без націнки, податку й робіт).</translation>
+    </message>
+    <message>
+        <source>Pricing settings</source>
+        <translation>Налаштування ціноутворення</translation>
+    </message>
+    <message>
+        <source>Export quote</source>
+        <translation>Експорт кошторису</translation>
+    </message>
+    <message>
+        <source>Export quote as CSV</source>
+        <translation>Експорт кошторису в CSV</translation>
+    </message>
+    <message>
+        <source>quote</source>
+        <translation>кошторис</translation>
+    </message>
+    <message>
+        <source>CSV files (*.csv)</source>
+        <translation>Файли CSV (*.csv)</translation>
+    </message>
+    <message>
+        <source>Export failed</source>
+        <translation>Помилка експорту</translation>
     </message>
 </context>
 <context>

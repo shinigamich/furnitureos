@@ -46,6 +46,9 @@ namespace {
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Split the whole interior of {0} into {2}"),
     // Commands built by the application itself (session.cpp).
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Recover {0} from autosave or backup"),
+    // quote_rows.cpp
+    QT_TRANSLATE_NOOP("fos::app::CommandText", "Change pricing settings"),
+    QT_TRANSLATE_NOOP("fos::app::CommandText", "Reset pricing settings"),
 };
 
 } // namespace

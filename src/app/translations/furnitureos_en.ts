@@ -716,6 +716,107 @@
     </message>
 </context>
 <context>
+    <name>QuoteText</name>
+    <message>
+        <source>Material</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edge band</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hardware</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Labour</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>INCOMPLETE: %n item(s) have no price and are NOT included in the total. Enter the missing prices in the project libraries or pricing settings.</source>
+        <translation>
+            <numerusform>INCOMPLETE: %n item has no price and is NOT included in the total. Enter the missing prices in the project libraries or pricing settings.</numerusform>
+            <numerusform>INCOMPLETE: %n items have no price and are NOT included in the total. Enter the missing prices in the project libraries or pricing settings.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Category</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Item</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Quantity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unit price</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Amount</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Note</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>UNPRICED</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Materials subtotal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edge banding subtotal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hardware subtotal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Labour subtotal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Subtotal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n unpriced line(s) not included</source>
+        <translation>
+            <numerusform>%n unpriced line not included</numerusform>
+            <numerusform>%n unpriced lines not included</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Markup %1 %</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tax %1 %</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TOTAL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TOTAL (%1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>fos::app::CommandText</name>
     <message>
         <source>Set {1} of {0} to {2}</source>
@@ -855,6 +956,14 @@
     </message>
     <message>
         <source>Insert component {0} as {1}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Change pricing settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reset pricing settings</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -3253,6 +3362,30 @@ Replace it?</source>
         <source>Combine several saved projects with quantities into one production run</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Quote</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Pricing settings…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Waste, markup and tax percentages and labour rates of the quote</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Quote</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Customer price estimate from the library prices and the pricing settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Project</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::NestingSettingsForm</name>
@@ -3381,6 +3514,57 @@ Replace it?</source>
     </message>
 </context>
 <context>
+    <name>fos::app::gui::PricingSettingsDialog</name>
+    <message>
+        <source>Pricing settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Currency:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>(none)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Extra board added to the cut area of materials priced by area (not used with cutting plan sheets)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Waste:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Markup:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tax:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Labour per cut metre</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Labour per edge banding metre</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Labour per drilled hole</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Labour per part</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unchecked labour rates produce no labour line. Material, edge band and hardware prices come from the project libraries.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>fos::app::gui::ProductionWorkspace</name>
     <message>
         <source>Cut list</source>
@@ -3459,6 +3643,73 @@ Replace it?</source>
     </message>
     <message>
         <source>Size (mm)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::QuoteWorkspace</name>
+    <message>
+        <source>Use cutting plan sheets</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Price materials per sheet from the cutting plans of the Cutting workspace (heuristic optimiser) instead of by cut area plus waste; also gives the cut length for labour</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pricing settings…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export CSV…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No quote: the project could not be generated (%1).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No quote: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Materials priced by sheets from the cutting plans (heuristic).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Materials priced by cut area plus waste.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Currency %1 (label only, no conversion).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pricing settings are not configured (no markup, tax or labour).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pricing settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export quote</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export quote as CSV</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>quote</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>CSV files (*.csv)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export failed</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

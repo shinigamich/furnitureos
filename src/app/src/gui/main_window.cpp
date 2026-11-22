@@ -17,6 +17,7 @@
 #include "inspector_panel.hpp"
 #include "production_workspace.hpp"
 #include "project_browser.hpp"
+#include "quote_workspace.hpp"
 
 #include <QAction>
 #include <QCloseEvent>
@@ -49,10 +50,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), preferences_(Pref
     drawings_ = new DrawingsWorkspace(session_, tabs_);
     production_ = new ProductionWorkspace(session_, tabs_);
     cutting_ = new CuttingWorkspace(session_, tabs_);
+    quote_ = new QuoteWorkspace(session_, tabs_);
     tabs_->addTab(viewport_, tr("3D"));
     tabs_->addTab(drawings_, tr("Drawings"));
     tabs_->addTab(production_, tr("Production"));
     tabs_->addTab(cutting_, tr("Cutting"));
+    tabs_->addTab(quote_, tr("Quote"));
     setCentralWidget(tabs_);
 
     buildDocks();

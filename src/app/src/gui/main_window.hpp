@@ -29,6 +29,7 @@ class DrawingsWorkspace;
 class InspectorPanel;
 class ProductionWorkspace;
 class ProjectBrowser;
+class QuoteWorkspace;
 class SectionToolBar;
 
 class MainWindow : public QMainWindow {
@@ -44,6 +45,7 @@ public:
     DrawingsWorkspace* drawingsWorkspace() const noexcept { return drawings_; }
     ProductionWorkspace* productionWorkspace() const noexcept { return production_; }
     CuttingWorkspace* cuttingWorkspace() const noexcept { return cutting_; }
+    QuoteWorkspace* quoteWorkspace() const noexcept { return quote_; }
     ComponentBrowser* componentBrowser() const noexcept { return components_; }
     QTabWidget* workspaces() const noexcept { return tabs_; }
     SectionToolBar* sectionToolBar() const noexcept { return sectionBar_; }
@@ -109,6 +111,7 @@ private:
     DrawingsWorkspace* drawings_ = nullptr;
     ProductionWorkspace* production_ = nullptr;
     CuttingWorkspace* cutting_ = nullptr;
+    QuoteWorkspace* quote_ = nullptr;
     BatchWindow* batch_ = nullptr;
     ProjectBrowser* browser_ = nullptr;
     InspectorPanel* inspector_ = nullptr;
@@ -126,6 +129,7 @@ private:
         QAction *undo, *redo, *deleteItem, *duplicateItem, *saveAsComponent, *preferences;
         QAction *fitAll, *perspective, *orthographic, *shaded, *shadedEdges, *wireframe, *realistic;
         QAction *measure, *section;
+        QAction *pricingSettings, *showQuote;
         QAction *about, *shortcuts;
     } a_{};
     QMenu* recentMenu_ = nullptr;
