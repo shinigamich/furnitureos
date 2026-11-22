@@ -246,6 +246,23 @@ Wrote 10 labels on 1 page(s) to labels
 (exit code 0)
 ```
 
+### `fos quote`
+
+```text
+fos quote <file.fosp> [--format text|csv|json] [--sheets]
+```
+
+Customer quote (`production::quote`): materials, edge banding, hardware, labour (rates set in
+`settings.pricing`), markup on the subtotal, tax on subtotal + markup. Prices come only from the
+libraries (material `costPerM2` / `costPerSheet`, edge band `costPerMeter`, hardware `unitCost`);
+the currency is `project.currency` (label only). Without `--sheets` materials are priced by cut
+area + `wastePercent`; with `--sheets` the cutting plans are optimised as in `fos cut` (heuristic)
+and materials are priced per purchased sheet (listed remnants not counted); the plans' saw cut
+length (+ routing length of shaped parts) feeds `perCutMetre`, which is unpriced without a plan.
+Lines without a price are listed as `UNPRICED` with a `production.quote.unpriced` warning and are
+not in the total; the exit code is then 1. CSV/JSON go to stdout, diagnostics to stderr (JSON also
+includes them); JSON money totals are 2-decimal strings.
+
 ### `fos batch`
 
 Production batches: several projects (orders) produced together (`.fosbatch`, schema in
@@ -257,7 +274,12 @@ fos batch add <file.fosbatch> <project.fosp> [--qty K] [--key KEY] [--note T]
 fos batch report <file.fosbatch> --type cutlist|summary|hardware [--csv]
 fos batch cut <file.fosbatch> [--out-dir DIR]
 fos batch labels <file.fosbatch> --svg-dir DIR
+fos batch quote <file.fosbatch> [--format text|csv|json] [--sheets]
 ```
+
+`quote` prices the merged batch (all copies) like `fos quote`, with the pricing settings and
+currency of the first included project (a project with different ones: warning
+`cli.quote.pricing_mismatch`) and the batch cutting settings for `--sheets`.
 
 `add` stores the project path relative to the batch file and checks that the project loads;
 adding an already listed project adds K to its quantity. Part ids in every output are

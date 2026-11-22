@@ -281,25 +281,10 @@ core::Result<production::PricingSettings> pricingFromJson(const Json& json, std:
     return p;
 }
 
-/// Material with the optional "costPerM2" key (written only when > 0). The key is handled here
-/// so that the shared formats material codec stays unchanged.
-Json materialJson(const domain::Material& m) {
-    Json j = formats::toJson(m);
-    if (m.costPerSquareMeter > 0) j["costPerM2"] = m.costPerSquareMeter;
-    return j;
-}
+Json materialJson(const domain::Material& m) { return formats::toJson(m); }
 
 core::Result<domain::Material> materialFromJson(const Json& json, std::string_view path) {
-    if (!json.is_object() || !json.contains("costPerM2")) return formats::materialFromJson(json, path);
-    const std::string keyPath = joinPath(path, "costPerM2");
-    auto price = readNumber(json.at("costPerM2"), keyPath, Num::NonNegative);
-    if (!price) return price.error();
-    Json rest = json;
-    rest.erase("costPerM2");
-    auto m = formats::materialFromJson(rest, path);
-    if (!m) return m.error();
-    m.value().costPerSquareMeter = price.value();
-    return m;
+    return formats::materialFromJson(json, path);
 }
 
 Json settingsJson(const ProjectSettings& s) {

@@ -86,6 +86,7 @@ Json toJson(const domain::Material& m) {
     j["color"] = toJson(m.color);
     j["texture"] = m.texture;
     j["costPerSheet"] = m.costPerSheet;
+    if (m.costPerSquareMeter > 0) j["costPerM2"] = m.costPerSquareMeter; // optional, written only when set
     j["available"] = m.available;
     writeCustom(j, m.custom);
     return j;
@@ -107,6 +108,7 @@ core::Result<domain::Material> materialFromJson(const Json& json, std::string_vi
     r.nested("color", m.color, colorFromJson);
     r.text("texture", m.texture);
     r.number("costPerSheet", m.costPerSheet, NumberRule::NonNegative);
+    r.number("costPerM2", m.costPerSquareMeter, NumberRule::NonNegative);
     r.boolean("available", m.available);
     r.customAndUnknown(m.custom);
     if (!r.ok()) return r.error();

@@ -93,7 +93,10 @@ empty).
 ### 2.3 Libraries — closed
 
 `materials`, `edgeBands`, `hardware`: arrays of formats Material / EdgeBand / HardwareDefinition (formats README
-§3.4–3.6); ids unique within each list.
+§3.4–3.6); ids unique within each list. A material may additionally carry `costPerM2` (number ≥ 0,
+price per m² in the project currency, `domain::Material::costPerSquareMeter`); it is handled by the
+project codec, written only when > 0, so files without it are unchanged. (The standalone formats
+material codec does not know the key; it keeps it as a preserved unknown key.)
 
 ### 2.4 Item *(extensible)*
 
@@ -210,7 +213,11 @@ all materials — closed: `toolDiameter` (0 < d ≤ 100, default 8), `clearance`
 
 `backupCount` (integer 0 … 100, default 3: backups kept on save), `edgeBanding` (closed:
 `{overhangPerEnd ≥ 0 (25), wastePercent ≥ 0 (0)}` for the edge banding report),
-`cutListGroupAcrossAssemblies` (bool, default true).
+`cutListGroupAcrossAssemblies` (bool, default true), optional `pricing` (closed; absent = not
+configured and not written): `{wastePercent, markupPercent, taxPercent}` (each 0 … 1000, default 0)
+and `labour` (closed; `perCutMetre`, `perEdgeMetre`, `perHole`, `perPart`, each ≥ 0 and written only
+when set) — `production::PricingSettings` of customer quotes. The quote currency is
+`project.currency`; it is not repeated in `pricing`.
 
 ### 2.8 Hard limits
 
