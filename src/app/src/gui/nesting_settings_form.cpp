@@ -28,7 +28,14 @@ QDoubleSpinBox* spin(QWidget* parent, const char* name, double max, int decimals
 } // namespace
 
 NestingSettingsForm::NestingSettingsForm(Session& session, QWidget* parent)
-    : QGroupBox(tr("Router nesting settings (all materials)"), parent), session_(session) {
+    : NestingSettingsForm([&session] { return session.project(); },
+                          [&session](const project::Command& command) { return session.execute(command); }, parent) {}
+
+NestingSettingsForm::NestingSettingsForm(std::function<project::Project()> project,
+                                         std::function<core::Result<void>(const project::Command&)> execute,
+                                         QWidget* parent)
+    : QGroupBox(tr("Router nesting settings (all materials)"), parent), project_(std::move(project)),
+      execute_(std::move(execute)) {
     setObjectName(QStringLiteral("nestingSettings"));
     tool_ = spin(this, "nestTool", 1000, 1);
     tool_->setToolTip(tr("Diameter of the router bit that cuts the shaped parts out; parts are spaced by it."));
@@ -68,7 +75,7 @@ NestingSettingsForm::NestingSettingsForm(Session& session, QWidget* parent)
 }
 
 void NestingSettingsForm::load() {
-    const project::NestingSettings s = nestingSettingsInput(session_.project());
+    const project::NestingSettings s = nestingSettingsInput(project_());
     tool_->setValue(s.toolDiameter);
     clearance_->setValue(s.clearance);
     chord_->setValue(s.chordTolerance);
@@ -82,7 +89,7 @@ void NestingSettingsForm::load() {
 }
 
 bool NestingSettingsForm::apply() {
-    project::NestingSettings s = nestingSettingsInput(session_.project()); // keeps minRemnantLength
+    project::NestingSettings s = nestingSettingsInput(project_()); // keeps minRemnantLength
     const auto seed = parseNestingSeed(seed_->text().toStdString());
     if (!seed) {
         showError(error_, tr("Seed must be a whole number from 0 to 4294967295, got “%1”.").arg(seed_->text()));
@@ -94,7 +101,7 @@ bool NestingSettingsForm::apply() {
     s.margins = {marginLeft_->value(), marginRight_->value(), marginBottom_->value(), marginTop_->value()};
     s.iterations = iterations_->value();
     s.seed = *seed;
-    auto r = session_.execute(nestingSettingsCommand(s));
+    auto r = execute_(nestingSettingsCommand(s));
     if (!r) {
         showError(error_, QString::fromStdString(r.error().message));
         return false;
