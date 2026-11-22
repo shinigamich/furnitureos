@@ -3,7 +3,6 @@
 #include "gen_context.hpp"
 
 namespace fos::furniture::detail {
-namespace {
 
 void handleJob(Gen& g, std::size_t front, const std::string& slot, const FrontSpec& spec, bool door, bool freeEdgeRight) {
     namespace p = param;
@@ -25,6 +24,8 @@ void handleJob(Gen& g, std::size_t front, const std::string& slot, const FrontSp
     c.verticalOffset = g.v(p::kHandleEndOffset);
     g.jobs.push_back(std::move(j));
 }
+
+namespace {
 
 /// CRANK RULE: the hinge for a front follows its overlay kind: Full -> HardwareSelection::hinge
 /// (0 mm crank), Half -> hingeHalf (9.5 mm crank), Inset -> hingeInset (16 mm crank). When the
@@ -178,6 +179,13 @@ core::Result<void> buildFront(Gen& g, const FrontSpec& spec, const std::string& 
         return {};
     }
     if (spec.kind == FrontKind::Door) {
+        if (path.empty() && g.def.corner.kind == CornerKind::Blind) {
+            // Blind corner: the front is split into the fixed blind panel and the door.
+            auto door = buildBlindPanel(g, x0, x1, z0, z1, yInner);
+            if (!door) return door.error();
+            addDoor("door", "Door", door.value().first, door.value().second, spec.hingeSide == HingeSide::Left);
+            return {};
+        }
         addDoor(joinSlot({"door", path}), "Door", x0, x1, spec.hingeSide == HingeSide::Left);
         return {};
     }

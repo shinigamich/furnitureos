@@ -72,6 +72,14 @@ enum class ArcDirection {
     Concave, ///< Dips into the part; the arc's ends are the original corners.
 };
 enum class CutoutKind { Rectangle, Circle };
+/// Corner construction of a cabinet (definition.hpp CornerSpec, README "Corner cabinets").
+enum class CornerKind {
+    None,   ///< Ordinary rectangular cabinet.
+    Blind,  ///< Blind corner: a fixed blind panel in the front plane on one side, the door covers the rest.
+    LShape, ///< 90-degree L-shaped corner base cabinet (two legs, contoured top / bottom / shelves).
+};
+/// Side of the blind panel of a blind corner cabinet (seen from the front).
+enum class CornerSide { Left, Right };
 
 const char* toString(JointKind) noexcept;
 const char* toString(TopKind) noexcept;
@@ -90,6 +98,8 @@ const char* toString(ContourKind) noexcept;
 const char* toString(ArcDirection) noexcept;
 const char* toString(CutoutKind) noexcept;
 const char* toString(DrawerBottomMount) noexcept;
+const char* toString(CornerKind) noexcept;
+const char* toString(CornerSide) noexcept;
 
 /// Inverse of toString for every enum above; std::nullopt for unknown text (case-sensitive).
 template <class E> std::optional<E> fromString(std::string_view text) noexcept;
@@ -110,5 +120,7 @@ template <> std::optional<ContourKind> fromString<ContourKind>(std::string_view)
 template <> std::optional<ArcDirection> fromString<ArcDirection>(std::string_view) noexcept;
 template <> std::optional<CutoutKind> fromString<CutoutKind>(std::string_view) noexcept;
 template <> std::optional<DrawerBottomMount> fromString<DrawerBottomMount>(std::string_view) noexcept;
+template <> std::optional<CornerKind> fromString<CornerKind>(std::string_view) noexcept;
+template <> std::optional<CornerSide> fromString<CornerSide>(std::string_view) noexcept;
 
 } // namespace fos::furniture

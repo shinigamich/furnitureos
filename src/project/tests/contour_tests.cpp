@@ -183,3 +183,39 @@ TEST(ProjectContour, SetPanelContourCommand) {
 }
 
 } // namespace fos::project::test
+
+namespace fos::project::test {
+
+// Corner cabinets (blind corner, L-shaped corner): the "corner" key survives a save / reload
+// byte for byte, and files of ordinary cabinets carry no such key.
+TEST(ProjectCorner, CornerCabinetsRoundTrip) {
+    Project p = newProject(meta());
+    Item blind, lshape;
+    blind.definition = furniture::templates::blindCornerCabinet(domain::AssemblyId("bc"), defaultTemplateMaterials());
+    blind.cabinet()->corner.blindSide = furniture::CornerSide::Right;
+    blind.cabinet()->interior.front->hingeSide = furniture::HingeSide::Left;
+    lshape.definition = furniture::templates::lCornerCabinet(domain::AssemblyId("lc"), defaultTemplateMaterials());
+    p.items = {blind, lshape, baseCabinetItem()};
+    auto text = serializeProject(p, kSavedAt);
+    ASSERT_TRUE(text.ok()) << text.error().message;
+    EXPECT_NE(text.value().find("\"blindSide\""), std::string::npos);
+    auto loaded = parseProject(text.value());
+    ASSERT_TRUE(loaded.ok()) << loaded.error().message;
+    EXPECT_FALSE(core::hasErrors(loaded.value().diagnostics));
+    const Project& q = loaded.value().project;
+    ASSERT_EQ(q.items.size(), 3u);
+    EXPECT_EQ(q.items[0].cabinet()->corner, blind.cabinet()->corner);
+    EXPECT_EQ(q.items[1].cabinet()->corner.kind, furniture::CornerKind::LShape);
+    EXPECT_EQ(q.items[2].cabinet()->corner, furniture::CornerSpec{});
+    EXPECT_EQ(serializeProject(q, kSavedAt).value(), text.value());
+    EXPECT_NE(findPart(loaded.value().resolved, "bc/blind"), nullptr);
+    const domain::Part* bottom = findPart(loaded.value().resolved, "lc/bottom");
+    ASSERT_NE(bottom, nullptr);
+    EXPECT_TRUE(bottom->shape.has_value());
+    // An ordinary cabinet writes no "corner" key (older files stay byte-identical).
+    Project plain = newProject(meta());
+    plain.items.push_back(baseCabinetItem());
+    EXPECT_EQ(serializeProject(plain, kSavedAt).value().find("\"corner\""), std::string::npos);
+}
+
+} // namespace fos::project::test

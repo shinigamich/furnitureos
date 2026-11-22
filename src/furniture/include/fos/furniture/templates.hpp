@@ -48,4 +48,16 @@ inline constexpr const char* kShelfCornerRadius = "shelf_corner_radius";
 /// place (warning furniture.contour.unused); new shelves are rectangular.
 CabinetDefinition openShelvingRounded(domain::AssemblyId id, const TemplateMaterials& materials);
 
+/// Blind corner base cabinet 1000 x 820 x 560 (README "Corner cabinets"): construction of
+/// baseCabinet() (stretcher rails, plinth panel 100, overlay back, 1 shelf); CornerSpec Blind
+/// on the LEFT with `blind_width` = 500 (custom parameter): blind panel 496.5 mm
+/// (x 2..498.5), one door 496.5 mm (x 501.5..998) hinged right, handle near the top.
+CabinetDefinition blindCornerCabinet(domain::AssemblyId id, const TemplateMaterials& materials);
+/// L-shaped corner base cabinet, legs 900 x 900, depths 560 / 560, height 820 (README
+/// "Corner cabinets"): plinth panels 100 (sides to the floor), full L-shaped top, overlay
+/// backs on both wall sides, 1 L-shaped shelf, a Full-overlay DoorPair generated as door A
+/// (315 mm) and door B (318 mm), handles near the top. Custom parameters corner_width_b = 900,
+/// corner_depth_b = 560.
+CabinetDefinition lCornerCabinet(domain::AssemblyId id, const TemplateMaterials& materials);
+
 } // namespace fos::furniture::templates

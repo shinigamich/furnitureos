@@ -4,6 +4,7 @@
 #include "fos/furniture/parameters.hpp"
 
 #include <cassert>
+#include <utility>
 
 namespace fos::furniture::templates {
 namespace {
@@ -118,6 +119,36 @@ CabinetDefinition openShelvingRounded(domain::AssemblyId id, const TemplateMater
     rounded.radii = {kShelfCornerRadius, kShelfCornerRadius, "", ""}; // corners (0,0) and (L,0): the front (L1) corners
     for (const char* slot : {"shelf.1.1", "shelf.1.2", "shelf.2.1", "shelf.2.2"})
         def.materials.overrides[slot].contour = rounded;
+    return def;
+}
+
+CabinetDefinition blindCornerCabinet(domain::AssemblyId id, const TemplateMaterials& m) {
+    ConstructionOptions o;
+    o.top = TopKind::Rails;
+    o.plinth = PlinthKind::SidesToFloor;
+    CabinetDefinition def = start(std::move(id), "Blind corner cabinet", m, o, 1000, 820, 560);
+    [[maybe_unused]] const auto added = def.parameters.define(
+        parametric::ParameterDef::constant(corner_param::kBlindWidth, 500, parametric::ParameterKind::Length));
+    def.corner.kind = CornerKind::Blind;
+    def.corner.blindSide = CornerSide::Left;
+    def.interior.shelfCount = 1;
+    FrontSpec f = door(FrontKind::Door, HandlePosition::Top);
+    f.hingeSide = HingeSide::Right; // away from the blind panel
+    def.interior.front = f;
+    return def;
+}
+
+CabinetDefinition lCornerCabinet(domain::AssemblyId id, const TemplateMaterials& m) {
+    ConstructionOptions o;
+    o.plinth = PlinthKind::SidesToFloor;
+    CabinetDefinition def = start(std::move(id), "L-shaped corner cabinet", m, o, 900, 820, 560);
+    for (const auto& [name, value] : {std::pair{corner_param::kWidthB, 900.0}, std::pair{corner_param::kDepthB, 560.0}}) {
+        [[maybe_unused]] const auto added =
+            def.parameters.define(parametric::ParameterDef::constant(name, value, parametric::ParameterKind::Length));
+    }
+    def.corner.kind = CornerKind::LShape;
+    def.interior.shelfCount = 1;
+    def.interior.front = door(FrontKind::DoorPair, HandlePosition::Top);
     return def;
 }
 

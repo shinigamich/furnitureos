@@ -25,7 +25,10 @@ struct Interpenetration {
 /// machined volume: its centre line from (u1, v1) to (u2, v2), its full width across and its
 /// depth into the face (only grooves parallel to a part axis are considered).
 /// Parts are compared by their boxes, which is exact for the axis-aligned panels this module
-/// generates; rotated parts are approximated by their (larger) bounding boxes.
+/// generates; rotated parts are approximated by their (larger) bounding boxes. A part with a
+/// RECTILINEAR outline (PartShape whose outer segments are all straight and axis-parallel,
+/// e.g. the L-shaped corner panels) is compared by the rectangles of that outline (one per x
+/// slab and y interval; cut-outs ignored); other shapes by their bounding box.
 std::vector<Interpenetration> findInterpenetrations(const domain::Assembly& assembly,
                                                     double tolerance = core::kLengthEps);
 

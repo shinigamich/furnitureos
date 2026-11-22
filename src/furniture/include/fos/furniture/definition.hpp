@@ -176,6 +176,46 @@ struct HardwareSelection {
     bool operator==(const HardwareSelection&) const = default;
 };
 
+/// Custom parameter names read by the corner constructions (README "Corner cabinets"). They
+/// are ordinary graph parameters (constants or expressions, mm); the corner templates define
+/// them. A corner kind whose parameter is missing from the graph fails generation.
+namespace corner_param {
+/// Blind: front width of the blind part, from the OUTER face of the blind-side carcass side
+/// to the centre of the gap between blind panel and door.
+inline constexpr const char* kBlindWidth = "blind_width";
+/// LShape: overall length of leg B along the left wall (assembly -Y direction, measured from
+/// the rear edge of leg A), mm.
+inline constexpr const char* kWidthB = "corner_width_b";
+/// LShape: carcass depth of leg B (wall face to front edge, along X), mm.
+inline constexpr const char* kDepthB = "corner_depth_b";
+} // namespace corner_param
+
+/// Door width limits of corner cabinets (blind corner door; each L-corner door), mm. A
+/// GENERIC RULE OF THUMB for single cup-hinged doors, not a manufacturer specification.
+inline constexpr double kMinCornerDoorWidth = 150.0;
+inline constexpr double kMaxCornerDoorWidth = 600.0;
+/// Narrowest blind panel of a blind corner cabinet (rule of thumb: a narrower strip cannot be
+/// fixed reasonably), mm.
+inline constexpr double kMinBlindPanelWidth = 50.0;
+
+/// Corner construction (README "Corner cabinets").
+///  * Blind: the root section's front must be a single Door hinged on the side AWAY from the
+///    blind panel. The front is split at `blind_width`: a fixed blind panel (slot `blind`,
+///    front material, no fittings generated: it is screwed on from inside) and the door.
+///    Errors: blind panel narrower than kMinBlindPanelWidth, door outside
+///    kMinCornerDoorWidth..kMaxCornerDoorWidth, wrong hinge side, missing parameter.
+///  * LShape: `width` / `depth` are length and depth of leg A (along the rear wall, front at
+///    y = 0), `corner_width_b` / `corner_depth_b` those of leg B (along the left wall at x = 0,
+///    extending towards -Y). Requires BetweenSides joints, a Panel top, an Overlay or no back,
+///    no plinth or SidesToFloor, a leaf root section (its shelfCount gives L-shaped shelves)
+///    and a root front that is absent or a Full-overlay DoorPair (generated as two
+///    independent cup-hinged doors; bi-fold hinges are not modelled).
+struct CornerSpec {
+    CornerKind kind = CornerKind::None;
+    CornerSide blindSide = CornerSide::Left; ///< Blind only.
+    bool operator==(const CornerSpec&) const = default;
+};
+
 /// A parametric cabinet. `parameters` is the single source of truth for every dimension:
 /// the generator reads sizes and positions only from graph values (see parameters.hpp for
 /// the standard names and README.md for the formulas).
@@ -191,6 +231,7 @@ struct CabinetDefinition {
     ConstructionOptions construction;
     HardwareSelection hardware;
     Section interior;
+    CornerSpec corner; ///< Default: ordinary rectangular cabinet.
 };
 
 } // namespace fos::furniture

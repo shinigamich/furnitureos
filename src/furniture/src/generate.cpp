@@ -278,14 +278,25 @@ core::Result<GenerationResult> generate(const CabinetDefinition& definition, con
     g.assembly.name = def.name;
     g.assembly.placement = def.placement;
 
-    auto bounds = detail::buildCarcass(g);
-    if (!bounds) return bounds.error();
-    if (auto r = detail::buildInterior(g, bounds.value()); !r) return r.error();
-    if (auto r = detail::buildBack(g); !r) return r.error();
+    if (auto r = detail::checkCorner(g); !r) return r.error();
+    const bool lShape = def.corner.kind == CornerKind::LShape;
+    if (lShape) {
+        if (auto r = detail::buildLCorner(g); !r) return r.error();
+    } else {
+        auto bounds = detail::buildCarcass(g);
+        if (!bounds) return bounds.error();
+        if (auto r = detail::buildInterior(g, bounds.value()); !r) return r.error();
+        if (auto r = detail::buildBack(g); !r) return r.error();
+    }
     if (auto r = detail::checkPartSizes(g); !r) return r.error();
     detail::runHardware(g);
-    detail::checkGeometry(g); // box based: shapes only remove material inside the boxes
+    if (lShape) detail::placeLCornerShelfPins(g);
+    // Box based, except for parts with a rectilinear shape (the L-shaped corner panels), which
+    // are compared by their rectangles; override contours are applied afterwards and only
+    // remove material inside the boxes.
+    detail::checkGeometry(g);
     if (auto r = detail::applyContours(g); !r) return r.error();
+    if (lShape) detail::checkLCornerOutlines(g);
 
     for (const auto& part : g.assembly.parts) {
         auto found = machining::validateOperations(part);

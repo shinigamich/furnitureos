@@ -553,6 +553,27 @@ core::Result<furniture::HardwareSelection> hardwareFromJson(const Json& json, st
     return h;
 }
 
+/// Corner construction: written only for a corner cabinet (files of ordinary cabinets stay
+/// byte-identical); "blindSide" only for a blind corner.
+Json cornerJson(const furniture::CornerSpec& c) {
+    Json j = Json::object();
+    j["kind"] = furniture::toString(c.kind);
+    if (c.kind == furniture::CornerKind::Blind) j["blindSide"] = furniture::toString(c.blindSide);
+    return j;
+}
+
+core::Result<furniture::CornerSpec> cornerFromJson(const Json& json, std::string_view path) {
+    using namespace furniture;
+    Reader r(json, path, "a corner construction");
+    CornerSpec c;
+    r.token("kind", c.kind, furnitureEnum<CornerKind>(),
+            furnitureTokens({CornerKind::None, CornerKind::Blind, CornerKind::LShape}), true);
+    r.token("blindSide", c.blindSide, furnitureEnum<CornerSide>(), furnitureTokens({CornerSide::Left, CornerSide::Right}));
+    r.rejectUnknown();
+    if (!r.ok()) return r.error();
+    return c;
+}
+
 } // namespace
 
 Json toJson(const furniture::CabinetDefinition& c) {
@@ -566,6 +587,7 @@ Json toJson(const furniture::CabinetDefinition& c) {
     writeGraph(j, c.parameters);
     j["pinnedParameters"] = Json(std::vector<std::string>(c.pinnedParameters.begin(), c.pinnedParameters.end()));
     j["interior"] = toJson(c.interior);
+    if (c.corner != furniture::CornerSpec{}) j["corner"] = cornerJson(c.corner);
     return j;
 }
 
@@ -589,6 +611,7 @@ void readCabinetFields(Reader& r, furniture::CabinetDefinition& c) {
     });
     c.pinnedParameters = std::set<std::string>(pinned.begin(), pinned.end());
     r.nested("interior", c.interior, sectionFromJson, true);
+    r.nested("corner", c.corner, cornerFromJson);
     // Hard limits (furniture/limits.hpp): a file the generator would refuse, or that would make
     // it run for minutes, is rejected on load with the generator's own message.
     if (r.ok())

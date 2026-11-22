@@ -53,6 +53,9 @@ constexpr Table<ContourKind, 4> kContourKind{{{ContourKind::Rectangle, "Rectangl
                                              {ContourKind::Custom, "Custom"}}};
 constexpr Table<ArcDirection, 2> kArcDirection{{{ArcDirection::Convex, "Convex"}, {ArcDirection::Concave, "Concave"}}};
 constexpr Table<CutoutKind, 2> kCutoutKind{{{CutoutKind::Rectangle, "Rectangle"}, {CutoutKind::Circle, "Circle"}}};
+constexpr Table<CornerKind, 3> kCornerKind{{{CornerKind::None, "None"}, {CornerKind::Blind, "Blind"},
+                                           {CornerKind::LShape, "LShape"}}};
+constexpr Table<CornerSide, 2> kCornerSide{{{CornerSide::Left, "Left"}, {CornerSide::Right, "Right"}}};
 } // namespace
 
 #define FOS_FURNITURE_ENUM(E, table)                                                                \
@@ -76,6 +79,8 @@ FOS_FURNITURE_ENUM(ContourKind, kContourKind)
 FOS_FURNITURE_ENUM(ArcDirection, kArcDirection)
 FOS_FURNITURE_ENUM(CutoutKind, kCutoutKind)
 FOS_FURNITURE_ENUM(DrawerBottomMount, kDrawerBottomMount)
+FOS_FURNITURE_ENUM(CornerKind, kCornerKind)
+FOS_FURNITURE_ENUM(CornerSide, kCornerSide)
 #undef FOS_FURNITURE_ENUM
 
 } // namespace fos::furniture

@@ -150,6 +150,24 @@ core::Result<double> buildSlidingDoors(Gen& g, const FrontSpec& spec, const std:
 /// NotFound) name the drawer.
 core::Result<void> buildDrawerBox(Gen& g, const FrontSpec& spec, const DrawerBoxSpec& ds, const std::string& frontSlot,
                                   double fz0, double fz1, const Box& box, const Bounds& bounds);
+/// Handle job for front part `front` (slot `slot`): door = vertical handle near the free edge
+/// (`freeEdgeRight` = the free edge is the right / larger-coordinate one), else horizontal.
+void handleJob(Gen& g, std::size_t front, const std::string& slot, const FrontSpec& spec, bool door, bool freeEdgeRight);
+/// Structural checks of definition.corner (CornerSpec docs); InvalidArgument naming the cabinet.
+core::Result<void> checkCorner(const Gen& g);
+/// Blind corner (gen_corner_blind.cpp): adds the blind panel (slot `blind`) to the root front
+/// spanning x in [x0, x1], z in [z0, z1] with its inner face at y = yInner and returns the
+/// door's x range. Errors name blind_width, the panel / door widths and the limits.
+core::Result<std::pair<double, double>> buildBlindPanel(Gen& g, double x0, double x1, double z0, double z1,
+                                                        double yInner);
+/// L-shaped corner cabinet (gen_corner_l.cpp): every part and the joint / hinge / handle jobs.
+core::Result<void> buildLCorner(Gen& g);
+/// L-shaped corner cabinet, after runHardware: shelf-pin holes in both end sides (dropped
+/// with furniture.shelf_pins.dropped when they would meet a joint hole).
+void placeLCornerShelfPins(Gen& g);
+/// L-shaped corner cabinet, after applyContours: machining of the L-shaped parts must lie
+/// inside their outlines (furniture.contour.machining_outside).
+void checkLCornerOutlines(Gen& g);
 void runHardware(Gen& g);
 /// Refuses an assembly with more than limits::kMaxPartsPerAssembly parts or a part whose
 /// length / width / thickness is not finite, not > 0 or above limits::kMaxDimension
