@@ -60,6 +60,7 @@ struct WorktopPreview {
     QString text;  ///< Multi-line summary when ok; empty otherwise.
     QString error; ///< The engine's refusal message (English, from the core) when not ok.
     std::vector<std::string> pieceIds; ///< Item ids the command will add, left to right.
+    double middleX = 0; ///< Middle of the worktop as a cut-out centre x (from the run start).
 };
 /// Runs project::planWorktop and formats total length / depth / thickness, the pieces with
 /// their lengths, the joint positions (from the left end) and the engine notes with their

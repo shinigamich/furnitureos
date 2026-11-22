@@ -1051,6 +1051,74 @@
         <source>L-shaped corner, leg B %1 × %2 mm</source>
         <translation>L-подібний кут, крило B %1 × %2 мм</translation>
     </message>
+    <message>
+        <source>Error</source>
+        <translation>Помилка</translation>
+    </message>
+    <message>
+        <source>Warning</source>
+        <translation>Попередження</translation>
+    </message>
+    <message>
+        <source>Note</source>
+        <translation>Примітка</translation>
+    </message>
+    <message>
+        <source>Generic placeholder (38 mm)</source>
+        <translation>Типовий замінник (38 мм)</translation>
+    </message>
+    <message>
+        <source>%1 — %2 mm (%3)</source>
+        <translation>%1 — %2 мм (%3)</translation>
+    </message>
+    <message>
+        <source>Automatic</source>
+        <translation>Автоматично</translation>
+    </message>
+    <message>
+        <source>%1 — %2 × %3 mm (%4)</source>
+        <translation>%1 — %2 × %3 мм (%4)</translation>
+    </message>
+    <message>
+        <source>Hob</source>
+        <translation>Варильна поверхня</translation>
+    </message>
+    <message>
+        <source>Sink</source>
+        <translation>Мийка</translation>
+    </message>
+    <message>
+        <source>Length %1 mm, depth %2 mm, thickness %3 mm</source>
+        <translation>Довжина %1 мм, глибина %2 мм, товщина %3 мм</translation>
+    </message>
+    <message>
+        <source>Longest piece allowed: %1 mm</source>
+        <translation>Найдовша допустима частина: %1 мм</translation>
+    </message>
+    <message>
+        <source>Pieces: %1</source>
+        <translation>Частин: %1</translation>
+    </message>
+    <message>
+        <source>  %1 (%2): %3 mm</source>
+        <translation>  %1 (%2): %3 мм</translation>
+    </message>
+    <message>
+        <source>No joints.</source>
+        <translation>Без стиків.</translation>
+    </message>
+    <message>
+        <source>Butt joints at %1 mm from the left end</source>
+        <translation>Стикові з&apos;єднання на %1 мм від лівого краю</translation>
+    </message>
+    <message>
+        <source>Adds the material %1 to the library.</source>
+        <translation>Додає матеріал %1 до бібліотеки.</translation>
+    </message>
+    <message>
+        <source>Adds the edge band %1 to the library.</source>
+        <translation>Додає кромку %1 до бібліотеки.</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::CommandText</name>
@@ -1233,6 +1301,10 @@
     <message>
         <source>Set blind side of {0} to {1}</source>
         <translation>Сторона глухої панелі {0}: {1}</translation>
+    </message>
+    <message>
+        <source>Add worktop {0} over {1}</source>
+        <translation>Додати стільницю {0} над {1}</translation>
     </message>
 </context>
 <context>
@@ -3919,6 +3991,22 @@ Replace it?</source>
         <source>Edit the materials, edge bands and hardware of the project</source>
         <translation>Редагувати матеріали, крайки та фурнітуру проєкту</translation>
     </message>
+    <message>
+        <source>Add worktop</source>
+        <translation>Додати стільницю</translation>
+    </message>
+    <message>
+        <source>The project has no cabinets to put a worktop on.</source>
+        <translation>У проєкті немає корпусів, на які можна покласти стільницю.</translation>
+    </message>
+    <message>
+        <source>Add &amp;worktop…</source>
+        <translation>Додати &amp;стільницю…</translation>
+    </message>
+    <message>
+        <source>Add a kitchen worktop over a straight run of cabinets</source>
+        <translation>Додати кухонну стільницю над прямим рядом корпусів</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::NestingSettingsForm</name>
@@ -4521,6 +4609,128 @@ Circle: X, Y = centre, Radius.</source>
     <message>
         <source>Width and depth are those of leg A (along the rear wall); leg B is set in the Corner group of the inspector.</source>
         <translation>Ширина й глибина — це розміри крила A (вздовж задньої стіни); крило B задається в групі «Кут» інспектора.</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::WorktopDialog</name>
+    <message>
+        <source>Add worktop</source>
+        <translation>Додати стільницю</translation>
+    </message>
+    <message>
+        <source>Cabinets of the run (first checked = reference)</source>
+        <translation>Корпуси ряду (перший позначений — базовий)</translation>
+    </message>
+    <message>
+        <source>Front edge</source>
+        <translation>Передня крайка</translation>
+    </message>
+    <message>
+        <source>Back edge</source>
+        <translation>Задня крайка</translation>
+    </message>
+    <message>
+        <source>Left end</source>
+        <translation>Лівий торець</translation>
+    </message>
+    <message>
+        <source>Right end</source>
+        <translation>Правий торець</translation>
+    </message>
+    <message>
+        <source>Stock length</source>
+        <translation>Довжина заготовки</translation>
+    </message>
+    <message>
+        <source>Material:</source>
+        <translation>Матеріал:</translation>
+    </message>
+    <message>
+        <source>Edge band:</source>
+        <translation>Кромка:</translation>
+    </message>
+    <message>
+        <source>Banded edges:</source>
+        <translation>Кромковані сторони:</translation>
+    </message>
+    <message>
+        <source>Front overhang:</source>
+        <translation>Передній звис:</translation>
+    </message>
+    <message>
+        <source>Left overhang:</source>
+        <translation>Лівий звис:</translation>
+    </message>
+    <message>
+        <source>Right overhang:</source>
+        <translation>Правий звис:</translation>
+    </message>
+    <message>
+        <source>Gap to the wall:</source>
+        <translation>Зазор до стіни:</translation>
+    </message>
+    <message>
+        <source>Longest piece:</source>
+        <translation>Найдовша частина:</translation>
+    </message>
+    <message>
+        <source>Kind</source>
+        <translation>Тип</translation>
+    </message>
+    <message>
+        <source>Centre x</source>
+        <translation>Центр x</translation>
+    </message>
+    <message>
+        <source>Length</source>
+        <translation>Довжина</translation>
+    </message>
+    <message>
+        <source>Depth</source>
+        <translation>Глибина</translation>
+    </message>
+    <message>
+        <source>Corner radius</source>
+        <translation>Радіус кутів</translation>
+    </message>
+    <message>
+        <source>Front setback</source>
+        <translation>Відступ від переду</translation>
+    </message>
+    <message>
+        <source>Centre x is measured from the left face of the leftmost cabinet. Front setback: distance from the finished front edge; minimum = centred in depth.</source>
+        <translation>Центр x вимірюється від лівої грані крайнього лівого корпусу. Відступ від переду: відстань від готової передньої крайки; мінімум — по центру глибини.</translation>
+    </message>
+    <message>
+        <source>Add cut-out</source>
+        <translation>Додати виріз</translation>
+    </message>
+    <message>
+        <source>Remove cut-out</source>
+        <translation>Видалити виріз</translation>
+    </message>
+    <message>
+        <source>Cut-outs (sink, hob)</source>
+        <translation>Вирізи (мийка, варильна поверхня)</translation>
+    </message>
+    <message>
+        <source>Minimum distances are rules of thumb (%1 mm to the front and back edges, %2 mm to a free end, %3 mm to a joint, %4 mm between cut-outs), not a standard: always check the installation sheet of the sink or hob.</source>
+        <translation>Мінімальні відстані — практичні правила (%1 мм до передньої та задньої крайок, %2 мм до вільного торця, %3 мм до стику, %4 мм між вирізами), а не стандарт: завжди перевіряйте інструкцію з монтажу мийки або варильної поверхні.</translation>
+    </message>
+    <message>
+        <source>Preview</source>
+        <translation>Попередній перегляд</translation>
+    </message>
+    <message>
+        <source>Centred</source>
+        <translation>По центру</translation>
+    </message>
+</context>
+<context>
+    <name>project</name>
+    <message>
+        <source>Worktop</source>
+        <translation>Стільниця</translation>
     </message>
 </context>
 </TS>

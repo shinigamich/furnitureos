@@ -103,6 +103,7 @@ private:
     void showAbout();
     void deleteSelectedItem();
     void duplicateSelectedItem();
+    void addWorktopDialog();
     void saveSelectedAsComponent();
 
     Session session_;
@@ -131,7 +132,7 @@ private:
     struct Actions {
         QAction *newProject, *open, *save, *saveAs, *print, *quit, *batch;
         QAction *exportCsv, *exportHtml, *exportLabels, *exportPdf, *exportSvg, *exportDxf, *exportObj, *importDxf;
-        QAction *undo, *redo, *deleteItem, *duplicateItem, *saveAsComponent, *preferences;
+        QAction *undo, *redo, *addWorktop, *deleteItem, *duplicateItem, *saveAsComponent, *preferences;
         QAction *fitAll, *perspective, *orthographic, *shaded, *shadedEdges, *wireframe, *realistic;
         QAction *measure, *section;
         QAction *pricingSettings, *showQuote, *libraries;

@@ -59,6 +59,8 @@ namespace {
     // quote_rows.cpp
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Change pricing settings"),
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Reset pricing settings"),
+    // project/worktop.hpp (Edit > Add worktop…)
+    QT_TRANSLATE_NOOP("fos::app::CommandText", "Add worktop {0} over {1}"),
 };
 
 } // namespace

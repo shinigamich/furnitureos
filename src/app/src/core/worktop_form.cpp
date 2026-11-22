@@ -95,6 +95,7 @@ WorktopPreview worktopPreview(const project::Project& project, const project::Wo
     }
     const project::WorktopPlan& p = plan.value();
     preview.ok = true;
+    preview.middleX = p.left - p.runStart + p.length / 2;
     for (const auto& item : p.items) preview.pieceIds.push_back(item.id());
 
     QStringList lines;

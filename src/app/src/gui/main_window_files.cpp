@@ -10,6 +10,7 @@
 #include "fos/formats/obj_export.hpp"
 #include "fos/production/csv.hpp"
 #include "main_window.hpp"
+#include "worktop_dialog.hpp"
 
 #include <QApplication>
 #include <QDateTime>
@@ -255,6 +256,17 @@ void MainWindow::duplicateSelectedItem() {
     if (id.empty()) return;
     auto r = session_.duplicateItem(id);
     if (!r) showError(tr("Duplicate item"), r.error());
+}
+
+void MainWindow::addWorktopDialog() {
+    if (worktopCabinetRows(session_.project(), session_.selection()).empty()) {
+        QMessageBox::information(this, tr("Add worktop"), tr("The project has no cabinets to put a worktop on."));
+        return;
+    }
+    WorktopDialog dialog(session_.project(), session_.selection(), this);
+    if (dialog.exec() != QDialog::Accepted) return;
+    auto r = applyWorktop(session_, dialog.request());
+    if (!r) showError(tr("Add worktop"), r.error());
 }
 
 void MainWindow::saveSelectedAsComponent() {

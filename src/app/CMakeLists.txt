@@ -33,7 +33,8 @@ add_library(fos_app_core STATIC
     src/core/quote_rows.cpp
     src/core/library_editor.cpp
     src/core/library_text.cpp
-    src/core/corner_rows.cpp)
+    src/core/corner_rows.cpp
+    src/core/worktop_form.cpp)
 add_library(fos::app_core ALIAS fos_app_core)
 # moc (Qt 6.4) cannot parse libstdc++ C++20 concepts with the compiler predefines (see viewport).
 set_target_properties(fos_app_core PROPERTIES AUTOMOC ON AUTOMOC_COMPILER_PREDEFINES OFF)
@@ -61,7 +62,8 @@ if(FOS_BUILD_TESTS)
         tests/core/batch_editor_tests.cpp
         tests/core/quote_tests.cpp
         tests/core/library_editor_tests.cpp
-        tests/core/corner_tests.cpp)
+        tests/core/corner_tests.cpp
+        tests/core/worktop_tests.cpp)
     target_link_libraries(fos_app_core_tests PRIVATE fos::app_core Qt6::Test GTest::gtest GTest::gmock)
     fos_set_warnings(fos_app_core_tests PRIVATE)
     gtest_discover_tests(fos_app_core_tests DISCOVERY_TIMEOUT 60
@@ -123,7 +125,9 @@ set(FOS_APP_GUI_SOURCES
     src/gui/quote_workspace.cpp
     src/gui/library_window.hpp
     src/gui/library_window.cpp
-    src/gui/library_forms.cpp)
+    src/gui/library_forms.cpp
+    src/gui/worktop_dialog.hpp
+    src/gui/worktop_dialog.cpp)
 
 # Everything except main.cpp goes into a static library shared by the executable and the
 # GUI smoke test.

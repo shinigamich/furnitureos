@@ -52,6 +52,9 @@ void MainWindow::buildActions() {
     a_.importDxf->setObjectName(QStringLiteral("actionImportDxf"));
     a_.undo = make(tr("&Undo"), QKeySequence::Undo, QStyle::SP_ArrowBack);
     a_.redo = make(tr("&Redo"), QKeySequence::Redo, QStyle::SP_ArrowForward);
+    a_.addWorktop = make(tr("Add &worktop…"));
+    a_.addWorktop->setObjectName(QStringLiteral("actionAddWorktop"));
+    a_.addWorktop->setToolTip(tr("Add a kitchen worktop over a straight run of cabinets"));
     a_.deleteItem = make(tr("&Delete item"), QKeySequence::Delete);
     a_.duplicateItem = make(tr("D&uplicate item"), QKeySequence(Qt::CTRL | Qt::Key_D));
     a_.saveAsComponent = make(tr("Save as &component…"));
@@ -120,6 +123,7 @@ void MainWindow::buildActions() {
     connect(a_.batch, &QAction::triggered, this, &MainWindow::showBatchWindow);
     connect(a_.undo, &QAction::triggered, this, [this] { (void)session_.undo(); });
     connect(a_.redo, &QAction::triggered, this, [this] { (void)session_.redo(); });
+    connect(a_.addWorktop, &QAction::triggered, this, &MainWindow::addWorktopDialog);
     connect(a_.deleteItem, &QAction::triggered, this, &MainWindow::deleteSelectedItem);
     connect(a_.duplicateItem, &QAction::triggered, this, &MainWindow::duplicateSelectedItem);
     connect(a_.saveAsComponent, &QAction::triggered, this, &MainWindow::saveSelectedAsComponent);
@@ -171,6 +175,7 @@ void MainWindow::buildMenus() {
     QMenu* add = edit->addMenu(tr("&Add cabinet"));
     for (TemplateKind kind : allTemplates())
         add->addAction(templateTitle(kind) + QStringLiteral("…"), this, [this, kind] { addFromTemplateDialog(kind); });
+    edit->addAction(a_.addWorktop);
     edit->addAction(a_.duplicateItem);
     edit->addAction(a_.deleteItem);
     edit->addAction(a_.saveAsComponent);
