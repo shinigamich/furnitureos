@@ -27,6 +27,7 @@ class CuttingWorkspace;
 class DiagnosticsPanel;
 class DrawingsWorkspace;
 class InspectorPanel;
+class LibraryWindow;
 class ProductionWorkspace;
 class ProjectBrowser;
 class QuoteWorkspace;
@@ -46,6 +47,8 @@ public:
     ProductionWorkspace* productionWorkspace() const noexcept { return production_; }
     CuttingWorkspace* cuttingWorkspace() const noexcept { return cutting_; }
     QuoteWorkspace* quoteWorkspace() const noexcept { return quote_; }
+    /// The library editor window (nullptr until Project > Libraries… was used).
+    LibraryWindow* libraryWindow() const noexcept { return libraries_; }
     ComponentBrowser* componentBrowser() const noexcept { return components_; }
     QTabWidget* workspaces() const noexcept { return tabs_; }
     SectionToolBar* sectionToolBar() const noexcept { return sectionBar_; }
@@ -90,6 +93,7 @@ private:
     void exportCutListCsv();
     void exportProductionHtml();
     void showBatchWindow();
+    void showLibraryWindow();
     void exportLabelsSvg();
     void exportModelObj();
     void importDxfOutline();
@@ -113,6 +117,7 @@ private:
     CuttingWorkspace* cutting_ = nullptr;
     QuoteWorkspace* quote_ = nullptr;
     BatchWindow* batch_ = nullptr;
+    LibraryWindow* libraries_ = nullptr;
     ProjectBrowser* browser_ = nullptr;
     InspectorPanel* inspector_ = nullptr;
     DiagnosticsPanel* diagnostics_ = nullptr;
@@ -129,7 +134,7 @@ private:
         QAction *undo, *redo, *deleteItem, *duplicateItem, *saveAsComponent, *preferences;
         QAction *fitAll, *perspective, *orthographic, *shaded, *shadedEdges, *wireframe, *realistic;
         QAction *measure, *section;
-        QAction *pricingSettings, *showQuote;
+        QAction *pricingSettings, *showQuote, *libraries;
         QAction *about, *shortcuts;
     } a_{};
     QMenu* recentMenu_ = nullptr;

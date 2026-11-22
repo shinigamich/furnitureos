@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // File lifecycle (new / open / save / autosave / recovery), exports and small dialogs.
 #include "batch_window.hpp"
+#include "library_window.hpp"
 #include "component_browser.hpp"
 #include "dialogs.hpp"
 #include "fos/app/autosave.hpp"
@@ -374,6 +375,13 @@ void MainWindow::exportModelObj() {
     if (!r) showError(tr("Export failed"), r.error());
     else
         statusBar()->showMessage(tr("Written %1 and its .mtl file (millimetres, Z up; parts as boxes).").arg(file), 8000);
+}
+
+void MainWindow::showLibraryWindow() {
+    if (!libraries_) libraries_ = new LibraryWindow(session_, this);
+    libraries_->show();
+    libraries_->raise();
+    libraries_->activateWindow();
 }
 
 void MainWindow::showBatchWindow() {

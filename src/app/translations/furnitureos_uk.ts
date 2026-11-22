@@ -233,6 +233,193 @@
     </message>
 </context>
 <context>
+    <name>LibraryText</name>
+    <message>
+        <source>The id must not be empty.</source>
+        <translation>Ідентифікатор не може бути порожнім.</translation>
+    </message>
+    <message>
+        <source>The id &quot;%1&quot; must not start or end with a space.</source>
+        <translation>Ідентифікатор «%1» не може починатися або закінчуватися пробілом.</translation>
+    </message>
+    <message>
+        <source>The id &quot;%1&quot; is already used in this library.</source>
+        <translation>Ідентифікатор «%1» уже використовується в цій бібліотеці.</translation>
+    </message>
+    <message>
+        <source>The name must not be empty.</source>
+        <translation>Назва не може бути порожньою.</translation>
+    </message>
+    <message>
+        <source>%1 must be greater than 0 mm, got %2.</source>
+        <translation>%1 має бути більше 0 мм, отримано %2.</translation>
+    </message>
+    <message>
+        <source>%1 must be 0 or more, got %2.</source>
+        <translation>%1 має бути не менше 0, отримано %2.</translation>
+    </message>
+    <message>
+        <source>Thickness</source>
+        <translation>Товщина</translation>
+    </message>
+    <message>
+        <source>Sheet length</source>
+        <translation>Довжина листа</translation>
+    </message>
+    <message>
+        <source>Sheet width</source>
+        <translation>Ширина листа</translation>
+    </message>
+    <message>
+        <source>Cost per sheet</source>
+        <translation>Ціна за лист</translation>
+    </message>
+    <message>
+        <source>Cost per m²</source>
+        <translation>Ціна за м²</translation>
+    </message>
+    <message>
+        <source>Width</source>
+        <translation>Ширина</translation>
+    </message>
+    <message>
+        <source>The tape width (%1 mm) must not be smaller than its thickness (%2 mm).</source>
+        <translation>Ширина стрічки (%1 мм) не може бути меншою за її товщину (%2 мм).</translation>
+    </message>
+    <message>
+        <source>Cost per metre</source>
+        <translation>Ціна за метр</translation>
+    </message>
+    <message>
+        <source>Unit cost</source>
+        <translation>Ціна за штуку</translation>
+    </message>
+    <message>
+        <source>Particleboard</source>
+        <translation>ДСП</translation>
+    </message>
+    <message>
+        <source>MDF</source>
+        <translation>МДФ</translation>
+    </message>
+    <message>
+        <source>HDF</source>
+        <translation>ХДФ</translation>
+    </message>
+    <message>
+        <source>Plywood</source>
+        <translation>Фанера</translation>
+    </message>
+    <message>
+        <source>Solid wood</source>
+        <translation>Масив</translation>
+    </message>
+    <message>
+        <source>Other</source>
+        <translation>Інше</translation>
+    </message>
+    <message>
+        <source>ABS</source>
+        <translation>ABS</translation>
+    </message>
+    <message>
+        <source>PVC</source>
+        <translation>ПВХ</translation>
+    </message>
+    <message>
+        <source>Melamine</source>
+        <translation>Меламін</translation>
+    </message>
+    <message>
+        <source>Veneer</source>
+        <translation>Шпон</translation>
+    </message>
+    <message>
+        <source>Hinge</source>
+        <translation>Завіса</translation>
+    </message>
+    <message>
+        <source>Mounting plate</source>
+        <translation>Монтажна планка</translation>
+    </message>
+    <message>
+        <source>Drawer slide</source>
+        <translation>Напрямна шухляди</translation>
+    </message>
+    <message>
+        <source>Handle</source>
+        <translation>Ручка</translation>
+    </message>
+    <message>
+        <source>Shelf support</source>
+        <translation>Полицетримач</translation>
+    </message>
+    <message>
+        <source>Confirmat screw</source>
+        <translation>Конфірмат</translation>
+    </message>
+    <message>
+        <source>Dowel</source>
+        <translation>Шкант</translation>
+    </message>
+    <message>
+        <source>Cam connector</source>
+        <translation>Ексцентрикова стяжка</translation>
+    </message>
+    <message>
+        <source>Screw</source>
+        <translation>Шуруп</translation>
+    </message>
+    <message>
+        <source>Foot</source>
+        <translation>Опора</translation>
+    </message>
+    <message>
+        <source>Leg</source>
+        <translation>Ніжка</translation>
+    </message>
+    <message>
+        <source>Cabinet hanger</source>
+        <translation>Навіс для шафи</translation>
+    </message>
+    <message>
+        <source>Sliding door system</source>
+        <translation>Система розсувних дверей</translation>
+    </message>
+    <message>
+        <source>Lift mechanism</source>
+        <translation>Підйомний механізм</translation>
+    </message>
+    <message>
+        <source>%1 (%2)</source>
+        <translation>%1 (%2)</translation>
+    </message>
+    <message numerus="yes">
+        <source> — used by %n item(s)</source>
+        <translation>
+            <numerusform> — використовується в %n виробі</numerusform>
+            <numerusform> — використовується в %n виробах</numerusform>
+            <numerusform> — використовується в %n виробах</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>%1 added, %2 replaced, %3 renamed, %4 skipped</source>
+        <translation>додано: %1, замінено: %2, перейменовано: %3, пропущено: %4</translation>
+    </message>
+    <message>
+        <source>New material</source>
+        <translation>Новий матеріал</translation>
+    </message>
+    <message>
+        <source>New edge band</source>
+        <translation>Нова крайка</translation>
+    </message>
+    <message>
+        <source>%1 (copy)</source>
+        <translation>%1 (копія)</translation>
+    </message>
+</context>
+<context>
     <name>MeasureStatus</name>
     <message>
         <source>corner</source>
@@ -967,6 +1154,34 @@
     <message>
         <source>Reset pricing settings</source>
         <translation>Скинути налаштування ціноутворення</translation>
+    </message>
+    <message>
+        <source>Edit material {0}</source>
+        <translation>Змінити матеріал {0}</translation>
+    </message>
+    <message>
+        <source>Edit edge band {0}</source>
+        <translation>Змінити крайку {0}</translation>
+    </message>
+    <message>
+        <source>Edit hardware definition {0}</source>
+        <translation>Змінити фурнітуру {0}</translation>
+    </message>
+    <message>
+        <source>Remove material {0}</source>
+        <translation>Видалити матеріал {0}</translation>
+    </message>
+    <message>
+        <source>Remove edge band {0}</source>
+        <translation>Видалити крайку {0}</translation>
+    </message>
+    <message>
+        <source>Remove hardware definition {0}</source>
+        <translation>Видалити фурнітуру {0}</translation>
+    </message>
+    <message>
+        <source>Import library {0}</source>
+        <translation>Імпортувати бібліотеку {0}</translation>
     </message>
 </context>
 <context>
@@ -2848,6 +3063,216 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
 </context>
 <context>
+    <name>fos::app::gui::LibraryPage</name>
+    <message>
+        <source>&amp;New</source>
+        <translation>&amp;Новий</translation>
+    </message>
+    <message>
+        <source>D&amp;uplicate</source>
+        <translation>&amp;Дублювати</translation>
+    </message>
+    <message>
+        <source>&amp;Delete</source>
+        <translation>В&amp;идалити</translation>
+    </message>
+    <message>
+        <source>&amp;Apply</source>
+        <translation>&amp;Застосувати</translation>
+    </message>
+    <message>
+        <source>Used by: %1</source>
+        <translation>Використовується в: %1</translation>
+    </message>
+    <message>
+        <source>Visible grain along the sheet length</source>
+        <translation>Видима текстура вздовж довжини листа</translation>
+    </message>
+    <message>
+        <source>Available</source>
+        <translation>Доступний</translation>
+    </message>
+    <message>
+        <source>Id:</source>
+        <translation>Ідентифікатор:</translation>
+    </message>
+    <message>
+        <source>Name:</source>
+        <translation>Назва:</translation>
+    </message>
+    <message>
+        <source>Manufacturer:</source>
+        <translation>Виробник:</translation>
+    </message>
+    <message>
+        <source>Code:</source>
+        <translation>Код:</translation>
+    </message>
+    <message>
+        <source>Supplier:</source>
+        <translation>Постачальник:</translation>
+    </message>
+    <message>
+        <source>Kind:</source>
+        <translation>Тип:</translation>
+    </message>
+    <message>
+        <source>Thickness:</source>
+        <translation>Товщина:</translation>
+    </message>
+    <message>
+        <source>Sheet length:</source>
+        <translation>Довжина листа:</translation>
+    </message>
+    <message>
+        <source>Sheet width:</source>
+        <translation>Ширина листа:</translation>
+    </message>
+    <message>
+        <source>Grain:</source>
+        <translation>Текстура:</translation>
+    </message>
+    <message>
+        <source>Colour:</source>
+        <translation>Колір:</translation>
+    </message>
+    <message>
+        <source>Cost per sheet:</source>
+        <translation>Ціна за лист:</translation>
+    </message>
+    <message>
+        <source>Cost per m²:</source>
+        <translation>Ціна за м²:</translation>
+    </message>
+    <message>
+        <source>0 = unknown</source>
+        <translation>0 = невідомо</translation>
+    </message>
+    <message>
+        <source>0 = unknown; used by the quote when boards are priced by area</source>
+        <translation>0 = невідомо; використовується в кошторисі, коли плити оцінюються за площею</translation>
+    </message>
+    <message>
+        <source>Tape width:</source>
+        <translation>Ширина стрічки:</translation>
+    </message>
+    <message>
+        <source>Cost per metre:</source>
+        <translation>Ціна за метр:</translation>
+    </message>
+    <message>
+        <source>Added to the panel edge</source>
+        <translation>Додається до кромки панелі</translation>
+    </message>
+    <message>
+        <source>Must cover the board thickness</source>
+        <translation>Має перекривати товщину плити</translation>
+    </message>
+    <message>
+        <source>Kind and drilling geometry come from the catalogue and are not edited here. To add a fitting, duplicate a definition of the same kind.</source>
+        <translation>Тип і геометрія свердління беруться з каталогу й тут не редагуються. Щоб додати фурнітуру, дублюйте визначення того самого типу.</translation>
+    </message>
+    <message>
+        <source>Unit cost:</source>
+        <translation>Ціна за штуку:</translation>
+    </message>
+    <message>
+        <source>Dimensions:</source>
+        <translation>Розміри:</translation>
+    </message>
+    <message>
+        <source>Verified against the manufacturer&apos;s data sheet</source>
+        <translation>Перевірено за технічними даними виробника</translation>
+    </message>
+    <message>
+        <source>Not verified (generic or unchecked dimensions)</source>
+        <translation>Не перевірено (типові або неперевірені розміри)</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::LibraryWindow</name>
+    <message>
+        <source>Project libraries</source>
+        <translation>Бібліотеки проєкту</translation>
+    </message>
+    <message>
+        <source>&amp;Materials</source>
+        <translation>&amp;Матеріали</translation>
+    </message>
+    <message>
+        <source>&amp;Edge bands</source>
+        <translation>&amp;Крайки</translation>
+    </message>
+    <message>
+        <source>&amp;Hardware</source>
+        <translation>&amp;Фурнітура</translation>
+    </message>
+    <message>
+        <source>&amp;Library</source>
+        <translation>&amp;Бібліотека</translation>
+    </message>
+    <message>
+        <source>&amp;Import library file…</source>
+        <translation>&amp;Імпортувати файл бібліотеки…</translation>
+    </message>
+    <message>
+        <source>&amp;Export library file…</source>
+        <translation>&amp;Експортувати файл бібліотеки…</translation>
+    </message>
+    <message>
+        <source>&amp;Close</source>
+        <translation>&amp;Закрити</translation>
+    </message>
+    <message>
+        <source>Import library file</source>
+        <translation>Імпорт файлу бібліотеки</translation>
+    </message>
+    <message>
+        <source>FurnitureOS library (*.foslib);;All files (*)</source>
+        <translation>Бібліотека FurnitureOS (*.foslib);;Усі файли (*)</translation>
+    </message>
+    <message>
+        <source>Export library file</source>
+        <translation>Експорт файлу бібліотеки</translation>
+    </message>
+    <message>
+        <source>library.foslib</source>
+        <translation>library.foslib</translation>
+    </message>
+    <message>
+        <source>FurnitureOS library (*.foslib)</source>
+        <translation>Бібліотека FurnitureOS (*.foslib)</translation>
+    </message>
+    <message>
+        <source>Library written to %1</source>
+        <translation>Бібліотеку записано в %1</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n entry(ies) of the file have an id that already exists in the project library.</source>
+        <translation>
+            <numerusform>%n запис файлу має ідентифікатор, який уже є в бібліотеці проєкту.</numerusform>
+            <numerusform>%n записи файлу мають ідентифікатори, які вже є в бібліотеці проєкту.</numerusform>
+            <numerusform>%n записів файлу мають ідентифікатори, які вже є в бібліотеці проєкту.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Replace existing</source>
+        <translation>Замінити наявні</translation>
+    </message>
+    <message>
+        <source>Keep existing</source>
+        <translation>Залишити наявні</translation>
+    </message>
+    <message>
+        <source>Add as copies</source>
+        <translation>Додати як копії</translation>
+    </message>
+    <message>
+        <source>Imported %1: %2</source>
+        <translation>Імпортовано %1: %2</translation>
+    </message>
+</context>
+<context>
     <name>fos::app::gui::MainWindow</name>
     <message>
         <source>3D</source>
@@ -3398,6 +3823,14 @@ Replace it?</source>
     <message>
         <source>&amp;Project</source>
         <translation>&amp;Проєкт</translation>
+    </message>
+    <message>
+        <source>&amp;Libraries…</source>
+        <translation>&amp;Бібліотеки…</translation>
+    </message>
+    <message>
+        <source>Edit the materials, edge bands and hardware of the project</source>
+        <translation>Редагувати матеріали, крайки та фурнітуру проєкту</translation>
     </message>
 </context>
 <context>

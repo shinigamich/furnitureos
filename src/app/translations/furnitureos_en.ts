@@ -233,6 +233,192 @@
     </message>
 </context>
 <context>
+    <name>LibraryText</name>
+    <message>
+        <source>The id must not be empty.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The id &quot;%1&quot; must not start or end with a space.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The id &quot;%1&quot; is already used in this library.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The name must not be empty.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 must be greater than 0 mm, got %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 must be 0 or more, got %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Thickness</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sheet length</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sheet width</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cost per sheet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cost per m²</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Width</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The tape width (%1 mm) must not be smaller than its thickness (%2 mm).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cost per metre</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unit cost</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Particleboard</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>MDF</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>HDF</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Plywood</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Solid wood</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Other</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>ABS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>PVC</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Melamine</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Veneer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hinge</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mounting plate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Drawer slide</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Handle</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Shelf support</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Confirmat screw</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Dowel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cam connector</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Screw</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Foot</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Leg</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cabinet hanger</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sliding door system</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Lift mechanism</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 (%2)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source> — used by %n item(s)</source>
+        <translation>
+            <numerusform> — used by %n item</numerusform>
+            <numerusform> — used by %n items</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>%1 added, %2 replaced, %3 renamed, %4 skipped</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New material</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New edge band</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 (copy)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>MeasureStatus</name>
     <message>
         <source>corner</source>
@@ -964,6 +1150,34 @@
     </message>
     <message>
         <source>Reset pricing settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit material {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit edge band {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit hardware definition {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove material {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove edge band {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove hardware definition {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Import library {0}</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2838,6 +3052,215 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
 </context>
 <context>
+    <name>fos::app::gui::LibraryPage</name>
+    <message>
+        <source>&amp;New</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>D&amp;uplicate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Apply</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Used by: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Visible grain along the sheet length</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Available</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Id:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Name:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Manufacturer:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Code:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Supplier:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Kind:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Thickness:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sheet length:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sheet width:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Grain:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Colour:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cost per sheet:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cost per m²:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>0 = unknown</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>0 = unknown; used by the quote when boards are priced by area</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tape width:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cost per metre:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Added to the panel edge</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must cover the board thickness</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Kind and drilling geometry come from the catalogue and are not edited here. To add a fitting, duplicate a definition of the same kind.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unit cost:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Dimensions:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Verified against the manufacturer&apos;s data sheet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not verified (generic or unchecked dimensions)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::LibraryWindow</name>
+    <message>
+        <source>Project libraries</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Materials</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Edge bands</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Hardware</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Library</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Import library file…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Export library file…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Close</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Import library file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>FurnitureOS library (*.foslib);;All files (*)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export library file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>library.foslib</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>FurnitureOS library (*.foslib)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Library written to %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n entry(ies) of the file have an id that already exists in the project library.</source>
+        <translation>
+            <numerusform>%n entry of the file has an id that already exists in the project library.</numerusform>
+            <numerusform>%n entries of the file have an id that already exists in the project library.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Replace existing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Keep existing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add as copies</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Imported %1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>fos::app::gui::MainWindow</name>
     <message>
         <source>3D</source>
@@ -3384,6 +3807,14 @@ Replace it?</source>
     </message>
     <message>
         <source>&amp;Project</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Libraries…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit the materials, edge bands and hardware of the project</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

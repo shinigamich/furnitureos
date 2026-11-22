@@ -44,8 +44,16 @@ namespace {
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Set front of the whole interior of {0}"),
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Remove front of the whole interior of {0}"),
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Split the whole interior of {0} into {2}"),
+    QT_TRANSLATE_NOOP("fos::app::CommandText", "Edit material {0}"),
+    QT_TRANSLATE_NOOP("fos::app::CommandText", "Edit edge band {0}"),
+    QT_TRANSLATE_NOOP("fos::app::CommandText", "Edit hardware definition {0}"),
+    QT_TRANSLATE_NOOP("fos::app::CommandText", "Remove material {0}"),
+    QT_TRANSLATE_NOOP("fos::app::CommandText", "Remove edge band {0}"),
+    QT_TRANSLATE_NOOP("fos::app::CommandText", "Remove hardware definition {0}"),
     // Commands built by the application itself (session.cpp).
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Recover {0} from autosave or backup"),
+    // library_editor.cpp
+    QT_TRANSLATE_NOOP("fos::app::CommandText", "Import library {0}"),
     // quote_rows.cpp
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Change pricing settings"),
     QT_TRANSLATE_NOOP("fos::app::CommandText", "Reset pricing settings"),

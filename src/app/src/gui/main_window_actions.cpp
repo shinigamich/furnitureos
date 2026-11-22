@@ -78,6 +78,9 @@ void MainWindow::buildActions() {
     a_.showQuote = make(tr("&Quote"));
     a_.showQuote->setObjectName(QStringLiteral("actionShowQuote"));
     a_.showQuote->setToolTip(tr("Customer price estimate from the library prices and the pricing settings"));
+    a_.libraries = make(tr("&Libraries…"));
+    a_.libraries->setObjectName(QStringLiteral("actionLibraries"));
+    a_.libraries->setToolTip(tr("Edit the materials, edge bands and hardware of the project"));
     a_.about = make(tr("&About FurnitureOS"));
     a_.shortcuts = make(tr("&Keyboard shortcuts"), QKeySequence::HelpContents);
 
@@ -132,6 +135,7 @@ void MainWindow::buildActions() {
     connect(a_.realistic, &QAction::triggered, this, [this] { viewport_->setDisplayMode(viewport::DisplayMode::Realistic); });
     connect(a_.pricingSettings, &QAction::triggered, quote_, &QuoteWorkspace::editPricingSettings);
     connect(a_.showQuote, &QAction::triggered, this, [this] { tabs_->setCurrentWidget(quote_); });
+    connect(a_.libraries, &QAction::triggered, this, &MainWindow::showLibraryWindow);
     connect(a_.about, &QAction::triggered, this, &MainWindow::showAbout);
     connect(a_.shortcuts, &QAction::triggered, this, [this] { ShortcutsDialog(allActions_, this).exec(); });
 }
@@ -204,6 +208,8 @@ void MainWindow::buildMenus() {
     for (QDockWidget* dock : findChildren<QDockWidget*>()) view->addAction(dock->toggleViewAction());
 
     QMenu* projectMenu = menuBar()->addMenu(tr("&Project"));
+    projectMenu->addAction(a_.libraries);
+    projectMenu->addSeparator();
     projectMenu->addAction(a_.pricingSettings);
     projectMenu->addAction(a_.showQuote);
 
