@@ -1009,47 +1009,47 @@
     <name>fos::app</name>
     <message>
         <source>Blind corner</source>
-        <translation type="unfinished"></translation>
+        <translation>Глухий кут</translation>
     </message>
     <message>
         <source>L-shaped corner</source>
-        <translation type="unfinished"></translation>
+        <translation>L-подібний кут</translation>
     </message>
     <message>
         <source>None</source>
-        <translation type="unfinished">Немає</translation>
+        <translation>Немає</translation>
     </message>
     <message>
         <source>Left</source>
-        <translation type="unfinished">Зліва</translation>
+        <translation>Ліворуч</translation>
     </message>
     <message>
         <source>Right</source>
-        <translation type="unfinished">Справа</translation>
+        <translation>Праворуч</translation>
     </message>
     <message>
         <source>Blind panel width</source>
-        <translation type="unfinished"></translation>
+        <translation>Ширина глухої панелі</translation>
     </message>
     <message>
         <source>Leg B length</source>
-        <translation type="unfinished"></translation>
+        <translation>Довжина крила B</translation>
     </message>
     <message>
         <source>Leg B depth</source>
-        <translation type="unfinished"></translation>
+        <translation>Глибина крила B</translation>
     </message>
     <message>
         <source>Blind corner, blind panel left, %1 mm</source>
-        <translation type="unfinished"></translation>
+        <translation>Глухий кут, глуха панель ліворуч, %1 мм</translation>
     </message>
     <message>
         <source>Blind corner, blind panel right, %1 mm</source>
-        <translation type="unfinished"></translation>
+        <translation>Глухий кут, глуха панель праворуч, %1 мм</translation>
     </message>
     <message>
         <source>L-shaped corner, leg B %1 × %2 mm</source>
-        <translation type="unfinished"></translation>
+        <translation>L-подібний кут, крило B %1 × %2 мм</translation>
     </message>
 </context>
 <context>
@@ -1232,7 +1232,7 @@
     </message>
     <message>
         <source>Set blind side of {0} to {1}</source>
-        <translation type="unfinished"></translation>
+        <translation>Сторона глухої панелі {0}: {1}</translation>
     </message>
 </context>
 <context>
@@ -1332,11 +1332,11 @@
     </message>
     <message>
         <source>Blind corner cabinet</source>
-        <translation type="unfinished"></translation>
+        <translation>Кутова тумба з глухою панеллю</translation>
     </message>
     <message>
         <source>L-shaped corner cabinet</source>
-        <translation type="unfinished"></translation>
+        <translation>L-подібна кутова тумба</translation>
     </message>
 </context>
 <context>
@@ -2967,31 +2967,31 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
     <message>
         <source>Corner</source>
-        <translation type="unfinished"></translation>
+        <translation>Кут</translation>
     </message>
     <message>
         <source>Kind:</source>
-        <translation type="unfinished">Тип:</translation>
+        <translation>Тип:</translation>
     </message>
     <message>
         <source>Side of the fixed blind panel seen from the front; the door is hinged on the other side.</source>
-        <translation type="unfinished"></translation>
+        <translation>Сторона нерухомої глухої панелі (вигляд спереду); двері навішуються з протилежного боку.</translation>
     </message>
     <message>
         <source>Blind side:</source>
-        <translation type="unfinished"></translation>
+        <translation>Сторона глухої панелі:</translation>
     </message>
     <message>
         <source>parameter “%1” is missing - the cabinet cannot be generated</source>
-        <translation type="unfinished"></translation>
+        <translation>параметр «%1» відсутній — виріб неможливо згенерувати</translation>
     </message>
     <message>
         <source>Blind panel width: from the outer face of the blind-side carcass side to the centre of the gap next to the door.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ширина глухої панелі: від зовнішньої площини боковини з боку глухої панелі до середини зазору біля дверей.</translation>
     </message>
     <message>
         <source>Width and depth are those of leg A (rear wall); leg B runs along the left wall.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ширина й глибина — це розміри крила A (вздовж задньої стіни); крило B іде вздовж лівої стіни.</translation>
     </message>
 </context>
 <context>
@@ -4520,7 +4520,7 @@ Circle: X, Y = centre, Radius.</source>
     </message>
     <message>
         <source>Width and depth are those of leg A (along the rear wall); leg B is set in the Corner group of the inspector.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ширина й глибина — це розміри крила A (вздовж задньої стіни); крило B задається в групі «Кут» інспектора.</translation>
     </message>
 </context>
 </TS>
