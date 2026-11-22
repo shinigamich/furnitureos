@@ -222,6 +222,8 @@ right-handed (`zAxis = xAxis × yAxis`). Mirrored, scaled or skewed frames are r
 | `hasGrain` | boolean | | `false` | |
 | `color` | Color | | `#C8C8C8` | |
 | `costPerSheet` | number | | 0 | non-negative; 0 = unknown |
+| `costPerM2` | number | | 0 | optional, written only when > 0; non-negative; 0 = unknown |
+| `density` | number | | 0 | kg/m³; optional, written only when > 0; 0 = unknown (packing weight unknown) |
 | `available` | boolean | | `true` | |
 | `custom` | object string→string | | `{}` | user-defined properties |
 

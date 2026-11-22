@@ -98,7 +98,7 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 | T-050 | Desktop library editor (materials, edge bands, hardware prices; .foslib import/export) | Done | 6 app core tests |
 | T-051 | Corner cabinets: blind corner and L-shaped corner (engine, codec, templates, desktop Corner group) | Done (bi-fold hinges not modelled) | 6 furniture + 1 project + 4 app tests |
 | T-052 | Kitchen worktops over straight cabinet runs: overhangs, butt-joint splits, sink/hob cut-outs; `fos worktop`; desktop dialog | Done (straight runs only) | 6 project + 2 cli + 2 app tests |
-| T-053 | Packing lists and assembly sheets (`fos packing`, `fos assembly`) | In progress | — |
+| T-053 | Packing lists (weight from material density, never guessed) and generic assembly sheets; `fos packing`, `fos assembly` | Done | 12+ production/cli tests |
 
 ## Independent review 2026-11-12 (calculation-critical modules)
 

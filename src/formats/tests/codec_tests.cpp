@@ -361,7 +361,7 @@ TEST(CodecErrors, CheckedEncodingRefusesModelsThatWouldNotLoad) {
 
 TEST(CodecUnknownKeys, PreservedInCustomAndReEmittedForTypesWithCustomMap) {
     Json j = toJson(domain::fixtures::basicCabinet());
-    j["materials"][0]["density"] = 650;
+    j["materials"][0]["moistureContent"] = 8;
     j["materials"][0]["certificates"] = Json::parse(R"({"fsc": true, "codes": ["E1", "CARB2"]})");
     j["edgeBands"][0]["laser"] = true;
     j["hardwareCatalog"][0]["cadFile"] = "pin.step";
@@ -372,7 +372,7 @@ TEST(CodecUnknownKeys, PreservedInCustomAndReEmittedForTypesWithCustomMap) {
     ASSERT_TRUE(decoded.ok()) << decoded.error().message;
     const domain::Model& m = decoded.value();
     // Stashed under the reserved prefix as compact JSON text.
-    EXPECT_EQ(m.materials[0].custom.at("json:density"), "650");
+    EXPECT_EQ(m.materials[0].custom.at("json:moistureContent"), "8");
     EXPECT_EQ(m.materials[0].custom.at("json:certificates"), R"({"fsc":true,"codes":["E1","CARB2"]})");
     EXPECT_EQ(m.edgeBands[0].custom.at("json:laser"), "true");
     EXPECT_EQ(m.hardwareCatalog[0].custom.at("json:cadFile"), "\"pin.step\"");
@@ -381,7 +381,7 @@ TEST(CodecUnknownKeys, PreservedInCustomAndReEmittedForTypesWithCustomMap) {
 
     // Saving writes them back as the original top-level keys with the original values.
     const Json again = toJson(m);
-    EXPECT_EQ(again["materials"][0]["density"], 650);
+    EXPECT_EQ(again["materials"][0]["moistureContent"], 8);
     EXPECT_EQ(again["materials"][0]["certificates"], j["materials"][0]["certificates"]);
     EXPECT_EQ(again["edgeBands"][0]["laser"], true);
     EXPECT_EQ(again["hardwareCatalog"][0]["cadFile"], "pin.step");

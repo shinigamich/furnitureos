@@ -263,6 +263,36 @@ Lines without a price are listed as `UNPRICED` with a `production.quote.unpriced
 not in the total; the exit code is then 1. CSV/JSON go to stdout, diagnostics to stderr (JSON also
 includes them); JSON money totals are 2-decimal strings.
 
+### `fos packing`
+
+```text
+fos packing <file.fosp> [--max-kg 25] [--max-length mm] [--max-width mm] [--max-height mm]
+            [--padding 10] [--format text|csv|json] [--svg dir]
+```
+
+Packing list for delivery / flat-pack (`production::packingList`): per item, the panels grouped
+into packages (first-fit heuristic, largest panels at the bottom) within `--max-kg` and the optional
+outer size limits (padding included; 0 = no limit), plus one hardware bag per item (fittings and
+fasteners by definition and count). Package = largest panel + 2 × padding, height = stacked
+thickness + 2 × padding. Weights come ONLY from the material `density` (kg/m³, optional library
+field); without it panels and their packages are `weight unknown` (warning
+`production.packing.density_unknown`) and are packed separately from weighed panels, limited only by
+the size limits (use `--max-height` to split them). Weights exclude packaging and hardware. CSV/JSON
+go to stdout (CSV diagnostics to stderr; JSON includes them, unknown weights are `null`). `--svg`
+writes package labels (one per package and per hardware bag, 70 × 37 mm part-label geometry) as
+`DIR/package-labels-<n>.svg`. Invalid limits are usage errors (exit 2).
+
+### `fos assembly`
+
+```text
+fos assembly <file.fosp> [--svg dir]
+```
+
+Assembly sheet per item (`production::assemblySheets`): numbered steps with parts and hardware
+counts. The order is GENERIC, from part roles and hardware kinds only (carcass → back →
+shelves/dividers → drawer boxes → fronts → handles → other), and every sheet says so; it is not a
+verified instruction. `--svg` writes `DIR/assembly-<item id>.svg` (A4 width, text only).
+
 ### `fos batch`
 
 Production batches: several projects (orders) produced together (`.fosbatch`, schema in

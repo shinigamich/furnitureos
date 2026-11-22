@@ -57,7 +57,9 @@ TEST(CliPacking, DensityRoundTripJsonCsvAndLabels) {
     for (const auto& p : asm0.at("packages")) {
         ASSERT_FALSE(p.at("weightKg").is_null());
         const double w = p.at("weightKg").get<double>();
-        if (!p.at("overweight").get<bool>()) EXPECT_LE(w, 10.0 + 1e-6);
+        if (!p.at("overweight").get<bool>()) {
+            EXPECT_LE(w, 10.0 + 1e-6);
+        }
         packageSum += w;
         for (const auto& part : p.at("parts")) {
             ++parts;
