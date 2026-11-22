@@ -7,6 +7,7 @@
 #include "enum_text.hpp"
 #include "fos/app/autosave.hpp"
 #include "fos/app/command_text.hpp"
+#include "fos/app/resize.hpp"
 #include "fos/app/window_title.hpp"
 #include "fos/core/units.hpp"
 #include "fos/viewport/viewport_widget.hpp"
@@ -69,11 +70,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), preferences_(Pref
         }
         sectionBar_->updateRange();
         syncViewportSelection();
+        updateResizeHandles();
         updateUndoRedo();
         updateStatus();
     });
     connect(&session_, &Session::selectionChanged, this, [this] {
         syncViewportSelection();
+        updateResizeHandles();
         updateStatus();
         updateUndoRedo();
     });
@@ -94,6 +97,18 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), preferences_(Pref
     });
     connect(viewport_, &viewport::ViewportWidget::partDoubleClicked, this,
             [this](const QString& id) { session_.selectItem(session_.itemOfPart(id.toStdString())); });
+    // Direct modelling: the viewport only requests; the size change is one undoable command and a
+    // refused value leaves the model as it is (the core message goes to the status bar).
+    connect(viewport_, &viewport::ViewportWidget::resizeRequested, this,
+            [this](const QString& itemId, viewport::HandleAxis axis, bool negative, double value) {
+                const auto a = axis == viewport::HandleAxis::X   ? ResizeAxis::X
+                               : axis == viewport::HandleAxis::Y ? ResizeAxis::Y
+                                                                 : ResizeAxis::Z;
+                const auto r = applyResize(session_, itemId.toStdString(), a, negative, value);
+                if (!r)
+                    statusBar()->showMessage(tr("Resize refused: %1").arg(QString::fromStdString(r.error().message)),
+                                             10000);
+            });
     connect(diagnostics_, &DiagnosticsPanel::summaryChanged, this, &MainWindow::updateStatus);
 
     autosaveTimer_ = new QTimer(this);
@@ -188,6 +203,25 @@ void MainWindow::syncViewportSelection() {
         if (const auto* a = session_.resolved()->model.findAssembly(domain::AssemblyId(sel.itemId)))
             for (const auto& p : a->parts) parts.push_back(p.id.str());
     viewport_->setSelection(parts);
+}
+
+void MainWindow::updateResizeHandles() {
+    const auto target = resizeTarget(session_, session_.selection().itemId);
+    if (!target) {
+        viewport_->setResizeTarget(std::nullopt);
+        return;
+    }
+    viewport::ResizeTarget v;
+    v.itemId = target->itemId;
+    v.frame = target->placement;
+    v.box = target->box;
+    for (const ResizeHandle& h : target->handles) {
+        const auto axis = h.axis == ResizeAxis::X   ? viewport::HandleAxis::X
+                          : h.axis == ResizeAxis::Y ? viewport::HandleAxis::Y
+                                                    : viewport::HandleAxis::Z;
+        v.handles.push_back({axis, h.negative, h.value, resizeLabel(h.parameter).toStdString()});
+    }
+    viewport_->setResizeTarget(v);
 }
 
 void MainWindow::showError(const QString& title, const core::Error& error) {

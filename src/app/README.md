@@ -34,6 +34,7 @@ existing items' bounding boxes).
 | `drawing_edits.hpp` | `drawingIdOf`, `editContext`, `findDimension`, picking: `viewAt` (sheet view placements), `dimensionAt` (distance to the primitives carrying the dimension's `elementId`, 1.5 paper mm), `elementBounds`, `nearestCorner` (every part corner through `drawings::resolveAnchor`); commands: `dimensionOffsetCommand`, `hideDimensionCommand`, `dimensionTextCommand` (records `measuredAtEdit` via `drawings::setTextOverride`), `removeEditCommand`, `addUserDimensionCommand` (two `ModelAnchor`s, id `user.dim.<n>`); `drawingEditRows` / `editRowText` (stale and orphan flags from the `EditReport`), `editFindings` |
 | `drawing_request.hpp` | `DrawingRequest`, `generateDrawing` (translated title block + calibration note), `exportDrawingSvg/Dxf/Pdf` |
 | `production_text.hpp` | `ProductionText::localisation()/htmlSheetText()/labelText()` — every production caption via `tr()` |
+| `resize.hpp` | Direct modelling: `ResizeAxis`, `ResizeHandle`, `ResizeTarget` / `resizeTarget(session, itemId)` (cabinet: nominal envelope from width/depth/height; panel: box of its part), `resizeParameter` (panel axes by orientation), `resizeCommand` (ONE combined command, see Behaviour), `applyResize`, `resizeLabel` ("W", "H", "D", "L") |
 | `recent_files.hpp`, `autosave.hpp`, `window_title.hpp`, `command_text.hpp`, `version.hpp` | MRU list in QSettings; `autosaveDue`, `recoveryOffer`, untitled autosave location; "name* — FurnitureOS"; translated undo labels with item names |
 
 ## Behaviour
@@ -119,6 +120,15 @@ existing items' bounding boxes).
   midpoint, face centre, surface point), the live distance while picking the second point, and finally
   "Distance … mm (ΔX …, ΔY …, ΔZ … mm)" (`measureStatusText`, `src/gui/view_tools.cpp`). Esc clears the points,
   a second Esc leaves the mode (the action unchecks). Display only: the project is never modified.
+* **Resize handles** (3D view): when an item (cabinet or panel) is selected, `MainWindow::updateResizeHandles`
+  passes `resizeTarget()` to `ViewportWidget::setResizeTarget` — handles on the +X/−X (width), +Y/−Y (depth)
+  and +Z (height) faces; panels get the faces of their length/width axes, never the thickness, never −Z. On
+  `resizeRequested` the window calls `applyResize`: +X/+Y/+Z = `commands::setParameter`; −X/−Y = a combined
+  command that runs `setParameter` and then `setPlacement` (placement · translation(−Δ along the assembly
+  axis), so the opposite face stays put) on the same project copy — ONE undo step with the parameter's label.
+  Document merging was not used (the two commands have different merge keys; merging is for repeated edits of
+  one value). A refused value shows "Resize refused: <core message>" in the status bar; the model is unchanged.
+  Snap 1 mm, Shift 10 mm; Esc cancels a drag; hidden in measure mode.
 * **Section plane** (View menu, toolbar, key S; checkable): shows the `SectionToolBar` (axis X/Y/Z, slider +
   spin box in mm over the model bounds along the axis — re-read on every model change — "Flip" and "Off")
   and applies `ViewportWidget::setSectionPlane`; unchecking or "Off" removes the plane. Display only.
@@ -138,7 +148,10 @@ means Ukrainian for a Ukrainian system locale, English otherwise.
 
 ## Tests
 
-* `fos_app_core_tests` (GoogleTest, `QT_QPA_PLATFORM=offscreen`): interior editor (size syntax; split vertically
+* `fos_app_core_tests` (GoogleTest, `QT_QPA_PLATFORM=offscreen`): resize handles (`resize_tests.cpp`: target of
+  a 800 × 820 × 560 cabinet, +X 800 → 900 and one undo, −X 800 → 900 moves the origin −100 mm and one undo restores
+  width and placement, −Y of a 90°-rotated cabinet moves along its own axis, refused value / −Z / unknown item
+  leave the project unchanged, panel axes by orientation); interior editor (size syntax; split vertically
   → partition 684 mm and shelf 271 × 540 mm by hand, shelf count, fixed / share / expression sizes 198 / 362 /
   148 mm, horizontal split, remove split, empty interior, single door 716 × 596, drawer stack 140 / 285 / 285,
   no front; nine refused edits leave interior, undo label and revision unchanged; undo / redo), hardware (library

@@ -66,6 +66,8 @@ private:
     void updateStatus();
     void updateUndoRedo();
     void syncViewportSelection();
+    /// Resize handles of the selected item in the 3D view (app/resize.hpp), none without one.
+    void updateResizeHandles();
     void showError(const QString& title, const core::Error& error);
     // main_window_actions.cpp
     void buildActions();

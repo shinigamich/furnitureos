@@ -26,15 +26,18 @@ TEST(CabinetHardware, ChoicesFromTheLibraryAndSelection) {
     ASSERT_TRUE(s.newFromTemplate(TemplateKind::BaseCabinet).ok());
     const auto hinges =
         hardwareChoices(s.project().libraries, HardwareRole::Hinge, cabinet(s).hardware.hinge.str());
-    ASSERT_EQ(hinges.size(), 1u); // the built-in catalogue has one hinge
+    // The built-in catalogue has three generic hinges: full overlay, half overlay, inset.
+    ASSERT_EQ(hinges.size(), 3u);
     EXPECT_EQ(hinges[0].id, hardware::ids::kHingeCup35);
+    EXPECT_EQ(hinges[1].id, hardware::ids::kHingeCup35Half);
+    EXPECT_EQ(hinges[2].id, hardware::ids::kHingeCup35Inset);
     EXPECT_FALSE(hinges[0].missing);
     EXPECT_EQ(hardwareKind(HardwareRole::ShelfPin), domain::HardwareKind::ShelfSupport);
     EXPECT_EQ(hardwareRoleTitle(HardwareRole::Confirmat), QStringLiteral("Confirmat screw:"));
     // An id that is not in the library is listed as missing so the editor can show it.
     const auto odd = hardwareChoices(s.project().libraries, HardwareRole::Hinge, "hw.gone");
-    ASSERT_EQ(odd.size(), 2u);
-    EXPECT_TRUE(odd[1].missing);
+    ASSERT_EQ(odd.size(), 4u);
+    EXPECT_TRUE(odd[3].missing);
 
     // A second hinge in the library (copy of the generic one under a new id) becomes selectable.
     domain::HardwareDefinition copy =
@@ -42,7 +45,7 @@ TEST(CabinetHardware, ChoicesFromTheLibraryAndSelection) {
     copy.id = domain::HardwareId("hw.test.hinge_b");
     copy.name = "Test hinge B";
     ASSERT_TRUE(s.execute(project::commands::upsertHardware(copy)).ok());
-    ASSERT_EQ(hardwareChoices(s.project().libraries, HardwareRole::Hinge, "").size(), 2u);
+    ASSERT_EQ(hardwareChoices(s.project().libraries, HardwareRole::Hinge, "").size(), 4u);
     const int before = hingesWith(s, hardware::ids::kHingeCup35);
     EXPECT_GT(before, 0);
     ASSERT_TRUE(s.execute(hardwareCommand(cabinet(s), HardwareRole::Hinge, "hw.test.hinge_b")).ok());

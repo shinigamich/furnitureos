@@ -5,6 +5,7 @@
 #include "fos/viewport/camera.hpp"
 #include "fos/viewport/scene.hpp"
 #include "gl_renderer.hpp"
+#include "handle_overlay.hpp"
 #include "measure_overlay.hpp"
 
 #include <QKeyEvent>
@@ -13,6 +14,7 @@
 #include <QSurfaceFormat>
 #include <QWheelEvent>
 
+#include <algorithm>
 #include <cmath>
 
 namespace fos::viewport {
@@ -54,6 +56,18 @@ struct ViewportWidget::Impl {
     std::optional<SnapPoint> hover;
     QString lengthSuffix = QStringLiteral(" mm");
     QString textureDirectory;
+
+    // Resize handles.
+    struct HandleDrag {
+        std::size_t handle = 0;
+        double s0 = 0;          ///< Axis parameter at the press.
+        double startValue = 0;
+        double value = 0;       ///< Current snapped value.
+    };
+    std::optional<ResizeTarget> target;
+    std::optional<std::size_t> hoveredHandle;
+    std::optional<HandleDrag> handleDrag;
+    double resizeStep = 1.0, resizeCoarseStep = 10.0;
 
     void updateSceneBounds() {
         // Near/far must contain the parts AND the floor grid (grid spans parts +- >= 1 m).
@@ -169,7 +183,10 @@ void ViewportWidget::setMeasureMode(bool on) {
     d->measuring = on;
     d->measurePoints.clear();
     d->hover.reset();
-    setMouseTracking(on);
+    d->handleDrag.reset();
+    d->hoveredHandle.reset();
+    if (d->dragButton == Qt::LeftButton && !d->dragging) d->dragButton = Qt::NoButton;
+    setMouseTracking(on || d->target.has_value());
     if (on) {
         setCursor(Qt::CrossCursor);
     } else {
@@ -236,6 +253,49 @@ void ViewportWidget::setTextureDirectory(const QString& directory) {
     update();
 }
 
+void ViewportWidget::setResizeTarget(const std::optional<ResizeTarget>& target) {
+    if (d->handleDrag) {
+        d->handleDrag.reset();
+        d->dragButton = Qt::NoButton;
+    }
+    d->target = target;
+    d->hoveredHandle.reset();
+    setMouseTracking(d->measuring || d->target.has_value());
+    if (!d->measuring) unsetCursor();
+    update();
+}
+
+std::optional<ResizeTarget> ViewportWidget::resizeTarget() const { return d->target; }
+
+void ViewportWidget::setResizeSteps(double step, double coarseStep) {
+    d->resizeStep = step;
+    d->resizeCoarseStep = coarseStep;
+}
+
+double ViewportWidget::resizeStep() const { return d->resizeStep; }
+double ViewportWidget::resizeCoarseStep() const { return d->resizeCoarseStep; }
+
+std::optional<std::size_t> ViewportWidget::handleAt(const QPoint& position) const {
+    if (!d->target || d->measuring) return std::nullopt;
+    d->camera.setViewportSize(width(), height());
+    return handleAtPixel(*d->target, d->camera, position.x() + 0.5, position.y() + 0.5,
+                         detail::kHandleRadiusPx + 3.0);
+}
+
+std::optional<std::pair<std::size_t, double>> ViewportWidget::resizeDrag() const {
+    if (!d->handleDrag) return std::nullopt;
+    return std::make_pair(d->handleDrag->handle, d->handleDrag->value);
+}
+
+void ViewportWidget::cancelResizeDrag() {
+    if (!d->handleDrag) return;
+    d->handleDrag.reset();
+    // The rest of the press (moves, release) is swallowed: the button state is dropped.
+    d->dragButton = Qt::NoButton;
+    d->dragging = false;
+    update();
+}
+
 void ViewportWidget::initializeGL() {
     std::string error;
     d->glInitialized = true;
@@ -265,9 +325,17 @@ void ViewportWidget::paintGL() {
     const double dpr = devicePixelRatioF();
     d->renderer.render(d->camera, d->mode, static_cast<int>(std::lround(width() * dpr)),
                        static_cast<int>(std::lround(height() * dpr)), dpr, d->scene.section());
-    if (d->measuring && (!d->measurePoints.empty() || d->hover)) {
+    const bool measureOverlay = d->measuring && (!d->measurePoints.empty() || d->hover);
+    const bool handleOverlay = d->target && !d->measuring && !d->target->handles.empty();
+    if (measureOverlay || handleOverlay) {
         QPainter painter(this);
-        detail::paintMeasureOverlay(painter, d->camera, d->measurePoints, d->hover, d->lengthSuffix);
+        if (measureOverlay)
+            detail::paintMeasureOverlay(painter, d->camera, d->measurePoints, d->hover, d->lengthSuffix);
+        if (handleOverlay) {
+            std::optional<detail::HandleDragState> drag;
+            if (d->handleDrag) drag = detail::HandleDragState{d->handleDrag->handle, d->handleDrag->value};
+            detail::paintHandleOverlay(painter, d->camera, *d->target, d->hoveredHandle, drag, d->lengthSuffix);
+        }
     }
 }
 
@@ -278,12 +346,52 @@ void ViewportWidget::mousePressEvent(QMouseEvent* event) {
     d->dragButton = b;
     d->pressPos = d->lastPos = event->position().toPoint();
     d->dragging = false;
+    if (b == Qt::LeftButton) {
+        if (const auto handle = handleAt(d->pressPos)) {
+            const QPointF p = event->position();
+            const auto ray = d->camera.rayThroughPixel(p.x(), p.y());
+            const auto s0 = closestAxisParameter(ray, handleAnchor(*d->target, *handle),
+                                                 handleDirection(*d->target, *handle));
+            if (s0) { // an axis seen end-on cannot be dragged; the press then orbits as usual
+                const double v = d->target->handles[*handle].value;
+                d->handleDrag = Impl::HandleDrag{*handle, *s0, v, v};
+                update();
+            }
+        }
+    }
     event->accept();
 }
 
 void ViewportWidget::mouseMoveEvent(QMouseEvent* event) {
+    if (d->handleDrag) {
+        d->camera.setViewportSize(width(), height());
+        const QPointF p = event->position();
+        const auto& h = *d->handleDrag;
+        const auto s = closestAxisParameter(d->camera.rayThroughPixel(p.x(), p.y()), handleAnchor(*d->target, h.handle),
+                                            handleDirection(*d->target, h.handle));
+        if (s) {
+            const double step = (event->modifiers() & Qt::ShiftModifier) ? d->resizeCoarseStep : d->resizeStep;
+            const double value = dragValue(h.startValue, h.s0, *s, step, std::max(step, 1.0));
+            if (value != h.value) {
+                d->handleDrag->value = value;
+                update();
+            }
+        }
+        event->accept();
+        return;
+    }
     if (d->dragButton == Qt::NoButton) {
-        updateHoverSnap(event->position().toPoint());
+        if (d->measuring) {
+            updateHoverSnap(event->position().toPoint());
+        } else if (d->target) {
+            const auto hovered = handleAt(event->position().toPoint());
+            if (hovered != d->hoveredHandle) {
+                d->hoveredHandle = hovered;
+                if (hovered) setCursor(Qt::PointingHandCursor);
+                else unsetCursor();
+                update();
+            }
+        }
         return;
     }
     const QPoint p = event->position().toPoint();
@@ -306,6 +414,19 @@ void ViewportWidget::mouseMoveEvent(QMouseEvent* event) {
 
 void ViewportWidget::mouseReleaseEvent(QMouseEvent* event) {
     if (event->button() != d->dragButton) return;
+    if (d->handleDrag) {
+        const Impl::HandleDrag h = *d->handleDrag;
+        d->handleDrag.reset();
+        d->dragButton = Qt::NoButton;
+        d->dragging = false;
+        update();
+        event->accept();
+        if (h.value != h.startValue) {
+            const auto& spec = d->target->handles[h.handle];
+            emit resizeRequested(QString::fromStdString(d->target->itemId), spec.axis, spec.negative, h.value);
+        }
+        return;
+    }
     const bool wasClick = !d->dragging && d->dragButton == Qt::LeftButton;
     d->dragButton = Qt::NoButton;
     d->dragging = false;
@@ -332,7 +453,7 @@ void ViewportWidget::mouseDoubleClickEvent(QMouseEvent* event) {
     d->pressPos = d->lastPos = event->position().toPoint();
     d->dragging = false;
     d->suppressNextClick = true;
-    if (d->measuring) { // no part action; the release adds no second point at the same spot
+    if (d->measuring || handleAt(d->pressPos)) { // no part action (measuring, or on a handle)
         event->accept();
         return;
     }
@@ -352,6 +473,11 @@ void ViewportWidget::wheelEvent(QWheelEvent* event) {
 }
 
 void ViewportWidget::keyPressEvent(QKeyEvent* event) {
+    if (event->key() == Qt::Key_Escape && d->handleDrag) {
+        cancelResizeDrag();
+        event->accept();
+        return;
+    }
     if (event->key() == Qt::Key_Escape && d->measuring) {
         if (!d->measurePoints.empty())
             cancelMeasurement();
@@ -364,6 +490,10 @@ void ViewportWidget::keyPressEvent(QKeyEvent* event) {
 }
 
 void ViewportWidget::leaveEvent(QEvent* event) {
+    if (d->hoveredHandle && !d->handleDrag) {
+        d->hoveredHandle.reset();
+        update();
+    }
     if (d->hover) {
         d->hover.reset();
         update();

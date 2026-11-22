@@ -227,6 +227,10 @@
         <source>lift-up flap</source>
         <translation>підйомний фасад</translation>
     </message>
+    <message>
+        <source>sliding doors: %1</source>
+        <translation>розсувні двері: %1</translation>
+    </message>
 </context>
 <context>
     <name>MeasureStatus</name>
@@ -883,6 +887,29 @@
     <message>
         <source>Enter a number or an expression.</source>
         <translation>Введіть число або вираз.</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::Resize</name>
+    <message>
+        <source>W</source>
+        <comment>width</comment>
+        <translation>Ш</translation>
+    </message>
+    <message>
+        <source>H</source>
+        <comment>height</comment>
+        <translation>В</translation>
+    </message>
+    <message>
+        <source>D</source>
+        <comment>depth</comment>
+        <translation>Г</translation>
+    </message>
+    <message>
+        <source>L</source>
+        <comment>length</comment>
+        <translation>Д</translation>
     </message>
 </context>
 <context>
@@ -1726,6 +1753,10 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Lift-up flap</source>
         <translation>Підйомний фасад</translation>
     </message>
+    <message>
+        <source>Sliding doors</source>
+        <translation>Розсувні двері</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::ImportDxfDialog</name>
@@ -2178,6 +2209,14 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     <message>
         <source>Drawer heights:</source>
         <translation>Висоти шухляд:</translation>
+    </message>
+    <message>
+        <source>Sliding doors:</source>
+        <translation>Розсувні двері:</translation>
+    </message>
+    <message>
+        <source>Number of sliding doors (2 to 6) or an expression over the cabinet parameters, e.g. if(width &gt; 2000, 3, 2).</source>
+        <translation>Кількість розсувних дверей (від 2 до 6) або вираз над параметрами шафи, наприклад if(width &gt; 2000, 3, 2).</translation>
     </message>
     <message>
         <source>Selected: %1</source>
@@ -2705,6 +2744,10 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     <message>
         <source> mm</source>
         <translation> мм</translation>
+    </message>
+    <message>
+        <source>Resize refused: %1</source>
+        <translation>Зміну розміру відхилено: %1</translation>
     </message>
 </context>
 <context>

@@ -227,6 +227,10 @@
         <source>lift-up flap</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>sliding doors: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MeasureStatus</name>
@@ -882,6 +886,29 @@
     </message>
     <message>
         <source>Enter a number or an expression.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::Resize</name>
+    <message>
+        <source>W</source>
+        <comment>width</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>H</source>
+        <comment>height</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>D</source>
+        <comment>depth</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>L</source>
+        <comment>length</comment>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1721,6 +1748,10 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Lift-up flap</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Sliding doors</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::ImportDxfDialog</name>
@@ -2172,6 +2203,14 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
     <message>
         <source>Drawer heights:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sliding doors:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Number of sliding doors (2 to 6) or an expression over the cabinet parameters, e.g. if(width &gt; 2000, 3, 2).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2697,6 +2736,10 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
     <message>
         <source> mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Resize refused: %1</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

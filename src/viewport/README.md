@@ -121,6 +121,25 @@ feeds attribute locations 3–7. `MeshVertex` and the golden geometry hash are u
   picking the second point), point dots, snap marker shaped by kind, distance label at the midpoint.
   `measurementChanged()` lets the app show the numbers in its status bar. Never touches the model.
 
+## Resize handles (phase 15 direct modelling)
+
+`setResizeTarget(ResizeTarget{itemId, frame, box, handles})` / `std::nullopt`. Qt-free math in
+`fos/viewport/manipulator.hpp`; the widget only displays and requests, never changes the model.
+
+* One handle per `ResizeHandleSpec{axis, negative, value, label}` at the centre of its face of `box`
+  (target frame) transformed by `frame` (`handleAnchor`), outward direction `handleDirection`. Drawn as a
+  QPainter overlay after the GL frame: a shaded disc (radius 7 px) and a 22 px arrow, constant screen size,
+  coloured by axis (X red, Y green, Z blue), enlarged when hovered; always on top (not depth-tested).
+* Press on a handle (`handleAt`, 10 px radius) starts a drag. Each mouse position gives the parameter `s` of
+  the point on the handle axis closest to the mouse ray (`closestAxisParameter`: closest points of two lines;
+  undefined when the axis is seen end-on, then the press orbits as usual). New value =
+  `dragValue(start, s0, s, step, minimum)` = start + (s − s0) snapped to `resizeStep()` (default 1 mm) or,
+  with Shift held, `resizeCoarseStep()` (10 mm), at least max(step, 1 mm). A dashed ghost box (`ghostBox`:
+  the opposite face fixed) and the label "W 912 mm" follow the drag.
+* Release emits `resizeRequested(itemId, axis, negative, value)` when the value changed. Esc cancels (no
+  signal; the rest of the press is swallowed). Handles are hidden and inactive in measure mode; replacing
+  the target cancels a drag. A double click on a handle does nothing.
+
 ## Section view (phase 15)
 
 `setSectionPlane(SectionPlane{axis, position mm, flip})` / `std::nullopt` (`fos/viewport/section.hpp`).
@@ -144,6 +163,9 @@ feeds attribute locations 3–7. `MeshVertex` and the golden geometry hash are u
   `snap_tests.cpp`: measurement math, snap candidates, radius/occlusion/cap snapping, section classification;
   picking with a section plane (removed shelf not picked, cut shelf picked at its cap) and a two-click
   measurement with Esc handling.
+* `manipulator_tests.cpp`: anchors/directions of a rotated envelope, closest axis parameter (perpendicular and
+  oblique rays, hand-computed; parallel ray refused), axis drag from two rays (800 + 112.4 → 912, Shift → 910,
+  the −X handle enlarging outwards, minimum clamp), snapping, ghost box, handle hit test.
 * `viewport_gl` (CTest label `gl`, run through `xvfb-run -a` when available): renders the fixture and
   checks pixels (part vs background, highlight colour, hidden part). Each test `GTEST_SKIP`s with the
   reason when no windowing platform / OpenGL 3.3 core context is available. Set
