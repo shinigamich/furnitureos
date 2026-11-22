@@ -83,6 +83,16 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 | T-035 | Drawer boxes behind drawer fronts (sides, box front/back, grooved or nailed bottom) with generic ball-bearing / undermount slides and slide holes on cabinet and drawer; desktop front editor and drawer materials | Done | 7 engine + 4 app tests |
 | T-036 | DXF outline import (LINE, ARC, CIRCLE, LWPOLYLINE, POLYLINE; units; loop chaining) into shaped panels; `fos import-dxf`; File ▸ Import DXF outline… | Done | 12 engine tests + app core test |
 | T-037 | Linear (1D) cutting: `fos::linear` optimiser + independent validator + SVG; edge-band roll planning from the model; `fos linear`, `fos edgeband-rolls` | Done (heuristic) | 14 focused tests |
+| T-038 | DXF export of shaped panels and drawings | Done | focused tests |
+| T-039 | Drawer box joints (dowel/confirmat) and per-drawer boxes in the desktop app | Done | engine + app tests |
+| T-040 | Measure and section tools in the 3D view | Done | viewport tests |
+| T-041 | Reusable component library (`.foscomp`), in-use checks for all library references | Done | project tests |
+| T-042 | Inset and half-overlay hinges, lift-up flaps (generic lift) | Done | hardware/furniture tests |
+| T-043 | Realistic display mode and resize drag handles in the 3D view | Done | viewport tests |
+| T-044 | Sliding-door wardrobes: generic two-lane track system, interior set back behind tracks, codec, desktop front choice | Done (generic system, dimensions unverified) | 9 engine tests; no codec/app tests yet |
+| T-045 | Production batches (`.fosbatch`): merged projects with quantities, explicit material substitution, batch cut list / plans / labels / summary; `fos batch` | Done | 8 tests |
+| T-046 | Desktop component browser (insert with conflict policy, save as component) | In progress | — |
+| T-047 | Cost estimation and quotes (`fos quote`) | In progress | — |
 
 ## Independent review 2026-11-12 (calculation-critical modules)
 
