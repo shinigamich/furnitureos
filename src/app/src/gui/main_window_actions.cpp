@@ -44,6 +44,9 @@ void MainWindow::buildActions() {
     a_.exportSvg = make(tr("Drawing (SVG)…"));
     a_.exportDxf = make(tr("Drawing views (DXF)…"));
     a_.exportObj = make(tr("3D model (OBJ)…"));
+    a_.batch = make(tr("Production &batch…"));
+    a_.batch->setObjectName(QStringLiteral("actionProductionBatch"));
+    a_.batch->setToolTip(tr("Combine several saved projects with quantities into one production run"));
     a_.importDxf = make(tr("&Import DXF outline…"));
     a_.importDxf->setObjectName(QStringLiteral("actionImportDxf"));
     a_.undo = make(tr("&Undo"), QKeySequence::Undo, QStyle::SP_ArrowBack);
@@ -104,6 +107,7 @@ void MainWindow::buildActions() {
     connect(a_.exportDxf, &QAction::triggered, drawings_, &DrawingsWorkspace::exportDxf);
     connect(a_.exportObj, &QAction::triggered, this, &MainWindow::exportModelObj);
     connect(a_.importDxf, &QAction::triggered, this, &MainWindow::importDxfOutline);
+    connect(a_.batch, &QAction::triggered, this, &MainWindow::showBatchWindow);
     connect(a_.undo, &QAction::triggered, this, [this] { (void)session_.undo(); });
     connect(a_.redo, &QAction::triggered, this, [this] { (void)session_.redo(); });
     connect(a_.deleteItem, &QAction::triggered, this, &MainWindow::deleteSelectedItem);
@@ -142,6 +146,7 @@ void MainWindow::buildMenus() {
     for (QAction* a : {a_.exportPdf, a_.exportSvg, a_.exportDxf}) exportMenu->addAction(a);
     exportMenu->addSeparator();
     exportMenu->addAction(a_.exportObj);
+    file->addAction(a_.batch);
     file->addAction(a_.print);
     file->addSeparator();
     file->addAction(a_.quit);

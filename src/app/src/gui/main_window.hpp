@@ -22,6 +22,7 @@ class ViewportWidget;
 namespace fos::app::gui {
 
 class ComponentBrowser;
+class BatchWindow;
 class CuttingWorkspace;
 class DiagnosticsPanel;
 class DrawingsWorkspace;
@@ -86,6 +87,7 @@ private:
     bool saveAs();
     void exportCutListCsv();
     void exportProductionHtml();
+    void showBatchWindow();
     void exportLabelsSvg();
     void exportModelObj();
     void importDxfOutline();
@@ -107,6 +109,7 @@ private:
     DrawingsWorkspace* drawings_ = nullptr;
     ProductionWorkspace* production_ = nullptr;
     CuttingWorkspace* cutting_ = nullptr;
+    BatchWindow* batch_ = nullptr;
     ProjectBrowser* browser_ = nullptr;
     InspectorPanel* inspector_ = nullptr;
     DiagnosticsPanel* diagnostics_ = nullptr;
@@ -118,7 +121,7 @@ private:
     bool fitOnNextModel_ = true;
 
     struct Actions {
-        QAction *newProject, *open, *save, *saveAs, *print, *quit;
+        QAction *newProject, *open, *save, *saveAs, *print, *quit, *batch;
         QAction *exportCsv, *exportHtml, *exportLabels, *exportPdf, *exportSvg, *exportDxf, *exportObj, *importDxf;
         QAction *undo, *redo, *deleteItem, *duplicateItem, *saveAsComponent, *preferences;
         QAction *fitAll, *perspective, *orthographic, *shaded, *shadedEdges, *wireframe, *realistic;

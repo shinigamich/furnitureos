@@ -372,7 +372,7 @@ void BatchWindow::applySubstitutions() {
         subs[str(from)] = str(to);
     }
     edited(editor_.setMaterialSubstitutions(std::move(subs)), substitutionError_);
-    if (!substitutionError_->isVisible()) loadSubstitutions();
+    if (substitutionError_->isHidden()) loadSubstitutions();
 }
 
 void BatchWindow::applySawSettings() {

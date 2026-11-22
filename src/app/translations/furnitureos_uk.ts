@@ -716,25 +716,6 @@
     </message>
 </context>
 <context>
-    <name>fos::app::ComponentBrowser</name>
-    <message>
-        <source>%1 × %2 × %3 mm</source>
-        <translation>%1 × %2 × %3 мм</translation>
-    </message>
-    <message>
-        <source>material</source>
-        <translation>матеріал</translation>
-    </message>
-    <message>
-        <source>edge band</source>
-        <translation>крайка</translation>
-    </message>
-    <message>
-        <source>hardware</source>
-        <translation>фурнітура</translation>
-    </message>
-</context>
-<context>
     <name>fos::app::CommandText</name>
     <message>
         <source>Set {1} of {0} to {2}</source>
@@ -1097,6 +1078,377 @@
     <message>
         <source>Vertical dimension, measures %1 mm</source>
         <translation>Вертикальний розмір, виміряно %1 мм</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::BatchWindow</name>
+    <message>
+        <source> mm</source>
+        <translation> мм</translation>
+    </message>
+    <message>
+        <source>Batch</source>
+        <translation>Партія</translation>
+    </message>
+    <message>
+        <source>New</source>
+        <translation>Нова</translation>
+    </message>
+    <message>
+        <source>Open…</source>
+        <translation>Відкрити…</translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>Зберегти</translation>
+    </message>
+    <message>
+        <source>Save As…</source>
+        <translation>Зберегти як…</translation>
+    </message>
+    <message>
+        <source>Projects</source>
+        <translation>Проєкти</translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation>Налаштування</translation>
+    </message>
+    <message>
+        <source>Summary</source>
+        <translation>Підсумок</translation>
+    </message>
+    <message>
+        <source>YYYY-MM-DD</source>
+        <translation>РРРР-ММ-ДД</translation>
+    </message>
+    <message>
+        <source>Apply</source>
+        <translation>Застосувати</translation>
+    </message>
+    <message>
+        <source>Project file</source>
+        <translation>Файл проєкту</translation>
+    </message>
+    <message>
+        <source>Key</source>
+        <translation>Ключ</translation>
+    </message>
+    <message>
+        <source>Quantity</source>
+        <translation>Кількість</translation>
+    </message>
+    <message>
+        <source>Note</source>
+        <translation>Примітка</translation>
+    </message>
+    <message>
+        <source>Key, quantity and note can be edited in place. An empty key is derived from the file name.</source>
+        <translation>Ключ, кількість і примітку можна редагувати в таблиці. Порожній ключ утворюється з імені файлу.</translation>
+    </message>
+    <message>
+        <source>Add project…</source>
+        <translation>Додати проєкт…</translation>
+    </message>
+    <message>
+        <source>Add current project</source>
+        <translation>Додати поточний проєкт</translation>
+    </message>
+    <message>
+        <source>Adds the project open in the main window; it must be saved first.</source>
+        <translation>Додає проєкт, відкритий у головному вікні; спочатку його треба зберегти.</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>Видалити</translation>
+    </message>
+    <message>
+        <source>Name:</source>
+        <translation>Назва:</translation>
+    </message>
+    <message>
+        <source>Date:</source>
+        <translation>Дата:</translation>
+    </message>
+    <message>
+        <source>Notes:</source>
+        <translation>Нотатки:</translation>
+    </message>
+    <message>
+        <source>Material substitutions</source>
+        <translation>Заміни матеріалів</translation>
+    </message>
+    <message>
+        <source>Material id</source>
+        <translation>Id матеріалу</translation>
+    </message>
+    <message>
+        <source>Replaced by (stock material id)</source>
+        <translation>Замінити на (id матеріалу на складі)</translation>
+    </message>
+    <message>
+        <source>Every part of the first material is cut from the second one. Each change is reported in the summary; a missing target or another thickness is refused.</source>
+        <translation>Усі деталі з першого матеріалу розкроюються з другого. Кожна заміна показується в підсумку; відсутній матеріал або інша товщина відхиляються.</translation>
+    </message>
+    <message>
+        <source>Add row</source>
+        <translation>Додати рядок</translation>
+    </message>
+    <message>
+        <source>Remove row</source>
+        <translation>Видалити рядок</translation>
+    </message>
+    <message>
+        <source>Apply substitutions</source>
+        <translation>Застосувати заміни</translation>
+    </message>
+    <message>
+        <source>Panel saw settings (all materials)</source>
+        <translation>Налаштування форматно-розкрійного верстата (усі матеріали)</translation>
+    </message>
+    <message>
+        <source>What the heuristic optimiser compares candidate layouts by.</source>
+        <translation>За чим евристичний оптимізатор порівнює варіанти розкладки.</translation>
+    </message>
+    <message>
+        <source>Group identical parts across items in the cut list</source>
+        <translation>Групувати однакові деталі різних виробів у переліку розкрою</translation>
+    </message>
+    <message>
+        <source>Kerf (blade width):</source>
+        <translation>Пропил (ширина пилки):</translation>
+    </message>
+    <message>
+        <source>Trim left:</source>
+        <translation>Обрізка зліва:</translation>
+    </message>
+    <message>
+        <source>Trim right:</source>
+        <translation>Обрізка справа:</translation>
+    </message>
+    <message>
+        <source>Trim top:</source>
+        <translation>Обрізка зверху:</translation>
+    </message>
+    <message>
+        <source>Trim bottom:</source>
+        <translation>Обрізка знизу:</translation>
+    </message>
+    <message>
+        <source>Objective:</source>
+        <translation>Критерій:</translation>
+    </message>
+    <message>
+        <source>Effective key: %1</source>
+        <translation>Фактичний ключ: %1</translation>
+    </message>
+    <message>
+        <source>untitled</source>
+        <translation>без назви</translation>
+    </message>
+    <message>
+        <source>Production batch %1 — %2%3</source>
+        <translation>Виробнича партія %1 — %2%3</translation>
+    </message>
+    <message>
+        <source>Add projects to the batch</source>
+        <translation>Додати проєкти до партії</translation>
+    </message>
+    <message>
+        <source>FurnitureOS projects (*.fosp)</source>
+        <translation>Проєкти FurnitureOS (*.fosp)</translation>
+    </message>
+    <message>
+        <source>Save the current project first: the batch reads the project file, so unsaved changes would not be produced.</source>
+        <translation>Спочатку збережіть поточний проєкт: партія читає файл проєкту, тож незбережені зміни не потрапили б у виробництво.</translation>
+    </message>
+    <message>
+        <source>Material “%1” is substituted twice (again in row %2); keep one row.</source>
+        <translation>Матеріал «%1» замінено двічі (знову в рядку %2); залиште один рядок.</translation>
+    </message>
+    <message>
+        <source>Production batch</source>
+        <translation>Виробнича партія</translation>
+    </message>
+    <message>
+        <source>The batch “%1” has unsaved changes. Save them?</source>
+        <translation>Партія «%1» має незбережені зміни. Зберегти їх?</translation>
+    </message>
+    <message>
+        <source>New production batch</source>
+        <translation>Нова виробнича партія</translation>
+    </message>
+    <message>
+        <source>Batch name:</source>
+        <translation>Назва партії:</translation>
+    </message>
+    <message>
+        <source>Open production batch</source>
+        <translation>Відкрити виробничу партію</translation>
+    </message>
+    <message>
+        <source>Production batches (*.fosbatch)</source>
+        <translation>Виробничі партії (*.fosbatch)</translation>
+    </message>
+    <message>
+        <source>Open failed</source>
+        <translation>Помилка відкриття</translation>
+    </message>
+    <message>
+        <source>Save failed</source>
+        <translation>Помилка збереження</translation>
+    </message>
+    <message>
+        <source>Save production batch</source>
+        <translation>Зберегти виробничу партію</translation>
+    </message>
+    <message>
+        <source>Recalculate</source>
+        <translation>Перерахувати</translation>
+    </message>
+    <message>
+        <source>Reloads every listed project from disk and merges the batch again.</source>
+        <translation>Заново читає з диска всі проєкти списку й знову об’єднує партію.</translation>
+    </message>
+    <message>
+        <source>Project</source>
+        <translation>Проєкт</translation>
+    </message>
+    <message>
+        <source>Qty</source>
+        <translation>К-сть</translation>
+    </message>
+    <message>
+        <source>Included</source>
+        <translation>Включено</translation>
+    </message>
+    <message>
+        <source>Parts</source>
+        <translation>Деталі</translation>
+    </message>
+    <message>
+        <source>Sheets (lower bound)</source>
+        <translation>Листи (нижня межа)</translation>
+    </message>
+    <message>
+        <source>Edge banding applied (m)</source>
+        <translation>Кромка нанесена (м)</translation>
+    </message>
+    <message>
+        <source>Edge banding purchase (m)</source>
+        <translation>Кромка до закупівлі (м)</translation>
+    </message>
+    <message>
+        <source>Hardware</source>
+        <translation>Фурнітура</translation>
+    </message>
+    <message>
+        <source>Sheets are area lower bounds, not a cutting plan; the total is computed on the merged batch, so orders sharing sheets can need fewer than the sum.</source>
+        <translation>Листи — нижня межа за площею, а не карта розкрою; підсумок рахується для об’єднаної партії, тож замовлення на спільних листах можуть потребувати менше, ніж сума.</translation>
+    </message>
+    <message>
+        <source>Severity</source>
+        <translation>Рівень</translation>
+    </message>
+    <message>
+        <source>Message</source>
+        <translation>Повідомлення</translation>
+    </message>
+    <message>
+        <source>Code</source>
+        <translation>Код</translation>
+    </message>
+    <message>
+        <source>Export cut list (CSV)…</source>
+        <translation>Експорт переліку розкрою (CSV)…</translation>
+    </message>
+    <message>
+        <source>Export labels (SVG)…</source>
+        <translation>Експорт етикеток (SVG)…</translation>
+    </message>
+    <message>
+        <source>Export cutting plans (SVG)…</source>
+        <translation>Експорт карт розкрою (SVG)…</translation>
+    </message>
+    <message>
+        <source>INCOMPLETE BATCH: the outputs miss the projects marked LEFT OUT (%1) or are affected by the errors listed below.</source>
+        <translation>НЕПОВНА ПАРТІЯ: у результатах немає проєктів, позначених ПРОПУЩЕНО (%1), або на них впливають помилки, наведені нижче.</translation>
+    </message>
+    <message>
+        <source>none</source>
+        <translation>немає</translation>
+    </message>
+    <message>
+        <source>yes</source>
+        <translation>так</translation>
+    </message>
+    <message>
+        <source>LEFT OUT</source>
+        <translation>ПРОПУЩЕНО</translation>
+    </message>
+    <message>
+        <source>TOTAL</source>
+        <translation>УСЬОГО</translation>
+    </message>
+    <message>
+        <source>All projects</source>
+        <translation>Усі проєкти</translation>
+    </message>
+    <message>
+        <source>(batch)</source>
+        <translation>(партія)</translation>
+    </message>
+    <message>
+        <source>%1 (%2, %3 mm)</source>
+        <translation>%1 (%2, %3 мм)</translation>
+    </message>
+    <message>
+        <source>No material: the batch has no loadable project.</source>
+        <translation>Немає матеріалів: у партії немає проєкту, який можна завантажити.</translation>
+    </message>
+    <message>
+        <source>Materials in the batch: %1</source>
+        <translation>Матеріали партії: %1</translation>
+    </message>
+    <message>
+        <source>Incomplete batch</source>
+        <translation>Неповна партія</translation>
+    </message>
+    <message>
+        <source>The batch has errors: some projects are LEFT OUT or a material substitution was refused (see Summary). Export what can be produced anyway?</source>
+        <translation>Партія має помилки: деякі проєкти ПРОПУЩЕНО або заміну матеріалу відхилено (див. Підсумок). Усе одно експортувати те, що можна виготовити?</translation>
+    </message>
+    <message>
+        <source>Export failed</source>
+        <translation>Помилка експорту</translation>
+    </message>
+    <message numerus="yes">
+        <source>Written %n file(s).</source>
+        <translation>
+            <numerusform>Записано %n файл.</numerusform>
+            <numerusform>Записано %n файли.</numerusform>
+            <numerusform>Записано %n файлів.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Export batch cut list</source>
+        <translation>Експорт переліку розкрою партії</translation>
+    </message>
+    <message>
+        <source>-cut-list.csv</source>
+        <translation>-perelik-rozkroiu.csv</translation>
+    </message>
+    <message>
+        <source>CSV files (*.csv)</source>
+        <translation>Файли CSV (*.csv)</translation>
+    </message>
+    <message>
+        <source>Folder for the batch labels</source>
+        <translation>Тека для етикеток партії</translation>
+    </message>
+    <message>
+        <source>Folder for the cutting plan SVGs</source>
+        <translation>Тека для SVG карт розкрою</translation>
     </message>
 </context>
 <context>
@@ -2903,6 +3255,14 @@ Replace it?</source>
     <message>
         <source>Save as &amp;component…</source>
         <translation>Зберегти як &amp;компонент…</translation>
+    </message>
+    <message>
+        <source>Production &amp;batch…</source>
+        <translation>Виробнича &amp;партія…</translation>
+    </message>
+    <message>
+        <source>Combine several saved projects with quantities into one production run</source>
+        <translation>Об’єднати кілька збережених проєктів із кількостями в одну виробничу партію</translation>
     </message>
 </context>
 <context>

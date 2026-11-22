@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "main_window.hpp"
 
+#include "batch_window.hpp"
 #include "component_browser.hpp"
 #include "cutting_workspace.hpp"
 #include "diagnostics_panel.hpp"
@@ -235,7 +236,7 @@ void MainWindow::showError(const QString& title, const core::Error& error) {
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
-    if (!maybeSave()) {
+    if ((batch_ && !batch_->maybeSave()) || !maybeSave()) {
         event->ignore();
         return;
     }

@@ -716,25 +716,6 @@
     </message>
 </context>
 <context>
-    <name>fos::app::ComponentBrowser</name>
-    <message>
-        <source>%1 × %2 × %3 mm</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>material</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>edge band</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>hardware</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>fos::app::CommandText</name>
     <message>
         <source>Set {1} of {0} to {2}</source>
@@ -1096,6 +1077,376 @@
     </message>
     <message>
         <source>Vertical dimension, measures %1 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::BatchWindow</name>
+    <message>
+        <source> mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Batch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Save As…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Projects</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Summary</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>YYYY-MM-DD</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Apply</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Project file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Quantity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Note</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Key, quantity and note can be edited in place. An empty key is derived from the file name.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add project…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add current project</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Adds the project open in the main window; it must be saved first.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Name:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Date:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Notes:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Material substitutions</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Material id</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Replaced by (stock material id)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Every part of the first material is cut from the second one. Each change is reported in the summary; a missing target or another thickness is refused.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add row</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove row</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Apply substitutions</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Panel saw settings (all materials)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>What the heuristic optimiser compares candidate layouts by.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Group identical parts across items in the cut list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Kerf (blade width):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Trim left:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Trim right:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Trim top:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Trim bottom:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Objective:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Effective key: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>untitled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Production batch %1 — %2%3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add projects to the batch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>FurnitureOS projects (*.fosp)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Save the current project first: the batch reads the project file, so unsaved changes would not be produced.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Material “%1” is substituted twice (again in row %2); keep one row.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Production batch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The batch “%1” has unsaved changes. Save them?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New production batch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Batch name:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open production batch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Production batches (*.fosbatch)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Save failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Save production batch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Recalculate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reloads every listed project from disk and merges the batch again.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Project</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Qty</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Included</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Parts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sheets (lower bound)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edge banding applied (m)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edge banding purchase (m)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hardware</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sheets are area lower bounds, not a cutting plan; the total is computed on the merged batch, so orders sharing sheets can need fewer than the sum.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Severity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Message</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Code</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export cut list (CSV)…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export labels (SVG)…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export cutting plans (SVG)…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>INCOMPLETE BATCH: the outputs miss the projects marked LEFT OUT (%1) or are affected by the errors listed below.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>none</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>yes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>LEFT OUT</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TOTAL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>All projects</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>(batch)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 (%2, %3 mm)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No material: the batch has no loadable project.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Materials in the batch: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Incomplete batch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The batch has errors: some projects are LEFT OUT or a material substitution was refused (see Summary). Export what can be produced anyway?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>Written %n file(s).</source>
+        <translation>
+            <numerusform>Written %n file.</numerusform>
+            <numerusform>Written %n files.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Export batch cut list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>-cut-list.csv</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>CSV files (*.csv)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Folder for the batch labels</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Folder for the cutting plan SVGs</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2892,6 +3243,14 @@ Replace it?</source>
     </message>
     <message>
         <source>Save as &amp;component…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Production &amp;batch…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Combine several saved projects with quantities into one production run</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
