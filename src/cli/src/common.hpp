@@ -138,5 +138,6 @@ int cmdLinear(const std::vector<std::string>& args, Io& io);
 int cmdEdgebandRolls(const std::vector<std::string>& args, Io& io);
 int cmdBatch(const std::vector<std::string>& args, Io& io);
 int cmdQuote(const std::vector<std::string>& args, Io& io);
+int cmdWorktop(const std::vector<std::string>& args, Io& io);
 
 } // namespace fos::cli::detail
