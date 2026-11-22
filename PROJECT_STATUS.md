@@ -93,6 +93,12 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 | T-045 | Production batches (`.fosbatch`): merged projects with quantities, explicit material substitution, batch cut list / plans / labels / summary; `fos batch` | Done | 8 tests |
 | T-046 | Desktop component browser (insert with conflict policy, save as component) | Done | 3 app core tests |
 | T-047 | Cost estimation and quotes (`fos quote`, `fos batch quote`); unpriced items flagged, never invented | Done | 11 tests |
+| T-048 | Desktop production batch window (entries, substitutions, batch cutting settings, summary, exports) | Done | 5 app core tests |
+| T-049 | Desktop quote workspace and pricing settings; quote sheet usage shared with the CLI | Done | 2 app core + 1 project test |
+| T-050 | Desktop library editor (materials, edge bands, hardware prices; .foslib import/export) | Done | 6 app core tests |
+| T-051 | Corner cabinets: blind corner and L-shaped corner (engine, codec, templates, desktop Corner group) | Done (bi-fold hinges not modelled) | 6 furniture + 1 project + 4 app tests |
+| T-052 | Kitchen worktops over straight cabinet runs: overhangs, butt-joint splits, sink/hob cut-outs; `fos worktop`; desktop dialog | Done (straight runs only) | 6 project + 2 cli + 2 app tests |
+| T-053 | Packing lists and assembly sheets (`fos packing`, `fos assembly`) | In progress | — |
 
 ## Independent review 2026-11-12 (calculation-critical modules)
 
