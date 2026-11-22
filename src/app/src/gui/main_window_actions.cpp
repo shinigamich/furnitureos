@@ -5,6 +5,7 @@
 #include "drawings_workspace.hpp"
 #include "fos/viewport/viewport_widget.hpp"
 #include "main_window.hpp"
+#include "packing_workspace.hpp"
 #include "quote_workspace.hpp"
 #include "view_tools.hpp"
 
@@ -81,6 +82,9 @@ void MainWindow::buildActions() {
     a_.showQuote = make(tr("&Quote"));
     a_.showQuote->setObjectName(QStringLiteral("actionShowQuote"));
     a_.showQuote->setToolTip(tr("Customer price estimate from the library prices and the pricing settings"));
+    a_.showPacking = make(tr("Pac&king list and assembly"));
+    a_.showPacking->setObjectName(QStringLiteral("actionShowPacking"));
+    a_.showPacking->setToolTip(tr("Packages, hardware bags and generic assembly steps per item"));
     a_.libraries = make(tr("&Libraries…"));
     a_.libraries->setObjectName(QStringLiteral("actionLibraries"));
     a_.libraries->setToolTip(tr("Edit the materials, edge bands and hardware of the project"));
@@ -139,6 +143,7 @@ void MainWindow::buildActions() {
     connect(a_.realistic, &QAction::triggered, this, [this] { viewport_->setDisplayMode(viewport::DisplayMode::Realistic); });
     connect(a_.pricingSettings, &QAction::triggered, quote_, &QuoteWorkspace::editPricingSettings);
     connect(a_.showQuote, &QAction::triggered, this, [this] { tabs_->setCurrentWidget(quote_); });
+    connect(a_.showPacking, &QAction::triggered, this, [this] { tabs_->setCurrentWidget(packing_); });
     connect(a_.libraries, &QAction::triggered, this, &MainWindow::showLibraryWindow);
     connect(a_.about, &QAction::triggered, this, &MainWindow::showAbout);
     connect(a_.shortcuts, &QAction::triggered, this, [this] { ShortcutsDialog(allActions_, this).exec(); });
@@ -217,6 +222,7 @@ void MainWindow::buildMenus() {
     projectMenu->addSeparator();
     projectMenu->addAction(a_.pricingSettings);
     projectMenu->addAction(a_.showQuote);
+    projectMenu->addAction(a_.showPacking);
 
     QMenu* help = menuBar()->addMenu(tr("&Help"));
     help->addAction(a_.shortcuts);

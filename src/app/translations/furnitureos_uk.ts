@@ -418,6 +418,10 @@
         <source>%1 (copy)</source>
         <translation>%1 (копія)</translation>
     </message>
+    <message>
+        <source>Density must be 0 (unknown) or more kg/m³, got %1.</source>
+        <translation>Щільність має бути 0 (невідома) або більше кг/м³, отримано %1.</translation>
+    </message>
 </context>
 <context>
     <name>MeasureStatus</name>
@@ -452,6 +456,117 @@
     <message>
         <source>Measure: click the second point. Esc cancels.</source>
         <translation>Вимірювання: клацніть другу точку. Esc — скасувати.</translation>
+    </message>
+</context>
+<context>
+    <name>PackingText</name>
+    <message>
+        <source>unknown</source>
+        <translation>невідома</translation>
+    </message>
+    <message>
+        <source>%1 kg</source>
+        <translation>%1 кг</translation>
+    </message>
+    <message>
+        <source>%1 × %2 × %3 mm</source>
+        <translation>%1 × %2 × %3 мм</translation>
+    </message>
+    <message>
+        <source>Fittings</source>
+        <translation>Фурнітура</translation>
+    </message>
+    <message>
+        <source>Fasteners</source>
+        <translation>Кріплення</translation>
+    </message>
+    <message numerus="yes">
+        <source>Weight unknown for %n package(s): set the density of their materials in Project &gt; Libraries (weights are never estimated).</source>
+        <translation>
+            <numerusform>Вага невідома для %n пакунка: задайте щільність їхніх матеріалів у Проєкт &gt; Бібліотеки (вага ніколи не оцінюється).</numerusform>
+            <numerusform>Вага невідома для %n пакунків: задайте щільність їхніх матеріалів у Проєкт &gt; Бібліотеки (вага ніколи не оцінюється).</numerusform>
+            <numerusform>Вага невідома для %n пакунків: задайте щільність їхніх матеріалів у Проєкт &gt; Бібліотеки (вага ніколи не оцінюється).</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Carcass</source>
+        <translation>Корпус</translation>
+    </message>
+    <message>
+        <source>Back panel</source>
+        <translation>Задня стінка</translation>
+    </message>
+    <message>
+        <source>Shelves and dividers</source>
+        <translation>Полиці та перегородки</translation>
+    </message>
+    <message>
+        <source>Drawer boxes</source>
+        <translation>Короби шухляд</translation>
+    </message>
+    <message>
+        <source>Doors and drawer fronts</source>
+        <translation>Двері та фасади шухляд</translation>
+    </message>
+    <message>
+        <source>Handles</source>
+        <translation>Ручки</translation>
+    </message>
+    <message>
+        <source>Other parts</source>
+        <translation>Інші деталі</translation>
+    </message>
+    <message>
+        <source>Join the sides, bottom and top (and rails / plinth) with the listed fasteners; fit feet or legs. Check that the carcass is square (equal diagonals).</source>
+        <translation>З’єднайте боковини, дно й кришку (і царги / цоколь) переліченими кріпленнями; встановіть опори або ніжки. Перевірте, що корпус прямокутний (рівні діагоналі).</translation>
+    </message>
+    <message>
+        <source>Fit the back panel; it holds the carcass square, so check the diagonals first.</source>
+        <translation>Встановіть задню стінку; вона фіксує геометрію корпусу, тож спершу перевірте діагоналі.</translation>
+    </message>
+    <message>
+        <source>Insert the shelf supports, then fit the shelves and dividers.</source>
+        <translation>Вставте полицетримачі, потім встановіть полиці та перегородки.</translation>
+    </message>
+    <message>
+        <source>Assemble the drawer boxes and mount the drawer slides.</source>
+        <translation>Зберіть короби шухляд і встановіть напрямні.</translation>
+    </message>
+    <message>
+        <source>Mount hinges / fittings, hang the doors and drawer fronts and adjust the gaps.</source>
+        <translation>Встановіть петлі / фурнітуру, навісьте двері й фасади шухляд і відрегулюйте зазори.</translation>
+    </message>
+    <message>
+        <source>Fit the handles.</source>
+        <translation>Встановіть ручки.</translation>
+    </message>
+    <message>
+        <source>Fit the remaining parts and hardware.</source>
+        <translation>Встановіть решту деталей і фурнітури.</translation>
+    </message>
+    <message>
+        <source>Generic step order derived from part roles and hardware kinds (carcass, back, shelves/dividers, drawer boxes, fronts, handles); not a verified assembly instruction for this design.</source>
+        <translation>Типовий порядок кроків, виведений з ролей деталей і типів фурнітури (корпус, задня стінка, полиці/перегородки, короби шухляд, фасади, ручки); це не перевірена інструкція зі складання для цього виробу.</translation>
+    </message>
+    <message>
+        <source>Note:</source>
+        <translation>Примітка:</translation>
+    </message>
+    <message>
+        <source>Step %1: %2</source>
+        <translation>Крок %1: %2</translation>
+    </message>
+    <message>
+        <source>Parts:</source>
+        <translation>Деталі:</translation>
+    </message>
+    <message>
+        <source>Hardware:</source>
+        <translation>Фурнітура:</translation>
+    </message>
+    <message>
+        <source>There are no assemblies with parts or hardware.</source>
+        <translation>Немає виробів з деталями або фурнітурою.</translation>
     </message>
 </context>
 <context>
@@ -3347,6 +3462,14 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Not verified (generic or unchecked dimensions)</source>
         <translation>Не перевірено (типові або неперевірені розміри)</translation>
     </message>
+    <message>
+        <source>0 = unknown; used for package weights in packing lists (never estimated)</source>
+        <translation>0 = невідома; використовується для ваги пакунків у пакувальних листах (ніколи не оцінюється)</translation>
+    </message>
+    <message>
+        <source>Density:</source>
+        <translation>Щільність:</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::LibraryWindow</name>
@@ -4007,6 +4130,18 @@ Replace it?</source>
         <source>Add a kitchen worktop over a straight run of cabinets</source>
         <translation>Додати кухонну стільницю над прямим рядом корпусів</translation>
     </message>
+    <message>
+        <source>Packing</source>
+        <translation>Пакування</translation>
+    </message>
+    <message>
+        <source>Pac&amp;king list and assembly</source>
+        <translation>Пак&amp;увальний лист і складання</translation>
+    </message>
+    <message>
+        <source>Packages, hardware bags and generic assembly steps per item</source>
+        <translation>Пакунки, пакети фурнітури та типові кроки складання для кожного виробу</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::NestingSettingsForm</name>
@@ -4081,6 +4216,205 @@ Replace it?</source>
     <message>
         <source>Seed must be a whole number from 0 to 4294967295, got “%1”.</source>
         <translation>Початкове значення має бути цілим числом від 0 до 4294967295, отримано «%1».</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::PackingWorkspace</name>
+    <message>
+        <source>Packing list</source>
+        <translation>Пакувальний лист</translation>
+    </message>
+    <message>
+        <source>Assembly</source>
+        <translation>Складання</translation>
+    </message>
+    <message>
+        <source>no limit</source>
+        <translation>без обмеження</translation>
+    </message>
+    <message>
+        <source>Maximum outer package length including padding; 0 = no limit</source>
+        <translation>Найбільша зовнішня довжина пакунка з припуском; 0 = без обмеження</translation>
+    </message>
+    <message>
+        <source>Maximum outer package width including padding; 0 = no limit</source>
+        <translation>Найбільша зовнішня ширина пакунка з припуском; 0 = без обмеження</translation>
+    </message>
+    <message>
+        <source>Maximum outer package height including padding; 0 = no limit</source>
+        <translation>Найбільша зовнішня висота пакунка з припуском; 0 = без обмеження</translation>
+    </message>
+    <message>
+        <source>Packaging allowance added on each side of the panel stack</source>
+        <translation>Припуск на пакування з кожного боку стосу панелей</translation>
+    </message>
+    <message>
+        <source>Maximum panel weight per package (packaging and hardware not included)</source>
+        <translation>Найбільша вага панелей у пакунку (без пакування та фурнітури)</translation>
+    </message>
+    <message>
+        <source>Max. weight:</source>
+        <translation>Макс. вага:</translation>
+    </message>
+    <message>
+        <source>Padding:</source>
+        <translation>Припуск:</translation>
+    </message>
+    <message>
+        <source>Max. length:</source>
+        <translation>Макс. довжина:</translation>
+    </message>
+    <message>
+        <source>Max. width:</source>
+        <translation>Макс. ширина:</translation>
+    </message>
+    <message>
+        <source>Max. height:</source>
+        <translation>Макс. висота:</translation>
+    </message>
+    <message>
+        <source>Export CSV…</source>
+        <translation>Експорт CSV…</translation>
+    </message>
+    <message>
+        <source>Export package labels…</source>
+        <translation>Експорт етикеток пакунків…</translation>
+    </message>
+    <message>
+        <source>Packing rule: a simple heuristic (largest panels first, first package that fits), not an optimiser. Weights are panels only: finished area × thickness × material density.</source>
+        <translation>Правило пакування: проста евристика (спершу найбільші панелі, перший пакунок, що підходить), не оптимізатор. Вага лише панелей: чиста площа × товщина × щільність матеріалу.</translation>
+    </message>
+    <message>
+        <source>&lt;b&gt;Packages&lt;/b&gt;</source>
+        <translation>&lt;b&gt;Пакунки&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;b&gt;Hardware bags&lt;/b&gt;</source>
+        <translation>&lt;b&gt;Пакети фурнітури&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <source>Export SVG…</source>
+        <translation>Експорт SVG…</translation>
+    </message>
+    <message>
+        <source>No packing list: the project could not be generated (%1).</source>
+        <translation>Немає пакувального листа: проєкт не вдалося згенерувати (%1).</translation>
+    </message>
+    <message>
+        <source>No packing list: %1</source>
+        <translation>Немає пакувального листа: %1</translation>
+    </message>
+    <message>
+        <source>Package</source>
+        <translation>Пакунок</translation>
+    </message>
+    <message>
+        <source>Id</source>
+        <translation>Ідентифікатор</translation>
+    </message>
+    <message>
+        <source>Size (L × W × H)</source>
+        <translation>Розмір (Д × Ш × В)</translation>
+    </message>
+    <message>
+        <source>Weight</source>
+        <translation>Вага</translation>
+    </message>
+    <message>
+        <source>Parts</source>
+        <translation>Деталі</translation>
+    </message>
+    <message>
+        <source>A single panel is larger than a size limit</source>
+        <translation>Одна панель більша за обмеження розміру</translation>
+    </message>
+    <message>
+        <source> (over limit)</source>
+        <translation> (понад обмеження)</translation>
+    </message>
+    <message>
+        <source>A material of this package has no density (0 = unknown)</source>
+        <translation>Матеріал цього пакунка не має щільності (0 = невідома)</translation>
+    </message>
+    <message>
+        <source>Bag</source>
+        <translation>Пакет</translation>
+    </message>
+    <message>
+        <source>Group</source>
+        <translation>Група</translation>
+    </message>
+    <message>
+        <source>Kind</source>
+        <translation>Тип</translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation>Назва</translation>
+    </message>
+    <message>
+        <source>Article</source>
+        <translation>Артикул</translation>
+    </message>
+    <message>
+        <source>Quantity</source>
+        <translation>Кількість</translation>
+    </message>
+    <message>
+        <source>Export packing list</source>
+        <translation>Експорт пакувального листа</translation>
+    </message>
+    <message>
+        <source>Export packing list as CSV</source>
+        <translation>Експорт пакувального листа в CSV</translation>
+    </message>
+    <message>
+        <source>-packing.csv</source>
+        <translation>-pakuvannia.csv</translation>
+    </message>
+    <message>
+        <source>CSV files (*.csv)</source>
+        <translation>Файли CSV (*.csv)</translation>
+    </message>
+    <message>
+        <source>Export failed</source>
+        <translation>Помилка експорту</translation>
+    </message>
+    <message>
+        <source>Package labels</source>
+        <translation>Етикетки пакунків</translation>
+    </message>
+    <message>
+        <source>There are no packages to label.</source>
+        <translation>Немає пакунків для етикеток.</translation>
+    </message>
+    <message>
+        <source>Export package labels (A4, 70 × 37 mm)</source>
+        <translation>Експорт етикеток пакунків (A4, 70 × 37 мм)</translation>
+    </message>
+    <message>
+        <source>-package-labels.svg</source>
+        <translation>-etyketky-pakunkiv.svg</translation>
+    </message>
+    <message>
+        <source>SVG files (*.svg)</source>
+        <translation>Файли SVG (*.svg)</translation>
+    </message>
+    <message>
+        <source>Assembly sheets</source>
+        <translation>Листи складання</translation>
+    </message>
+    <message>
+        <source>There are no assemblies with parts or hardware.</source>
+        <translation>Немає виробів з деталями або фурнітурою.</translation>
+    </message>
+    <message>
+        <source>Export assembly sheets as SVG</source>
+        <translation>Експорт листів складання в SVG</translation>
+    </message>
+    <message>
+        <source>-assembly.svg</source>
+        <translation>-skladannia.svg</translation>
     </message>
 </context>
 <context>

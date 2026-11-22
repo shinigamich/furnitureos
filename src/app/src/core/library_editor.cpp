@@ -194,6 +194,8 @@ QStringList validateMaterial(const project::Project& project, const domain::Mate
     checkPositive(out, LibraryText::tr("Sheet width"), m.sheetWidth);
     checkCost(out, LibraryText::tr("Cost per sheet"), m.costPerSheet);
     checkCost(out, LibraryText::tr("Cost per m²"), m.costPerSquareMeter);
+    if (!std::isfinite(m.density) || m.density < 0)
+        out << LibraryText::tr("Density must be 0 (unknown) or more kg/m³, got %1.").arg(num(m.density));
     return out;
 }
 

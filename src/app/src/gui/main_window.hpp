@@ -31,6 +31,7 @@ class LibraryWindow;
 class ProductionWorkspace;
 class ProjectBrowser;
 class QuoteWorkspace;
+class PackingWorkspace;
 class SectionToolBar;
 
 class MainWindow : public QMainWindow {
@@ -47,6 +48,7 @@ public:
     ProductionWorkspace* productionWorkspace() const noexcept { return production_; }
     CuttingWorkspace* cuttingWorkspace() const noexcept { return cutting_; }
     QuoteWorkspace* quoteWorkspace() const noexcept { return quote_; }
+    PackingWorkspace* packingWorkspace() const noexcept { return packing_; }
     /// The library editor window (nullptr until Project > Libraries… was used).
     LibraryWindow* libraryWindow() const noexcept { return libraries_; }
     ComponentBrowser* componentBrowser() const noexcept { return components_; }
@@ -117,6 +119,7 @@ private:
     ProductionWorkspace* production_ = nullptr;
     CuttingWorkspace* cutting_ = nullptr;
     QuoteWorkspace* quote_ = nullptr;
+    PackingWorkspace* packing_ = nullptr;
     BatchWindow* batch_ = nullptr;
     LibraryWindow* libraries_ = nullptr;
     ProjectBrowser* browser_ = nullptr;
@@ -135,7 +138,7 @@ private:
         QAction *undo, *redo, *addWorktop, *deleteItem, *duplicateItem, *saveAsComponent, *preferences;
         QAction *fitAll, *perspective, *orthographic, *shaded, *shadedEdges, *wireframe, *realistic;
         QAction *measure, *section;
-        QAction *pricingSettings, *showQuote, *libraries;
+        QAction *pricingSettings, *showQuote, *showPacking, *libraries;
         QAction *about, *shortcuts;
     } a_{};
     QMenu* recentMenu_ = nullptr;

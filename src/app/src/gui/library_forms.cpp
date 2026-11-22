@@ -95,6 +95,12 @@ public:
         costSheet_ = costBox(session, form);
         costArea_ = costBox(session, form);
         costArea_->setObjectName(QStringLiteral("libraryCostPerSquareMeter"));
+        density_ = new QDoubleSpinBox(form);
+        density_->setObjectName(QStringLiteral("libraryDensity"));
+        density_->setRange(0.0, 100000.0);
+        density_->setDecimals(2);
+        density_->setSuffix(QStringLiteral(" kg/m³"));
+        density_->setToolTip(LibraryPage::tr("0 = unknown; used for package weights in packing lists (never estimated)"));
         available_ = new QCheckBox(LibraryPage::tr("Available"), form);
         f->addRow(LibraryPage::tr("Id:"), id_);
         f->addRow(LibraryPage::tr("Name:"), name_);
@@ -109,6 +115,7 @@ public:
         f->addRow(LibraryPage::tr("Colour:"), color_);
         f->addRow(LibraryPage::tr("Cost per sheet:"), costSheet_);
         f->addRow(LibraryPage::tr("Cost per m²:"), costArea_);
+        f->addRow(LibraryPage::tr("Density:"), density_);
         f->addRow(QString(), available_);
         costSheet_->setToolTip(LibraryPage::tr("0 = unknown"));
         costArea_->setToolTip(LibraryPage::tr("0 = unknown; used by the quote when boards are priced by area"));
@@ -141,6 +148,7 @@ protected:
         m.color = color_->color();
         m.costPerSheet = costSheet_->value();
         m.costPerSquareMeter = costArea_->value();
+        m.density = density_->value();
         m.available = available_->isChecked();
         return applyMaterial(session_, m, isNew);
     }
@@ -161,13 +169,14 @@ private:
         color_->setColor(m.color);
         costSheet_->setValue(m.costPerSheet);
         costArea_->setValue(m.costPerSquareMeter);
+        density_->setValue(m.density);
         available_->setChecked(m.available);
     }
 
     domain::Material base_;
     QLineEdit *id_, *name_, *manufacturer_, *code_, *supplier_;
     QComboBox* kind_;
-    QDoubleSpinBox *thickness_, *length_, *width_, *costSheet_, *costArea_;
+    QDoubleSpinBox *thickness_, *length_, *width_, *costSheet_, *costArea_, *density_;
     QCheckBox *grain_, *available_;
     ColorButton* color_;
 };

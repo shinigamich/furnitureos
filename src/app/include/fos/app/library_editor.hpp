@@ -72,7 +72,7 @@ domain::HardwareDefinition duplicateHardware(const project::Project& project, co
 /// Validation of a form before Apply. `isNew` = the entry is not yet in the library: its id
 /// must be non-empty, without leading/trailing spaces and unused in that list. Returns the
 /// translated problems (empty = valid): empty name, lengths that are not finite and > 0 mm,
-/// costs that are not finite and >= 0, an edge band narrower than its thickness.
+/// costs and a material density (kg/m³, 0 = unknown) that are not finite and >= 0, an edge band narrower than its thickness.
 QStringList validateMaterial(const project::Project& project, const domain::Material& material, bool isNew);
 QStringList validateEdgeBand(const project::Project& project, const domain::EdgeBand& edgeBand, bool isNew);
 QStringList validateHardware(const project::Project& project, const domain::HardwareDefinition& definition, bool isNew);
