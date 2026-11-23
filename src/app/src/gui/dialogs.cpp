@@ -61,6 +61,21 @@ TemplateSizeDialog::TemplateSizeDialog(TemplateKind kind, QWidget* parent) : QDi
         legs->setWordWrap(true);
         layout->addWidget(legs);
     }
+    if (kind == TemplateKind::DishwasherFront) {
+        auto* gap = new QLabel(tr("The width includes the end panel (gap width + board thickness). Keep it to have the "
+                                  "width follow the gap; the gap width (generic 600 mm) is the parameter "
+                                  "appliance_gap_width in the inspector. Check the appliance's installation sheet."),
+                               this);
+        gap->setWordWrap(true);
+        layout->addWidget(gap);
+    }
+    if (kind == TemplateKind::OvenTallHousing) {
+        auto* niche = new QLabel(tr("The niche height (generic 595 mm) is the parameter niche_height in the inspector; "
+                                    "check the appliance's installation sheet for the niche and ventilation sizes."),
+                                 this);
+        niche->setWordWrap(true);
+        layout->addWidget(niche);
+    }
     layout->addWidget(okCancel(this));
 }
 

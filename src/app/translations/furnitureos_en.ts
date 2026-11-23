@@ -231,6 +231,14 @@
         <source>sliding doors: %1</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>appliance niche</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>appliance decor front</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>LibraryText</name>
@@ -1230,6 +1238,34 @@
         <source>Adds the edge band %1 to the library.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Appliance gap %1 mm, no end panel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Appliance gap %1 mm, end panel left</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Appliance gap %1 mm, end panel right</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Appliance gap %1 mm, end panels left and right</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No ventilation opening</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Slot in the shelf below</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cut-out in the back panel</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::CommandText</name>
@@ -1519,6 +1555,14 @@
     </message>
     <message>
         <source>L-shaped corner cabinet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tall oven housing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Dishwasher gap with decor front</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2798,6 +2842,14 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Sliding doors</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Appliance niche (open)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Appliance decor front</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::ImportDxfDialog</name>
@@ -3321,6 +3373,42 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
     <message>
         <source>%1 (not in the library)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ventilation opening of the open appliance niche: a slot at the rear of the panel the appliance stands on, or a cut-out at the top of the back panel. Generic sizes: check the appliance&apos;s installation sheet.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Size of the opening across the air flow: depth of a shelf slot, height of a back cut-out.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Distance of the opening from the back panel (shelf slot) or from the top of the niche (back cut-out).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Distance of both ends of the opening from the panels left and right of the niche.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Niche ventilation:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Opening size:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Distance from back / top:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>End margin:</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -4925,6 +5013,14 @@ Circle: X, Y = centre, Radius.</source>
     </message>
     <message>
         <source>Width and depth are those of leg A (along the rear wall); leg B is set in the Corner group of the inspector.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The width includes the end panel (gap width + board thickness). Keep it to have the width follow the gap; the gap width (generic 600 mm) is the parameter appliance_gap_width in the inspector. Check the appliance&apos;s installation sheet.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The niche height (generic 595 mm) is the parameter niche_height in the inspector; check the appliance&apos;s installation sheet for the niche and ventilation sizes.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

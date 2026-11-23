@@ -15,7 +15,8 @@ struct BrowserNode {
     std::string id;     ///< Item id, assembly id (= item id) or part id.
     std::string label;  ///< Item / assembly / part name.
     /// Part: finished size "L x W x T" (mm); assembly: envelope "W x D x H"; item: corner
-    /// summary of a corner cabinet (cornerDescription(), translated), empty otherwise.
+    /// summary of a corner cabinet (cornerDescription()) or of an appliance gap
+    /// (applianceGapDescription()), translated; empty otherwise.
     std::string detail;
     bool isCabinet = false;  ///< Item nodes: cabinet (true) or free panel (false).
     bool generated = true;   ///< Item nodes: false when the generator refused the item.

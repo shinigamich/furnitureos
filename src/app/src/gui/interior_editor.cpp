@@ -6,6 +6,8 @@
 #include "inspector_panel.hpp"
 
 #include <QCheckBox>
+#include <QCoreApplication>
+#include <QDoubleSpinBox>
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -26,6 +28,17 @@ QLabel* hintLabel(const QString& text, QWidget* parent) {
     l->setWordWrap(true);
     l->setStyleSheet(QStringLiteral("color: palette(mid);"));
     return l;
+}
+
+/// Millimetre field of the niche vent. 0 is accepted here so that the furniture module judges
+/// the value and its message is shown (it requires > 0).
+QDoubleSpinBox* ventSpin(const char* objectName, QWidget* parent) {
+    auto* s = new QDoubleSpinBox(parent);
+    s->setObjectName(QLatin1String(objectName));
+    s->setRange(0, 5000);
+    s->setDecimals(1);
+    s->setSuffix(QCoreApplication::translate("fos::app::gui::InteriorEditor", " mm"));
+    return s;
 }
 } // namespace
 
@@ -138,6 +151,19 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
     slide_->setObjectName(QStringLiteral("drawerSlide"));
     drawerBottom_ = choiceBox(drawerBottomChoices(), furniture::DrawerBottomMount::Grooved, frontBox);
     drawerBottom_->setObjectName(QStringLiteral("drawerBottom"));
+    nicheVent_ = choiceBox(nicheVentChoices(), furniture::NicheVent::ShelfSlot, frontBox);
+    nicheVent_->setObjectName(QStringLiteral("nicheVent"));
+    nicheVent_->setToolTip(tr("Ventilation opening of the open appliance niche: a slot at the rear of the panel the "
+                              "appliance stands on, or a cut-out at the top of the back panel. Generic sizes: check "
+                              "the appliance's installation sheet."));
+    ventSize_ = ventSpin("nicheVentSize", frontBox);
+    ventSize_->setToolTip(tr("Size of the opening across the air flow: depth of a shelf slot, height of a back "
+                             "cut-out."));
+    ventEdge_ = ventSpin("nicheVentEdgeDistance", frontBox);
+    ventEdge_->setToolTip(tr("Distance of the opening from the back panel (shelf slot) or from the top of the niche "
+                             "(back cut-out)."));
+    ventEndMargin_ = ventSpin("nicheVentEndMargin", frontBox);
+    ventEndMargin_->setToolTip(tr("Distance of both ends of the opening from the panels left and right of the niche."));
     applyFront_ = new QPushButton(tr("Apply front"), frontBox);
     applyFront_->setObjectName(QStringLiteral("applyFront"));
     frontForm->addRow(tr("Type:"), frontKind_);
@@ -150,6 +176,10 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
     frontForm->addRow(tr("Drawer boxes:"), drawerBox_);
     frontForm->addRow(tr("Slides:"), slide_);
     frontForm->addRow(tr("Drawer bottom:"), drawerBottom_);
+    frontForm->addRow(tr("Niche ventilation:"), nicheVent_);
+    frontForm->addRow(tr("Opening size:"), ventSize_);
+    frontForm->addRow(tr("Distance from back / top:"), ventEdge_);
+    frontForm->addRow(tr("End margin:"), ventEndMargin_);
     frontForm->addRow(applyFront_);
     layout->addWidget(frontBox);
 
@@ -203,9 +233,15 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
         const bool box = drawers && drawerBox_->currentData().toBool();
         slide_->setEnabled(box);
         drawerBottom_->setEnabled(box);
+        nicheVent_->setEnabled(niche);
+        const bool vent = niche && valueOf<furniture::NicheVent>(nicheVent_) != furniture::NicheVent::None;
+        ventSize_->setEnabled(vent);
+        ventEdge_->setEnabled(vent);
+        ventEndMargin_->setEnabled(vent);
     };
     connect(frontKind_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
     connect(drawerBox_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
+    connect(nicheVent_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
     connect(applyFront_, &QPushButton::clicked, this, [this] {
         FrontInput in;
         in.choice = valueOf<FrontInput::Choice>(frontKind_);
@@ -219,6 +255,10 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
         in.drawerBox = drawerBox_->currentData().toBool();
         in.slide = slide_->currentData().toString().toStdString();
         in.drawerBottom = valueOf<furniture::DrawerBottomMount>(drawerBottom_);
+        in.niche.vent = valueOf<furniture::NicheVent>(nicheVent_);
+        in.niche.ventSize = ventSize_->value();
+        in.niche.ventEdgeDistance = ventEdge_->value();
+        in.niche.ventEndMargin = ventEndMargin_->value();
         run(frontCommand(itemId_, selectedPath_, in));
     });
 
@@ -313,6 +353,10 @@ void InteriorEditor::showSelected() {
                         QString::fromStdString(c.id));
     selectData(slide_, QString::fromStdString(in.slide));
     selectData(drawerBottom_, static_cast<int>(in.drawerBottom));
+    selectData(nicheVent_, static_cast<int>(in.niche.vent));
+    ventSize_->setValue(in.niche.ventSize);
+    ventEdge_->setValue(in.niche.ventEdgeDistance);
+    ventEndMargin_->setValue(in.niche.ventEndMargin);
     applyFront_->setEnabled(have);
 }
 

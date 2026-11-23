@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "enum_text.hpp"
 
+#include "fos/app/appliance_text.hpp"
+
 #include <QCoreApplication>
 
 namespace fos::app::gui {
@@ -106,6 +108,12 @@ Choices<furniture::DrawerBottomMount> drawerBottomChoices() {
     using B = furniture::DrawerBottomMount;
     return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Bottom in grooves")), B::Grooved},
             {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Bottom nailed under")), B::NailedUnder}};
+}
+
+Choices<furniture::NicheVent> nicheVentChoices() {
+    using V = furniture::NicheVent;
+    return {{nicheVentTitle(V::None), V::None}, {nicheVentTitle(V::ShelfSlot), V::ShelfSlot},
+            {nicheVentTitle(V::BackCutout), V::BackCutout}};
 }
 
 Choices<furniture::HandlePosition> handleChoices() {

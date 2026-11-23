@@ -231,6 +231,14 @@
         <source>sliding doors: %1</source>
         <translation>розсувні двері: %1</translation>
     </message>
+    <message>
+        <source>appliance niche</source>
+        <translation>ніша для техніки</translation>
+    </message>
+    <message>
+        <source>appliance decor front</source>
+        <translation>декоративний фасад техніки</translation>
+    </message>
 </context>
 <context>
     <name>LibraryText</name>
@@ -1234,6 +1242,34 @@
         <source>Adds the edge band %1 to the library.</source>
         <translation>Додає кромку %1 до бібліотеки.</translation>
     </message>
+    <message>
+        <source>Appliance gap %1 mm, no end panel</source>
+        <translation>Проміжок для техніки %1 мм, без торцевої панелі</translation>
+    </message>
+    <message>
+        <source>Appliance gap %1 mm, end panel left</source>
+        <translation>Проміжок для техніки %1 мм, торцева панель ліворуч</translation>
+    </message>
+    <message>
+        <source>Appliance gap %1 mm, end panel right</source>
+        <translation>Проміжок для техніки %1 мм, торцева панель праворуч</translation>
+    </message>
+    <message>
+        <source>Appliance gap %1 mm, end panels left and right</source>
+        <translation>Проміжок для техніки %1 мм, торцеві панелі ліворуч і праворуч</translation>
+    </message>
+    <message>
+        <source>No ventilation opening</source>
+        <translation>Без вентиляційного отвору</translation>
+    </message>
+    <message>
+        <source>Slot in the shelf below</source>
+        <translation>Проріз у полиці знизу</translation>
+    </message>
+    <message>
+        <source>Cut-out in the back panel</source>
+        <translation>Виріз у задній стінці</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::CommandText</name>
@@ -1524,6 +1560,14 @@
     <message>
         <source>L-shaped corner cabinet</source>
         <translation>L-подібна кутова тумба</translation>
+    </message>
+    <message>
+        <source>Tall oven housing</source>
+        <translation>Високий пенал для духової шафи</translation>
+    </message>
+    <message>
+        <source>Dishwasher gap with decor front</source>
+        <translation>Проміжок для посудомийної машини з декоративним фасадом</translation>
     </message>
 </context>
 <context>
@@ -2810,6 +2854,14 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Sliding doors</source>
         <translation>Розсувні двері</translation>
     </message>
+    <message>
+        <source>Appliance niche (open)</source>
+        <translation>Ніша для техніки (відкрита)</translation>
+    </message>
+    <message>
+        <source>Appliance decor front</source>
+        <translation>Декоративний фасад техніки</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::ImportDxfDialog</name>
@@ -3334,6 +3386,42 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     <message>
         <source>%1 (not in the library)</source>
         <translation>%1 (немає в бібліотеці)</translation>
+    </message>
+    <message>
+        <source> mm</source>
+        <translation> мм</translation>
+    </message>
+    <message>
+        <source>Ventilation opening of the open appliance niche: a slot at the rear of the panel the appliance stands on, or a cut-out at the top of the back panel. Generic sizes: check the appliance&apos;s installation sheet.</source>
+        <translation>Вентиляційний отвір відкритої ніші для техніки: проріз у задній частині панелі, на якій стоїть техніка, або виріз угорі задньої стінки. Розміри типові: перевірте інструкцію з монтажу техніки.</translation>
+    </message>
+    <message>
+        <source>Size of the opening across the air flow: depth of a shelf slot, height of a back cut-out.</source>
+        <translation>Розмір отвору поперек потоку повітря: глибина прорізу в полиці, висота вирізу в задній стінці.</translation>
+    </message>
+    <message>
+        <source>Distance of the opening from the back panel (shelf slot) or from the top of the niche (back cut-out).</source>
+        <translation>Відстань отвору від задньої стінки (проріз у полиці) або від верху ніші (виріз у задній стінці).</translation>
+    </message>
+    <message>
+        <source>Distance of both ends of the opening from the panels left and right of the niche.</source>
+        <translation>Відстань обох кінців отвору від панелей ліворуч і праворуч від ніші.</translation>
+    </message>
+    <message>
+        <source>Niche ventilation:</source>
+        <translation>Вентиляція ніші:</translation>
+    </message>
+    <message>
+        <source>Opening size:</source>
+        <translation>Розмір отвору:</translation>
+    </message>
+    <message>
+        <source>Distance from back / top:</source>
+        <translation>Відстань від задньої стінки / верху:</translation>
+    </message>
+    <message>
+        <source>End margin:</source>
+        <translation>Відступ з боків:</translation>
     </message>
 </context>
 <context>
@@ -4943,6 +5031,14 @@ Circle: X, Y = centre, Radius.</source>
     <message>
         <source>Width and depth are those of leg A (along the rear wall); leg B is set in the Corner group of the inspector.</source>
         <translation>Ширина й глибина — це розміри крила A (вздовж задньої стіни); крило B задається в групі «Кут» інспектора.</translation>
+    </message>
+    <message>
+        <source>The width includes the end panel (gap width + board thickness). Keep it to have the width follow the gap; the gap width (generic 600 mm) is the parameter appliance_gap_width in the inspector. Check the appliance&apos;s installation sheet.</source>
+        <translation>Ширина включає торцеву панель (ширина проміжку + товщина плити). Залиште її без змін, щоб ширина слідувала за проміжком; ширина проміжку (типово 600 мм) — це параметр appliance_gap_width в інспекторі. Перевірте інструкцію з монтажу техніки.</translation>
+    </message>
+    <message>
+        <source>The niche height (generic 595 mm) is the parameter niche_height in the inspector; check the appliance&apos;s installation sheet for the niche and ventilation sizes.</source>
+        <translation>Висота ніші (типово 595 мм) — це параметр niche_height в інспекторі; розміри ніші та вентиляції перевірте в інструкції з монтажу техніки.</translation>
     </message>
 </context>
 <context>

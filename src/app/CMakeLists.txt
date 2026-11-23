@@ -34,6 +34,7 @@ add_library(fos_app_core STATIC
     src/core/library_editor.cpp
     src/core/library_text.cpp
     src/core/corner_rows.cpp
+    src/core/appliance_text.cpp
     src/core/worktop_form.cpp
     src/core/packing_rows.cpp)
 add_library(fos::app_core ALIAS fos_app_core)
@@ -64,6 +65,7 @@ if(FOS_BUILD_TESTS)
         tests/core/quote_tests.cpp
         tests/core/library_editor_tests.cpp
         tests/core/corner_tests.cpp
+        tests/core/appliance_tests.cpp
         tests/core/worktop_tests.cpp
         tests/core/packing_tests.cpp)
     target_link_libraries(fos_app_core_tests PRIVATE fos::app_core Qt6::Test GTest::gtest GTest::gmock)

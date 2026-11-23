@@ -13,6 +13,7 @@
 
 class QCheckBox;
 class QComboBox;
+class QDoubleSpinBox;
 class QLabel;
 class QLineEdit;
 class QPushButton;
@@ -64,6 +65,10 @@ private:
     QComboBox* drawerBox_;    ///< None / box (drawer stack only).
     QComboBox* slide_;        ///< DrawerSlide library entries.
     QComboBox* drawerBottom_; ///< DrawerBottomMount.
+    QComboBox* nicheVent_;          ///< NicheVent (appliance niche only).
+    QDoubleSpinBox* ventSize_;      ///< ApplianceNicheSpec::ventSize, mm.
+    QDoubleSpinBox* ventEdge_;      ///< ApplianceNicheSpec::ventEdgeDistance, mm.
+    QDoubleSpinBox* ventEndMargin_; ///< ApplianceNicheSpec::ventEndMargin, mm.
     QPushButton* applyFront_;
     QLabel* selectedTitle_;
     QLabel* error_;

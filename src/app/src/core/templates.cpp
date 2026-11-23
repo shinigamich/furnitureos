@@ -7,6 +7,9 @@
 
 #include <QCoreApplication>
 
+#include <cmath>
+#include <utility>
+
 namespace fos::app {
 namespace {
 
@@ -24,6 +27,8 @@ furniture::CabinetDefinition makeDefinition(TemplateKind kind, const std::string
     case TemplateKind::OpenShelving: return t::openShelving(aid, materials);
     case TemplateKind::BlindCornerCabinet: return t::blindCornerCabinet(aid, materials);
     case TemplateKind::LCornerCabinet: return t::lCornerCabinet(aid, materials);
+    case TemplateKind::OvenTallHousing: return t::ovenTallHousing(aid, materials);
+    case TemplateKind::DishwasherFront: return t::dishwasherFront(aid, materials);
     }
     return t::baseCabinet(aid, materials);
 }
@@ -34,7 +39,8 @@ const std::vector<TemplateKind>& allTemplates() {
     static const std::vector<TemplateKind> kinds{TemplateKind::BaseCabinet,  TemplateKind::WallCabinet,
                                                  TemplateKind::TallCabinet,  TemplateKind::DrawerUnit,
                                                  TemplateKind::DrawerUnitWithBoxes, TemplateKind::WardrobeSection, TemplateKind::OpenShelving,
-                                                 TemplateKind::BlindCornerCabinet, TemplateKind::LCornerCabinet};
+                                                 TemplateKind::BlindCornerCabinet, TemplateKind::LCornerCabinet,
+                                                 TemplateKind::OvenTallHousing, TemplateKind::DishwasherFront};
     return kinds;
 }
 
@@ -52,6 +58,10 @@ QString templateTitle(TemplateKind kind) {
         return QCoreApplication::translate("fos::app::Templates", "Blind corner cabinet");
     case TemplateKind::LCornerCabinet:
         return QCoreApplication::translate("fos::app::Templates", "L-shaped corner cabinet");
+    case TemplateKind::OvenTallHousing:
+        return QCoreApplication::translate("fos::app::Templates", "Tall oven housing");
+    case TemplateKind::DishwasherFront:
+        return QCoreApplication::translate("fos::app::Templates", "Dishwasher gap with decor front");
     }
     return {};
 }
@@ -67,6 +77,8 @@ const char* templateToken(TemplateKind kind) noexcept {
     case TemplateKind::OpenShelving: return "shelving";
     case TemplateKind::BlindCornerCabinet: return "corner-blind";
     case TemplateKind::LCornerCabinet: return "corner-l";
+    case TemplateKind::OvenTallHousing: return "oven-tall";
+    case TemplateKind::DishwasherFront: return "dishwasher";
     }
     return "";
 }
@@ -86,10 +98,22 @@ core::Result<project::Item> makeTemplateItem(TemplateKind kind, const std::strin
     if (size) {
         // One atomic edit: all three or none (the furniture module validates the result).
         auto edited = furniture::applyEdit(def, libraries, [&](furniture::CabinetDefinition& d) -> core::Result<void> {
+            // Only sizes that differ from the template's current value are set, so a template
+            // formula (dishwasher: width = appliance_gap_width + thickness) survives an
+            // unchanged size.
             parametric::Transaction tx;
-            tx.setValue(furniture::param::kWidth, size->width);
-            tx.setValue(furniture::param::kHeight, size->height);
-            tx.setValue(furniture::param::kDepth, size->depth);
+            const std::pair<const char*, double> wanted[] = {
+                {furniture::param::kWidth, size->width},
+                {furniture::param::kHeight, size->height},
+                {furniture::param::kDepth, size->depth}};
+            bool any = false;
+            for (const auto& [param, value] : wanted) {
+                const auto current = d.parameters.value(param);
+                if (current && std::abs(current.value() - value) <= 1e-9) continue;
+                tx.setValue(param, value);
+                any = true;
+            }
+            if (!any) return {};
             auto applied = d.parameters.apply(tx);
             if (!applied) return applied.error();
             return {};

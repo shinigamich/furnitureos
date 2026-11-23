@@ -10,7 +10,8 @@
 
 namespace fos::app {
 namespace {
-QString tr(const char* text) { return QCoreApplication::translate("fos::app::Corner", text); }
+// Context "fos::app": lupdate files these free tr() calls under the enclosing namespace.
+QString tr(const char* text) { return QCoreApplication::translate("fos::app", text); }
 
 QString valueOrUnknown(const furniture::CabinetDefinition& cabinet, const char* name) {
     if (!cabinet.parameters.find(name)) return QStringLiteral("?");

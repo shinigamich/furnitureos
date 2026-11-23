@@ -9,7 +9,8 @@
 
 namespace fos::app {
 namespace {
-QString tr(const char* text) { return QCoreApplication::translate("fos::app::Worktop", text); }
+// Context "fos::app": lupdate files these free tr() calls under the enclosing namespace.
+QString tr(const char* text) { return QCoreApplication::translate("fos::app", text); }
 QString len(double mm) { return QString::fromStdString(core::formatLength(mm)); }
 QString qs(const std::string& s) { return QString::fromStdString(s); }
 

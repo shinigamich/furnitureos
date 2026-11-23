@@ -90,7 +90,8 @@ struct FrontInput {
     /// Sliding doors only: door count, a whole number 2..6 or an expression over the
     /// cabinet parameters (furniture::SlidingDoorSpec::countExpression).
     QString slidingDoors = QStringLiteral("2");
-    /// Appliance niche only: vent settings, carried through unchanged (not edited here).
+    /// Appliance niche only: vent settings (furniture::ApplianceNicheSpec), submitted as given;
+    /// the furniture module validates them (sizes > 0, opening fits the niche).
     furniture::ApplianceNicheSpec niche;
 };
 /// Library entries of kind DrawerSlide (id, name) in library order; `current` is appended

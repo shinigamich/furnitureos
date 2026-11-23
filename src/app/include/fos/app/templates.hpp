@@ -12,7 +12,7 @@
 namespace fos::app {
 
 enum class TemplateKind { BaseCabinet, WallCabinet, TallCabinet, DrawerUnit, DrawerUnitWithBoxes, WardrobeSection, OpenShelving,
-                          BlindCornerCabinet, LCornerCabinet };
+                          BlindCornerCabinet, LCornerCabinet, OvenTallHousing, DishwasherFront };
 
 /// All kinds in menu order.
 const std::vector<TemplateKind>& allTemplates();

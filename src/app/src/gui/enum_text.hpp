@@ -33,6 +33,7 @@ Choices<furniture::OverlayKind> overlayChoices();
 Choices<furniture::HingeSide> hingeSideChoices();
 Choices<furniture::HandlePosition> handleChoices();
 Choices<furniture::DrawerBottomMount> drawerBottomChoices();
+Choices<furniture::NicheVent> nicheVentChoices();
 Choices<cutting::Objective> objectiveChoices();
 Choices<drawings::DimensionOrientation> orientationChoices();
 /// Shape editor choices.
