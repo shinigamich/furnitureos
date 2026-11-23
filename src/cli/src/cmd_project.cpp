@@ -17,7 +17,7 @@ namespace {
 const char* kNewHelp =
     "Usage: fos new <file.fosp> [--name N] [--author A]\n"
     "               [--template base|wall|tall|drawers|drawers-boxed|wardrobe|shelving|\n"
-    "                           corner-blind|corner-l\n"
+    "                           corner-blind|corner-l|oven-tall|dishwasher\n"
     "                [--item-id ID]\n"
     "                [--width W] [--height H] [--depth D]]\n"
     "               [--id UUID] [--date YYYY-MM-DDTHH:MM:SSZ] [--force]\n\n"
@@ -28,7 +28,10 @@ const char* kNewHelp =
     "drawers 600x820x560 (fronts only), drawers-boxed 600x820x560 (drawer boxes on ball-bearing\n"
     "slides behind every front), wardrobe 1000x2200x580, shelving 800x1800x300, corner-blind\n"
     "1000x820x560 (blind panel 500 on the left), corner-l 900x820x560 with leg B 900 x 560\n"
-    "(L-shaped corner base cabinet; --width / --depth set leg A).\n"
+    "(L-shaped corner base cabinet; --width / --depth set leg A), oven-tall 600x2100x560 (drawers,\n"
+    "open oven niche 595 high, door above), dishwasher 618x820x560 (600 gap, end panel on the right,\n"
+    "decor front fixed to the appliance door). Appliance sizes are generic: check the appliance's\n"
+    "installation sheet.\n"
     "--id / --date make the file reproducible (default: random UUID v4, current UTC time).\n"
     "An existing file is not overwritten unless --force is given.\n";
 
@@ -66,6 +69,8 @@ std::optional<TemplateFn> templateByName(const std::string& name) {
     if (name == "shelving") return &t::openShelving;
     if (name == "corner-blind") return &t::blindCornerCabinet;
     if (name == "corner-l") return &t::lCornerCabinet;
+    if (name == "oven-tall") return &t::ovenTallHousing;
+    if (name == "dishwasher") return &t::dishwasherFront;
     return std::nullopt;
 }
 
@@ -157,7 +162,8 @@ int cmdNew(const std::vector<std::string>& args, Io& io) {
         const auto fn = templateByName(*tname);
         if (!fn)
             return usageError(io, "new", "unknown template '" + *tname +
-                                             "' (choose base, wall, tall, drawers, drawers-boxed, wardrobe, shelving, corner-blind or corner-l).");
+                                             "' (choose base, wall, tall, drawers, drawers-boxed, wardrobe, shelving, corner-blind, corner-l, "
+                                             "oven-tall or dishwasher).");
         itemId = a.value("item-id").value_or("cab1");
         if (itemId.empty()) return usageError(io, "new", "--item-id must not be empty.");
         project::Item item;

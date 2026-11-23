@@ -192,7 +192,9 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
         handle_->setEnabled(any);
         hinges_->setEnabled(door);
         hingeSide_->setEnabled(choice == FrontInput::Choice::Door);
-        overlay_->setEnabled(any && choice != FrontInput::Choice::SlidingDoors);
+        const bool niche = choice == FrontInput::Choice::ApplianceNiche;
+        overlay_->setEnabled(any && !niche && choice != FrontInput::Choice::SlidingDoors);
+        handle_->setEnabled(any && !niche);
         if (auto* sliding = findChild<QLineEdit*>(QStringLiteral("slidingDoors")))
             sliding->setEnabled(choice == FrontInput::Choice::SlidingDoors);
         const bool drawers = choice == FrontInput::Choice::DrawerStack;

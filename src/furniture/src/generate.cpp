@@ -272,15 +272,18 @@ core::Result<GenerationResult> generate(const CabinetDefinition& definition, con
 
     if (auto r = checkDefinitionLimits(def); !r) return r.error();
 
-    detail::Gen g{def, libraries, {}, {}, std::move(diags), {}, {}, {}};
+    detail::Gen g{def, libraries, {}, {}, std::move(diags), {}, {}, {}, {}};
     for (const auto& name : def.parameters.names()) g.values[name] = def.parameters.value(name).valueOr(0.0);
     g.assembly.id = def.id;
     g.assembly.name = def.name;
     g.assembly.placement = def.placement;
 
-    if (auto r = detail::checkCorner(g); !r) return r.error();
     const bool lShape = def.corner.kind == CornerKind::LShape;
-    if (lShape) {
+    if (def.applianceGap) { // refuses a corner kind itself
+        if (auto r = detail::buildApplianceGap(g); !r) return r.error();
+    } else if (auto c = detail::checkCorner(g); !c) {
+        return c.error();
+    } else if (lShape) {
         if (auto r = detail::buildLCorner(g); !r) return r.error();
     } else {
         auto bounds = detail::buildCarcass(g);

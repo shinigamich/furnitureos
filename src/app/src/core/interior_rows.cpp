@@ -122,6 +122,12 @@ QString contentText(const SectionRow& row) {
                         : InteriorText::tr("sliding doors: %1").arg(
                               QString::fromStdString(row.front->sliding.countExpression));
             break;
+        case furniture::FrontKind::ApplianceNiche:
+            front = InteriorText::tr("appliance niche");
+            break;
+        case furniture::FrontKind::ApplianceFront:
+            front = InteriorText::tr("appliance decor front");
+            break;
         }
         text += QStringLiteral("; ") + front;
     }
@@ -233,7 +239,14 @@ FrontInput frontInput(const std::optional<furniture::FrontSpec>& front) {
     case furniture::FrontKind::SlidingDoors:
         in.choice = FrontInput::Choice::SlidingDoors;
         break;
+    case furniture::FrontKind::ApplianceNiche:
+        in.choice = FrontInput::Choice::ApplianceNiche;
+        break;
+    case furniture::FrontKind::ApplianceFront:
+        in.choice = FrontInput::Choice::ApplianceFront;
+        break;
     }
+    in.niche = front->niche;
     in.slidingDoors = front->sliding.countExpression.empty()
                           ? QString::number(front->sliding.count)
                           : QString::fromStdString(front->sliding.countExpression);
@@ -312,6 +325,14 @@ core::Result<furniture::FrontSpec> frontSpec(const FrontInput& input) {
             spec.drawerBox = furniture::DrawerBoxSpec{domain::HardwareId(input.slide), input.drawerBottom};
         break;
     }
+    case FrontInput::Choice::ApplianceNiche:
+        spec.kind = furniture::FrontKind::ApplianceNiche;
+        spec.niche = input.niche;
+        break;
+    case FrontInput::Choice::ApplianceFront:
+        spec.kind = furniture::FrontKind::ApplianceFront;
+        spec.hinges = false; // fixed to the appliance door
+        break;
     case FrontInput::Choice::None:
         break;
     }

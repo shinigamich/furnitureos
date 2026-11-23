@@ -337,3 +337,33 @@ real L edge), plinth to side with `dividerFastener`. Unsupported (generation err
 rails, Grooved / Inset backs, feet, dividers, other front kinds. The interpenetration self-check compares parts with
 a rectilinear outline by the rectangles of that outline (checks.hpp), so door B inside the bounding box of the L
 panels is not reported. Project files: key `corner: {kind, blindSide?}` written only for corner cabinets.
+
+## Appliance housings
+
+All appliance sizes here are GENERIC defaults. The niche dimensions, gap width and ventilation
+an appliance needs are given in its installation sheet: check it. Nothing in this module claims
+compatibility with any particular appliance model.
+
+* **Open niche** (`FrontKind::ApplianceNiche`, `FrontSpec::niche` = `ApplianceNicheSpec`): a leaf
+  section without shelves and without a front part. Its clear height is the section's own size
+  (the template uses `SectionSize::expr("niche_height")`); the panel below it (fixed shelf of the
+  parent split, or the carcass bottom) is the shelf the appliance stands on. Ventilation:
+  `ShelfSlot` = rectangular cut-out in that panel, `ventSize` deep, its rear edge
+  `ventEdgeDistance` in front of y = `interior_depth`, ending `ventEndMargin` from the panels on
+  both sides; `BackCutout` = rectangular cut-out in the back panel, `ventSize` high, its top
+  `ventEdgeDistance` below the top of the niche, same end margins (warning
+  `furniture.appliance.no_back` and no cut-out without a back). The cut-outs are added to the
+  part's override contour, if any, after hardware placement (`furniture.contour.machining_outside`
+  reports a fitting inside the opening).
+* **Decor front** (`FrontKind::ApplianceFront`): generated like a single door over the opening
+  (slot `appliance_front[.<path>]`, role Door), never with hinges, with a horizontal handle per
+  `FrontSpec::handle`, and `Part::custom["furniture.mounting"] = "fixed to appliance door"`.
+* **Appliance gap** (`CabinetDefinition::applianceGap`, `ApplianceGapSpec`): no carcass; end
+  panel(s) `end_panel.left` / `end_panel.right` (H x (depth + front_offset + front_thickness) x
+  thickness, from the floor, flush with the front faces) and the decor front over the gap: x with
+  `front_reveal` towards a neighbouring cabinet and `front_gap` towards an end panel, z from
+  `carcass_bottom + front_reveal` to `height - front_reveal`. Warning
+  `furniture.appliance.gap_width` when the gap differs from the custom parameter
+  `appliance_gap_width`. No plinth strip, worktop or appliance fixing hardware is generated.
+* Templates: `ovenTallHousing()` (drawers 700 / niche 595 / door section) and `dishwasherFront()`
+  (600 gap, right end panel, width = `appliance_gap_width + thickness`).

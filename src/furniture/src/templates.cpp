@@ -152,4 +152,50 @@ CabinetDefinition lCornerCabinet(domain::AssemblyId id, const TemplateMaterials&
     return def;
 }
 
+namespace {
+void defineGeneric(CabinetDefinition& def, const char* name, double value, const char* what) {
+    auto d = parametric::ParameterDef::constant(name, value, parametric::ParameterKind::Length);
+    d.description = std::string(what) + " (generic value: check the appliance's installation sheet)";
+    [[maybe_unused]] const auto added = def.parameters.define(std::move(d));
+    assert(added.ok());
+}
+} // namespace
+
+CabinetDefinition ovenTallHousing(domain::AssemblyId id, const TemplateMaterials& m) {
+    ConstructionOptions o;
+    o.plinth = PlinthKind::SidesToFloor;
+    CabinetDefinition def = start(std::move(id), "Tall oven housing", m, o, 600, 2100, 560);
+    defineGeneric(def, appliance_param::kNicheHeight, 595, "Clear height of the appliance niche");
+    Section drawers, niche, upper;
+    drawers.size = SectionSize::fixed(700);
+    FrontSpec stack = door(FrontKind::DrawerStack, HandlePosition::Center);
+    stack.drawerHeights = {SectionSize::weight(1), SectionSize::weight(1)};
+    stack.drawerBox = DrawerBoxSpec{};
+    drawers.front = stack;
+    niche.size = SectionSize::expr(appliance_param::kNicheHeight);
+    niche.front = door(FrontKind::ApplianceNiche, HandlePosition::None);
+    upper.size = SectionSize::weight(1);
+    upper.shelfCount = 1;
+    upper.front = door(FrontKind::Door, HandlePosition::Bottom);
+    def.interior.split = SplitDirection::Horizontal;
+    def.interior.children = {drawers, niche, upper};
+    return def;
+}
+
+CabinetDefinition dishwasherFront(domain::AssemblyId id, const TemplateMaterials& m) {
+    ConstructionOptions o;
+    o.top = TopKind::Rails;
+    o.plinth = PlinthKind::SidesToFloor;
+    o.back = BackMount::None;
+    CabinetDefinition def = start(std::move(id), "Dishwasher front", m, o, 618, 820, 560);
+    defineGeneric(def, appliance_param::kGapWidth, 600, "Clear width of the appliance gap");
+    parametric::Transaction tx;
+    tx.setExpression(param::kWidth, std::string(appliance_param::kGapWidth) + " + " + param::kThickness);
+    [[maybe_unused]] const auto applied = def.parameters.apply(tx);
+    assert(applied.ok());
+    def.applianceGap = ApplianceGapSpec{GapPanels::Right};
+    def.interior.front = door(FrontKind::ApplianceFront, HandlePosition::Top);
+    return def;
+}
+
 } // namespace fos::furniture::templates

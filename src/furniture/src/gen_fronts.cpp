@@ -140,6 +140,10 @@ core::Result<void> buildFront(Gen& g, const FrontSpec& spec, const std::string& 
         }
         handleJob(g, part, slot, spec, true, hingeLeft);
     };
+    if (spec.kind == FrontKind::ApplianceFront) {
+        addApplianceFront(g, spec, joinSlot({"appliance_front", path}), x0, x1, z0, z1, yInner);
+        return {};
+    }
     if (spec.kind == FrontKind::Flap) {
         // Lift-up flap: a door-shaped front hinged at its top edge to the panel above the
         // section (hinge axis X), held open by one lift mechanism on each side.

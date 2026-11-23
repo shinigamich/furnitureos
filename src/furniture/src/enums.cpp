@@ -31,9 +31,11 @@ constexpr Table<SplitDirection, 3> kSplitDirection{{{SplitDirection::None, "None
                                                    {SplitDirection::Horizontal, "Horizontal"}}};
 constexpr Table<SizeKind, 3> kSizeKind{{{SizeKind::Fixed, "Fixed"}, {SizeKind::Weight, "Weight"},
                                        {SizeKind::Expression, "Expression"}}};
-constexpr Table<FrontKind, 5> kFrontKind{{{FrontKind::Door, "Door"}, {FrontKind::DoorPair, "DoorPair"},
+constexpr Table<FrontKind, 7> kFrontKind{{{FrontKind::Door, "Door"}, {FrontKind::DoorPair, "DoorPair"},
                                          {FrontKind::DrawerStack, "DrawerStack"}, {FrontKind::Flap, "Flap"},
-                                         {FrontKind::SlidingDoors, "SlidingDoors"}}};
+                                         {FrontKind::SlidingDoors, "SlidingDoors"},
+                                         {FrontKind::ApplianceNiche, "ApplianceNiche"},
+                                         {FrontKind::ApplianceFront, "ApplianceFront"}}};
 constexpr Table<OverlayKind, 3> kOverlayKind{{{OverlayKind::Full, "Full"}, {OverlayKind::Half, "Half"},
                                              {OverlayKind::Inset, "Inset"}}};
 constexpr Table<HingeSide, 2> kHingeSide{{{HingeSide::Left, "Left"}, {HingeSide::Right, "Right"}}};
@@ -56,6 +58,10 @@ constexpr Table<CutoutKind, 2> kCutoutKind{{{CutoutKind::Rectangle, "Rectangle"}
 constexpr Table<CornerKind, 3> kCornerKind{{{CornerKind::None, "None"}, {CornerKind::Blind, "Blind"},
                                            {CornerKind::LShape, "LShape"}}};
 constexpr Table<CornerSide, 2> kCornerSide{{{CornerSide::Left, "Left"}, {CornerSide::Right, "Right"}}};
+constexpr Table<NicheVent, 3> kNicheVent{{{NicheVent::None, "None"}, {NicheVent::ShelfSlot, "ShelfSlot"},
+                                         {NicheVent::BackCutout, "BackCutout"}}};
+constexpr Table<GapPanels, 4> kGapPanels{{{GapPanels::None, "None"}, {GapPanels::Left, "Left"},
+                                         {GapPanels::Right, "Right"}, {GapPanels::Both, "Both"}}};
 } // namespace
 
 #define FOS_FURNITURE_ENUM(E, table)                                                                \
@@ -81,6 +87,8 @@ FOS_FURNITURE_ENUM(CutoutKind, kCutoutKind)
 FOS_FURNITURE_ENUM(DrawerBottomMount, kDrawerBottomMount)
 FOS_FURNITURE_ENUM(CornerKind, kCornerKind)
 FOS_FURNITURE_ENUM(CornerSide, kCornerSide)
+FOS_FURNITURE_ENUM(NicheVent, kNicheVent)
+FOS_FURNITURE_ENUM(GapPanels, kGapPanels)
 #undef FOS_FURNITURE_ENUM
 
 } // namespace fos::furniture

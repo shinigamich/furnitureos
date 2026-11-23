@@ -48,7 +48,8 @@ TEST_P(Templates, GeneratedCabinetHasNoErrors) {
     const ValidationReport r = validateModel(m);
     EXPECT_EQ(r.counts.errors, 0u) << GetParam().name << "\n" << toText(r);
     EXPECT_EQ(r.counts.warnings, 0u) << GetParam().name << "\n" << toText(r);
-    EXPECT_GT(r.stats.parts, 5u);
+    // The dishwasher front is only an end panel and the decor front.
+    EXPECT_GT(r.stats.parts, GetParam().make == &templates::dishwasherFront ? 1u : 5u);
 }
 
 INSTANTIATE_TEST_SUITE_P(All, Templates,
@@ -58,7 +59,9 @@ INSTANTIATE_TEST_SUITE_P(All, Templates,
                                            Case{"wardrobe", &templates::wardrobeSection},
                                            Case{"shelving", &templates::openShelving},
                                            Case{"corner_blind", &templates::blindCornerCabinet},
-                                           Case{"corner_l", &templates::lCornerCabinet}),
+                                           Case{"corner_l", &templates::lCornerCabinet},
+                                           Case{"oven_tall", &templates::ovenTallHousing},
+                                           Case{"dishwasher", &templates::dishwasherFront}),
                          [](const ::testing::TestParamInfo<Case>& tp) { return std::string(tp.param.name); });
 
 TEST(GeneratedCabinet, GroovedBackIsRecognised) {

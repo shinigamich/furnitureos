@@ -94,7 +94,8 @@ TEST_F(Cli, NewRefusesToOverwriteWithoutForceAndChecksArguments) {
 }
 
 TEST_F(Cli, NewAcceptsEveryTemplate) {
-    for (const char* t : {"base", "wall", "tall", "drawers", "wardrobe", "shelving", "corner-blind", "corner-l"}) {
+    for (const char* t : {"base", "wall", "tall", "drawers", "wardrobe", "shelving", "corner-blind", "corner-l",
+                          "oven-tall", "dishwasher"}) {
         const auto r = fos({"new", dir.file(std::string(t) + ".fosp"), "--template", t});
         EXPECT_EQ(r.code, kExitOk) << t << r.err;
         EXPECT_EQ(fos({"validate", dir.file(std::string(t) + ".fosp")}).code, kExitOk) << t;

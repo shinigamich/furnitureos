@@ -71,6 +71,32 @@ struct SlidingDoorSpec {
 inline constexpr int kMinSlidingDoors = 2;
 inline constexpr int kMaxSlidingDoors = 6;
 
+/// Open appliance niche of a section (FrontKind::ApplianceNiche, README "Appliance housings").
+/// The niche's CLEAR height is the section's own size (e.g. SectionSize::expr("niche_height")):
+/// the panel below the section (a fixed shelf of the parent split, or the carcass bottom) is
+/// the shelf the appliance stands on. The section must be a leaf without adjustable shelves.
+/// GENERIC sizes only: the niche dimensions and the ventilation opening required by a real
+/// appliance are given in that appliance's installation sheet; check it. Nothing here claims
+/// compatibility with any particular appliance model.
+struct ApplianceNicheSpec {
+    NicheVent vent = NicheVent::ShelfSlot;
+    /// Size of the opening across the air flow, mm (> 0): front-to-back depth of a ShelfSlot,
+    /// height of a BackCutout.
+    double ventSize = 50.0;
+    /// Distance of the opening from the front of the back panel (ShelfSlot, measured on the
+    /// shelf from y = interior_depth forwards) or from the top of the niche (BackCutout), mm (> 0).
+    double ventEdgeDistance = 20.0;
+    /// Distance of both opening ends from the panels bounding the niche left and right, mm
+    /// (> 0). Keeps the opening clear of the joint fittings at the shelf ends.
+    double ventEndMargin = 80.0;
+    bool operator==(const ApplianceNicheSpec&) const = default;
+};
+
+/// Key and value of the domain::Part::custom entry on every decor front
+/// (FrontKind::ApplianceFront): the part is fixed to the appliance door, not hinged.
+inline constexpr const char* kMountingKey = "furniture.mounting";
+inline constexpr const char* kMountingApplianceDoor = "fixed to appliance door";
+
 /// A front closing the opening of a section (see README "Fronts"). For every generated front
 /// (door or drawer front) face A is the inner, cabinet-side face and face B the visible face.
 struct FrontSpec {
@@ -95,6 +121,8 @@ struct FrontSpec {
     /// TOP); each entry REPLACES `drawerBox` for its drawer (std::nullopt = no box behind that
     /// front). A size mismatch fails generation. Use drawerBoxFor() to read the effective box.
     std::vector<std::optional<DrawerBoxSpec>> drawerBoxes;
+    /// ApplianceNiche only: ventilation of the open niche (ignored for other kinds).
+    ApplianceNicheSpec niche;
     bool operator==(const FrontSpec&) const = default;
 };
 
@@ -216,6 +244,32 @@ struct CornerSpec {
     bool operator==(const CornerSpec&) const = default;
 };
 
+/// Custom parameter names used by the appliance templates (README "Appliance housings"). They
+/// are GENERIC defaults: check the appliance's installation sheet for the real values.
+namespace appliance_param {
+/// Clear height of an oven / microwave niche (used as the niche section's size), mm.
+inline constexpr const char* kNicheHeight = "niche_height";
+/// Clear width of a dishwasher gap between the end panels / neighbouring cabinets, mm.
+inline constexpr const char* kGapWidth = "appliance_gap_width";
+} // namespace appliance_param
+
+/// Appliance gap (README "Appliance housings"): instead of a carcass, the cabinet is only an
+/// end panel / filler arrangement around a free gap for an integrated appliance (dishwasher).
+/// Generated parts: the end panel(s) (slots `end_panel.left` / `end_panel.right`, full height
+/// from the floor, flush with the front faces: y from -(front_offset + front_thickness) to
+/// depth) and, when the root section's front is FrontKind::ApplianceFront, the decor front
+/// (slot `appliance_front`) spanning the gap with `front_reveal` towards a neighbouring cabinet
+/// and `front_gap` towards an end panel, z from carcass_bottom + front_reveal to
+/// height - front_reveal (the front line of the base templates). The gap width is
+/// width - (number of end panels) x thickness. Requires: no corner construction, a leaf root
+/// section without shelves, a root front that is absent or ApplianceFront. Construction
+/// options other than the plinth (which sets carcass_bottom) have no effect; no plinth strip
+/// or worktop is generated.
+struct ApplianceGapSpec {
+    GapPanels panels = GapPanels::Right;
+    bool operator==(const ApplianceGapSpec&) const = default;
+};
+
 /// A parametric cabinet. `parameters` is the single source of truth for every dimension:
 /// the generator reads sizes and positions only from graph values (see parameters.hpp for
 /// the standard names and README.md for the formulas).
@@ -232,6 +286,8 @@ struct CabinetDefinition {
     HardwareSelection hardware;
     Section interior;
     CornerSpec corner; ///< Default: ordinary rectangular cabinet.
+    /// Set = appliance gap (ApplianceGapSpec) instead of a carcass. Default: ordinary cabinet.
+    std::optional<ApplianceGapSpec> applianceGap;
 };
 
 } // namespace fos::furniture

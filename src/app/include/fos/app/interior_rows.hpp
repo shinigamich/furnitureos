@@ -75,7 +75,7 @@ project::Command clearInteriorCommand(const std::string& itemId);
 
 /// What the front editor shows / submits.
 struct FrontInput {
-    enum class Choice { None, Door, DoorPair, DrawerStack, Flap, SlidingDoors };
+    enum class Choice { None, Door, DoorPair, DrawerStack, Flap, SlidingDoors, ApplianceNiche, ApplianceFront };
     Choice choice = Choice::None;
     furniture::OverlayKind overlay = furniture::OverlayKind::Full;
     furniture::HingeSide hingeSide = furniture::HingeSide::Left;
@@ -90,6 +90,8 @@ struct FrontInput {
     /// Sliding doors only: door count, a whole number 2..6 or an expression over the
     /// cabinet parameters (furniture::SlidingDoorSpec::countExpression).
     QString slidingDoors = QStringLiteral("2");
+    /// Appliance niche only: vent settings, carried through unchanged (not edited here).
+    furniture::ApplianceNicheSpec niche;
 };
 /// Library entries of kind DrawerSlide (id, name) in library order; `current` is appended
 /// with `missing` set when it is not among them.

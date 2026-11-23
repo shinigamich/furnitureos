@@ -292,7 +292,30 @@ Json frontJson(const furniture::FrontSpec& f) {
         if (!f.sliding.countExpression.empty()) s["countExpression"] = f.sliding.countExpression;
         j["sliding"] = std::move(s);
     }
+    // Appliance niche: written for that kind (or a non-default spec) only (older files unchanged).
+    if (f.kind == furniture::FrontKind::ApplianceNiche || f.niche != furniture::ApplianceNicheSpec{}) {
+        Json n = Json::object();
+        n["vent"] = furniture::toString(f.niche.vent);
+        n["ventSize"] = f.niche.ventSize;
+        n["ventEdgeDistance"] = f.niche.ventEdgeDistance;
+        n["ventEndMargin"] = f.niche.ventEndMargin;
+        j["niche"] = std::move(n);
+    }
     return j;
+}
+
+core::Result<furniture::ApplianceNicheSpec> nicheFromJson(const Json& json, std::string_view path) {
+    using namespace furniture;
+    Reader r(json, path, "an appliance niche");
+    ApplianceNicheSpec n;
+    r.token("vent", n.vent, furnitureEnum<NicheVent>(),
+            furnitureTokens({NicheVent::None, NicheVent::ShelfSlot, NicheVent::BackCutout}));
+    r.number("ventSize", n.ventSize, Num::Positive);
+    r.number("ventEdgeDistance", n.ventEdgeDistance, Num::Positive);
+    r.number("ventEndMargin", n.ventEndMargin, Num::Positive);
+    r.rejectUnknown();
+    if (!r.ok()) return r.error();
+    return n;
 }
 
 core::Result<furniture::SlidingDoorSpec> slidingFromJson(const Json& json, std::string_view path) {
@@ -335,7 +358,7 @@ core::Result<furniture::FrontSpec> frontFromJson(const Json& json, std::string_v
     FrontSpec f;
     r.token("kind", f.kind, furnitureEnum<FrontKind>(),
             furnitureTokens({FrontKind::Door, FrontKind::DoorPair, FrontKind::DrawerStack, FrontKind::Flap,
-                             FrontKind::SlidingDoors}),
+                             FrontKind::SlidingDoors, FrontKind::ApplianceNiche, FrontKind::ApplianceFront}),
             true);
     r.token("overlay", f.overlay, furnitureEnum<OverlayKind>(),
             furnitureTokens({OverlayKind::Full, OverlayKind::Half, OverlayKind::Inset}));
@@ -349,6 +372,7 @@ core::Result<furniture::FrontSpec> frontFromJson(const Json& json, std::string_v
     r.limitArray("drawerBoxes", furniture::limits::kMaxDrawerHeights, "per-drawer boxes");
     r.array("drawerBoxes", f.drawerBoxes, drawerBoxEntryFromJson);
     r.nested("sliding", f.sliding, slidingFromJson);
+    r.nested("niche", f.niche, nicheFromJson);
     r.rejectUnknown();
     if (!r.ok()) return r.error();
     return f;
@@ -574,6 +598,24 @@ core::Result<furniture::CornerSpec> cornerFromJson(const Json& json, std::string
     return c;
 }
 
+/// Appliance gap: written only when set (files of ordinary cabinets stay byte-identical).
+Json applianceGapJson(const furniture::ApplianceGapSpec& a) {
+    Json j = Json::object();
+    j["panels"] = furniture::toString(a.panels);
+    return j;
+}
+
+core::Result<furniture::ApplianceGapSpec> applianceGapFromJson(const Json& json, std::string_view path) {
+    using namespace furniture;
+    Reader r(json, path, "an appliance gap");
+    ApplianceGapSpec a;
+    r.token("panels", a.panels, furnitureEnum<GapPanels>(),
+            furnitureTokens({GapPanels::None, GapPanels::Left, GapPanels::Right, GapPanels::Both}), true);
+    r.rejectUnknown();
+    if (!r.ok()) return r.error();
+    return a;
+}
+
 } // namespace
 
 Json toJson(const furniture::CabinetDefinition& c) {
@@ -588,6 +630,7 @@ Json toJson(const furniture::CabinetDefinition& c) {
     j["pinnedParameters"] = Json(std::vector<std::string>(c.pinnedParameters.begin(), c.pinnedParameters.end()));
     j["interior"] = toJson(c.interior);
     if (c.corner != furniture::CornerSpec{}) j["corner"] = cornerJson(c.corner);
+    if (c.applianceGap) j["applianceGap"] = applianceGapJson(*c.applianceGap);
     return j;
 }
 
@@ -612,6 +655,7 @@ void readCabinetFields(Reader& r, furniture::CabinetDefinition& c) {
     c.pinnedParameters = std::set<std::string>(pinned.begin(), pinned.end());
     r.nested("interior", c.interior, sectionFromJson, true);
     r.nested("corner", c.corner, cornerFromJson);
+    r.nested("applianceGap", c.applianceGap, applianceGapFromJson);
     // Hard limits (furniture/limits.hpp): a file the generator would refuse, or that would make
     // it run for minutes, is rejected on load with the generator's own message.
     if (r.ok())

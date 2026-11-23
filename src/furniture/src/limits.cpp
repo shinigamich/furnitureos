@@ -32,8 +32,10 @@ std::string num(double v) {
 std::size_t frontCount(const Section& s) {
     if (!s.front) return 0;
     switch (s.front->kind) {
+    case FrontKind::ApplianceNiche: return 0;
     case FrontKind::Door:
-    case FrontKind::Flap: return 1;
+    case FrontKind::Flap:
+    case FrontKind::ApplianceFront: return 1;
     case FrontKind::DoorPair: return 2;
     case FrontKind::SlidingDoors: // an expression is only known after evaluation: assume the maximum
         return s.front->sliding.countExpression.empty()

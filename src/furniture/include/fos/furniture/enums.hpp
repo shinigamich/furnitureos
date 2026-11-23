@@ -42,7 +42,12 @@ enum class SizeKind {
 /// Flap: one front hinged at its TOP edge to the panel above (lift-up flap, see README).
 /// SlidingDoors: 2..6 doors running in a two-lane top / bottom track inside the opening
 /// (README "Sliding doors"; system HardwareSelection::slidingSystem).
-enum class FrontKind { Door, DoorPair, DrawerStack, Flap, SlidingDoors };
+/// ApplianceNiche: an OPEN niche for a built-in appliance (oven, microwave): no front part;
+/// the panel below is the shelf the appliance stands on, with an optional ventilation
+/// opening (FrontSpec::niche, README "Appliance housings").
+/// ApplianceFront: a decor front fixed to the door of an integrated appliance (dishwasher):
+/// a loose front part without hinges, marked "fixed to appliance door".
+enum class FrontKind { Door, DoorPair, DrawerStack, Flap, SlidingDoors, ApplianceNiche, ApplianceFront };
 enum class OverlayKind { Full, Half, Inset };
 enum class HingeSide { Left, Right };
 enum class HandlePosition { None, Center, Top, Bottom };
@@ -80,6 +85,14 @@ enum class CornerKind {
 };
 /// Side of the blind panel of a blind corner cabinet (seen from the front).
 enum class CornerSide { Left, Right };
+/// Ventilation opening of an appliance niche (definition.hpp ApplianceNicheSpec).
+enum class NicheVent {
+    None,       ///< No opening.
+    ShelfSlot,  ///< Rectangular slot cut-out at the rear of the panel the appliance stands on.
+    BackCutout, ///< Rectangular cut-out in the back panel at the top of the niche.
+};
+/// End panels of an appliance gap (definition.hpp ApplianceGapSpec), seen from the front.
+enum class GapPanels { None, Left, Right, Both };
 
 const char* toString(JointKind) noexcept;
 const char* toString(TopKind) noexcept;
@@ -100,6 +113,8 @@ const char* toString(CutoutKind) noexcept;
 const char* toString(DrawerBottomMount) noexcept;
 const char* toString(CornerKind) noexcept;
 const char* toString(CornerSide) noexcept;
+const char* toString(NicheVent) noexcept;
+const char* toString(GapPanels) noexcept;
 
 /// Inverse of toString for every enum above; std::nullopt for unknown text (case-sensitive).
 template <class E> std::optional<E> fromString(std::string_view text) noexcept;
@@ -122,5 +137,7 @@ template <> std::optional<CutoutKind> fromString<CutoutKind>(std::string_view) n
 template <> std::optional<DrawerBottomMount> fromString<DrawerBottomMount>(std::string_view) noexcept;
 template <> std::optional<CornerKind> fromString<CornerKind>(std::string_view) noexcept;
 template <> std::optional<CornerSide> fromString<CornerSide>(std::string_view) noexcept;
+template <> std::optional<NicheVent> fromString<NicheVent>(std::string_view) noexcept;
+template <> std::optional<GapPanels> fromString<GapPanels>(std::string_view) noexcept;
 
 } // namespace fos::furniture

@@ -27,6 +27,13 @@ core::Result<void> checkTree(const Gen& g, const Section& s, const std::string& 
             (s.front->sliding.count < kMinSlidingDoors || s.front->sliding.count > kMaxSlidingDoors))
             return invalid(label + " has " + std::to_string(s.front->sliding.count) + " sliding doors; use " +
                                std::to_string(kMinSlidingDoors) + " to " + std::to_string(kMaxSlidingDoors) + ".", g);
+        if (s.front->kind == FrontKind::ApplianceNiche && (s.split != SplitDirection::None || s.shelfCount != 0))
+            return invalid(label + " is an appliance niche but " +
+                               (s.split != SplitDirection::None ? std::string("is split into child sections")
+                                                                : "has " + std::to_string(s.shelfCount) +
+                                                                      " adjustable shelves") +
+                               "; a niche must be an empty leaf section (the appliance stands on the panel below it).",
+                           g);
         if (s.front->kind == FrontKind::DrawerStack && s.front->drawerHeights.empty())
             return invalid(label + " has a drawer stack without any drawer front; add at least one height entry.", g);
         if (s.front->kind == FrontKind::DrawerStack && !s.front->drawerBoxes.empty() &&
@@ -128,6 +135,8 @@ core::Result<void> buildSection(Gen& g, const Section& s, const std::string& pat
         auto y0 = buildSlidingDoors(g, *s.front, path, outer, b);
         if (!y0) return y0.error();
         box.y0 = std::max(outer.y0, y0.value());
+    } else if (s.front && s.front->kind == FrontKind::ApplianceNiche) {
+        if (auto r = buildApplianceNiche(g, *s.front, path, outer, b); !r) return r;
     } else if (s.front) {
         if (auto r = buildFront(g, *s.front, path, outer, b); !r) return r;
     }

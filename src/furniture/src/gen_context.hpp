@@ -85,6 +85,15 @@ struct Box {
     double y0 = 0;
 };
 
+/// A through cut-out the generator adds to a part (appliance niche ventilation), given as an
+/// axis-aligned region in the ASSEMBLY frame; applyContours() maps it into the part frame of
+/// slot `slot` (its x / y extent there) and appends it to the part's contour.
+struct PendingCutout {
+    std::string slot;
+    Vec3 lo, hi;       ///< Opposite corners of the region (assembly frame, mm).
+    std::string owner; ///< For messages, e.g. "appliance niche '2' of cabinet 'c'".
+};
+
 struct Gen {
     const CabinetDefinition& def; ///< Resolved definition.
     const Libraries& libs;
@@ -99,6 +108,8 @@ struct Gen {
     /// Slot -> index into assembly.parts, maintained by addPart() (O(1) index(); lookups
     /// only, never iterated, so the hash order cannot affect the output).
     std::unordered_map<std::string, std::size_t> slotIndex;
+    /// Generator cut-outs, in creation order (applied by applyContours()).
+    std::vector<PendingCutout> cutouts;
 
     /// Value of a parameter of the resolved graph (all standard names exist).
     double v(const char* name) const { return values.at(name); }
@@ -138,6 +149,17 @@ core::Result<std::vector<double>> distribute(const Gen& g, double available, con
 core::Result<Bounds> buildCarcass(Gen& g);
 core::Result<void> buildBack(Gen& g);
 core::Result<void> buildInterior(Gen& g, const Bounds& rootBounds);
+/// Open appliance niche of the section at `path` (gen_appliance.cpp): checks the spec and
+/// records its ventilation cut-out (ShelfSlot in the panel below, BackCutout in the back).
+core::Result<void> buildApplianceNiche(Gen& g, const FrontSpec& spec, const std::string& path, const Box& box,
+                                       const Bounds& bounds);
+/// Decor front (FrontKind::ApplianceFront) spanning x in [x0, x1], z in [z0, z1] with its
+/// inner face at y = yInner: door-shaped part, no hinges, horizontal handle job, marked with
+/// kMountingKey = kMountingApplianceDoor. Returns its index.
+std::size_t addApplianceFront(Gen& g, const FrontSpec& spec, const std::string& slot, double x0, double x1, double z0,
+                              double z1, double yInner);
+/// Appliance gap cabinet (definition.applianceGap): end panels and decor front.
+core::Result<void> buildApplianceGap(Gen& g);
 core::Result<void> buildFront(Gen& g, const FrontSpec& spec, const std::string& path, const Box& box, const Bounds& bounds);
 /// Sliding doors of the section at `path` (README "Sliding doors"): door parts, track and
 /// roller jobs, recessed grips. Returns the y behind which the section's interior must stay.

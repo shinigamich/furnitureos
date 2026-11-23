@@ -60,4 +60,20 @@ CabinetDefinition blindCornerCabinet(domain::AssemblyId id, const TemplateMateri
 /// corner_depth_b = 560.
 CabinetDefinition lCornerCabinet(domain::AssemblyId id, const TemplateMaterials& materials);
 
+/// Tall oven housing 600 x 2100 x 560 (README "Appliance housings"): construction of
+/// tallCabinet() (plinth panel 100, overlay back); horizontal split bottom -> top:
+///  1. drawer section, clear height 700: DrawerStack of 2 equal fronts with drawer boxes;
+///  2. open oven niche (FrontKind::ApplianceNiche, ShelfSlot ventilation), clear height
+///     `niche_height` = 595 (custom parameter; GENERIC value, check the appliance's
+///     installation sheet); it stands on fixed shelf `fixed_shelf.1`;
+///  3. door section (the rest, 633): one door hinged left, handle near the bottom, 1 shelf.
+CabinetDefinition ovenTallHousing(domain::AssemblyId id, const TemplateMaterials& materials);
+/// Dishwasher front (README "Appliance housings"): an appliance gap (ApplianceGapSpec, end
+/// panel on the RIGHT) of `appliance_gap_width` = 600 (custom parameter; GENERIC value, check
+/// the appliance's installation sheet); width = "appliance_gap_width + thickness" (618 with
+/// 18 mm boards), height 820, depth 560, plinth height 100 (SidesToFloor), no back. Decor
+/// front (FrontKind::ApplianceFront, handle near the top) 716 x 595 mm, fixed to the
+/// appliance door, no hinges.
+CabinetDefinition dishwasherFront(domain::AssemblyId id, const TemplateMaterials& materials);
+
 } // namespace fos::furniture::templates

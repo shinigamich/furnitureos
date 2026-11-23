@@ -219,3 +219,42 @@ TEST(ProjectCorner, CornerCabinetsRoundTrip) {
 }
 
 } // namespace fos::project::test
+
+namespace fos::project::test {
+
+// Appliance housings: the "niche" and "applianceGap" keys survive a save / reload byte for
+// byte; ordinary cabinets write neither key (older files stay byte-identical).
+TEST(ProjectAppliance, ApplianceHousingsRoundTrip) {
+    Project p = newProject(meta());
+    Item oven, dish;
+    oven.definition = furniture::templates::ovenTallHousing(domain::AssemblyId("ov"), defaultTemplateMaterials());
+    auto& niche = oven.cabinet()->interior.children[1].front->niche;
+    niche.vent = furniture::NicheVent::BackCutout;
+    niche.ventSize = 40;
+    dish.definition = furniture::templates::dishwasherFront(domain::AssemblyId("dw"), defaultTemplateMaterials());
+    dish.cabinet()->applianceGap->panels = furniture::GapPanels::Left;
+    p.items = {oven, dish, baseCabinetItem()};
+    auto text = serializeProject(p, kSavedAt);
+    ASSERT_TRUE(text.ok()) << text.error().message;
+    auto loaded = parseProject(text.value());
+    ASSERT_TRUE(loaded.ok()) << loaded.error().message;
+    EXPECT_FALSE(core::hasErrors(loaded.value().diagnostics));
+    const Project& q = loaded.value().project;
+    ASSERT_EQ(q.items.size(), 3u);
+    EXPECT_EQ(q.items[0].cabinet()->interior, oven.cabinet()->interior);
+    EXPECT_EQ(q.items[1].cabinet()->applianceGap, dish.cabinet()->applianceGap);
+    EXPECT_EQ(q.items[1].cabinet()->interior.front->kind, furniture::FrontKind::ApplianceFront);
+    EXPECT_FALSE(q.items[2].cabinet()->applianceGap.has_value());
+    EXPECT_EQ(serializeProject(q, kSavedAt).value(), text.value());
+    const domain::Part* front = findPart(loaded.value().resolved, "dw/appliance_front");
+    ASSERT_NE(front, nullptr);
+    EXPECT_EQ(front->custom.at(furniture::kMountingKey), furniture::kMountingApplianceDoor);
+    EXPECT_NE(findPart(loaded.value().resolved, "dw/end_panel.left"), nullptr);
+    Project plain = newProject(meta());
+    plain.items.push_back(baseCabinetItem());
+    const std::string plainText = serializeProject(plain, kSavedAt).value();
+    EXPECT_EQ(plainText.find("\"applianceGap\""), std::string::npos);
+    EXPECT_EQ(plainText.find("\"niche\""), std::string::npos);
+}
+
+} // namespace fos::project::test
