@@ -554,6 +554,26 @@ $ fos worktop kitchen.fosp --items cab1,cab2,cab3 --overhang 25 --sink 700:600:4
 Exit codes: 0 added; 1 refused (rule violated, run not straight, unknown item, ...; nothing saved); 2 usage error,
 unreadable / unwritable project.
 
+### `fos plinth`
+
+```
+fos plinth <file.fosp> --items ID[,ID...] [--setback MM] [--height MM] [--returns left,right]
+           [--material ID] [--max-length MM] [--id ID] [--name N] [-o OUT.fosp]
+```
+
+Adds a front plinth (toe-kick) under a straight run of cabinets on feet through `project::commands::addPlinth`
+(rules: `src/project/README.md` §4d) and saves to `-o` / `--out` or in place. `--setback` (default 50 mm, a rule of
+thumb) is measured behind the foremost carcass front; `--height` defaults to the cabinets' `plinth_height`.
+Appliance gaps (dishwasher) interrupt the plinth at their end panels. Pieces longer than the usable stock are split
+equally with BUTT JOINTS; `--returns` adds end returns.
+
+```
+$ fos plinth kitchen.fosp --items cab1,dw,cab3 --setback 60 --returns right -o out.fosp
+```
+
+Exit codes: 0 added; 1 refused (cabinet not on feet, run not straight, unknown item, ...; nothing saved); 2 usage
+error, unreadable / unwritable project.
+
 ### `fos component`
 
 Reusable components (`.foscomp`, schema: `src/project/README.md` "Component files").
@@ -594,6 +614,8 @@ pointer), unknown component name.
   malformed file reported), `fos new --template drawers-boxed`.
 * `src/cli/tests/cli_worktop_tests.cpp`: `fos worktop` with sink + hob (one piece, two cut-outs, `-o` leaves the
   input untouched), a 4200 mm run split at 2100 mm, rule-of-thumb refusal, usage errors.
+* `src/cli/tests/cli_plinth_tests.cpp`: `fos plinth` with two equal pieces and both returns, refusal of a
+  sides-to-floor cabinet, usage errors.
 * `src/cli/tests/cli_binary_tests.cpp`: runs the real `fos` executable as a process (exit codes 0/1/2, output).
 * `tests/` (`fos_scenario_tests`): cross-module end-to-end scenarios A–F with hand-computed expectations; built by
   the root CMakeLists for a full configure and by this directory's CMakeLists when `FOS_MODULES` lists `cli`.

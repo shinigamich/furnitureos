@@ -425,12 +425,37 @@ parametric contour holds the cut-outs, so cutting/nesting, CAM, DXF export and d
   standard, check the appliance sheet): 50 mm to front/back edge, 100 mm to a free end, 150 mm to a joint, 100 mm
   between cut-outs. A violation refuses the request with the distances in the message.
 
+## 4d. Plinths (`fos/project/plinth.hpp`)
+
+`planPlinth(project, PlinthRequest)` / `addPlinth(project, request)` / undoable `commands::addPlinth(request)` add a
+kitchen plinth (toe-kick) under a straight run of cabinets as free panel items (role `Plinth`, part id
+`<item>/panel`). The run analysis (reference frame, rotation, overlap, gaps) is shared with the worktop builder
+(private `src/cabinet_run.hpp`).
+
+* **Cabinets.** Ordinary cabinets must stand on feet (`PlinthKind::Feet`); SidesToFloor (own recessed plinth panel,
+  sides to the floor) and None are refused. Appliance gaps (dishwasher, any plinth kind) are accepted: their end
+  panels reach the floor, so the plinth is interrupted there and the strip in front of the appliance becomes its
+  own piece (`project.plinth.appliance` note). All cabinets must stand on the same floor level (1 mm).
+* **Size.** Height = `height`, else the common `plinth_height` of the Feet cabinets (within 1 mm; an explicit height
+  may not exceed it). Front face = foremost carcass front (y = 0 of the cabinet frames) + `setback` (default 50 mm,
+  a RULE OF THUMB). Length = run of the generated parts minus the appliance end panels; gaps are bridged
+  (`project.plinth.gap` warning). Material: named, else the first listed cabinet's carcass material. All edges raw.
+* **Joints.** A segment longer than the usable stock length (sheet length − trims, or `maxPieceLength`) is split
+  into the fewest equal pieces (`<id>.1`, ...) with plain BUTT JOINTS (`project.plinth.butt_joint`); plinth clips and
+  connectors are not modelled.
+* **Returns** (`returnLeft` / `returnRight`, items `<id>.left` / `<id>.right`): VerticalSide panels flush with the
+  outer face of the end cabinet, from the back face of the front plinth to the back of that cabinet; refused at an
+  end closed by an appliance end panel.
+* Rule of thumb (note only): integrated dishwashers often need a lower or notched plinth for the door swing.
+
 ## 5. Limitations
 
 * The per-project parts limit is checked on the estimate (`estimatePartCount`), an upper bound; custom parameter
   values are not limited (sizes derived from them are checked on the generated parts).
 * Worktops: straight runs only (no L/U corner mitres), rectangular / rounded-rectangle cut-outs only, no
   connector-bolt pockets, no wall-profile scribing; a worktop does not follow later cabinet edits (rebuild it).
+* Plinths: straight runs only (no corner mitres), equal splits only (joints are not aligned with the feet), no
+  clips / feet fixing, no notch for appliance doors, no edge banding; a plinth does not follow cabinet edits.
 * Rejecting a file at the 500-item limit still parses the whole (≤ 256 MiB) JSON text first.
 
 * Undo snapshots cost memory proportional to the project size per step (bounded by the undo limit).
@@ -444,7 +469,8 @@ parametric contour holds the cut-outs, so cutting/nesting, CAM, DXF export and d
 
 ## 6. Tests
 
-`fos_project_tests` (`worktop_tests.cpp`: run extent and overhangs in the reference frame, generic material/band,
+`fos_project_tests` (`plinth_tests.cpp`: height from the feet, setback, 3 equal pieces + returns, interruption at a
+dishwasher end panel, refusals, undo; `worktop_tests.cpp`: run extent and overhangs in the reference frame, generic material/band,
 split at 2400 mm, joint moved from 2400 to 1850 by a sink keep-out, cut-out position in the second piece, rule-of-thumb
 refusals, run errors, undoable command): default libraries; base-cabinet part and cut sizes (hand-computed); panel items and
 placements; generation failure as diagnostic; structural errors; determinism; Scenario B (width 800 → 900 by
