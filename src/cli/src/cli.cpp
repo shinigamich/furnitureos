@@ -18,7 +18,7 @@ struct CommandEntry {
     Handler handler;
 };
 
-constexpr std::array<CommandEntry, 20> kCommands{{
+constexpr std::array<CommandEntry, 21> kCommands{{
     {"new", "Create a project file, optionally with one cabinet from a template.", detail::cmdNew},
     {"info", "Show items, parameters, part counts and diagnostics of a project.", detail::cmdInfo},
     {"set", "Set a parameter of an item to a value or an expression and save.", detail::cmdSet},
@@ -37,6 +37,7 @@ constexpr std::array<CommandEntry, 20> kCommands{{
     {"export-dxf", "Part outlines, cut-outs, holes and grooves as DXF R12 for CNC/cutting software.", detail::cmdExportDxf},
     {"component", "Save, list and insert reusable components (.foscomp).", detail::cmdComponent},
     {"worktop", "Add a kitchen worktop over a run of cabinets (overhangs, joints, sink/hob cut-outs).", detail::cmdWorktop},
+    {"plinth", "Add a kitchen plinth (toe-kick) under a run of cabinets on feet (setback, joints, returns).", detail::cmdPlinth},
     {"batch", "Production batches: several projects (orders) cut and labelled together (.fosbatch).", detail::cmdBatch},
     {"import-dxf", "Add a free panel whose outline (and cut-outs) come from an ASCII DXF file.", detail::cmdImportDxf},
 }};

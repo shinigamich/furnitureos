@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/project/worktop.hpp"
 
+#include "cabinet_run.hpp"
+
 #include "fos/furniture/panel.hpp"
-#include "fos/project/resolve.hpp"
 
 #include <algorithm>
-#include <charconv>
 #include <cmath>
-#include <set>
 
 namespace fos::project {
 
@@ -21,31 +20,16 @@ const char* toString(WorktopCutoutKind kind) noexcept {
 
 namespace {
 
-constexpr double kEps = 1e-6;
-constexpr double kFlushTolerance = 0.5; ///< Gap / overlap between neighbours treated as touching (mm).
-constexpr double kTopTolerance = 1.0;   ///< Allowed difference of cabinet top heights (mm).
+using detail::kRunEps;
+constexpr double kEps = kRunEps;
+constexpr double kTopTolerance = 1.0; ///< Allowed difference of cabinet top heights (mm).
 
 core::Error invalid(std::string message, std::string context = {}) {
     return core::makeError(core::ErrorCode::InvalidArgument, std::move(message), std::move(context));
 }
 
-/// Shortest fixed-notation decimal text that reads back as `v` (messages and expressions).
-std::string num(double v) {
-    if (std::fabs(v) < 1e-9) v = 0;
-    char buf[64];
-    const auto r = std::to_chars(buf, buf + sizeof buf, v, std::chars_format::fixed);
-    return r.ec == std::errc() ? std::string(buf, r.ptr) : std::to_string(v);
-}
-
-/// Number rounded to 0.1 mm for messages.
-std::string mm(double v) { return num(std::round(v * 10.0) / 10.0); }
-
-bool sameRotation(const geometry::Transform& relative) {
-    const auto near = [](geometry::Vec3 a, geometry::Vec3 b) {
-        return std::fabs(a.x - b.x) < 1e-9 && std::fabs(a.y - b.y) < 1e-9 && std::fabs(a.z - b.z) < 1e-9;
-    };
-    return near(relative.xAxis, {1, 0, 0}) && near(relative.yAxis, {0, 1, 0}) && near(relative.zAxis, {0, 0, 1});
-}
+std::string num(double v) { return detail::runNum(v); }
+std::string mm(double v) { return detail::runMm(v); }
 
 core::Result<void> checkRange(const char* what, double v, double lo, double hi) {
     if (!std::isfinite(v) || v < lo || v > hi)
@@ -57,41 +41,6 @@ core::Result<void> checkRange(const char* what, double v, double lo, double hi) 
 std::string cutoutLabel(const WorktopCutout& c, std::size_t index) {
     return std::string(toString(c.kind)) + " cut-out #" + std::to_string(index + 1) + " (centre x = " + mm(c.centerX) +
            " mm)";
-}
-
-struct Cabinet {
-    std::string id;
-    geometry::Aabb box; ///< In the reference frame.
-};
-
-/// Extents of the cabinets in the reference frame, sorted left to right.
-core::Result<std::vector<Cabinet>> runCabinets(const Project& project, const WorktopRequest& request,
-                                               geometry::Transform& reference) {
-    if (request.itemIds.empty()) return invalid("A worktop needs at least one cabinet item id.");
-    std::set<std::string> seen;
-    std::vector<Cabinet> cabinets;
-    for (const std::string& id : request.itemIds) {
-        if (!seen.insert(id).second) return invalid("Cabinet \"" + id + "\" is listed twice for the worktop.", id);
-        const Item* item = project.findItem(id);
-        if (item == nullptr)
-            return core::makeError(core::ErrorCode::NotFound, "The project has no furniture item \"" + id + "\".", id);
-        if (!item->isCabinet())
-            return invalid("Item \"" + id + "\" is a free panel, not a cabinet; a worktop spans cabinet items only.", id);
-        if (cabinets.empty()) reference = item->placement();
-        const geometry::Transform relative = reference.inverse() * item->placement();
-        if (!sameRotation(relative))
-            return invalid("Cabinet \"" + id + "\" is rotated differently from \"" + request.itemIds.front() +
-                               "\"; a worktop spans a straight run (corner runs need two worktops).",
-                           id);
-        auto assembly = generateItem(project, id);
-        if (!assembly) return invalid("Cabinet \"" + id + "\" cannot be generated: " + assembly.error().message, id);
-        const geometry::Aabb local = assembly.value().bounds();
-        if (local.empty()) return invalid("Cabinet \"" + id + "\" has no generated parts.", id);
-        cabinets.push_back({id, local.transformed(relative)});
-    }
-    std::stable_sort(cabinets.begin(), cabinets.end(),
-                     [](const Cabinet& a, const Cabinet& b) { return a.box.min.x < b.box.min.x; });
-    return cabinets;
 }
 
 /// Forbidden x ranges (worktop coordinates) for joints, one per cut-out.
@@ -162,45 +111,34 @@ core::Result<WorktopPlan> planWorktop(const Project& project, const WorktopReque
         if (auto r = checkRange("rule distance", v, 0, 1000); !r) return r.error();
 
     WorktopPlan plan;
-    geometry::Transform reference;
-    auto cabinetsR = runCabinets(project, request, reference);
-    if (!cabinetsR) return cabinetsR.error();
-    const std::vector<Cabinet>& cabinets = cabinetsR.value();
+    auto runR = detail::analyzeRun(project, request.itemIds, "worktop");
+    if (!runR) return runR.error();
+    const detail::CabinetRun& run = runR.value();
+    const geometry::Transform reference = run.reference;
+    const std::vector<detail::RunCabinet>& cabinets = run.cabinets;
 
     // --- run extent ---
-    double minX = cabinets.front().box.min.x, maxX = cabinets.front().box.max.x;
-    double minY = cabinets.front().box.min.y, maxY = cabinets.front().box.max.y;
+    const double minX = run.box.min.x, maxX = run.box.max.x;
+    const double minY = run.box.min.y, maxY = run.box.max.y;
     double topLo = cabinets.front().box.max.z, topHi = topLo;
     std::string topLoId = cabinets.front().id, topHiId = topLoId;
-    for (std::size_t i = 0; i < cabinets.size(); ++i) {
-        const Cabinet& c = cabinets[i];
+    for (const detail::RunCabinet& c : cabinets) {
         plan.runOrder.push_back(c.id);
-        minX = std::min(minX, c.box.min.x);
-        maxX = std::max(maxX, c.box.max.x);
-        minY = std::min(minY, c.box.min.y);
-        maxY = std::max(maxY, c.box.max.y);
         if (c.box.max.z < topLo) topLo = c.box.max.z, topLoId = c.id;
         if (c.box.max.z > topHi) topHi = c.box.max.z, topHiId = c.id;
-        if (i == 0) continue;
-        const Cabinet& prev = cabinets[i - 1];
-        const double gap = c.box.min.x - prev.box.max.x;
-        if (gap < -kFlushTolerance)
-            return invalid("Cabinets \"" + prev.id + "\" and \"" + c.id + "\" overlap by " + mm(-gap) +
-                               " mm along the run; a worktop needs a straight run of cabinets side by side.",
-                           c.id);
-        if (gap > kFlushTolerance)
-            plan.notes.push_back({core::Severity::Warning, "project.worktop.gap",
-                                  "There is a " + mm(gap) + " mm gap between cabinets \"" + prev.id + "\" and \"" +
-                                      c.id + "\"; the worktop bridges it (add a filler or close the gap).",
-                                  c.id});
     }
+    for (const detail::RunGap& g : run.gaps)
+        plan.notes.push_back({core::Severity::Warning, "project.worktop.gap",
+                              "There is a " + mm(g.width) + " mm gap between cabinets \"" + g.leftId + "\" and \"" +
+                                  g.rightId + "\"; the worktop bridges it (add a filler or close the gap).",
+                              g.rightId});
     if (topHi - topLo > kTopTolerance)
         return invalid("The cabinet tops are at different heights: \"" + topLoId + "\" ends at z = " + mm(topLo) +
                            " mm, \"" + topHiId + "\" at z = " + mm(topHi) +
                            " mm (more than 1 mm apart); level the cabinets before adding a worktop.",
                        topLoId);
-    for (const Cabinet& c : cabinets)
-        if (c.box.min.y - minY > kFlushTolerance)
+    for (const detail::RunCabinet& c : cabinets)
+        if (c.box.min.y - minY > detail::kRunFlushTolerance)
             plan.notes.push_back({core::Severity::Info, "project.worktop.front_offset",
                                   "The front of cabinet \"" + c.id + "\" is " + mm(c.box.min.y - minY) +
                                       " mm behind the foremost front; its overhang is larger by that amount.",

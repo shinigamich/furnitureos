@@ -133,6 +133,7 @@ int cmdEdgebandRolls(const std::vector<std::string>& args, Io& io);
 int cmdBatch(const std::vector<std::string>& args, Io& io);
 int cmdQuote(const std::vector<std::string>& args, Io& io);
 int cmdWorktop(const std::vector<std::string>& args, Io& io);
+int cmdPlinth(const std::vector<std::string>& args, Io& io);
 int cmdPacking(const std::vector<std::string>& args, Io& io);
 int cmdAssembly(const std::vector<std::string>& args, Io& io);
 
