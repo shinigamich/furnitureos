@@ -181,7 +181,7 @@ TEST(File, UnknownKeysArePreserved) {
         payload["project"]["futureField"] = "keep me";
         payload["settings"]["theme"] = {{"dark", true}};
         payload["items"][0]["rating"] = 5;
-        payload["libraries"]["materials"][0]["density"] = 650; // formats: kept in Material::custom
+        payload["libraries"]["materials"][0]["moistureContent"] = 650; // formats: kept in Material::custom
     });
     auto loaded = parseProject(text);
     ASSERT_TRUE(loaded.ok()) << loaded.error().message;
