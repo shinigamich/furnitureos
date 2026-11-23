@@ -6,6 +6,7 @@
 /// project::planWorktop and the undoable apply (project::commands::addWorktop, one undo step).
 /// All geometry, joints and cut-out rules are the project module's; nothing is computed here
 /// beyond formatting. Lengths are mm.
+#include "fos/app/cabinet_run_form.hpp"
 #include "fos/project/worktop.hpp"
 
 #include <QString>
@@ -19,21 +20,14 @@ namespace fos::app {
 class Session;
 struct Selection;
 
-/// One cabinet item of the checklist (project order).
-struct WorktopCabinetRow {
-    std::string id;
-    QString label;        ///< "Name (id)".
-    bool checked = false; ///< Pre-selection, see worktopCabinetRows().
-};
-/// Every cabinet item of the project. Checked: the selected item when it is a cabinet,
-/// otherwise every cabinet (the dialog lets the user narrow the run).
-std::vector<WorktopCabinetRow> worktopCabinetRows(const project::Project& project, const Selection& selection);
+/// The cabinet checklist (cabinet_run_form.hpp, shared with Edit > Add plinth…).
+using WorktopCabinetRow = CabinetRunRow;
+inline std::vector<WorktopCabinetRow> worktopCabinetRows(const project::Project& project, const Selection& selection) {
+    return cabinetRunRows(project, selection);
+}
 
 /// One entry of the material or band combo; `id` empty = the engine's automatic choice.
-struct WorktopChoice {
-    std::string id;
-    QString text;
-};
+using WorktopChoice = FormChoice;
 /// "Generic placeholder (38 mm)" (id empty, the engine adds kGenericWorktopMaterial unless
 /// it is already in the library) followed by the library materials in library order,
 /// "Name — 38 mm (id)". The generic material itself is listed once, as the first entry.

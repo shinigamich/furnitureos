@@ -36,6 +36,8 @@ add_library(fos_app_core STATIC
     src/core/corner_rows.cpp
     src/core/appliance_text.cpp
     src/core/worktop_form.cpp
+    src/core/cabinet_run_form.cpp
+    src/core/plinth_form.cpp
     src/core/packing_rows.cpp)
 add_library(fos::app_core ALIAS fos_app_core)
 # moc (Qt 6.4) cannot parse libstdc++ C++20 concepts with the compiler predefines (see viewport).
@@ -67,6 +69,7 @@ if(FOS_BUILD_TESTS)
         tests/core/corner_tests.cpp
         tests/core/appliance_tests.cpp
         tests/core/worktop_tests.cpp
+        tests/core/plinth_tests.cpp
         tests/core/packing_tests.cpp)
     target_link_libraries(fos_app_core_tests PRIVATE fos::app_core Qt6::Test GTest::gtest GTest::gmock)
     fos_set_warnings(fos_app_core_tests PRIVATE)
@@ -133,7 +136,9 @@ set(FOS_APP_GUI_SOURCES
     src/gui/library_window.cpp
     src/gui/library_forms.cpp
     src/gui/worktop_dialog.hpp
-    src/gui/worktop_dialog.cpp)
+    src/gui/worktop_dialog.cpp
+    src/gui/plinth_dialog.hpp
+    src/gui/plinth_dialog.cpp)
 
 # Everything except main.cpp goes into a static library shared by the executable and the
 # GUI smoke test.

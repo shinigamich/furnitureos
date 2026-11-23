@@ -1266,6 +1266,30 @@
         <source>Cut-out in the back panel</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Carcass material of the first cabinet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Length %1 mm, height %2 mm, thickness %3 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Material: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Front pieces: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>  %1 (%2): %3 mm, from %4 to %5 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>  Return %1 (%2)</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::CommandText</name>
@@ -4214,6 +4238,22 @@ Replace it?</source>
         <source>Packages, hardware bags and generic assembly steps per item</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Add plinth</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The project has no cabinets to put a plinth under.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add p&amp;linth…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add a kitchen plinth under a straight run of cabinets on feet</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::NestingSettingsForm</name>
@@ -4486,6 +4526,69 @@ Replace it?</source>
     </message>
     <message>
         <source>-assembly.svg</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::PlinthDialog</name>
+    <message>
+        <source>Add plinth</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cabinets of the run (first checked = reference)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Plinth face behind the foremost carcass front (50 mm is a rule of thumb).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>From the cabinets</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Board height from the floor; minimum = the plinth height of the cabinets on feet.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Left</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Right</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Stock length</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Material:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Setback:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Height:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>End returns:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Longest piece:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cabinets must stand on feet; appliance gaps interrupt the plinth. Plinth clips and feet fixing are not modelled.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Preview</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -5143,6 +5246,10 @@ Circle: X, Y = centre, Radius.</source>
     <name>project</name>
     <message>
         <source>Worktop</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Plinth</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

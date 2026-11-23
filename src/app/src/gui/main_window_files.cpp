@@ -10,6 +10,7 @@
 #include "fos/formats/obj_export.hpp"
 #include "fos/production/csv.hpp"
 #include "main_window.hpp"
+#include "plinth_dialog.hpp"
 #include "worktop_dialog.hpp"
 
 #include <QApplication>
@@ -267,6 +268,17 @@ void MainWindow::addWorktopDialog() {
     if (dialog.exec() != QDialog::Accepted) return;
     auto r = applyWorktop(session_, dialog.request());
     if (!r) showError(tr("Add worktop"), r.error());
+}
+
+void MainWindow::addPlinthDialog() {
+    if (cabinetRunRows(session_.project(), session_.selection()).empty()) {
+        QMessageBox::information(this, tr("Add plinth"), tr("The project has no cabinets to put a plinth under."));
+        return;
+    }
+    PlinthDialog dialog(session_.project(), session_.selection(), this);
+    if (dialog.exec() != QDialog::Accepted) return;
+    auto r = applyPlinth(session_, dialog.request());
+    if (!r) showError(tr("Add plinth"), r.error());
 }
 
 void MainWindow::saveSelectedAsComponent() {

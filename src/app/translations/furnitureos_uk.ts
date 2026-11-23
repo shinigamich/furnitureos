@@ -1270,6 +1270,30 @@
         <source>Cut-out in the back panel</source>
         <translation>Виріз у задній стінці</translation>
     </message>
+    <message>
+        <source>Carcass material of the first cabinet</source>
+        <translation>Матеріал корпусу першої шафи</translation>
+    </message>
+    <message>
+        <source>Length %1 mm, height %2 mm, thickness %3 mm</source>
+        <translation>Довжина %1 мм, висота %2 мм, товщина %3 мм</translation>
+    </message>
+    <message>
+        <source>Material: %1</source>
+        <translation>Матеріал: %1</translation>
+    </message>
+    <message>
+        <source>Front pieces: %1</source>
+        <translation>Передніх частин: %1</translation>
+    </message>
+    <message>
+        <source>  %1 (%2): %3 mm, from %4 to %5 mm</source>
+        <translation>  %1 (%2): %3 мм, від %4 до %5 мм</translation>
+    </message>
+    <message>
+        <source>  Return %1 (%2)</source>
+        <translation>  Бокова планка %1 (%2)</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::CommandText</name>
@@ -4230,6 +4254,22 @@ Replace it?</source>
         <source>Packages, hardware bags and generic assembly steps per item</source>
         <translation>Пакунки, пакети фурнітури та типові кроки складання для кожного виробу</translation>
     </message>
+    <message>
+        <source>Add plinth</source>
+        <translation>Додати цоколь</translation>
+    </message>
+    <message>
+        <source>The project has no cabinets to put a plinth under.</source>
+        <translation>У проєкті немає корпусів, під які можна поставити цоколь.</translation>
+    </message>
+    <message>
+        <source>Add p&amp;linth…</source>
+        <translation>Додати &amp;цоколь…</translation>
+    </message>
+    <message>
+        <source>Add a kitchen plinth under a straight run of cabinets on feet</source>
+        <translation>Додати кухонний цоколь під прямий ряд корпусів на ніжках</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::NestingSettingsForm</name>
@@ -4503,6 +4543,69 @@ Replace it?</source>
     <message>
         <source>-assembly.svg</source>
         <translation>-skladannia.svg</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::PlinthDialog</name>
+    <message>
+        <source>Add plinth</source>
+        <translation>Додати цоколь</translation>
+    </message>
+    <message>
+        <source>Cabinets of the run (first checked = reference)</source>
+        <translation>Корпуси ряду (перший позначений — базовий)</translation>
+    </message>
+    <message>
+        <source>Plinth face behind the foremost carcass front (50 mm is a rule of thumb).</source>
+        <translation>Лицьова площина цоколя за найвиступнішим фасадом корпусу (50 мм — емпіричне правило).</translation>
+    </message>
+    <message>
+        <source>From the cabinets</source>
+        <translation>З корпусів</translation>
+    </message>
+    <message>
+        <source>Board height from the floor; minimum = the plinth height of the cabinets on feet.</source>
+        <translation>Висота планки від підлоги; мінімум = висота цоколя корпусів на ніжках.</translation>
+    </message>
+    <message>
+        <source>Left</source>
+        <translation>Ліворуч</translation>
+    </message>
+    <message>
+        <source>Right</source>
+        <translation>Праворуч</translation>
+    </message>
+    <message>
+        <source>Stock length</source>
+        <translation>Довжина заготовки</translation>
+    </message>
+    <message>
+        <source>Material:</source>
+        <translation>Матеріал:</translation>
+    </message>
+    <message>
+        <source>Setback:</source>
+        <translation>Відступ:</translation>
+    </message>
+    <message>
+        <source>Height:</source>
+        <translation>Висота:</translation>
+    </message>
+    <message>
+        <source>End returns:</source>
+        <translation>Бокові планки:</translation>
+    </message>
+    <message>
+        <source>Longest piece:</source>
+        <translation>Найдовша частина:</translation>
+    </message>
+    <message>
+        <source>Cabinets must stand on feet; appliance gaps interrupt the plinth. Plinth clips and feet fixing are not modelled.</source>
+        <translation>Корпуси мають стояти на ніжках; ніші для техніки переривають цоколь. Кліпси цоколя та кріплення ніжок не моделюються.</translation>
+    </message>
+    <message>
+        <source>Preview</source>
+        <translation>Попередній перегляд</translation>
     </message>
 </context>
 <context>
@@ -5161,6 +5264,10 @@ Circle: X, Y = centre, Radius.</source>
     <message>
         <source>Worktop</source>
         <translation>Стільниця</translation>
+    </message>
+    <message>
+        <source>Plinth</source>
+        <translation>Цоколь</translation>
     </message>
 </context>
 </TS>

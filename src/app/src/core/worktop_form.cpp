@@ -13,42 +13,14 @@ namespace {
 QString tr(const char* text) { return QCoreApplication::translate("fos::app", text); }
 QString len(double mm) { return QString::fromStdString(core::formatLength(mm)); }
 QString qs(const std::string& s) { return QString::fromStdString(s); }
-
-bool idInUse(const project::Project& project, const std::string& id) {
-    const std::string prefix = id + ".";
-    for (const auto& item : project.items)
-        if (item.id() == id || item.id().rfind(prefix, 0) == 0) return true;
-    return false;
-}
-
-QString severityText(core::Severity severity) {
-    switch (severity) {
-    case core::Severity::Error: return tr("Error");
-    case core::Severity::Warning: return tr("Warning");
-    case core::Severity::Info: break;
-    }
-    return tr("Note");
-}
 } // namespace
-
-std::vector<WorktopCabinetRow> worktopCabinetRows(const project::Project& project, const Selection& selection) {
-    const project::Item* selected = project.findItem(selection.itemId);
-    const bool selectedCabinet = selected && selected->isCabinet();
-    std::vector<WorktopCabinetRow> rows;
-    for (const auto& item : project.items) {
-        if (!item.isCabinet()) continue;
-        rows.push_back({item.id(), QStringLiteral("%1 (%2)").arg(qs(item.name()), qs(item.id())),
-                        selectedCabinet ? item.id() == selection.itemId : true});
-    }
-    return rows;
-}
 
 std::vector<WorktopChoice> worktopMaterialChoices(const project::Project& project) {
     std::vector<WorktopChoice> out;
     out.push_back({std::string{}, tr("Generic placeholder (38 mm)")});
     for (const auto& m : project.libraries.materials) {
         if (m.id.str() == project::kGenericWorktopMaterial) continue; // = the first entry
-        out.push_back({m.id.str(), tr("%1 — %2 mm (%3)").arg(qs(m.name), len(m.thickness), qs(m.id.str()))});
+        out.push_back({m.id.str(), materialChoiceText(m)});
     }
     return out;
 }
@@ -72,12 +44,7 @@ const std::vector<project::WorktopCutoutKind>& worktopCutoutKinds() {
     return kinds;
 }
 
-std::string nextWorktopId(const project::Project& project) {
-    for (int n = 1;; ++n) {
-        std::string id = "worktop" + std::to_string(n);
-        if (!idInUse(project, id)) return id;
-    }
-}
+std::string nextWorktopId(const project::Project& project) { return nextRunItemId(project, "worktop"); }
 
 project::WorktopRequest defaultWorktopRequest(const project::Project& project, std::vector<std::string> itemIds) {
     project::WorktopRequest request;
@@ -120,8 +87,7 @@ WorktopPreview worktopPreview(const project::Project& project, const project::Wo
         lines << tr("Adds the material %1 to the library.").arg(qs(p.addedMaterial->id.str()));
     if (p.addedEdgeBand)
         lines << tr("Adds the edge band %1 to the library.").arg(qs(p.addedEdgeBand->id.str()));
-    for (const auto& d : p.notes)
-        lines << QStringLiteral("%1: %2").arg(severityText(d.severity), qs(d.message));
+    lines << diagnosticLines(p.notes);
     preview.text = lines.join(QLatin1Char('\n'));
     return preview;
 }
