@@ -99,6 +99,8 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 | T-051 | Corner cabinets: blind corner and L-shaped corner (engine, codec, templates, desktop Corner group) | Done (bi-fold hinges not modelled) | 6 furniture + 1 project + 4 app tests |
 | T-052 | Kitchen worktops over straight cabinet runs: overhangs, butt-joint splits, sink/hob cut-outs; `fos worktop`; desktop dialog | Done (straight runs only) | 6 project + 2 cli + 2 app tests |
 | T-053 | Packing lists (weight from material density, never guessed) and generic assembly sheets; `fos packing`, `fos assembly` | Done | 12+ production/cli tests |
+| T-054 | Appliance housings: open oven niche with vents, dishwasher gap with decor front; oven-tall/dishwasher templates; desktop editing | Done (generic sizes) | 12 furniture + 1 project + 2 app tests |
+| T-055 | Kitchen plinths over cabinet runs on feet (`fos plinth`), shared run analysis with worktops; cabinet codec split | Done (straight runs only) | 5 project + 2 cli tests |
 
 ## Independent review 2026-11-12 (calculation-critical modules)
 
