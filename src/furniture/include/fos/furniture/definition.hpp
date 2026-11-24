@@ -201,6 +201,12 @@ struct HardwareSelection {
     domain::HardwareId confirmat{hardware::ids::kConfirmat7x50};
     domain::HardwareId dowel{hardware::ids::kDowel8x30};
     domain::HardwareId foot{hardware::ids::kFootAdjustable};
+    /// Concealed cabinet hanger (kind Suspension, e.g. hardware::ids::kHangerGeneric) for wall
+    /// mounting; EMPTY (default) = no hangers. When set, the generator places one hanger per
+    /// side and a wall rail (`wallRail`) as long as the cabinet is wide (README "Wall mounting").
+    domain::HardwareId hanger;
+    /// Wall rail the hangers hook onto; used only when `hanger` is set.
+    domain::HardwareId wallRail{hardware::ids::kWallRailGeneric};
     bool operator==(const HardwareSelection&) const = default;
 };
 

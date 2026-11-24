@@ -262,6 +262,11 @@ Json hardwareJson(const furniture::HardwareSelection& h) {
     if (h.hingeInset != defaults.hingeInset) j["hingeInset"] = h.hingeInset.str();
     if (h.lift != defaults.lift) j["lift"] = h.lift.str();
     if (h.slidingSystem != defaults.slidingSystem) j["slidingSystem"] = h.slidingSystem.str();
+    // Wall mounting: only when a hanger is selected (the rail only when it is not the default).
+    if (!h.hanger.empty()) {
+        j["hanger"] = h.hanger.str();
+        if (h.wallRail != defaults.wallRail) j["wallRail"] = h.wallRail.str();
+    }
     return j;
 }
 
@@ -283,6 +288,8 @@ core::Result<furniture::HardwareSelection> hardwareFromJson(const Json& json, st
     id("hingeInset", h.hingeInset);
     id("lift", h.lift);
     id("slidingSystem", h.slidingSystem);
+    id("hanger", h.hanger);
+    id("wallRail", h.wallRail);
     r.rejectUnknown();
     if (!r.ok()) return r.error();
     return h;

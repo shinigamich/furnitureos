@@ -3,6 +3,9 @@
 
 #include "fos/furniture/edit.hpp"
 #include "fos/project/codec.hpp"
+#include "fos/project/components.hpp"
+
+#include <algorithm>
 
 namespace fos::project::test {
 namespace {
@@ -172,6 +175,54 @@ TEST(File, SlidingDoorCabinetRoundTripsByteIdentical) {
     EXPECT_EQ(lc->hardware.slidingSystem, domain::HardwareId("hw.sliding_custom"));
     EXPECT_EQ(modelText(loaded.value().resolved.model), modelText(before.model));
     EXPECT_EQ(serialized(loaded.value().project), first);
+}
+
+TEST(File, HungWallCabinetRoundTripsByteIdentical) {
+    Project p = newProject(meta());
+    // A cabinet without a hanger writes no "hanger" / "wallRail" key (older files unchanged).
+    Item plain;
+    plain.definition = furniture::templates::wallCabinet(domain::AssemblyId("wall0"), defaultTemplateMaterials());
+    p.items.push_back(plain);
+    EXPECT_EQ(serialized(p).find("\"hanger\""), std::string::npos);
+    EXPECT_EQ(serialized(p).find("wallRail"), std::string::npos);
+
+    Item cab;
+    cab.definition = furniture::templates::wallCabinet(domain::AssemblyId("wall1"), defaultTemplateMaterials());
+    furniture::CabinetDefinition& c = *cab.cabinet();
+    furniture::ConstructionOptions o = c.construction;
+    o.back = furniture::BackMount::Grooved;
+    ASSERT_TRUE(furniture::setConstruction(c, p.libraries, o).ok());
+    ASSERT_TRUE(furniture::setParameter(c, p.libraries, "groove_distance", 18).ok());
+    furniture::HardwareSelection h = c.hardware;
+    h.hanger = domain::HardwareId(hardware::ids::kHangerGeneric);
+    const auto set = furniture::setHardware(c, p.libraries, h);
+    ASSERT_TRUE(set.ok()) << set.error().message;
+    p.items.push_back(cab);
+    const Resolved before = resolved(p);
+    std::size_t hangers = 0;
+    for (const auto& a : before.model.assemblies)
+        for (const auto& inst : a.hardware) hangers += inst.definition.str() == hardware::ids::kHangerGeneric ? 1u : 0u;
+    EXPECT_EQ(hangers, 2u);
+
+    const std::string first = serialized(p);
+    const std::string compact = formats::Json::parse(first).dump();
+    EXPECT_NE(compact.find("\"hanger\":\"hw.hanger_generic\""), std::string::npos);
+    EXPECT_EQ(compact.find("wallRail"), std::string::npos); // default rail is not written
+    auto loaded = parseProject(first);
+    ASSERT_TRUE(loaded.ok()) << loaded.error().message;
+    const furniture::CabinetDefinition* lc = loaded.value().project.items[1].cabinet();
+    ASSERT_NE(lc, nullptr);
+    EXPECT_EQ(lc->hardware, h);
+    EXPECT_TRUE(loaded.value().project.items[0].cabinet()->hardware.hanger.empty());
+    EXPECT_EQ(modelText(loaded.value().resolved.model), modelText(before.model));
+    EXPECT_EQ(serialized(loaded.value().project), first);
+
+    // In-use checks: hanger and rail are referenced only by the hung cabinet.
+    const auto refs = libraryReferences(loaded.value().project.items[1]).hardware;
+    EXPECT_NE(std::find(refs.begin(), refs.end(), hardware::ids::kHangerGeneric), refs.end());
+    EXPECT_NE(std::find(refs.begin(), refs.end(), hardware::ids::kWallRailGeneric), refs.end());
+    const auto plainRefs = libraryReferences(loaded.value().project.items[0]).hardware;
+    EXPECT_EQ(std::find(plainRefs.begin(), plainRefs.end(), hardware::ids::kWallRailGeneric), plainRefs.end());
 }
 
 TEST(File, UnknownKeysArePreserved) {

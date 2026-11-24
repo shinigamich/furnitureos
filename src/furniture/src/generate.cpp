@@ -279,6 +279,13 @@ core::Result<GenerationResult> generate(const CabinetDefinition& definition, con
     g.assembly.placement = def.placement;
 
     const bool lShape = def.corner.kind == CornerKind::LShape;
+    if (!def.hardware.hanger.empty() && (lShape || def.applianceGap))
+        return core::makeError(core::ErrorCode::Unsupported,
+                               "Cabinet '" + def.id.str() + "' selects the cabinet hanger '" + def.hardware.hanger.str() +
+                                   "', but hangers are supported only on rectangular cabinets (not on " +
+                                   (lShape ? "an L-shaped corner cabinet" : "an appliance gap") +
+                                   "). Clear the hanger selection.",
+                               def.id.str());
     if (def.applianceGap) { // refuses a corner kind itself
         if (auto r = detail::buildApplianceGap(g); !r) return r.error();
     } else if (auto c = detail::checkCorner(g); !c) {
@@ -290,6 +297,7 @@ core::Result<GenerationResult> generate(const CabinetDefinition& definition, con
         if (!bounds) return bounds.error();
         if (auto r = detail::buildInterior(g, bounds.value()); !r) return r.error();
         if (auto r = detail::buildBack(g); !r) return r.error();
+        if (auto r = detail::buildHangers(g); !r) return r.error();
     }
     if (auto r = detail::checkPartSizes(g); !r) return r.error();
     detail::runHardware(g);

@@ -158,7 +158,9 @@ strings, ≤ 50). Decoding runs `furniture::checkContourSpec` (expressions must 
 |bulge| ≤ 1); values are checked when the item is generated.
 
 **HardwareSelection** — closed: `hinge`, `handle`, `shelfPin`, `confirmat`, `dowel`, `foot` (catalogue ids;
-defaults = the generic built-in ids).
+defaults = the generic built-in ids). Optional, written only when not default: `hingeHalf`, `hingeInset`,
+`lift`, `slidingSystem`; `hanger` (cabinet hanger id, absent / empty = none) only when a hanger is set, and
+then `wallRail` only when not `hw.wall_rail_generic`.
 
 **Parameter** — closed: `name` (R), `kind` (`Number` `Length` `Count` `Angle` `Ratio` `Boolean`, default
 `Number`), **exactly one of** `expression` (non-empty text, parametric grammar) or `value` (number), `description`,
@@ -305,7 +307,7 @@ The JSON nesting of the whole file is limited to 128 levels by the container (fo
 
 A **component** is one item (cabinet or free panel) plus copies of exactly the library entries it references
 (`libraryReferences(item)`: every material of the assignment incl. drawer / drawer bottom, edge bands of the
-assignment and part overrides, override materials, every `HardwareSelection` id and the slide of every drawer
+assignment and part overrides, override materials, every `HardwareSelection` id (the hanger and wall rail only when a hanger is set) and the slide of every drawer
 box). It is self-contained and can be inserted into any project.
 
 ```cpp

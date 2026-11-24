@@ -149,6 +149,23 @@ tracks (e.g. depth 300: only 205 mm remain behind them, 250 needed), doors too n
 2..6 or a non-integer expression, missing system definition. Project files: `kind: "SlidingDoors"`, front key
 `sliding: {count, countExpression?}` and `hardware.slidingSystem` written only when used / not default.
 
+### Wall mounting (`HardwareSelection::hanger`)
+
+`hanger` empty (default, also for every older file) = no wall-mounting hardware. Set (e.g.
+`hw.hanger_generic`, rules `hardware/cabinet_hanger.hpp`): hangers `hw.hanger.left|right` with two pilot holes
+each in the top-rear corner of the side's inner face, under the top panel (or the rear rail of a Rails top),
+and the wall rail `hw.wall_rail` (`HardwareSelection::wallRail`, default `hw.wall_rail_generic`) with length =
+`width`, position (0, `depth`, `interior_top` − 20) and the note "Wall rail <width> mm (cut on site) …".
+**Back rule:** the hanger body and the rail need `back_space_min` (18 mm generic) between the back panel and
+the wall. A Grooved back with `groove_distance` ≥ that (the back then lies wholly in front of the hangers, no
+notch) or no back is accepted; an Overlay or Inset back, or a smaller `groove_distance`, fails generation with
+a message naming the required value (nothing is changed automatically). Example 600 × 720 × 320, Grooved,
+`groove_distance` 18: holes on side.left face B at (687, 312) and (655, 312), rail top at z = 682. L-shaped
+corners and appliance gaps with a hanger fail (Unsupported); a missing hanger / rail definition fails
+(NotFound). The wall-cabinet template is unchanged (Overlay back, no hanger): switching it would change the
+geometry of new wall cabinets and need the new definitions in older project libraries. Project files:
+`hardware.hanger` (and `hardware.wallRail` when not default) written only when a hanger is set.
+
 ## Drawer boxes
 
 `FrontSpec::drawerBox` (`DrawerBoxSpec{slide, bottom, joint}`, DrawerStack only; `std::nullopt` = fronts only) puts a

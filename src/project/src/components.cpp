@@ -113,6 +113,11 @@ LibraryRefs libraryReferences(const Item& item) {
         for (const auto* id : {&h.hinge, &h.hingeHalf, &h.hingeInset, &h.lift, &h.handle, &h.shelfPin, &h.confirmat,
                                 &h.dowel, &h.foot, &h.slidingSystem})
             addId(r.hardware, id->str());
+        // The wall rail is in use only together with a hanger (old items never reference it).
+        if (!h.hanger.empty()) {
+            addId(r.hardware, h.hanger.str());
+            addId(r.hardware, h.wallRail.str());
+        }
         collectSection(r, c->interior);
     } else {
         const auto& p = item.panel()->panel;

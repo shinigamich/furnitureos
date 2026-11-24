@@ -35,6 +35,15 @@ HardwareDefinition crankHinge(const char* id, const char* name, double crank, do
                     {kOverlayMin, ovMin},
                     {kOverlayMax, ovMax}});
 }
+/// Linear wall rail, sold per metre (custom "unit" = "m"); no placement drilling.
+HardwareDefinition wallRail() {
+    using namespace keys;
+    HardwareDefinition d = generic(ids::kWallRailGeneric, HardwareKind::Other,
+                                   "Steel wall rail for cabinet hangers, per metre (generic)",
+                                   {{kRailHeight, 60.0}, {kRailThickness, 12.0}});
+    d.custom["unit"] = "m";
+    return d;
+}
 } // namespace
 
 std::vector<HardwareDefinition> builtinCatalog() {
@@ -149,6 +158,18 @@ std::vector<HardwareDefinition> builtinCatalog() {
                  {kTrackScrewDepth, 10.0},
                  {kInteriorClearance, 5.0},
                  {kInteriorDepthMin, 250.0}}),
+        generic(ids::kHangerGeneric, HardwareKind::Suspension, "Concealed cabinet hanger for a wall rail (generic)",
+                {{kBodyHeight, 60.0},
+                 {kBodyWidth, 45.0},
+                 {kBodyDepth, 16.0},
+                 {kBackSpaceMin, 18.0},
+                 {kScrewFromRearEdge, 8.0},
+                 {kScrewBelowTop, 15.0},
+                 {kScrewSpacing, 32.0},
+                 {kScrewDiameter, 3.0},
+                 {kScrewDepth, 10.0},
+                 {kRailTopBelowTop, 20.0}}),
+        wallRail(),
     };
 }
 
@@ -184,6 +205,9 @@ std::vector<std::string> requiredParams(HardwareKind kind) {
                 kRollerHoleFromSideEdge, kRollerHoleFromBottomEdge, kGuideHoleFromTopEdge, kRollerHoleDiameter,
                 kRollerHoleDepth, kTrackScrewEndDistance, kTrackScrewPitch, kTrackScrewDiameter, kTrackScrewDepth,
                 kInteriorClearance, kInteriorDepthMin};
+    case HardwareKind::Suspension:
+        return {kBodyHeight,   kBodyWidth,     kBodyDepth,  kBackSpaceMin, kScrewFromRearEdge,
+                kScrewBelowTop, kScrewSpacing, kScrewDiameter, kScrewDepth, kRailTopBelowTop};
     default: return {};
     }
 }

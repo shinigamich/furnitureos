@@ -4,6 +4,7 @@
 /// Internal state shared by the generator stages (carcass, back, interior, fronts, hardware).
 #include "fos/furniture/generate.hpp"
 #include "fos/furniture/parameters.hpp"
+#include "fos/hardware/cabinet_hanger.hpp"
 #include "fos/hardware/drawer_slides.hpp"
 #include "fos/hardware/handle.hpp"
 #include "fos/hardware/sliding_doors.hpp"
@@ -42,14 +43,14 @@ enum class EdgeUse { Raw, Visible, Hidden, Front };
 /// Indexed by domain::EdgeSide (L1, L2, W1, W2).
 using Edges = std::array<EdgeUse, 4>;
 
-enum class JobKind { Corner, ShelfPins, Hinges, Handle, Slide, Lift, SlidingTrack, SlidingRollers };
+enum class JobKind { Corner, ShelfPins, Hinges, Handle, Slide, Lift, SlidingTrack, SlidingRollers, Hanger, WallRail };
 /// A deferred hardware placement; run after all parts exist (gen_hardware.cpp).
 struct Job {
     JobKind kind = JobKind::Corner;
     std::string instance;   ///< Instance id suffix after "<cabinet>/".
     std::size_t a = 0;      ///< Corner: face part. ShelfPins: shelf. Hinges: door. Handle: front. Slide: box side.
     std::size_t b = 0;      ///< Corner: edge part. ShelfPins: left support. Hinges / Slide: carrying panel.
-    std::size_t c = 0;      ///< ShelfPins: right support. Lift: panel above the flap.
+    std::size_t c = 0;      ///< ShelfPins: right support. Lift: panel above the flap. Hanger: a = side, b = panel above.
     /// Hinges: hinge definition chosen from the front's overlay (empty = HardwareSelection::hinge).
     domain::HardwareId hinge;
     bool flap = false;      ///< Hinges: top-hinged flap (hinge axis X, b = panel above).
@@ -62,6 +63,8 @@ struct Job {
     /// SlidingTrack: a = panel carrying the track; instanceId is filled in when placed.
     /// sharedPanel limits the screw holes to the shared-panel depth. SlidingRollers: a = door.
     hardware::SlidingTrackConfig track;
+    /// WallRail: rail ends, wall plane, reference height and parts (instanceId filled when placed).
+    hardware::WallRailConfig rail;
     domain::HardwareId slide; ///< Slide: definition id (DrawerBoxSpec::slide).
     double slideLength = 0;   ///< Slide: nominal length, mm.
     /// Corner (drawer-box joints): fastener zone along the joint (CornerJointConfig::zone).
@@ -148,6 +151,11 @@ core::Result<std::vector<double>> distribute(const Gen& g, double available, con
 
 core::Result<Bounds> buildCarcass(Gen& g);
 core::Result<void> buildBack(Gen& g);
+/// Wall mounting (gen_hanger.cpp, README "Wall mounting"): when HardwareSelection::hanger is set,
+/// checks the back construction against the hanger's back_space_min and schedules the left and
+/// right hanger jobs and the wall-rail job. Errors (ConstraintViolation / NotFound / Unsupported)
+/// name the cabinet, the hanger and the numbers.
+core::Result<void> buildHangers(Gen& g);
 core::Result<void> buildInterior(Gen& g, const Bounds& rootBounds);
 /// Open appliance niche of the section at `path` (gen_appliance.cpp): checks the spec and
 /// records its ventilation cut-out (ShelfSlot in the panel below, BackCutout in the back).

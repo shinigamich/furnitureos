@@ -96,6 +96,14 @@ All parameters are millimetres in `HardwareDefinition::params`. Constants for th
 `guide_hole_from_top_edge` 30), track screws 4 x 10 (`track_screw_end_distance` 50, `track_screw_pitch` 300
 = largest spacing), `interior_clearance` 5, `interior_depth_min` 250. Keys: catalog.hpp.
 
+`hw.hanger_generic` (kind Suspension, "Concealed cabinet hanger for a wall rail (generic)", typical values,
+unverified): `body_height` 60 (below the underside of the panel above = reference), `body_width` 45,
+`body_depth` 16 (in front of the side's rear edge), `back_space_min` 18 (rear face of the back panel at least
+this far in front of the rear edge), screw pilot holes 3 x 10 at `screw_from_rear_edge` 8 and
+`screw_below_top` 15 / + `screw_spacing` 32, `rail_top_below_top` 20 (rail top edge below the reference). The
+generic model is surface-mounted: no pocket in the side. `hw.wall_rail_generic` (kind Other, "Steel wall rail
+for cabinet hangers, per metre (generic)", `custom["unit"] = "m"`): `rail_height` 60, `rail_thickness` 12.
+
 **Crank model (GENERIC):** a 0 mm-crank (full-overlay, `hw.hinge_cup_35`) arm overlays about 16 mm;
 each mm of crank takes 1 mm off (half 9.5 → 6.5, inset 16 → 0 = flush with the side's inner face);
 `overlay_min/max` add the usual adjustment. The cup position (21.5) and plate line (37) are the same for
@@ -120,6 +128,7 @@ error that names the parts and the numbers involved.
 | `placeHinges`, `hingeCount`, `hingePositions` | `hinges.hpp` | Cup hinges: cup holes in the door, mounting-plate hole pairs in the carrying panel. `HingeConfig::axis` Z = side-hung door, X = top-hinged flap (plates under the panel above; count table applied to the flap width). Overlay = side inner face − hinged edge, checked against `overlay_min/max` when the hinge has them, else 0 … side thickness + `maxSideOverhang`. **Inset rule:** when the door's inner face lies behind the side's front edge, its outer face must be 0 … `maxFrontGap` behind it (recess r) and the plate line is r + door thickness + `plate_line_from_front_edge` behind the front edge (flush 18 mm door: 55). |
 | `placeLiftMechanism`, `liftPowerFactor` | `lift.hpp` | One lift mechanism per side for a top-hinged flap: 2 holes in the flap's inner face, 2 in the side's inner face (below the underside of the panel above). Errors: cabinet too low / too tall / too shallow, power factor out of range (only with `flapWeightKg` > 0), holes off panel / too deep. |
 | `planSlidingDoors`, `placeSlidingTrack`, `placeSlidingDoorRollers`, `slidingTrackScrewCount` | `sliding_doors.hpp` | Inset sliding doors in a two-lane track. Plan: door width = (opening + (n − 1) · overlap) / n, height = opening − `door_height_deduction`, door i at x0 + i · (width − overlap), lanes alternate (door 1 back lane, door 2 front lane, …); **interior depth rule**: `interiorFrontY` = setback + track depth + `interior_clearance` (95 mm generic) — interior parts must start behind it, so the usable depth shrinks by it. Errors: cabinet too shallow for the tracks / for `interior_depth_min` behind them, doors too narrow (< `door_width_min` or ≤ 2 · overlap) / too wide, opening too low, door too thick for the lanes, fewer than 2 doors. Track: screw holes in the panel face looking down (top) / up (bottom), one end distance from each end, evenly spaced ≤ pitch (1764 mm → 7). Rollers: 4 holes in the door's rear face (+y). |
+| `hangerBackSpace`, `placeCabinetHanger`, `placeWallRail` | `cabinet_hanger.hpp` | Wall mounting. Hanger: 2 pilot holes in the side's inner face (the face towards the panel above) at y = rear edge − 8, z = reference − 15 / − 47 (generic); errors: side not vertical facing x, too shallow / too low for the body, holes off panel / too deep, inconsistent definition (`back_space_min` < `body_depth`, screws outside the body). Rail: one instance (quantity 1, no operations) at (x0, wall, reference − `rail_top_below_top`), note "Wall rail <L> mm (cut on site) …"; error when `rail_thickness` ≥ `back_space_min`. `hangerBackSpace` gives the space the back construction must leave. |
 | `placeHandle` | `handle.hpp` | Two through holes for a handle on a vertical front; centred or offset from an edge; horizontal or vertical. |
 | `placeDrawerSlides`, `selectSlideLength`, `drawerBoxOuterWidth`, `drawerBoxLength`, `slideNominalLengths` | `drawer_slides.hpp` | Drawer-box sizing rules and one slide's holes: cabinet row on the cabinet side's face towards the drawer, drawer row on the box side (outer face, or lower edge for undermount). Checks the side gap against the rule (± 0.5), that the slide is a nominal length and ends within the cabinet side, hole depths. Errors name parts and numbers (e.g. "The usable depth of 240 mm is too shallow for the shortest drawer slide …"). |
 
@@ -137,6 +146,9 @@ hardware list of a model in `hardware_list.hpp`.
   (clash with shelves) and the flap weight are not modelled.
 * Sliding doors: inset two-lane system only (no overlay / face-mounted tracks, no soft-close or stopper
   positions, no door weight check); the tracks are hardware instances (length in the note), not parts.
+* Cabinet hangers: drilling and the back-space value only; no load rating, no adjustment range, no
+  pocket-type (recessed) hangers. The wall rail is a LINEAR article but `HardwareInstance` has no length:
+  the length is in the note and the hardware list counts it as 1 piece (cost per metre is not computed).
 * `placeHandle`: vertical fronts only; "left" is defined by assembly coordinates (see `handle.hpp`).
 * No door weight is computed; the weight class is an input.
 * Drawer slides: rows are not snapped to an existing System-32 row; no load rating / extension type; the

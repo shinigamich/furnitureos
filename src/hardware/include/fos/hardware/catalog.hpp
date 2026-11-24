@@ -134,6 +134,28 @@
 ///    interior_clearance         5     gap between the track rear edge and the interior
 ///    interior_depth_min         250   interior depth that must remain behind the tracks
 ///    (Typical values for a light wardrobe system; unverified. Data for an inset system.)
+///
+///  hw.hanger_generic  kind Suspension  "Concealed cabinet hanger for a wall rail (generic)"
+///    (rules and frame: cabinet_hanger.hpp; one hanger per side, in the top-rear corner of the
+///     side's INNER face, below the panel above = the "reference" underside)
+///    body_height                60    body height on the side, downwards from the reference
+///    body_width                 45    body extent from the side's inner face into the cabinet
+///    body_depth                 16    body extent from the side's rear edge forwards
+///    back_space_min             18    rear face of the back panel at least this far in front of
+///                                     the side's rear edge (room for body, hook and wall rail)
+///    screw_from_rear_edge       8     screw-hole column in front of the side's rear edge
+///    screw_below_top            15    first screw hole below the reference
+///    screw_spacing              32    second screw hole this far further down
+///    screw_diameter / _depth    3 / 10  pilot holes in the side's inner face
+///    rail_top_below_top         20    top edge of the wall rail below the reference
+///    (Typical values for a concealed hanger with height / depth adjustment; unverified. The
+///     generic model needs no pocket in the side: the body is surface-mounted behind the back.)
+///
+///  hw.wall_rail_generic  kind Other  "Steel wall rail for cabinet hangers, per metre (generic)"
+///    rail_height                60    profile height on the wall
+///    rail_thickness             12    profile thickness off the wall (must be < back_space_min)
+///    custom["unit"] = "m": a LINEAR article sold per metre and cut to length on site; one
+///    instance (quantity 1) per cabinet, its length in the instance note (cabinet_hanger.hpp).
 namespace fos::hardware {
 
 namespace keys {
@@ -225,6 +247,18 @@ inline constexpr const char* kTrackScrewDiameter = "track_screw_diameter";
 inline constexpr const char* kTrackScrewDepth = "track_screw_depth";
 inline constexpr const char* kInteriorClearance = "interior_clearance";
 inline constexpr const char* kInteriorDepthMin = "interior_depth_min";
+inline constexpr const char* kBodyHeight = "body_height";
+inline constexpr const char* kBodyWidth = "body_width";
+inline constexpr const char* kBodyDepth = "body_depth";
+inline constexpr const char* kBackSpaceMin = "back_space_min";
+inline constexpr const char* kScrewFromRearEdge = "screw_from_rear_edge";
+inline constexpr const char* kScrewBelowTop = "screw_below_top";
+inline constexpr const char* kScrewSpacing = "screw_spacing";
+inline constexpr const char* kScrewDiameter = "screw_diameter";
+inline constexpr const char* kScrewDepth = "screw_depth";
+inline constexpr const char* kRailTopBelowTop = "rail_top_below_top";
+inline constexpr const char* kRailHeight = "rail_height";
+inline constexpr const char* kRailThickness = "rail_thickness";
 } // namespace keys
 
 namespace ids {
@@ -241,6 +275,8 @@ inline constexpr const char* kHingeCup35Half = "hw.hinge_cup_35_half";
 inline constexpr const char* kHingeCup35Inset = "hw.hinge_cup_35_inset";
 inline constexpr const char* kLiftGeneric = "hw.lift_generic";
 inline constexpr const char* kSlidingGeneric = "hw.sliding_generic";
+inline constexpr const char* kHangerGeneric = "hw.hanger_generic";
+inline constexpr const char* kWallRailGeneric = "hw.wall_rail_generic";
 } // namespace ids
 
 /// The generic catalogue, in the fixed order of the list above. unitCost is 0 (unknown).

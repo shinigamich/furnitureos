@@ -211,6 +211,22 @@ core::Result<hardware::Placement> place(Gen& g, const Job& j, const domain::Hard
         c.instanceId = id;
         return hardware::placeSlidingDoorRollers(parts[j.a], def.value(), c);
     }
+    case JobKind::Hanger: {
+        auto def = lookup(sel.hanger, "cabinet hanger");
+        if (!def) return def.error();
+        hardware::CabinetHangerConfig c;
+        c.instanceId = id;
+        return hardware::placeCabinetHanger(parts[j.a], parts[j.b], def.value(), c);
+    }
+    case JobKind::WallRail: {
+        auto hanger = lookup(sel.hanger, "cabinet hanger");
+        if (!hanger) return hanger.error();
+        auto rail = lookup(sel.wallRail, "wall rail");
+        if (!rail) return rail.error();
+        hardware::WallRailConfig c = j.rail;
+        c.instanceId = id;
+        return hardware::placeWallRail(rail.value(), hanger.value(), c);
+    }
     case JobKind::Handle: {
         auto def = lookup(sel.handle, "handle");
         if (!def) return def.error();
