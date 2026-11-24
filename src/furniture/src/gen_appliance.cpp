@@ -100,6 +100,8 @@ core::Result<void> buildApplianceGap(Gen& g) {
                                "; an appliance gap takes only an ApplianceFront (decor front fixed to the appliance "
                                "door) or no front.");
 
+    if (root.front)
+        if (auto r = checkFrontStyle(g, *root.front, who); !r) return r.error();
     const GapPanels panels = g.def.applianceGap->panels;
     const bool left = panels == GapPanels::Left || panels == GapPanels::Both;
     const bool right = panels == GapPanels::Right || panels == GapPanels::Both;

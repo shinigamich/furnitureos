@@ -258,3 +258,43 @@ TEST(ProjectAppliance, ApplianceHousingsRoundTrip) {
 }
 
 } // namespace fos::project::test
+
+namespace fos::project::test {
+
+// Frame-and-panel fronts: "style" / "frame" survive a save / reload byte for byte and the
+// reloaded cabinet generates the five pieces; slab fronts write neither key.
+TEST(ProjectFramePanel, FramePanelFrontRoundTrips) {
+    Project p = newProject(meta());
+    Item item = baseCabinetItem();
+    furniture::CabinetDefinition& c = *item.cabinet();
+    ASSERT_TRUE(c.interior.front.has_value());
+    furniture::FrontSpec& f = *c.interior.front;
+    f.style = furniture::FrontStyle::FramePanel;
+    f.frame.stileWidth = 65;
+    f.frame.railWidth = 75;
+    f.frame.panelThickness = 6;
+    f.frame.grooveDepth = 9;
+    f.frame.panelClearance = 1.5;
+    f.frame.joint = furniture::FrameJoint::Dowel;
+    f.frame.panelMaterial = c.materials.carcass;
+    p.items = {item};
+    auto text = serializeProject(p, kSavedAt);
+    ASSERT_TRUE(text.ok()) << text.error().message;
+    EXPECT_NE(text.value().find("\"FramePanel\""), std::string::npos);
+    auto loaded = parseProject(text.value());
+    ASSERT_TRUE(loaded.ok()) << loaded.error().message;
+    const Project& q = loaded.value().project;
+    ASSERT_EQ(q.items.size(), 1u);
+    EXPECT_EQ(q.items[0].cabinet()->interior.front, c.interior.front);
+    EXPECT_EQ(serializeProject(q, kSavedAt).value(), text.value());
+    EXPECT_NE(findPart(loaded.value().resolved, "cab1/door.left.stile.left"), nullptr);
+    EXPECT_NE(findPart(loaded.value().resolved, "cab1/door.right.panel"), nullptr);
+
+    Project plain = newProject(meta());
+    plain.items.push_back(baseCabinetItem());
+    const std::string plainText = serializeProject(plain, kSavedAt).value();
+    EXPECT_EQ(plainText.find("\"style\""), std::string::npos);
+    EXPECT_EQ(plainText.find("\"frame\""), std::string::npos);
+}
+
+} // namespace fos::project::test

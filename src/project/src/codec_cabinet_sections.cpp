@@ -82,7 +82,39 @@ Json frontJson(const furniture::FrontSpec& f) {
         n["ventEndMargin"] = f.niche.ventEndMargin;
         j["niche"] = std::move(n);
     }
+    // Front style: written only for FramePanel, so slab fronts (and older files) stay
+    // byte-identical; "panelMaterial" only when set.
+    if (f.style == furniture::FrontStyle::FramePanel) {
+        j["style"] = furniture::toString(f.style);
+        Json fr = Json::object();
+        fr["stileWidth"] = f.frame.stileWidth;
+        fr["railWidth"] = f.frame.railWidth;
+        fr["panelThickness"] = f.frame.panelThickness;
+        if (f.frame.panelMaterial) fr["panelMaterial"] = f.frame.panelMaterial->str();
+        fr["grooveDepth"] = f.frame.grooveDepth;
+        fr["panelClearance"] = f.frame.panelClearance;
+        fr["joint"] = furniture::toString(f.frame.joint);
+        j["frame"] = std::move(fr);
+    }
     return j;
+}
+
+core::Result<furniture::FramePanelSpec> frameFromJson(const Json& json, std::string_view path) {
+    using namespace furniture;
+    Reader r(json, path, "a frame-and-panel front");
+    FramePanelSpec f;
+    std::optional<std::string> material;
+    r.number("stileWidth", f.stileWidth, Num::Positive);
+    r.number("railWidth", f.railWidth, Num::Positive);
+    r.number("panelThickness", f.panelThickness, Num::Positive);
+    r.optionalText("panelMaterial", material, true);
+    r.number("grooveDepth", f.grooveDepth, Num::Positive);
+    r.number("panelClearance", f.panelClearance, Num::NonNegative);
+    r.token("joint", f.joint, furnitureEnum<FrameJoint>(), furnitureTokens({FrameJoint::StubTenon, FrameJoint::Dowel}));
+    r.rejectUnknown();
+    if (!r.ok()) return r.error();
+    if (material) f.panelMaterial = domain::MaterialId(*material);
+    return f;
 }
 
 core::Result<furniture::ApplianceNicheSpec> nicheFromJson(const Json& json, std::string_view path) {
@@ -154,6 +186,8 @@ core::Result<furniture::FrontSpec> frontFromJson(const Json& json, std::string_v
     r.array("drawerBoxes", f.drawerBoxes, drawerBoxEntryFromJson);
     r.nested("sliding", f.sliding, slidingFromJson);
     r.nested("niche", f.niche, nicheFromJson);
+    r.token("style", f.style, furnitureEnum<FrontStyle>(), furnitureTokens({FrontStyle::Slab, FrontStyle::FramePanel}));
+    r.nested("frame", f.frame, frameFromJson);
     r.rejectUnknown();
     if (!r.ok()) return r.error();
     return f;

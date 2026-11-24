@@ -301,6 +301,7 @@ core::Result<GenerationResult> generate(const CabinetDefinition& definition, con
     }
     if (auto r = detail::checkPartSizes(g); !r) return r.error();
     detail::runHardware(g);
+    detail::checkFrameHoles(g);
     if (lShape) detail::placeLCornerShelfPins(g);
     // Box based, except for parts with a rectilinear shape (the L-shaped corner panels), which
     // are compared by their rectangles; override contours are applied afterwards and only

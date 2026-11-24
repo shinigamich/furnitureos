@@ -182,7 +182,34 @@ core::Result<void> buildDrawerBox(Gen& g, const FrontSpec& spec, const DrawerBox
                                   double fz0, double fz1, const Box& box, const Bounds& bounds);
 /// Handle job for front part `front` (slot `slot`): door = vertical handle near the free edge
 /// (`freeEdgeRight` = the free edge is the right / larger-coordinate one), else horizontal.
-void handleJob(Gen& g, std::size_t front, const std::string& slot, const FrontSpec& spec, bool door, bool freeEdgeRight);
+/// `onRail` (frame-and-panel fronts): the target is a rail; the handle is centred in the rail's
+/// width (vertical anchor Center) whatever the handle position.
+void handleJob(Gen& g, std::size_t front, const std::string& slot, const FrontSpec& spec, bool door, bool freeEdgeRight,
+               bool onRail = false);
+
+/// Parts of one front. Slab: every index is the slab. FramePanel: the five pieces.
+struct FrontPieces {
+    bool framed = false;
+    std::size_t left = 0, right = 0, top = 0, bottom = 0, panel = 0; ///< Stiles, rails, panel.
+};
+/// Adds the front `slot` / `name` spanning x in [x0, x1], z in [z0, z1] with its inner face at
+/// y = yInner (front_thickness thick). horizontalGrain: drawer-front orientation (length +X,
+/// width -Z) for a slab and the panel; otherwise door orientation (length +Z, width +X).
+/// Slab: one part, all edges Front. FramePanel (gen_frame.cpp): stiles <slot>.stile.left /
+/// .right, rails <slot>.rail.top / .bottom, panel <slot>.panel with their grooves, tenon
+/// cheeks or dowels. Errors (ConstraintViolation / Unsupported / NotFound) name the front.
+core::Result<FrontPieces> addFrontPieces(Gen& g, const FrontSpec& spec, const std::string& slot, const std::string& name,
+                                         domain::PartRole role, bool horizontalGrain, double x0, double x1, double z0,
+                                         double z1, double yInner);
+/// Dimension-independent checks of a FramePanel front (no-op for Slab): values, supported kinds,
+/// panel material in the library, groove width vs front thickness. `label` names the section.
+core::Result<void> checkFrontStyle(const Gen& g, const FrontSpec& spec, const std::string& label);
+/// After runHardware: a hole in a frame-and-panel piece that breaks into one of its grooves
+/// (panel groove or tenon cheek) -> error furniture.front.frame_hole_in_groove.
+void checkFrameHoles(Gen& g);
+/// Machined volume of an axis-parallel groove (any face) in the PART frame; empty Aabb for a
+/// slanted groove (checks.cpp).
+geometry::Aabb grooveBoxLocal(const domain::Part& part, const domain::Groove& groove);
 /// Structural checks of definition.corner (CornerSpec docs); InvalidArgument naming the cabinet.
 core::Result<void> checkCorner(const Gen& g);
 /// Blind corner (gen_corner_blind.cpp): adds the blind panel (slot `blind`) to the root front

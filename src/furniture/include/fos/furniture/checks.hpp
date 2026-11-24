@@ -19,11 +19,12 @@ struct Interpenetration {
 };
 
 /// All pairs of parts of `assembly` (in part order) whose bounding boxes share more than
-/// `tolerance` mm in each of X, Y and Z, EXCEPT pairs whose shared volume lies entirely
-/// (within `tolerance`) inside a groove machined into face A or B of one of the two parts
-/// - the deliberate engagement of a grooved back in its grooves. A groove counts with its
-/// machined volume: its centre line from (u1, v1) to (u2, v2), its full width across and its
-/// depth into the face (only grooves parallel to a part axis are considered).
+/// `tolerance` mm in each of X, Y and Z, EXCEPT pairs whose shared volume is covered (within
+/// `tolerance`) by the union of the grooves machined into either part - the deliberate
+/// engagement of a grooved back in its grooves, of a frame panel in the stile / rail grooves,
+/// or of a stub tenon (rail end with cheek cuts on faces A and B) in a stile groove. A groove
+/// counts with its machined volume on any face: its centre line from (u1, v1) to (u2, v2), its
+/// full width across and its depth into the face (only grooves parallel to a part axis count).
 /// Parts are compared by their boxes, which is exact for the axis-aligned panels this module
 /// generates; rotated parts are approximated by their (larger) bounding boxes. A part with a
 /// RECTILINEAR outline (PartShape whose outer segments are all straight and axis-parallel,

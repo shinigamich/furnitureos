@@ -34,6 +34,7 @@ core::Result<void> checkTree(const Gen& g, const Section& s, const std::string& 
                                                                       " adjustable shelves") +
                                "; a niche must be an empty leaf section (the appliance stands on the panel below it).",
                            g);
+        if (auto r = checkFrontStyle(g, *s.front, label); !r) return r;
         if (s.front->kind == FrontKind::DrawerStack && s.front->drawerHeights.empty())
             return invalid(label + " has a drawer stack without any drawer front; add at least one height entry.", g);
         if (s.front->kind == FrontKind::DrawerStack && !s.front->drawerBoxes.empty() &&

@@ -9,34 +9,64 @@
 namespace fos::furniture {
 namespace {
 
-/// Machined volume of an axis-parallel groove on face A or B, assembly frame; empty otherwise.
-geometry::Aabb grooveVolume(const domain::Part& part, const domain::Groove& gr) {
-    geometry::Aabb local;
-    const double hw = gr.width / 2;
-    if (gr.face != domain::Face::A && gr.face != domain::Face::B) return local;
-    const double z0 = gr.face == domain::Face::A ? part.thickness - gr.depth : 0.0;
-    const double z1 = gr.face == domain::Face::A ? part.thickness : gr.depth;
-    if (core::approxEqual(gr.v1, gr.v2)) {
-        local.expand(geometry::Vec3{std::min(gr.u1, gr.u2), gr.v1 - hw, z0});
-        local.expand(geometry::Vec3{std::max(gr.u1, gr.u2), gr.v1 + hw, z1});
-    } else if (core::approxEqual(gr.u1, gr.u2)) {
-        local.expand(geometry::Vec3{gr.u1 - hw, std::min(gr.v1, gr.v2), z0});
-        local.expand(geometry::Vec3{gr.u1 + hw, std::max(gr.v1, gr.v2), z1});
-    }
-    return local.transformed(part.placement);
-}
-
-bool contains(const geometry::Aabb& outer, const geometry::Aabb& inner, double tol) {
-    return !outer.empty() && inner.min.x >= outer.min.x - tol && inner.min.y >= outer.min.y - tol &&
-           inner.min.z >= outer.min.z - tol && inner.max.x <= outer.max.x + tol && inner.max.y <= outer.max.y + tol &&
-           inner.max.z <= outer.max.z + tol;
-}
-
-bool insideAGroove(const domain::Part& part, const geometry::Aabb& overlap, double tol) {
+/// Machined volumes (assembly frame) of the axis-parallel grooves of `part`.
+std::vector<geometry::Aabb> grooveVolumes(const domain::Part& part) {
+    std::vector<geometry::Aabb> out;
     for (const auto& op : part.operations)
-        if (const auto* gr = std::get_if<domain::Groove>(&op.shape))
-            if (contains(grooveVolume(part, *gr), overlap, tol)) return true;
-    return false;
+        if (const auto* gr = std::get_if<domain::Groove>(&op.shape)) {
+            const geometry::Aabb local = detail::grooveBoxLocal(part, *gr);
+            if (!local.empty()) out.push_back(local.transformed(part.placement));
+        }
+    return out;
+}
+
+/// `boxes` minus `cut` (each box split into at most 6 pieces).
+std::vector<geometry::Aabb> subtract(const std::vector<geometry::Aabb>& boxes, const geometry::Aabb& cut) {
+    std::vector<geometry::Aabb> out;
+    for (geometry::Aabb b : boxes) {
+        if (!b.overlaps(cut, 0.0)) {
+            out.push_back(b);
+            continue;
+        }
+        double* lo[3] = {&b.min.x, &b.min.y, &b.min.z};
+        double* hi[3] = {&b.max.x, &b.max.y, &b.max.z};
+        const double clo[3] = {cut.min.x, cut.min.y, cut.min.z}, chi[3] = {cut.max.x, cut.max.y, cut.max.z};
+        for (int k = 0; k < 3; ++k) {
+            if (*lo[k] < clo[k]) { // slab below the cut along axis k
+                geometry::Aabb piece = b;
+                double* phi[3] = {&piece.max.x, &piece.max.y, &piece.max.z};
+                *phi[k] = clo[k];
+                out.push_back(piece);
+                *lo[k] = clo[k];
+            }
+            if (*hi[k] > chi[k]) {
+                geometry::Aabb piece = b;
+                double* plo[3] = {&piece.min.x, &piece.min.y, &piece.min.z};
+                *plo[k] = chi[k];
+                out.push_back(piece);
+                *hi[k] = chi[k];
+            }
+        }
+    }
+    return out;
+}
+
+/// True when `shared` lies (within `tol`) inside the union of the grooves of both parts:
+/// every point of it is machined away from at least one of them.
+bool coveredByGrooves(const domain::Part& a, const domain::Part& b, const geometry::Aabb& shared, double tol) {
+    std::vector<geometry::Aabb> rest{shared};
+    for (const domain::Part* p : {&a, &b})
+        for (geometry::Aabb gv : grooveVolumes(*p)) {
+            gv.min = gv.min - geometry::Vec3{tol, tol, tol};
+            gv.max = gv.max + geometry::Vec3{tol, tol, tol};
+            rest = subtract(rest, gv);
+            if (rest.empty()) return true;
+        }
+    for (const auto& r : rest) {
+        const geometry::Vec3 s = r.size();
+        if (s.x > tol && s.y > tol && s.z > tol) return false;
+    }
+    return true;
 }
 
 /// Boxes (assembly frame) covering the solid of `part`: its bounding box, or, for a part whose
@@ -102,7 +132,7 @@ std::vector<Interpenetration> findInterpenetrations(const domain::Assembly& a, d
                                                  std::min(bi.max.z, bj.max.z)});
                 }
             if (shared.empty()) continue;
-            if (insideAGroove(a.parts[i], shared, tolerance) || insideAGroove(a.parts[j], shared, tolerance)) continue;
+            if (coveredByGrooves(a.parts[i], a.parts[j], shared, tolerance)) continue;
             out.push_back({i, j, shared});
         }
     return out;
@@ -119,6 +149,30 @@ std::string describe(const domain::Assembly& a, const Interpenetration& f) {
 }
 
 namespace detail {
+geometry::Aabb grooveBoxLocal(const domain::Part& part, const domain::Groove& gr) {
+    geometry::Aabb local;
+    const double hw = gr.width / 2, L = part.length, W = part.width, T = part.thickness, d = gr.depth;
+    // Rectangle of the groove in face coordinates (u, v).
+    double u0, u1, v0, v1;
+    if (core::approxEqual(gr.v1, gr.v2)) {
+        u0 = std::min(gr.u1, gr.u2), u1 = std::max(gr.u1, gr.u2), v0 = gr.v1 - hw, v1 = gr.v1 + hw;
+    } else if (core::approxEqual(gr.u1, gr.u2)) {
+        u0 = gr.u1 - hw, u1 = gr.u1 + hw, v0 = std::min(gr.v1, gr.v2), v1 = std::max(gr.v1, gr.v2);
+    } else {
+        return local;
+    }
+    using geometry::Vec3;
+    switch (gr.face) {
+    case domain::Face::A: local.expand(Vec3{u0, v0, T - d}), local.expand(Vec3{u1, v1, T}); break;
+    case domain::Face::B: local.expand(Vec3{u0, v0, 0.0}), local.expand(Vec3{u1, v1, d}); break;
+    case domain::Face::L1: local.expand(Vec3{u0, 0.0, v0}), local.expand(Vec3{u1, d, v1}); break;
+    case domain::Face::L2: local.expand(Vec3{u0, W - d, v0}), local.expand(Vec3{u1, W, v1}); break;
+    case domain::Face::W1: local.expand(Vec3{0.0, u0, v0}), local.expand(Vec3{d, u1, v1}); break;
+    case domain::Face::W2: local.expand(Vec3{L - d, u0, v0}), local.expand(Vec3{L, u1, v1}); break;
+    }
+    return local;
+}
+
 void checkGeometry(Gen& g) {
     for (const auto& f : findInterpenetrations(g.assembly))
         g.error("furniture.geometry.interpenetration",

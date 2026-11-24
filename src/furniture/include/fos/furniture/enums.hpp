@@ -93,6 +93,13 @@ enum class NicheVent {
 };
 /// End panels of an appliance gap (definition.hpp ApplianceGapSpec), seen from the front.
 enum class GapPanels { None, Left, Right, Both };
+/// Construction of a door / flap / drawer front (README "Frame-and-panel fronts").
+/// Slab = one board (default); FramePanel = five-piece front: 2 stiles, 2 rails, 1 panel.
+enum class FrontStyle { Slab, FramePanel };
+/// Corner joint of a frame-and-panel front: StubTenon = the rails carry tenons as long as the
+/// groove depth that sit in the stiles' panel groove; Dowel = rails butt the stiles, 2 dowels
+/// (HardwareSelection::dowel) per joint.
+enum class FrameJoint { StubTenon, Dowel };
 
 const char* toString(JointKind) noexcept;
 const char* toString(TopKind) noexcept;
@@ -115,6 +122,8 @@ const char* toString(CornerKind) noexcept;
 const char* toString(CornerSide) noexcept;
 const char* toString(NicheVent) noexcept;
 const char* toString(GapPanels) noexcept;
+const char* toString(FrontStyle) noexcept;
+const char* toString(FrameJoint) noexcept;
 
 /// Inverse of toString for every enum above; std::nullopt for unknown text (case-sensitive).
 template <class E> std::optional<E> fromString(std::string_view text) noexcept;
@@ -138,6 +147,8 @@ template <> std::optional<DrawerBottomMount> fromString<DrawerBottomMount>(std::
 template <> std::optional<CornerKind> fromString<CornerKind>(std::string_view) noexcept;
 template <> std::optional<CornerSide> fromString<CornerSide>(std::string_view) noexcept;
 template <> std::optional<NicheVent> fromString<NicheVent>(std::string_view) noexcept;
+template <> std::optional<FrontStyle> fromString<FrontStyle>(std::string_view) noexcept;
+template <> std::optional<FrameJoint> fromString<FrameJoint>(std::string_view) noexcept;
 template <> std::optional<GapPanels> fromString<GapPanels>(std::string_view) noexcept;
 
 } // namespace fos::furniture

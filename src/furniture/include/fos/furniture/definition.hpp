@@ -99,6 +99,23 @@ inline constexpr const char* kMountingApplianceDoor = "fixed to appliance door";
 
 /// A front closing the opening of a section (see README "Fronts"). For every generated front
 /// (door or drawer front) face A is the inner, cabinet-side face and face B the visible face.
+/// Five-piece (frame-and-panel, "shaker"-style) construction of a front (README
+/// "Frame-and-panel fronts"). All lengths mm; the defaults are GENERIC values, not taken from
+/// a manufacturer or standard. The frame has the front thickness (front material); the panel
+/// is a flat board centred in the frame thickness, sitting in a groove of width
+/// panelThickness + groove_fit along the inner edges of the stiles and rails.
+struct FramePanelSpec {
+    double stileWidth = 70.0;     ///< Visible width of the two vertical stiles (full front height).
+    double railWidth = 70.0;      ///< Visible width of the two horizontal rails (between the stiles).
+    double panelThickness = 8.0;  ///< Thickness of the panel.
+    /// Material of the panel; std::nullopt = the front material (MaterialAssignment::front).
+    std::optional<domain::MaterialId> panelMaterial;
+    double grooveDepth = 10.0;    ///< Depth of the panel groove into the inner frame edges (> 0).
+    double panelClearance = 2.0;  ///< Gap between a panel edge and the groove bottom (>= 0, < grooveDepth).
+    FrameJoint joint = FrameJoint::StubTenon;
+    bool operator==(const FramePanelSpec&) const = default;
+};
+
 struct FrontSpec {
     FrontKind kind = FrontKind::Door;
     OverlayKind overlay = OverlayKind::Full;
@@ -123,6 +140,11 @@ struct FrontSpec {
     std::vector<std::optional<DrawerBoxSpec>> drawerBoxes;
     /// ApplianceNiche only: ventilation of the open niche (ignored for other kinds).
     ApplianceNicheSpec niche;
+    /// Door / DoorPair / Flap / DrawerStack: Slab (one board, default) or FramePanel (stiles,
+    /// rails and panel built from `frame`). FramePanel is refused for sliding doors, appliance
+    /// niches / appliance fronts, L-shaped corner cabinets and contoured fronts.
+    FrontStyle style = FrontStyle::Slab;
+    FramePanelSpec frame; ///< Used when style == FramePanel.
     bool operator==(const FrontSpec&) const = default;
 };
 

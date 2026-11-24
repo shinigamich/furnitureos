@@ -125,6 +125,52 @@ stretcher rails cannot take a flap (generation error). Lift range errors (cabine
 are `furniture.hardware.placement_failed`. The handle is horizontal. `hinges = false` = front only.
 Project files: `kind: "Flap"`; `hardware.hingeHalf|hingeInset|lift` written only when not default.
 
+### Frame-and-panel fronts (`FrontSpec::style = FrontStyle::FramePanel`)
+
+A Door, DoorPair, Flap or DrawerStack front can be built as a five-piece ("shaker"-style) front instead
+of one slab (`FrontStyle::Slab`, the default, unchanged). The outer size follows the slab rules; the
+front `<slot>` is replaced by:
+
+| Slot | Name | Size (W x H = front width x height) | Edge bands |
+|---|---|---|---|
+| `<slot>.stile.left` / `.right` | "<front> left / right stile" | H x stile width, front thickness | outer long edge + both ends |
+| `<slot>.rail.top` / `.bottom` | "<front> top / bottom rail" | (W - 2 stile + 2 tenon) x rail width | outer long edge |
+| `<slot>.panel` | "<front> panel" | (W - 2 stile + 2 e) x (H - 2 rail + 2 e), panel thickness; e = groove depth - clearance | none |
+
+Roles: Door (doors, flaps) or DrawerFront; custom `furniture.front_piece` = stile / rail / panel and
+`furniture.front` = the front slot. The panel is centred in the frame thickness, in material
+`FramePanelSpec::panelMaterial` (default: the front material; a board thickness different from the
+panel thickness warns `furniture.front.panel_thickness`). Panel grooves (`<part>/op.groove.panel`,
+source `<cabinet>/rule.frame_panel`) run along the inner edge (edge face L1/L2) of every stile and rail,
+width = panel thickness + `groove_fit`, depth = groove depth, centred in the thickness.
+
+* **StubTenon**: rails carry tenons of groove-depth length and groove-width thickness, made by cheek
+  cuts (`op.tenon.<left|right>.<a|b>`, grooves across the rail end on faces A and B, depth
+  (thickness - groove width) / 2). Stile grooves run through (the tenons fill them at the ends).
+* **Dowel**: rails butt the stiles; per joint `hw.frame_dowels.<slot>.<bottom|top>_<left|right>`
+  (HardwareSelection::dowel, quantity 2): holes in the stile's inner edge and the rail's end, centred
+  in the thickness, at 1/4 and 3/4 of the solid rail width (rail width - groove depth) from the outer
+  edge, each half the dowel length + 1 mm deep. Stile grooves stop groove depth beyond the opening.
+
+Hardware: door hinge cups go into the hinge-side stile; a flap's cups into the top rail and its lift
+fixings into the stiles. Handles (FRAME HANDLE RULE): a door's vertical handle goes onto the free-edge
+stile with the slab offsets; a horizontal handle goes onto a rail, centred in its width: Top -> top rail,
+Bottom -> bottom rail, Center -> top rail of a drawer front / bottom rail of a flap (the floating panel
+carries no handle). A hole of any fitting that breaks into a groove or tenon cheek of a frame piece is the
+error `furniture.front.frame_hole_in_groove` (e.g. stiles too narrow for the hinge cup).
+
+Generic defaults (GENERIC values chosen for this project, not taken from a manufacturer or standard):
+stile width 70, rail width 70, panel thickness 8, groove depth 10, panel clearance 2 mm, joint
+StubTenon; minimum panel opening (W - 2 stile, H - 2 rail) 50 mm; minimum wall on each side of the
+groove 2 mm; dowel zone at least 4 dowel diameters; dowel hole = half the dowel length + 1 mm.
+
+Refused: a front below the minimum panel opening (ConstraintViolation naming the sizes), groove walls
+below 2 mm, clearance >= groove depth, groove depth >= stile / rail width (InvalidArgument); style
+FramePanel on SlidingDoors, ApplianceNiche or ApplianceFront fronts, on L-shaped corner cabinets, and
+fronts whose slot or piece slots have a contour override (Unsupported). Project files: `"style":
+"FramePanel"` and a `"frame"` object (`stileWidth`, `railWidth`, `panelThickness`, `panelMaterial` only
+when set, `grooveDepth`, `panelClearance`, `joint`) written only for FramePanel fronts.
+
 ### Sliding doors (`FrontKind::SlidingDoors`)
 
 Inset doors running in the two-lane track system `HardwareSelection::slidingSystem` (default
@@ -235,7 +281,8 @@ on a tie); when none is free, warning `furniture.hinge.near_shelf`.
 ## Self-check
 
 After generation `findInterpenetrations()` (checks.hpp) compares all part boxes; any shared volume
-that does not lie inside a groove of one of the two parts yields the error
+that is not covered by the grooves (any face, incl. edge grooves and tenon cheeks) of the two parts
+yields the error
 `furniture.geometry.interpenetration` naming both parts and the shared volume in mm. This catches
 e.g. pinned parameters that no longer fit a changed construction.
 

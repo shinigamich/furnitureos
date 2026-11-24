@@ -163,6 +163,12 @@ core::Result<void> buildLCorner(Gen& g) {
     // front_gap beyond door B's outer face; door B in the plane of leg B (inner face
     // x = corner_depth_b + front_offset), ending flush with door A's outer face.
     const FrontSpec& spec = *g.def.interior.front;
+    if (spec.style != FrontStyle::Slab)
+        return core::makeError(core::ErrorCode::Unsupported,
+                               "L-shaped corner cabinet '" + g.def.id.str() +
+                                   "' has a front of style FramePanel; frame-and-panel fronts are not supported on "
+                                   "L-shaped corner cabinets. Use style Slab.",
+                               g.def.id.str());
     const double ft = g.v(p::kFrontThickness), off = g.v(p::kFrontOffset), gap = g.v(p::kFrontGap);
     const double reveal = g.v(p::kFrontReveal), oo = g.v(p::kOverlayOuter);
     const double z0 = g.v(p::kInteriorBottom) - oo, z1 = g.v(p::kInteriorTop) + oo;
