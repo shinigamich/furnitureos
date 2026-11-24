@@ -101,7 +101,7 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 | T-053 | Packing lists (weight from material density, never guessed) and generic assembly sheets; `fos packing`, `fos assembly` | Done | 12+ production/cli tests |
 | T-054 | Appliance housings: open oven niche with vents, dishwasher gap with decor front; oven-tall/dishwasher templates; desktop editing | Done (generic sizes) | 12 furniture + 1 project + 2 app tests |
 | T-055 | Kitchen plinths over cabinet runs on feet (`fos plinth`), shared run analysis with worktops; cabinet codec split | Done (straight runs only) | 5 project + 2 cli tests |
-| T-056 | Desktop plan view: top-down footprints, gaps, snapping drag/rotate, SVG export | Done (room not yet persisted in the view) | 9 app core tests |
+| T-056 | Desktop plan view: top-down footprints, gaps, snapping drag/rotate, SVG export | Done (room saved in the project) | 10 app core tests |
 | T-057 | Wall-cabinet mounting: generic concealed hangers + wall rail; desktop Hardware tab choices (hanger, rail, sliding system) | Done (generic, dimensions unverified) | hardware/furniture/project + 2 app tests |
 | T-058 | Linear hardware lengths priced per metre; optional project room settings (`commands::setRoom`) | Done | production + project tests |
 

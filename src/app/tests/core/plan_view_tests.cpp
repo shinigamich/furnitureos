@@ -83,7 +83,7 @@ TEST(PlanView, GapsBetweenNeighboursAndWalls) {
     EXPECT_NEAR(gaps[0].y, 150, 1e-9);     // middle of the shared Y range [0,300]
 
     // Room inner [-100,1500] x [0,1000]: wall gaps 0 - (-100) = 100 and 1500 - 1400 = 100.
-    const PlanRoom room{-100, 0, 1600, 1000, 120};
+    const project::RoomSettings room{1600, 1000, std::nullopt, 120, {-100, 0}};
     gaps = planGapsX(fp, room);
     ASSERT_EQ(gaps.size(), 3u);
     EXPECT_TRUE(gaps[0].leftId.empty());
@@ -94,7 +94,7 @@ TEST(PlanView, GapsBetweenNeighboursAndWalls) {
     EXPECT_TRUE(gaps[2].rightId.empty());
     EXPECT_NEAR(gaps[2].gap(), 100, 1e-9);
     // An invalid room is ignored.
-    EXPECT_EQ(planGapsX(fp, PlanRoom{0, 0, -5, 1000, 100}).size(), 1u);
+    EXPECT_EQ(planGapsX(fp, project::RoomSettings{-5, 1000, std::nullopt, 100, {0, 0}}).size(), 1u);
 }
 
 TEST(PlanView, GapsUseNearestNeighbourWithSharedDepthOnly) {
@@ -132,7 +132,7 @@ TEST(PlanView, SnapToEdgesAndWalls) {
     EXPECT_FALSE(snap.guideX || snap.guideY);
 
     // Room inner [0,1500] x [0,1000]: p2's right edge 1400 + 96 = 1496 snaps to the wall 1500.
-    snap = snapPlanMove(fp, "p2", {96, 300.2}, 10, PlanRoom{0, 0, 1500, 1000, 100});
+    snap = snapPlanMove(fp, "p2", {96, 300.2}, 10, project::RoomSettings{1500, 1000, std::nullopt, 100, {0, 0}});
     EXPECT_DOUBLE_EQ(snap.delta.x, 100);
     EXPECT_DOUBLE_EQ(*snap.guideX, 1500);
     // Y: front edge 300.2 snaps to p1's back edge 300 (0.2) -> dy = 300.
@@ -177,18 +177,75 @@ TEST(PlanView, RotateAboutFootprintCentre) {
     EXPECT_FALSE(applyPlanRotate(t.s, "missing").ok());
 }
 
-TEST(PlanView, HitTestAndRoomCheck) {
+TEST(PlanView, HitTest) {
     TwoPanels t;
     const auto fp = planFootprints(t.s);
     EXPECT_EQ(planItemAt(fp, {100, 100}), "p1");
     EXPECT_EQ(planItemAt(fp, {1000, 299}), "p2");
     EXPECT_EQ(planItemAt(fp, {700, 100}), "");
     EXPECT_EQ(planItemAt(fp, {603, 100}, 5), "p1"); // within 5 mm of p1's bounds
+}
 
-    EXPECT_TRUE(checkPlanRoom(PlanRoom{0, 0, 3000, 2000, 100}).ok());
-    EXPECT_FALSE(checkPlanRoom(PlanRoom{0, 0, 0, 2000, 100}).ok());
-    EXPECT_FALSE(checkPlanRoom(PlanRoom{0, 0, 3000, 2000, -1}).ok());
-    EXPECT_FALSE(checkPlanRoom(PlanRoom{std::numeric_limits<double>::infinity(), 0, 3000, 2000, 1}).ok());
+TEST(PlanView, RoomRoundTripThroughCommandAndUndo) {
+    TwoPanels t;
+    EXPECT_FALSE(planRoom(t.s).has_value());
+    const project::RoomSettings room{3000, 2000, 2500.0, 100, {-50, 10}};
+    // Inner rectangle [-50, 2950] x [10, 2010].
+    const auto inner = planRoomInner(room);
+    EXPECT_DOUBLE_EQ(inner.min.x, -50);
+    EXPECT_DOUBLE_EQ(inner.max.x, 2950);
+    EXPECT_DOUBLE_EQ(inner.min.y, 10);
+    EXPECT_DOUBLE_EQ(inner.max.y, 2010);
+
+    ASSERT_TRUE(applyPlanRoom(t.s, room).ok());
+    ASSERT_TRUE(planRoom(t.s).has_value());
+    EXPECT_EQ(*planRoom(t.s), room);
+    EXPECT_EQ(t.s.project().settings.room, room);
+
+    // Same room again: no new undo step (one undo below goes straight back to no room).
+    ASSERT_TRUE(applyPlanRoom(t.s, room).ok());
+    project::RoomSettings edited = room;
+    edited.height.reset(); // 0 in the GUI = not set
+    edited.width = 3200;
+    ASSERT_TRUE(applyPlanRoom(t.s, edited).ok());
+    EXPECT_EQ(*planRoom(t.s), edited);
+
+    // Invalid rooms are refused and change nothing.
+    project::RoomSettings bad = edited;
+    bad.depth = 0;
+    EXPECT_FALSE(applyPlanRoom(t.s, bad).ok());
+    bad = edited;
+    bad.height = -1.0;
+    EXPECT_FALSE(applyPlanRoom(t.s, bad).ok());
+    bad = edited;
+    bad.origin.x = std::numeric_limits<double>::infinity();
+    EXPECT_FALSE(applyPlanRoom(t.s, bad).ok());
+    EXPECT_EQ(*planRoom(t.s), edited);
+
+    // Remove, then undo step by step: removed -> edited -> room -> none; redo brings it back.
+    ASSERT_TRUE(applyPlanRoom(t.s, std::nullopt).ok());
+    EXPECT_FALSE(planRoom(t.s).has_value());
+    ASSERT_TRUE(t.s.undo().ok());
+    EXPECT_EQ(*planRoom(t.s), edited);
+    ASSERT_TRUE(t.s.undo().ok());
+    EXPECT_EQ(*planRoom(t.s), room);
+    ASSERT_TRUE(t.s.undo().ok());
+    EXPECT_FALSE(planRoom(t.s).has_value());
+    EXPECT_EQ(planFootprints(t.s).size(), 2u); // the items were not touched
+    ASSERT_TRUE(t.s.redo().ok());
+    EXPECT_EQ(*planRoom(t.s), room);
+    // Removing when there is no room is a no-op that succeeds.
+    ASSERT_TRUE(t.s.undo().ok());
+    EXPECT_TRUE(applyPlanRoom(t.s, std::nullopt).ok());
+
+    // The project room drives snapping: p2 [800,1400] right edge + 46 = 1446 is 4 mm from the
+    // inner wall 1450 of a room at origin 0 -> dx = 50.
+    const project::RoomSettings small{1450, 1000, std::nullopt, 100, {0, 0}};
+    ASSERT_TRUE(applyPlanRoom(t.s, small).ok());
+    const auto snap = snapPlanMove(planFootprints(t.s), "p2", {46, 0}, 10, planRoom(t.s));
+    EXPECT_DOUBLE_EQ(snap.delta.x, 50);
+    ASSERT_TRUE(snap.guideX.has_value());
+    EXPECT_DOUBLE_EQ(*snap.guideX, 1450);
 }
 
 TEST(PlanView, Texts) {

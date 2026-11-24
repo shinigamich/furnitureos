@@ -69,7 +69,7 @@ void PlanCanvas::setFootprints(std::vector<PlanFootprint> footprints) {
     update();
 }
 
-void PlanCanvas::setRoom(std::optional<PlanRoom> room) {
+void PlanCanvas::setRoom(std::optional<project::RoomSettings> room) {
     room_ = std::move(room);
     update();
 }
@@ -82,7 +82,7 @@ void PlanCanvas::setSelectedItem(const std::string& itemId) {
 
 geometry::Rect2 PlanCanvas::contentRect() const {
     geometry::Rect2 r = planExtents(footprints_);
-    if (room_ && checkPlanRoom(*room_).ok()) r.expand(room_->inner().inflated(room_->wallThickness));
+    if (room_ && project::checkRoomSettings(*room_).ok()) r.expand(planRoomInner(*room_).inflated(room_->wallThickness));
     return r;
 }
 
@@ -129,10 +129,10 @@ void PlanCanvas::render(QPainter& p, double scale, QPointF origin, double textPi
         }
 
     // Room: walls outside the inner rectangle.
-    const bool hasRoom = room_ && checkPlanRoom(*room_).ok();
+    const bool hasRoom = room_ && project::checkRoomSettings(*room_).ok();
     if (hasRoom) {
-        const QRectF inner = world.mapRect(toQt(room_->inner()));
-        const QRectF outer = world.mapRect(toQt(room_->inner().inflated(room_->wallThickness)));
+        const QRectF inner = world.mapRect(toQt(planRoomInner(*room_)));
+        const QRectF outer = world.mapRect(toQt(planRoomInner(*room_).inflated(room_->wallThickness)));
         QPainterPath walls;
         walls.addRect(outer);
         walls.addRect(inner);

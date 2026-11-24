@@ -4617,14 +4617,6 @@ Replace it?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Room</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Draw a rectangular room. It is not saved with the project.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Inner room width along X</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4662,10 +4654,6 @@ Replace it?</source>
     </message>
     <message>
         <source>Y</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>(not saved with the project)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4710,6 +4698,38 @@ Replace it?</source>
     </message>
     <message>
         <source>Could not write %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add room</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add a rectangular room to the project (saved with it, undoable)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove room</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove the room from the project (undoable)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>not set</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Floor to ceiling height (0 = not set)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Room refused: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>H</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -16,8 +16,8 @@
 /// corner cabinet shows as an L); `bounds` is the XY box of the generated assembly bounds.
 /// Hardware (handles, feet) is not part of the footprint.
 ///
-/// The room is a plain rectangle the user types in. The project file has no place for room or
-/// plan settings, so it is NOT stored anywhere (session only, see PlanRoom).
+/// The room is the project's rectangular room (ProjectSettings::room, project::RoomSettings): it is
+/// saved with the project and every change is ONE undoable commands::setRoom (applyPlanRoom).
 #include "fos/core/result.hpp"
 #include "fos/geometry/polygon.hpp"
 #include "fos/geometry/rect.hpp"
@@ -53,18 +53,17 @@ std::vector<PlanFootprint> planFootprints(const Session& session);
 /// Smallest rectangle containing every footprint's bounds (empty rect for no footprints).
 geometry::Rect2 planExtents(const std::vector<PlanFootprint>& footprints);
 
-/// Simple rectangular room: inner floor [x, x + width] x [y, y + depth] (project frame, mm).
-/// wallThickness is only used for drawing (walls are drawn outside the inner rectangle).
-struct PlanRoom {
-    double x = 0, y = 0;
-    double width = 0, depth = 0;
-    double wallThickness = 100;
-    geometry::Rect2 inner() const noexcept { return geometry::Rect2::fromOriginSize({x, y}, width, depth); }
-};
+/// Inner floor rectangle [origin.x, origin.x + width] x [origin.y, origin.y + depth] (project
+/// frame, mm). The walls of room.wallThickness lie outside it.
+geometry::Rect2 planRoomInner(const project::RoomSettings& room) noexcept;
 
-/// InvalidArgument (naming the value) unless width and depth are finite and > 0, the wall
-/// thickness finite and >= 0 and x / y finite.
-core::Result<void> checkPlanRoom(const PlanRoom& room);
+/// The project's room (ProjectSettings::room); nullopt when the project has none.
+const std::optional<project::RoomSettings>& planRoom(const Session& session) noexcept;
+
+/// Sets the project's room with commands::setRoom (ONE undo step); nullopt removes it.
+/// InvalidArgument (checkRoomSettings) for an invalid room; setting the room the project already
+/// has does nothing (no undo step) and succeeds.
+core::Result<void> applyPlanRoom(Session& session, std::optional<project::RoomSettings> room);
 
 /// Free distance along X between an item and its right-hand neighbour (or a room wall).
 struct PlanGap {
@@ -78,11 +77,11 @@ struct PlanGap {
 
 /// Gaps along X between neighbouring footprints (by bounds). The right neighbour of item A is
 /// the item B whose Y range overlaps A's (by more than 1e-6 mm) and whose left edge is the
-/// smallest one at or right of A's right edge. With a room (checked by checkPlanRoom; an
-/// invalid room is ignored), an item with no left / right neighbour inside the room also gets
+/// smallest one at or right of A's right edge. With a room (checked by
+/// project::checkRoomSettings; an invalid room is ignored), an item with no left / right neighbour inside the room also gets
 /// the gap to that wall when it is inside the room along X and overlaps it along Y. Gaps of
 /// <= 0.05 mm (touching) are not listed. Order: by fromX, then y, then ids.
-std::vector<PlanGap> planGapsX(const std::vector<PlanFootprint>& footprints, const std::optional<PlanRoom>& room);
+std::vector<PlanGap> planGapsX(const std::vector<PlanFootprint>& footprints, const std::optional<project::RoomSettings>& room);
 
 /// Result of snapping a drag.
 struct PlanSnap {
@@ -98,7 +97,7 @@ struct PlanSnap {
 /// An axis that does not snap is rounded to a multiple of `grid` (mm; <= 0 = no rounding).
 /// Unknown `movingId`: delta returned unchanged (rounded), no guides.
 PlanSnap snapPlanMove(const std::vector<PlanFootprint>& footprints, const std::string& movingId,
-                      geometry::Vec2 delta, double tolerance, const std::optional<PlanRoom>& room,
+                      geometry::Vec2 delta, double tolerance, const std::optional<project::RoomSettings>& room,
                       double grid = 1.0);
 
 /// `placement` translated by (delta.x, delta.y, 0) in the project frame.

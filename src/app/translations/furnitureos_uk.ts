@@ -4633,14 +4633,6 @@ Replace it?</source>
         <translation>Зберегти план як креслення SVG (1 одиниця = 1 мм)</translation>
     </message>
     <message>
-        <source>Room</source>
-        <translation>Кімната</translation>
-    </message>
-    <message>
-        <source>Draw a rectangular room. It is not saved with the project.</source>
-        <translation>Показати прямокутну кімнату. Вона не зберігається в проєкті.</translation>
-    </message>
-    <message>
         <source>Inner room width along X</source>
         <translation>Внутрішня ширина кімнати вздовж X</translation>
     </message>
@@ -4679,10 +4671,6 @@ Replace it?</source>
     <message>
         <source>Y</source>
         <translation>Y</translation>
-    </message>
-    <message>
-        <source>(not saved with the project)</source>
-        <translation>(не зберігається в проєкті)</translation>
     </message>
     <message>
         <source>Drag an item to move it (snaps to item edges and walls); wheel zooms, middle or right button pans. Each move or rotation is one undo step.</source>
@@ -4727,6 +4715,38 @@ Replace it?</source>
     <message>
         <source>Could not write %1.</source>
         <translation>Не вдалося записати %1.</translation>
+    </message>
+    <message>
+        <source>Add room</source>
+        <translation>Додати кімнату</translation>
+    </message>
+    <message>
+        <source>Add a rectangular room to the project (saved with it, undoable)</source>
+        <translation>Додати до проєкту прямокутну кімнату (зберігається разом із ним, можна скасувати)</translation>
+    </message>
+    <message>
+        <source>Remove room</source>
+        <translation>Вилучити кімнату</translation>
+    </message>
+    <message>
+        <source>Remove the room from the project (undoable)</source>
+        <translation>Вилучити кімнату з проєкту (можна скасувати)</translation>
+    </message>
+    <message>
+        <source>not set</source>
+        <translation>не задано</translation>
+    </message>
+    <message>
+        <source>Floor to ceiling height (0 = not set)</source>
+        <translation>Висота від підлоги до стелі (0 = не задано)</translation>
+    </message>
+    <message>
+        <source>Room refused: %1</source>
+        <translation>Кімнату відхилено: %1</translation>
+    </message>
+    <message>
+        <source>H</source>
+        <translation>В</translation>
     </message>
 </context>
 <context>

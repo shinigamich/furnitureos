@@ -5,7 +5,6 @@
 #include "fos/app/session.hpp"
 #include "plan_canvas.hpp"
 
-#include <QCheckBox>
 #include <QDir>
 #include <QDoubleSpinBox>
 #include <QFileDialog>
@@ -14,9 +13,11 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QSignalBlocker>
 #include <QVBoxLayout>
 
 #include <algorithm>
+#include <utility>
 
 namespace fos::app::gui {
 namespace {
@@ -24,10 +25,11 @@ namespace {
 QDoubleSpinBox* mmBox(double value, double min, QWidget* parent) {
     auto* box = new QDoubleSpinBox(parent);
     box->setRange(min, 100000.0);
-    box->setDecimals(0);
+    box->setDecimals(1);
     box->setSingleStep(10);
     box->setSuffix(QStringLiteral(" mm"));
     box->setValue(value);
+    box->setKeyboardTracking(false); // typed values apply on Enter / focus out: one undo step per edit
     return box;
 }
 
@@ -56,44 +58,49 @@ PlanWorkspace::PlanWorkspace(Session& session, QWidget* parent) : QWidget(parent
     connect(rotate_, &QPushButton::clicked, this, &PlanWorkspace::rotateSelected);
     connect(svg, &QPushButton::clicked, this, &PlanWorkspace::exportSvg);
 
-    roomOn_ = new QCheckBox(tr("Room"), this);
-    roomOn_->setObjectName(QStringLiteral("planRoom"));
-    roomOn_->setToolTip(tr("Draw a rectangular room. It is not saved with the project."));
+    addRoom_ = button(tr("Add room"), tr("Add a rectangular room to the project (saved with it, undoable)"),
+                      QStringLiteral("planAddRoom"));
+    removeRoom_ = button(tr("Remove room"), tr("Remove the room from the project (undoable)"),
+                         QStringLiteral("planRemoveRoom"));
     roomWidth_ = mmBox(3000, 1, this);
     roomDepth_ = mmBox(2000, 1, this);
+    roomHeight_ = mmBox(0, 0, this);
+    roomHeight_->setSpecialValueText(tr("not set"));
     roomWall_ = mmBox(100, 0, this);
     roomX_ = mmBox(0, -100000, this);
     roomY_ = mmBox(0, -100000, this);
     roomWidth_->setToolTip(tr("Inner room width along X"));
     roomDepth_->setToolTip(tr("Inner room depth along Y"));
+    roomHeight_->setToolTip(tr("Floor to ceiling height (0 = not set)"));
     roomWall_->setToolTip(tr("Wall thickness (drawing only)"));
     roomX_->setToolTip(tr("X of the inner left wall"));
     roomY_->setToolTip(tr("Y of the inner front wall"));
-    for (QDoubleSpinBox* box : {roomWidth_, roomDepth_, roomWall_, roomX_, roomY_}) {
-        box->setEnabled(false);
-        connect(box, &QDoubleSpinBox::valueChanged, this, &PlanWorkspace::updateRoom);
-    }
-    connect(roomOn_, &QCheckBox::toggled, this, [this](bool on) {
-        for (QDoubleSpinBox* box : {roomWidth_, roomDepth_, roomWall_, roomX_, roomY_}) box->setEnabled(on);
-        updateRoom();
+    for (QDoubleSpinBox* box : {roomWidth_, roomDepth_, roomHeight_, roomWall_, roomX_, roomY_})
+        connect(box, &QDoubleSpinBox::valueChanged, this, &PlanWorkspace::applyRoomFields);
+    connect(addRoom_, &QPushButton::clicked, this, &PlanWorkspace::applyRoomFields);
+    connect(removeRoom_, &QPushButton::clicked, this, [this] {
+        const auto r = applyPlanRoom(session_, std::nullopt);
+        showMessage(r ? QString() : tr("Room refused: %1").arg(QString::fromStdString(r.error().message)));
     });
 
     auto* tools = new QHBoxLayout;
     for (QWidget* w : std::initializer_list<QWidget*>{fit, zoomIn, zoomOut, rotate_, svg}) tools->addWidget(w);
     tools->addStretch(1);
     auto* room = new QHBoxLayout;
-    room->addWidget(roomOn_);
+    room->addWidget(addRoom_);
+    room->addWidget(removeRoom_);
     room->addWidget(new QLabel(tr("W"), this));
     room->addWidget(roomWidth_);
     room->addWidget(new QLabel(tr("D"), this));
     room->addWidget(roomDepth_);
+    room->addWidget(new QLabel(tr("H"), this));
+    room->addWidget(roomHeight_);
     room->addWidget(new QLabel(tr("Wall"), this));
     room->addWidget(roomWall_);
     room->addWidget(new QLabel(tr("X"), this));
     room->addWidget(roomX_);
     room->addWidget(new QLabel(tr("Y"), this));
     room->addWidget(roomY_);
-    room->addWidget(new QLabel(tr("(not saved with the project)"), this));
     room->addStretch(1);
 
     message_ = new QLabel(this);
@@ -119,6 +126,7 @@ PlanWorkspace::PlanWorkspace(Session& session, QWidget* parent) : QWidget(parent
         showMessage(r ? QString() : tr("Move refused: %1").arg(QString::fromStdString(r.error().message)));
     });
     connect(&session_, &Session::projectChanged, this, [this] {
+        syncRoom();
         stale_ = true;
         if (isVisible()) refresh();
     });
@@ -126,6 +134,7 @@ PlanWorkspace::PlanWorkspace(Session& session, QWidget* parent) : QWidget(parent
         canvas_->setSelectedItem(session_.selection().itemId);
         updateButtons();
     });
+    syncRoom();
     updateButtons();
 }
 
@@ -143,15 +152,40 @@ void PlanWorkspace::refresh() {
     updateButtons();
 }
 
-void PlanWorkspace::updateRoom() {
-    if (!roomOn_->isChecked()) {
-        canvas_->setRoom(std::nullopt);
-        return;
+void PlanWorkspace::applyRoomFields() {
+    // Editing the fields of a project without a room changes nothing until "Add room".
+    if (!planRoom(session_) && sender() != addRoom_) return;
+    project::RoomSettings room;
+    room.width = roomWidth_->value();
+    room.depth = roomDepth_->value();
+    if (roomHeight_->value() > 0) room.height = roomHeight_->value();
+    room.wallThickness = roomWall_->value();
+    room.origin = {roomX_->value(), roomY_->value()};
+    const auto r = applyPlanRoom(session_, room);
+    showMessage(r ? QString() : tr("Room refused: %1").arg(QString::fromStdString(r.error().message)));
+    if (!r) syncRoom(); // back to the project's values
+}
+
+void PlanWorkspace::syncRoom() {
+    const auto& room = planRoom(session_);
+    if (room) {
+        const std::initializer_list<std::pair<QDoubleSpinBox*, double>> values{
+            {roomWidth_, room->width},
+            {roomDepth_, room->depth},
+            {roomHeight_, room->height.value_or(0.0)},
+            {roomWall_, room->wallThickness},
+            {roomX_, room->origin.x},
+            {roomY_, room->origin.y}};
+        for (const auto& [box, value] : values) {
+            const QSignalBlocker block(box);
+            box->setValue(value);
+        }
     }
-    const PlanRoom room{roomX_->value(), roomY_->value(), roomWidth_->value(), roomDepth_->value(), roomWall_->value()};
-    const auto ok = checkPlanRoom(room);
-    canvas_->setRoom(ok ? std::optional<PlanRoom>(room) : std::nullopt);
-    if (!ok) showMessage(QString::fromStdString(ok.error().message));
+    for (QDoubleSpinBox* box : {roomWidth_, roomDepth_, roomHeight_, roomWall_, roomX_, roomY_})
+        box->setEnabled(room.has_value());
+    addRoom_->setEnabled(!room);
+    removeRoom_->setEnabled(room.has_value());
+    canvas_->setRoom(room);
 }
 
 void PlanWorkspace::updateButtons() {

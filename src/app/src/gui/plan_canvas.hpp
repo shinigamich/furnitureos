@@ -30,10 +30,10 @@ public:
     explicit PlanCanvas(QWidget* parent = nullptr);
 
     void setFootprints(std::vector<PlanFootprint> footprints);
-    void setRoom(std::optional<PlanRoom> room);
+    void setRoom(std::optional<project::RoomSettings> room);
     void setSelectedItem(const std::string& itemId);
     const std::vector<PlanFootprint>& footprints() const noexcept { return footprints_; }
-    const std::optional<PlanRoom>& room() const noexcept { return room_; }
+    const std::optional<project::RoomSettings>& room() const noexcept { return room_; }
 
     /// Fits the items and the room (walls included) into the widget.
     void fitToView();
@@ -67,7 +67,7 @@ private:
 
     std::vector<PlanFootprint> footprints_;
     std::vector<QPainterPath> paths_;  ///< Union of each footprint's outlines (project mm).
-    std::optional<PlanRoom> room_;
+    std::optional<project::RoomSettings> room_;
     std::string selected_;
     double scale_ = 0.2;               ///< px per mm.
     QPointF origin_{40, 400};          ///< Screen position of project (0,0).

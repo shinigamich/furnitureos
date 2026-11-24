@@ -114,22 +114,25 @@ geometry::Rect2 planExtents(const std::vector<PlanFootprint>& footprints) {
     return r;
 }
 
-core::Result<void> checkPlanRoom(const PlanRoom& room) {
-    auto bad = [](const std::string& what, double v) {
-        return core::makeError(core::ErrorCode::InvalidArgument,
-                               "The room " + what + " " + std::to_string(v) + " mm is not valid.", "room");
-    };
-    if (!std::isfinite(room.width) || room.width <= 0) return bad("width", room.width);
-    if (!std::isfinite(room.depth) || room.depth <= 0) return bad("depth", room.depth);
-    if (!std::isfinite(room.wallThickness) || room.wallThickness < 0) return bad("wall thickness", room.wallThickness);
-    if (!std::isfinite(room.x)) return bad("x position", room.x);
-    if (!std::isfinite(room.y)) return bad("y position", room.y);
-    return {};
+geometry::Rect2 planRoomInner(const project::RoomSettings& room) noexcept {
+    return geometry::Rect2::fromOriginSize(room.origin, room.width, room.depth);
 }
 
-std::vector<PlanGap> planGapsX(const std::vector<PlanFootprint>& footprints, const std::optional<PlanRoom>& room) {
-    const bool hasRoom = room && checkPlanRoom(*room).ok();
-    const geometry::Rect2 inner = hasRoom ? room->inner() : geometry::Rect2{};
+const std::optional<project::RoomSettings>& planRoom(const Session& session) noexcept {
+    return session.project().settings.room;
+}
+
+core::Result<void> applyPlanRoom(Session& session, std::optional<project::RoomSettings> room) {
+    if (room) {
+        if (auto ok = project::checkRoomSettings(*room); !ok) return ok;
+    }
+    if (room == planRoom(session)) return {};
+    return session.execute(project::commands::setRoom(std::move(room)));
+}
+
+std::vector<PlanGap> planGapsX(const std::vector<PlanFootprint>& footprints, const std::optional<project::RoomSettings>& room) {
+    const bool hasRoom = room && project::checkRoomSettings(*room).ok();
+    const geometry::Rect2 inner = hasRoom ? planRoomInner(*room) : geometry::Rect2{};
     std::vector<PlanGap> gaps;
     for (std::size_t i = 0; i < footprints.size(); ++i) {
         const auto& a = footprints[i].bounds;
@@ -165,7 +168,7 @@ std::vector<PlanGap> planGapsX(const std::vector<PlanFootprint>& footprints, con
 }
 
 PlanSnap snapPlanMove(const std::vector<PlanFootprint>& footprints, const std::string& movingId,
-                      geometry::Vec2 delta, double tolerance, const std::optional<PlanRoom>& room, double grid) {
+                      geometry::Vec2 delta, double tolerance, const std::optional<project::RoomSettings>& room, double grid) {
     PlanSnap out;
     out.delta = {roundTo(delta.x, grid), roundTo(delta.y, grid)};
     const auto moving = std::find_if(footprints.begin(), footprints.end(),
@@ -178,8 +181,8 @@ PlanSnap snapPlanMove(const std::vector<PlanFootprint>& footprints, const std::s
         xs.insert(xs.end(), {f.bounds.min.x, f.bounds.max.x});
         ys.insert(ys.end(), {f.bounds.min.y, f.bounds.max.y});
     }
-    if (room && checkPlanRoom(*room).ok()) {
-        const auto inner = room->inner();
+    if (room && project::checkRoomSettings(*room).ok()) {
+        const auto inner = planRoomInner(*room);
         xs.insert(xs.end(), {inner.min.x, inner.max.x});
         ys.insert(ys.end(), {inner.min.y, inner.max.y});
     }
