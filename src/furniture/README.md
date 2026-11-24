@@ -135,7 +135,7 @@ Door, front material, face B visible at the lane's front face): width = (opening
 height = opening − deduction, odd doors in the back lane, even doors in the front lane (part custom
 `furniture.sliding_plane` = `back` / `front`). Example 1800 × 2400 × 600 wardrobe (opening 1764 × 2364):
 2 doors 897 × 2324 (x 18..915 back lane y 55..73, x 885..1782 front lane y 20..38), 3 doors 608 wide at
-x 18 / 596 / 1174. Tracks `hw.track.<path>.top|bottom` (length = opening width) with their screw holes in
+x 18 / 596 / 1174. Tracks `hw.track.<path>.top|bottom` (length = opening width, also in `HardwareInstance::length`) with their screw holes in
 the panel above (must be a full panel: stretcher rails fail generation) and below (shared-panel depth limit
 on a fixed shelf); `hw.rollers.<slot>` = 4 roller / guide holes on each door's rear face. Handle: `None` = no
 grip; otherwise one recessed grip (Pocket on face B, centred on the door width; Center = mid height, Top /
@@ -155,7 +155,7 @@ tracks (e.g. depth 300: only 205 mm remain behind them, 250 needed), doors too n
 `hw.hanger_generic`, rules `hardware/cabinet_hanger.hpp`): hangers `hw.hanger.left|right` with two pilot holes
 each in the top-rear corner of the side's inner face, under the top panel (or the rear rail of a Rails top),
 and the wall rail `hw.wall_rail` (`HardwareSelection::wallRail`, default `hw.wall_rail_generic`) with length =
-`width`, position (0, `depth`, `interior_top` − 20) and the note "Wall rail <width> mm (cut on site) …".
+`width` (`HardwareInstance::length`, priced per metre by production), position (0, `depth`, `interior_top` − 20) and the note "Wall rail <width> mm (cut on site) …".
 **Back rule:** the hanger body and the rail need `back_space_min` (18 mm generic) between the back panel and
 the wall. A Grooved back with `groove_distance` ≥ that (the back then lies wholly in front of the hangers, no
 notch) or no back is accepted; an Overlay or Inset back, or a smaller `groove_distance`, fails generation with

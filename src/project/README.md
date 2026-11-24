@@ -221,6 +221,13 @@ and `labour` (closed; `perCutMetre`, `perEdgeMetre`, `perHole`, `perPart`, each 
 when set) — `production::PricingSettings` of customer quotes. The quote currency is
 `project.currency`; it is not repeated in `pricing`.
 
+Optional `room` (closed; absent = no room and not written, so older files stay byte-identical) —
+`RoomSettings` of the plan view: `width` (R, > 0), `depth` (R, > 0), `height` (> 0, written only when
+set), `wallThickness` (≥ 0, default 0), `origin` (`[x, y]`, default `[0, 0]`: plan position of the
+interior corner at minimum x / y). All mm, each at most `kMaxRoomDimension` (100 000; origin
+|x|, |y| ≤ 100 000), checked by `checkRoomSettings` on load and by `commands::setRoom(optional<RoomSettings>)`
+(nullopt removes the room; undoable) and `commands::setSettings`.
+
 ### 2.8 Hard limits
 
 A hostile or corrupted file must not hang loading, generation or saving. Files beyond these limits are **rejected

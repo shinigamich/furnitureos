@@ -140,6 +140,26 @@
         <source>Foot:</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Sliding system:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cabinet hanger:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Wall rail:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A cabinet hanger needs a grooved back with a groove distance of at least %1 mm (the hanger&apos;s back space; parameter groove_distance) or no back. Overlay and inset backs are refused.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A cabinet hanger needs a grooved back with a groove distance of at least the hanger&apos;s back space (parameter groove_distance) or no back. Overlay and inset backs are refused.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>InteriorText</name>

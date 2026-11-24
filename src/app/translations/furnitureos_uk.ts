@@ -140,6 +140,26 @@
         <source>Foot:</source>
         <translation>Опора:</translation>
     </message>
+    <message>
+        <source>Sliding system:</source>
+        <translation>Розсувна система:</translation>
+    </message>
+    <message>
+        <source>Cabinet hanger:</source>
+        <translation>Навіс для шафи:</translation>
+    </message>
+    <message>
+        <source>Wall rail:</source>
+        <translation>Монтажна шина:</translation>
+    </message>
+    <message>
+        <source>A cabinet hanger needs a grooved back with a groove distance of at least %1 mm (the hanger&apos;s back space; parameter groove_distance) or no back. Overlay and inset backs are refused.</source>
+        <translation>Навісу для шафи потрібна задня стінка в пазу з відступом паза не менше %1 мм (простір навісу за задньою стінкою; параметр groove_distance) або шафа без задньої стінки. Накладна та вкладна задні стінки не допускаються.</translation>
+    </message>
+    <message>
+        <source>A cabinet hanger needs a grooved back with a groove distance of at least the hanger&apos;s back space (parameter groove_distance) or no back. Overlay and inset backs are refused.</source>
+        <translation>Навісу для шафи потрібна задня стінка в пазу з відступом паза не менше простору навісу за задньою стінкою (параметр groove_distance) або шафа без задньої стінки. Накладна та вкладна задні стінки не допускаються.</translation>
+    </message>
 </context>
 <context>
     <name>InteriorText</name>

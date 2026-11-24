@@ -264,6 +264,7 @@ right-handed (`zAxis = xAxis × yAxis`). Mirrored, scaled or skewed frames are r
 | `parts` | array of string | | `[]` | non-empty part ids |
 | `position` | `[x, y, z]` | | `[0, 0, 0]` | assembly frame, mm |
 | `note` | string | | `""` | |
+| `length` | number | | `0` | ≥ 0, mm per piece of a linear fitting (wall rail, track); written only when > 0 |
 
 ### 3.8 Operation — unknown keys rejected
 
