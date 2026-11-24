@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/app/cabinet_parts.hpp"
 
+#include "fos/core/units.hpp"
+#include "fos/hardware/cabinet_hanger.hpp"
+#include "fos/hardware/catalog.hpp"
+
 #include <QCoreApplication>
 
 namespace fos::app {
@@ -24,6 +28,12 @@ template <class Selection> auto& field(Selection& s, HardwareRole role) {
         return s.dowel;
     case HardwareRole::Foot:
         return s.foot;
+    case HardwareRole::SlidingSystem:
+        return s.slidingSystem;
+    case HardwareRole::Hanger:
+        return s.hanger;
+    case HardwareRole::WallRail:
+        return s.wallRail;
     }
     return s.hinge;
 }
@@ -50,6 +60,12 @@ domain::HardwareKind hardwareKind(HardwareRole role) {
         return domain::HardwareKind::Dowel;
     case HardwareRole::Foot:
         return domain::HardwareKind::Foot;
+    case HardwareRole::SlidingSystem:
+        return domain::HardwareKind::SlidingSystem;
+    case HardwareRole::Hanger:
+        return domain::HardwareKind::Suspension;
+    case HardwareRole::WallRail:
+        return domain::HardwareKind::Other;
     }
     return domain::HardwareKind::Other;
 }
@@ -68,8 +84,18 @@ QString hardwareRoleTitle(HardwareRole role) {
         return HardwareText::tr("Dowel:");
     case HardwareRole::Foot:
         return HardwareText::tr("Foot:");
+    case HardwareRole::SlidingSystem:
+        return HardwareText::tr("Sliding system:");
+    case HardwareRole::Hanger:
+        return HardwareText::tr("Cabinet hanger:");
+    case HardwareRole::WallRail:
+        return HardwareText::tr("Wall rail:");
     }
     return {};
+}
+
+bool hardwareRoleOptional(HardwareRole role) {
+    return role == HardwareRole::Hanger;
 }
 
 const domain::HardwareId& selected(const furniture::HardwareSelection& selection, HardwareRole role) {
@@ -80,15 +106,36 @@ std::vector<HardwareChoice> hardwareChoices(const furniture::Libraries& librarie
                                             const std::string& current) {
     std::vector<HardwareChoice> out;
     bool found = false;
+    if (hardwareRoleOptional(role)) {
+        out.push_back({std::string(), std::string(), false, true});
+        found = current.empty();
+    }
     for (const auto& h : libraries.hardware) {
         if (h.kind != hardwareKind(role))
             continue;
-        out.push_back({h.id.str(), h.name, false});
+        if (role == HardwareRole::WallRail && (!h.params.count("rail_height") || !h.params.count("rail_thickness")))
+            continue;
+        out.push_back({h.id.str(), h.name, false, false});
         found = found || h.id.str() == current;
     }
     if (!found && !current.empty())
-        out.push_back({current, current, true});
+        out.push_back({current, current, true, false});
     return out;
+}
+
+QString hangerHint(const furniture::Libraries& libraries, const furniture::HardwareSelection& selection) {
+    const domain::HardwareDefinition* hanger = selection.hanger.empty() ? nullptr : libraries.findHardware(selection.hanger);
+    if (!hanger)
+        hanger = libraries.findHardware(domain::HardwareId(hardware::ids::kHangerGeneric));
+    if (hanger) {
+        if (auto space = hardware::hangerBackSpace(*hanger))
+            return HardwareText::tr("A cabinet hanger needs a grooved back with a groove distance of at least %1 mm "
+                                    "(the hanger's back space; parameter groove_distance) or no back. Overlay and "
+                                    "inset backs are refused.")
+                .arg(QString::fromStdString(core::formatLength(space.value())));
+    }
+    return HardwareText::tr("A cabinet hanger needs a grooved back with a groove distance of at least the hanger's "
+                            "back space (parameter groove_distance) or no back. Overlay and inset backs are refused.");
 }
 
 project::Command hardwareCommand(const furniture::CabinetDefinition& cabinet, HardwareRole role,

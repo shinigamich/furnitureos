@@ -135,6 +135,7 @@ HardwareBag makeBag(const domain::Model& model, const domain::Assembly& a, core:
         line.kind = row.kind;
         line.unknownDefinition = row.unknownDefinition;
         line.quantity = row.quantity;
+        line.totalLengthM = row.totalLengthM;
         (isFastener(row.kind) ? bag.fasteners : bag.fittings).push_back(std::move(line));
     }
     return bag;

@@ -49,7 +49,7 @@ struct EdgeBandingHeaders {
 };
 struct HardwareHeaders {
     std::string hardware = "Hardware", manufacturer = "Manufacturer", article = "Article",
-                quantity = "Qty", unitCost = "Unit cost", total = "Total",
+                quantity = "Qty", length = "Total length (m)", unitCost = "Unit cost", total = "Total",
                 dimensionsVerified = "Dimensions verified", note = "Note";
 };
 struct MachiningHeaders {

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Hardware selection and per-part overrides (material, edge bands) through the Session.
 #include "fos/app/cabinet_parts.hpp"
+#include "fos/app/parameter_rows.hpp"
+#include "fos/furniture/parameters.hpp"
 #include "fos/hardware/catalog.hpp"
 #include "test_support.hpp"
 
@@ -78,6 +80,84 @@ TEST(CabinetHardware, ChoicesFromTheLibraryAndSelection) {
     EXPECT_EQ(cabinet(s).hardware.hinge.str(), hardware::ids::kHingeCup35);
     ASSERT_TRUE(s.redo().ok());
     EXPECT_EQ(cabinet(s).hardware.hinge.str(), "hw.test.hinge_b");
+}
+
+const domain::HardwareInstance* instance(const Session& s, const std::string& definition) {
+    for (const auto& h : s.resolved()->model.assemblies.at(0).hardware)
+        if (h.definition.str() == definition)
+            return &h;
+    return nullptr;
+}
+
+TEST(CabinetHardware, HangerRailAndSlidingChoices) {
+    Session s;
+    ASSERT_TRUE(s.newFromTemplate(TemplateKind::WallCabinet).ok());
+    const auto& libs = s.project().libraries;
+    // Hanger: "None" first (the default selection is empty), then the generic hanger.
+    const auto hangers = hardwareChoices(libs, HardwareRole::Hanger, cabinet(s).hardware.hanger.str());
+    ASSERT_EQ(hangers.size(), 2u);
+    EXPECT_TRUE(hangers[0].none);
+    EXPECT_TRUE(hangers[0].id.empty());
+    EXPECT_EQ(hangers[1].id, hardware::ids::kHangerGeneric);
+    EXPECT_TRUE(hardwareRoleOptional(HardwareRole::Hanger));
+    EXPECT_FALSE(hardwareRoleOptional(HardwareRole::WallRail));
+    // Wall rail: only kind-Other entries carrying the rail keys.
+    const auto rails = hardwareChoices(libs, HardwareRole::WallRail, cabinet(s).hardware.wallRail.str());
+    ASSERT_EQ(rails.size(), 1u);
+    EXPECT_EQ(rails[0].id, hardware::ids::kWallRailGeneric);
+    const auto sliding = hardwareChoices(libs, HardwareRole::SlidingSystem, cabinet(s).hardware.slidingSystem.str());
+    ASSERT_EQ(sliding.size(), 1u);
+    EXPECT_EQ(sliding[0].id, hardware::ids::kSlidingGeneric);
+    EXPECT_EQ(hardwareKind(HardwareRole::Hanger), domain::HardwareKind::Suspension);
+    // Generic back_space_min = 18 mm (hardware README).
+    EXPECT_NE(hangerHint(libs, cabinet(s).hardware).indexOf(QStringLiteral("18 mm")), -1)
+        << hangerHint(libs, cabinet(s).hardware).toStdString();
+}
+
+TEST(CabinetHardware, HangerNeedsGroovedBackAndUndoes) {
+    Session s;
+    ASSERT_TRUE(s.newFromTemplate(TemplateKind::WallCabinet).ok());
+    const std::string id = cabinet(s).id.str();
+    // The wall-cabinet template has an Overlay back: refused with the engine message naming
+    // the required groove distance (18 mm); nothing changes.
+    ASSERT_EQ(cabinet(s).construction.back, furniture::BackMount::Overlay);
+    const auto revision = s.revision();
+    auto refused = s.execute(hardwareCommand(cabinet(s), HardwareRole::Hanger, hardware::ids::kHangerGeneric));
+    ASSERT_FALSE(refused.ok());
+    EXPECT_NE(refused.error().message.find("Overlay"), std::string::npos) << refused.error().message;
+    EXPECT_NE(refused.error().message.find("18"), std::string::npos) << refused.error().message;
+    EXPECT_TRUE(cabinet(s).hardware.hanger.empty());
+    EXPECT_EQ(s.revision(), revision);
+
+    // Grooved back with groove_distance 18 (= back_space_min): accepted.
+    furniture::ConstructionOptions o = cabinet(s).construction;
+    o.back = furniture::BackMount::Grooved;
+    ASSERT_TRUE(s.execute(project::commands::setConstruction(id, o)).ok());
+    ParameterInput in;
+    in.value = 18;
+    ASSERT_TRUE(s.execute(parameterCommand(id, furniture::param::kGrooveDistance, in)).ok());
+    EXPECT_EQ(instance(s, hardware::ids::kHangerGeneric), nullptr);
+    ASSERT_TRUE(s.execute(hardwareCommand(cabinet(s), HardwareRole::Hanger, hardware::ids::kHangerGeneric)).ok());
+    EXPECT_EQ(cabinet(s).hardware.hanger.str(), hardware::ids::kHangerGeneric);
+    // One hanger per side (2 in total) and one wall rail.
+    int hangers = 0;
+    for (const auto& h : s.resolved()->model.assemblies.at(0).hardware)
+        if (h.definition.str() == hardware::ids::kHangerGeneric)
+            hangers += h.quantity;
+    EXPECT_EQ(hangers, 2);
+    const auto* rail = instance(s, hardware::ids::kWallRailGeneric);
+    ASSERT_NE(rail, nullptr);
+    EXPECT_EQ(rail->quantity, 1);
+
+    // "None" removes them again; undo brings them back, undo once more removes them.
+    ASSERT_TRUE(s.execute(hardwareCommand(cabinet(s), HardwareRole::Hanger, "")).ok());
+    EXPECT_EQ(instance(s, hardware::ids::kHangerGeneric), nullptr);
+    EXPECT_EQ(instance(s, hardware::ids::kWallRailGeneric), nullptr);
+    ASSERT_TRUE(s.undo().ok());
+    EXPECT_NE(instance(s, hardware::ids::kHangerGeneric), nullptr);
+    ASSERT_TRUE(s.undo().ok());
+    EXPECT_TRUE(cabinet(s).hardware.hanger.empty());
+    EXPECT_EQ(instance(s, hardware::ids::kWallRailGeneric), nullptr);
 }
 
 TEST(PartOverride, SlotMaterialEdgesClearUndo) {

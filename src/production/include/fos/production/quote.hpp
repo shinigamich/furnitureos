@@ -95,7 +95,10 @@ struct Quote {
 ///    costPerSquareMeter * sheet area (noted);
 ///  * by area: quantity = cut area (domain::cutSize blanks) * (1 + wastePercent / 100) m2, price =
 ///    costPerSquareMeter, else costPerSheet / sheet area (noted).
-/// Edge band lines: purchase length (EdgeBandingReport) * costPerMeter. Hardware: quantity * unitCost.
+/// Edge band lines: purchase length (EdgeBandingReport) * costPerMeter. Hardware: quantity * unitCost
+/// in "pc"; a definition sold per metre (custom "unit" = "m", isPricedPerMetre) has unitCost PER
+/// METRE and is quoted as total length (HardwareRow::totalLengthM) in "m" * unitCost, unpriced when
+/// any of its instances has no length. Linear lines note the piece count and total length.
 /// Labour: one line per set rate. The cut-metre line needs a cutting plan for the panel-saw cuts:
 /// without options.sheetUsage it is unpriced (quantity = routing length of shaped parts only).
 /// InvalidArgument when checkPricingSettings fails or a SheetUsage value is negative / not finite.

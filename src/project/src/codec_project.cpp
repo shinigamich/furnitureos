@@ -293,6 +293,15 @@ Json settingsJson(const ProjectSettings& s) {
     j["edgeBanding"] = {{"overhangPerEnd", s.edgeBanding.overhangPerEnd}, {"wastePercent", s.edgeBanding.wastePercent}};
     j["cutListGroupAcrossAssemblies"] = s.cutListGroupAcrossAssemblies;
     if (s.pricing) j["pricing"] = pricingJson(*s.pricing);
+    if (s.room) {
+        Json room = Json::object();
+        room["width"] = s.room->width;
+        room["depth"] = s.room->depth;
+        if (s.room->height) room["height"] = *s.room->height;
+        room["wallThickness"] = s.room->wallThickness;
+        room["origin"] = writeVec2(s.room->origin);
+        j["room"] = std::move(room);
+    }
     appendExtra(j, s.extra);
     return j;
 }
@@ -307,6 +316,20 @@ core::Result<production::EdgeBandingOptions> edgeBandingFromJson(const Json& jso
     return o;
 }
 
+core::Result<RoomSettings> roomFromJson(const Json& json, std::string_view path) {
+    Reader r(json, path, "room settings");
+    RoomSettings room;
+    r.number("width", room.width, Num::Positive, true);
+    r.number("depth", room.depth, Num::Positive, true);
+    r.optionalNumber("height", room.height, Num::Positive);
+    r.number("wallThickness", room.wallThickness, Num::NonNegative);
+    r.vec2("origin", room.origin);
+    r.rejectUnknown();
+    if (!r.ok()) return r.error();
+    if (auto c = checkRoomSettings(room); !c) return schemaError(std::string(path), c.error().message);
+    return room;
+}
+
 core::Result<ProjectSettings> settingsFromJson(const Json& json, std::string_view path) {
     Reader r(json, path, "project settings");
     ProjectSettings s;
@@ -317,6 +340,11 @@ core::Result<ProjectSettings> settingsFromJson(const Json& json, std::string_vie
         production::PricingSettings pricing;
         r.nested("pricing", pricing, pricingFromJson);
         if (r.ok()) s.pricing = pricing;
+    }
+    if (r.find("room") != nullptr) {
+        RoomSettings room;
+        r.nested("room", room, roomFromJson);
+        if (r.ok()) s.room = room;
     }
     if (!r.ok()) return r.error();
     s.extra = r.unknown();

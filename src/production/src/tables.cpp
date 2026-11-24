@@ -169,16 +169,26 @@ Table edgeBandingTable(const EdgeBandingReport& r, const Localisation& loc, cons
 Table hardwareTable(const HardwareReport& r, const Localisation& loc, const NumberFormat& nf) {
     const auto& h = loc.hardware;
     Table t;
+    // The length column only appears when a linear fitting is present, so reports without one
+    // are unchanged.
+    bool linear = false;
+    for (const auto& w : r.rows) linear = linear || w.linearPieces > 0 || w.perMetre;
     t.header = {h.hardware, h.manufacturer, h.article, h.quantity, h.unitCost, h.total, h.dimensionsVerified,
                 h.note};
-    for (const auto& w : r.rows)
-        t.rows.push_back(
-            {w.unknownDefinition ? flagged(w.definitionId.str(), loc.terms.unknownDefinition) : w.name,
-             w.manufacturer, w.article, std::to_string(w.quantity), money(w.unitCost, w.costKnown, nf),
-             money(w.totalCost, w.costKnown, nf), w.dimensionsVerified ? loc.terms.yes : loc.terms.no,
-             joinNotes({w.unknownDefinition ? loc.terms.unknownDefinition : "",
-                        !w.unknownDefinition && !w.dimensionsVerified ? loc.terms.unverified : "",
-                        !w.unknownDefinition && !w.costKnown ? loc.terms.priceUnknown : ""})});
+    if (linear) t.header.insert(t.header.begin() + 4, h.length);
+    for (const auto& w : r.rows) {
+        std::vector<std::string> row{
+            w.unknownDefinition ? flagged(w.definitionId.str(), loc.terms.unknownDefinition) : w.name,
+            w.manufacturer, w.article, std::to_string(w.quantity),
+            money(w.unitCost, w.costKnown, nf) + (w.perMetre && w.costKnown ? " / " + loc.terms.meters : ""),
+            money(w.totalCost, w.costKnown, nf), w.dimensionsVerified ? loc.terms.yes : loc.terms.no,
+            joinNotes({w.unknownDefinition ? loc.terms.unknownDefinition : "",
+                       !w.unknownDefinition && !w.dimensionsVerified ? loc.terms.unverified : "",
+                       !w.unknownDefinition && !w.costKnown ? loc.terms.priceUnknown : ""})};
+        if (linear)
+            row.insert(row.begin() + 4, w.linearPieces > 0 ? formatLength(w.totalLengthM, nf.meters) : "");
+        t.rows.push_back(std::move(row));
+    }
     return t;
 }
 
@@ -254,7 +264,8 @@ Table costTable(const CostEstimate& r, const Localisation& loc, const NumberForm
     for (const auto& w : r.hardware)
         t.rows.push_back(
             {tm.hardware, w.unknownDefinition ? flagged(w.definitionId.str(), tm.unknownDefinition) : w.name,
-             std::to_string(w.quantity), tm.pieces, money(w.unitCost, w.costKnown, nf),
+             w.perMetre ? formatLength(w.totalLengthM, nf.meters) : std::to_string(w.quantity),
+             w.perMetre ? tm.meters : tm.pieces, money(w.unitCost, w.costKnown, nf),
              money(w.cost, w.costKnown, nf), r.currency,
              w.unknownDefinition ? tm.unknownDefinition : (w.costKnown ? "" : tm.priceUnknown)});
     subtotal(tm.hardware, r.hardwareTotal, "");

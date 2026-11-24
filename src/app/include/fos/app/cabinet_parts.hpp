@@ -14,14 +14,20 @@
 
 namespace fos::app {
 
-/// The fittings of furniture::HardwareSelection, in editor order.
-enum class HardwareRole { Hinge, Handle, ShelfPin, Confirmat, Dowel, Foot };
-inline constexpr HardwareRole kHardwareRoles[] = {HardwareRole::Hinge,    HardwareRole::Handle,
-                                                  HardwareRole::ShelfPin, HardwareRole::Confirmat,
-                                                  HardwareRole::Dowel,    HardwareRole::Foot};
+/// The fittings of furniture::HardwareSelection, in editor order. SlidingSystem = track system
+/// of sliding doors; Hanger = concealed wall-cabinet hanger (optional, empty = none); WallRail =
+/// the rail the hangers hook onto (used by the engine only while a hanger is set).
+enum class HardwareRole { Hinge, Handle, ShelfPin, Confirmat, Dowel, Foot, SlidingSystem, Hanger, WallRail };
+inline constexpr HardwareRole kHardwareRoles[] = {
+    HardwareRole::Hinge, HardwareRole::Handle,        HardwareRole::ShelfPin, HardwareRole::Confirmat, HardwareRole::Dowel,
+    HardwareRole::Foot,  HardwareRole::SlidingSystem, HardwareRole::Hanger,   HardwareRole::WallRail};
 
-/// Catalogue kind a role takes (Hinge, Handle, ShelfSupport, Confirmat, Dowel, Foot).
+/// Catalogue kind a role takes (Hinge, Handle, ShelfSupport, Confirmat, Dowel, Foot,
+/// SlidingSystem, Suspension; WallRail: Other, restricted to entries with the rail keys
+/// `rail_height` and `rail_thickness` of hardware/cabinet_hanger.hpp).
 domain::HardwareKind hardwareKind(HardwareRole role);
+/// True when the role may be empty ("None"): only Hanger.
+bool hardwareRoleOptional(HardwareRole role);
 /// Translated caption ("Hinge:", "Handle:", ...).
 QString hardwareRoleTitle(HardwareRole role);
 const domain::HardwareId& selected(const furniture::HardwareSelection& selection, HardwareRole role);
@@ -30,11 +36,18 @@ struct HardwareChoice {
     std::string id;
     std::string name;     ///< Library name (English data), or the id when missing.
     bool missing = false; ///< The current selection is not in the library (or of another kind).
+    bool none = false;    ///< The "None" entry of an optional role (id and name empty).
 };
 /// Library entries of the role's kind in library order; the current id is appended as
-/// `missing` when it is not among them, so the editor can still show it.
+/// `missing` when it is not among them, so the editor can still show it. An optional role
+/// (hardwareRoleOptional) starts with the `none` entry.
 std::vector<HardwareChoice> hardwareChoices(const furniture::Libraries& libraries, HardwareRole role,
                                             const std::string& current);
+/// Translated hint for the hanger row: a hanger needs a Grooved back with groove_distance at
+/// least the hanger's back space (hardware::hangerBackSpace of the selected hanger, else of
+/// hardware::ids::kHangerGeneric when it is in the library; the number is left out when
+/// neither is available) or no back; Overlay and Inset backs are refused by the engine.
+QString hangerHint(const furniture::Libraries& libraries, const furniture::HardwareSelection& selection);
 /// commands::setHardware with only `role` changed to `hardwareId`.
 project::Command hardwareCommand(const furniture::CabinetDefinition& cabinet, HardwareRole role,
                                  const std::string& hardwareId);

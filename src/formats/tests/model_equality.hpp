@@ -73,6 +73,7 @@ inline void expectEqual(const domain::HardwareInstance& a, const domain::Hardwar
     EXPECT_EQ(a.parts, b.parts) << where;
     expectEqual(a.position, b.position, where + ".position");
     EXPECT_EQ(a.note, b.note) << where;
+    EXPECT_EQ(a.length, b.length) << where;
 }
 
 inline void expectEqual(const domain::Operation& a, const domain::Operation& b, const std::string& where) {

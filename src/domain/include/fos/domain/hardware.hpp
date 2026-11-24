@@ -38,6 +38,9 @@ struct HardwareInstance {
     std::vector<PartId> parts;      ///< Parts this fitting connects / is mounted on.
     geometry::Vec3 position;        ///< Reference point in the assembly frame.
     std::string note;
+    /// Length in mm of ONE piece of a linear fitting (wall rail, sliding-door track) that is
+    /// cut to size; 0 means "not a linear fitting". Total length = length * quantity.
+    double length = 0.0;
 };
 
 const char* toString(HardwareKind k) noexcept;

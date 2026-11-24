@@ -211,6 +211,8 @@ Json toJson(const domain::HardwareInstance& h) {
     j["parts"] = std::move(parts);
     j["position"] = writeVec3(h.position);
     j["note"] = h.note;
+    // Optional: written only for linear fittings so files without them stay byte-identical.
+    if (h.length > 0.0) j["length"] = h.length;
     return j;
 }
 
@@ -234,6 +236,7 @@ core::Result<domain::HardwareInstance> hardwareInstanceFromJson(const Json& json
     });
     r.nested("position", h.position, readVec3);
     r.text("note", h.note);
+    r.number("length", h.length, NumberRule::NonNegative);
     r.rejectUnknown();
     if (!r.ok()) return r.error();
     return h;

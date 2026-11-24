@@ -180,6 +180,7 @@ core::Result<Placement> placeSlidingTrack(const Part& panel, const domain::Hardw
     inst.definition = sys.id;
     inst.quantity = 1;
     inst.parts = {panel.id};
+    inst.length = length;
     inst.note = std::string(cfg.top ? "Top" : "Bottom") + " track " + num(length) + " mm (cut to the opening width) on " +
                 panel.name;
     for (int k = 0; k < count; ++k) {

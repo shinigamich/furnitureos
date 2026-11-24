@@ -174,12 +174,15 @@ void InspectorPanel::buildHardware(QVBoxLayout* layout, const std::string& itemI
         combo->setObjectName(QStringLiteral("hardware:%1").arg(static_cast<int>(role)));
         const std::string selectedId = selected(current, role).str();
         for (const auto& choice : hardwareChoices(project.libraries, role, selectedId)) {
-            combo->addItem(choice.missing ? tr("%1 (not in the library)").arg(QString::fromStdString(choice.id))
-                                          : QString::fromStdString(choice.name),
+            combo->addItem(choice.none      ? tr("None")
+                           : choice.missing ? tr("%1 (not in the library)").arg(QString::fromStdString(choice.id))
+                                            : QString::fromStdString(choice.name),
                            QString::fromStdString(choice.id));
             combo->setItemData(combo->count() - 1, QString::fromStdString(choice.id), Qt::ToolTipRole);
         }
         selectData(combo, QString::fromStdString(selectedId));
+        // The engine uses the wall rail only while a hanger is set.
+        combo->setEnabled(role != HardwareRole::WallRail || !current.hanger.empty());
         form->addRow(hardwareRoleTitle(role), combo);
         connect(combo, qOverload<int>(&QComboBox::activated), this, [this, itemId, role, combo, error, selectedId] {
             const std::string id = combo->currentData().toString().toStdString();
@@ -189,6 +192,11 @@ void InspectorPanel::buildHardware(QVBoxLayout* layout, const std::string& itemI
         });
     }
     form->addRow(error);
+    auto* hint = new QLabel(hangerHint(project.libraries, current), box);
+    hint->setObjectName(QStringLiteral("hangerHint"));
+    hint->setWordWrap(true);
+    hint->setStyleSheet(QStringLiteral("color: palette(mid);"));
+    form->addRow(hint);
     auto* note = new QLabel(tr("Only fittings of the matching kind from the project's hardware library are offered."), box);
     note->setWordWrap(true);
     note->setStyleSheet(QStringLiteral("color: palette(mid);"));

@@ -14,6 +14,7 @@ fos_add_module(project
         src/file.cpp
         src/commands.cpp
         src/commands_nesting.cpp
+        src/room.cpp
         src/document.cpp
         src/outputs.cpp
         src/limits.cpp
@@ -44,4 +45,5 @@ fos_add_tests(project
         tests/component_tests.cpp
         tests/batch_tests.cpp
         tests/worktop_tests.cpp
-        tests/plinth_tests.cpp)
+        tests/plinth_tests.cpp
+        tests/room_tests.cpp)

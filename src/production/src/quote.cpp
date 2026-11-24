@@ -197,12 +197,22 @@ core::Result<Quote> quote(const domain::Model& model, const PricingSettings& set
         line.description = row.unknownDefinition ? row.definitionId.str() : row.name;
         line.quantity = row.quantity;
         line.unit = "pc";
+        if (row.perMetre) {
+            line.quantity = row.totalLengthM;
+            line.unit = "m";
+        }
+        const std::string pieces = std::to_string(row.linearPieces) + " pc, total length " +
+                                   core::formatLength(row.totalLengthM, 3) + " m";
         if (row.unknownDefinition)
             line.note = "hardware definition is not in the catalogue";
         else if (row.costKnown)
             line.unitPrice = row.unitCost;
+        else if (row.perMetre && detail::positiveFinite(row.unitCost))
+            line.note = "sold per metre but " + std::to_string(row.quantity - row.linearPieces) + " of " +
+                        std::to_string(row.quantity) + " pieces have no length";
         else
-            line.note = "no unit price in the catalogue";
+            line.note = row.perMetre ? "no price per metre in the catalogue" : "no unit price in the catalogue";
+        if (row.linearPieces > 0) line.note = line.note.empty() ? pieces : pieces + "; " + line.note;
         b.add(std::move(line), b.q.hardwareSubtotal);
     }
 

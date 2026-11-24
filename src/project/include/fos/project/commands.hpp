@@ -114,6 +114,9 @@ Command setCuttingSettings(std::optional<std::string> materialId, std::optional<
 Command setNestingSettings(std::optional<NestingSettings> settings);
 Command setMetadata(Metadata metadata);
 Command setSettings(ProjectSettings settings);
+/// Sets the room of the plan (checkRoomSettings), or with nullopt removes it (key no longer written).
+/// Undoable like every command; Affected::settings is set.
+Command setRoom(std::optional<RoomSettings> room);
 /// Must be a JSON object.
 Command setCustom(formats::Json custom);
 

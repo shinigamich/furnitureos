@@ -69,6 +69,7 @@ struct BagLine {
     domain::HardwareKind kind = domain::HardwareKind::Other;
     bool unknownDefinition = false;
     int quantity = 0;
+    double totalLengthM = 0; ///< Total length of linear pieces (HardwareRow::totalLengthM), metres.
 };
 
 /// Hardware bag of one assembly. Fasteners = kinds Confirmat, Dowel, CamConnector, Screw;

@@ -167,6 +167,7 @@ core::Result<Placement> placeWallRail(const domain::HardwareDefinition& rail, co
     inst.quantity = 1;
     inst.parts = cfg.parts;
     inst.position = {cfg.x0, cfg.wallY, zTop};
+    inst.length = length;
     inst.note = "Wall rail " + num(length) + " mm (cut on site); top edge at z = " + num(zTop) + " mm, " +
                 num(hv.value().at(kRailTopBelowTop)) + " mm below the underside of the panel above the hangers";
     Placement out;

@@ -21,6 +21,7 @@ std::string flags(const Package& p) {
 std::string bagLineText(const BagLine& l) {
     std::string s = std::to_string(l.quantity) + " x " + l.name;
     if (!l.article.empty()) s += " (" + l.article + ")";
+    if (l.totalLengthM > 0) s += ", total length " + core::formatLength(l.totalLengthM, 3) + " m";
     if (l.unknownDefinition) s += " [unknown definition]";
     return s;
 }
@@ -107,7 +108,11 @@ Table packingTable(const PackingList& list) {
                                   mm(part.width), mm(part.thickness), "1", kgCell(part.weightKg)});
         for (const auto* lines : {&a.bag.fittings, &a.bag.fasteners})
             for (const auto& l : *lines)
-                t.rows.push_back({a.assemblyName, a.bag.id, "", "unknown", "", l.name, "", "", "", "",
+                t.rows.push_back({a.assemblyName, a.bag.id, "", "unknown", "",
+                                  l.totalLengthM > 0
+                                      ? l.name + " (total length " + core::formatLength(l.totalLengthM, 3) + " m)"
+                                      : l.name,
+                                  "", "", "", "",
                                   std::to_string(l.quantity), "unknown"});
     }
     return t;

@@ -74,7 +74,8 @@ CostEstimate costEstimate(const domain::Model& model, const CostOptions& options
     take(hw.diagnostics);
     for (const auto& h : hw.rows) {
         out.hardware.push_back(
-            {h.definitionId, h.name, h.unknownDefinition, h.quantity, h.unitCost, h.costKnown, h.totalCost});
+            {h.definitionId, h.name, h.unknownDefinition, h.quantity, h.unitCost, h.costKnown, h.totalCost,
+             h.perMetre, h.totalLengthM});
         if (!h.costKnown) out.complete = false;
         out.hardwareTotal += h.totalCost;
     }

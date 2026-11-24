@@ -529,6 +529,8 @@ Command setSettings(ProjectSettings settings) {
             return core::makeError(core::ErrorCode::InvalidArgument,
                                    "The backup count must be from 0 to " + std::to_string(limits::kMaxBackupCount) +
                                        " (is " + std::to_string(settings.backupCount) + ").");
+        if (settings.room)
+            if (auto ok = checkRoomSettings(*settings.room); !ok) return ok.error();
         p.settings = settings;
         Affected a;
         a.settings = true;

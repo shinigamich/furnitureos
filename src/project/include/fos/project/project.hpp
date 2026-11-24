@@ -119,6 +119,27 @@ struct ProjectCuttingSettings {
 };
 
 /// Project-wide settings used by the convenience outputs and saving.
+/// The room the project is planned in (used by the desktop Plan view). Units mm. Frame: the
+/// plan (x, y) of the project/world frame, z up from the finished floor. The room interior is
+/// the rectangle [origin.x, origin.x + width] x [origin.y, origin.y + depth] (inner wall faces);
+/// the walls of `wallThickness` lie outside it. Rectangular rooms only.
+struct RoomSettings {
+    double width = 0.0;            ///< Interior extent along +x, mm (> 0).
+    double depth = 0.0;            ///< Interior extent along +y, mm (> 0).
+    std::optional<double> height;  ///< Floor to ceiling, mm (> 0); nullopt = not specified.
+    double wallThickness = 0.0;    ///< mm (>= 0; 0 = walls not drawn).
+    geometry::Vec2 origin;         ///< Plan position of the interior corner at minimum x and y, mm.
+    bool operator==(const RoomSettings&) const = default;
+};
+
+/// Largest room dimension accepted by checkRoomSettings (100 m), mm.
+inline constexpr double kMaxRoomDimension = 100000.0;
+
+/// InvalidArgument naming the field and value when width / depth / height is not finite or not in
+/// (0, kMaxRoomDimension], wallThickness is not in [0, kMaxRoomDimension], or an origin coordinate
+/// is not finite or has a magnitude above kMaxRoomDimension.
+core::Result<void> checkRoomSettings(const RoomSettings& room);
+
 struct ProjectSettings {
     int backupCount = 3;                              ///< Rotating `.bakN` files kept on save (>= 0).
     production::EdgeBandingOptions edgeBanding;       ///< Overhang / waste of the edge banding report.
@@ -127,6 +148,8 @@ struct ProjectSettings {
     /// (files without the key stay byte for byte the same). PricingSettings::currency is not
     /// stored here: the quote uses Metadata::currency (the currency of the library prices).
     std::optional<production::PricingSettings> pricing;
+    /// Room / plan settings. nullopt = no room and NOT written (old files stay byte-identical).
+    std::optional<RoomSettings> room;
     formats::Json extra = formats::Json::object();    ///< Unknown keys of the file object (preserved).
 };
 

@@ -63,6 +63,7 @@ TEST(Hanger, HangersAndRailOnGroovedWallCabinet) {
     EXPECT_EQ(rail->quantity, 1);
     EXPECT_TRUE(geometry::approxEqual(rail->position, {0, 320, 682}));
     EXPECT_THAT(rail->note, HasSubstr("Wall rail 600 mm (cut on site)"));
+    EXPECT_DOUBLE_EQ(rail->length, 600.0); // = cabinet width, x0 = 0 .. x1 = 600
     ASSERT_EQ(rail->parts.size(), 2u);
     EXPECT_EQ(rail->parts[0].str(), "cab/side.left");
 

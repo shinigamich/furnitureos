@@ -88,17 +88,33 @@ struct HardwareRow {
     bool dimensionsVerified = false; ///< Copied from the definition; false when unknown.
     int instanceCount = 0;           ///< Number of HardwareInstance records.
     int quantity = 0;                ///< Sum of instance quantities.
-    double unitCost = 0;             ///< 0 = unknown.
+    /// Linear fittings (HardwareInstance::length > 0, e.g. wall rails, sliding-door tracks):
+    /// number of pieces (sum of the quantities of instances with a length) and their total
+    /// length in METRES (sum of length * quantity / 1000). Both 0 for non-linear fittings.
+    int linearPieces = 0;
+    double totalLengthM = 0;
+    /// The definition is sold per metre (custom "unit" = "m", see isPricedPerMetre): unitCost is
+    /// then a price PER METRE and totalCost = totalLengthM * unitCost. Such a row is priced only
+    /// when every counted instance carries a length (otherwise costKnown = false and a
+    /// production.hardware.missing_length warning names the instance).
+    bool perMetre = false;
+    double unitCost = 0;             ///< 0 = unknown. Per piece, or per metre when `perMetre`.
     bool costKnown = false;
     double totalCost = 0;
 };
+
+/// True when the definition's custom "unit" is "m": HardwareDefinition::unitCost is then a price
+/// per metre of cut-to-length material, not per piece.
+bool isPricedPerMetre(const domain::HardwareDefinition& definition);
 
 struct HardwareReport {
     std::vector<HardwareRow> rows; ///< Used definitions in catalogue order, then unknown ids sorted.
     core::Diagnostics diagnostics;
 };
 
-/// Instances with quantity <= 0 are skipped with a diagnostic.
+/// Instances with quantity <= 0 are skipped with a diagnostic. Lengths of linear instances are
+/// summed per definition (HardwareRow::linearPieces / totalLengthM); a negative or non-finite
+/// length is ignored with a production.hardware.invalid_length warning.
 HardwareReport hardwareReport(const domain::Model& model, const Scope& scope = {});
 
 // ---------------------------------------------------------------- machining

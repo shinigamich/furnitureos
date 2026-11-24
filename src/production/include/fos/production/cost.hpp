@@ -44,9 +44,11 @@ struct HardwareCostLine {
     std::string name;
     bool unknownDefinition = false;
     int quantity = 0;
-    double unitCost = 0;
+    double unitCost = 0;  ///< Per piece, or per metre when `perMetre`.
     bool costKnown = false;
-    double cost = 0;
+    double cost = 0;      ///< quantity * unitCost, or totalLengthM * unitCost when `perMetre`.
+    bool perMetre = false;    ///< See HardwareRow::perMetre.
+    double totalLengthM = 0;  ///< Total length of linear pieces, metres.
 };
 
 /// Material + edge banding + hardware cost. Labour, machining time, delivery and

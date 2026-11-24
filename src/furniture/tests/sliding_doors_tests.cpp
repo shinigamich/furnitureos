@@ -50,7 +50,9 @@ TEST(SlidingDoors, TwoDoorWardrobe) {
     ASSERT_NE(instance(a, "hw.track.top"), nullptr);
     EXPECT_EQ(instance(a, "hw.track.top")->definition.str(), hardware::ids::kSlidingGeneric);
     EXPECT_THAT(instance(a, "hw.track.top")->note, HasSubstr("1764"));
+    EXPECT_DOUBLE_EQ(instance(a, "hw.track.top")->length, 1764.0); // linear fitting length, mm
     ASSERT_NE(instance(a, "hw.track.bottom"), nullptr);
+    EXPECT_DOUBLE_EQ(instance(a, "hw.track.bottom")->length, 1764.0);
     EXPECT_EQ(holes(a, "top", "hw.track.top").size(), 7u);
     EXPECT_EQ(holes(a, "bottom", "hw.track.bottom").size(), 7u);
     const domain::Part top = part(a, "top");

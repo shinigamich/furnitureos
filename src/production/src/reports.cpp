@@ -6,6 +6,7 @@
 #include "fos/core/units.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <map>
 
 namespace fos::production {
@@ -131,12 +132,18 @@ EdgeBandingReport edgeBandingReport(const domain::Model& model, const EdgeBandin
 
 // ----------------------------------------------------------------- hardware
 
+bool isPricedPerMetre(const domain::HardwareDefinition& definition) {
+    const auto it = definition.custom.find("unit");
+    return it != definition.custom.end() && it->second == "m";
+}
+
 HardwareReport hardwareReport(const domain::Model& model, const Scope& scope) {
     auto c = detail::collect(model, scope);
     HardwareReport out;
     out.diagnostics = std::move(c.diagnostics);
 
     std::map<domain::HardwareId, HardwareRow> acc;
+    std::map<domain::HardwareId, std::vector<std::string>> unmeasured; // instance ids without a length
     for (const auto* a : c.assemblies)
         for (const auto& h : a->hardware) {
             if (h.quantity <= 0) {
@@ -150,6 +157,16 @@ HardwareReport hardwareReport(const domain::Model& model, const Scope& scope) {
             row.definitionId = h.definition;
             ++row.instanceCount;
             row.quantity += h.quantity;
+            if (!std::isfinite(h.length) || h.length < 0.0) {
+                detail::warn(out.diagnostics, "production.hardware.invalid_length",
+                             "Hardware instance '" + h.id.str() + "' in assembly '" + a->name + "' has length " +
+                                 core::formatLength(h.length, 3) + " mm; the length must be >= 0 and is ignored.",
+                             h.id.str());
+            } else if (h.length > 0.0) {
+                row.linearPieces += h.quantity;
+                row.totalLengthM += h.length * h.quantity / 1000.0;
+            }
+            if (h.length <= 0.0 || !std::isfinite(h.length)) unmeasured[h.definition].push_back(h.id.str());
             if (!model.findHardware(h.definition))
                 detail::warn(out.diagnostics, "production.hardware.unknown_definition",
                              "Hardware instance '" + h.id.str() + "' in assembly '" + a->name +
@@ -168,8 +185,22 @@ HardwareReport hardwareReport(const domain::Model& model, const Scope& scope) {
         row.kind = def.kind;
         row.dimensionsVerified = def.dimensionsVerified;
         row.unitCost = def.unitCost;
+        row.perMetre = isPricedPerMetre(def);
         row.costKnown = detail::positiveFinite(def.unitCost);
-        if (row.costKnown) row.totalCost = row.quantity * def.unitCost;
+        if (row.perMetre) {
+            const auto missing = unmeasured.find(def.id);
+            if (missing != unmeasured.end()) {
+                row.costKnown = false;
+                detail::warn(out.diagnostics, "production.hardware.missing_length",
+                             "'" + def.name + "' is sold per metre but " + std::to_string(missing->second.size()) +
+                                 " instance(s) have no length (first: '" + missing->second.front() +
+                                 "'); its cost is unknown. Regenerate the item or set the instance length.",
+                             def.id.str());
+            }
+            if (row.costKnown) row.totalCost = row.totalLengthM * def.unitCost;
+        } else if (row.costKnown) {
+            row.totalCost = row.quantity * def.unitCost;
+        }
         out.rows.push_back(std::move(row));
     }
     for (auto& [id, row] : acc) row.unknownDefinition = true;
