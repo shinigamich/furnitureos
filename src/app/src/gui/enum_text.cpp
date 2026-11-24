@@ -116,6 +116,18 @@ Choices<furniture::NicheVent> nicheVentChoices() {
             {nicheVentTitle(V::BackCutout), V::BackCutout}};
 }
 
+Choices<furniture::FrontStyle> frontStyleChoices() {
+    using S = furniture::FrontStyle;
+    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Slab")), S::Slab},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Frame and panel")), S::FramePanel}};
+}
+
+Choices<furniture::FrameJoint> frameJointChoices() {
+    using J = furniture::FrameJoint;
+    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Stub tenon")), J::StubTenon},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Dowels")), J::Dowel}};
+}
+
 Choices<furniture::HandlePosition> handleChoices() {
     using H = furniture::HandlePosition;
     return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "No handle")), H::None},

@@ -13,6 +13,8 @@
 #include "fos/app/interior_rows.hpp"
 #include "test_support.hpp"
 
+#include <algorithm>
+
 namespace fos::app::test {
 namespace {
 
@@ -234,6 +236,89 @@ TEST_F(Fixture, FrontsDoorDrawersNone) {
         ASSERT_TRUE(s.undo().ok());
     EXPECT_NE(part(s, "cab1/door.left"), nullptr);
     EXPECT_DOUBLE_EQ(part(s, "cab1/door.left")->width, 296.5); // (596 - 3) / 2
+}
+
+TEST_F(Fixture, FramePanelDoorMaterialUndo) {
+    run(frontCommand("cab1", "", [&] {
+        FrontInput in = frontInput(cabinet(s).interior.front);
+        in.choice = FrontInput::Choice::Door;
+        return in;
+    }()));
+    const std::size_t slabParts = partCount(s);
+    const std::string frontMaterial = part(s, "cab1/door")->material.str();
+
+    FrontInput in = frontInput(cabinet(s).interior.front);
+    EXPECT_EQ(in.style, furniture::FrontStyle::Slab);
+    in.style = furniture::FrontStyle::FramePanel; // defaults: stile = rail = 70, groove 10, clearance 2
+    run(frontCommand("cab1", "", in));
+    // Door 596 x 716 -> 2 stiles + 2 rails + 1 panel instead of one board: 4 parts more.
+    EXPECT_EQ(partCount(s), slabParts + 4);
+    EXPECT_EQ(part(s, "cab1/door"), nullptr);
+    for (const char* id : {"cab1/door.stile.left", "cab1/door.stile.right", "cab1/door.rail.top",
+                           "cab1/door.rail.bottom", "cab1/door.panel"})
+        EXPECT_NE(part(s, id), nullptr) << id;
+    // Panel: e = 10 - 2 = 8; 596 - 140 + 16 = 472 by 716 - 140 + 16 = 592.
+    const auto* panel = part(s, "cab1/door.panel");
+    ASSERT_NE(panel, nullptr);
+    EXPECT_DOUBLE_EQ(std::min(panel->length, panel->width), 472);
+    EXPECT_DOUBLE_EQ(std::max(panel->length, panel->width), 592);
+    EXPECT_EQ(panel->material.str(), frontMaterial);
+    EXPECT_EQ(contentText(sectionRows(cabinet(s).interior)[0]),
+              QStringLiteral("shelves: 1; door, hinged left, frame and panel"));
+
+    // The editor state carries the frame back; choose another panel material.
+    in = frontInput(cabinet(s).interior.front);
+    EXPECT_EQ(in.style, furniture::FrontStyle::FramePanel);
+    EXPECT_DOUBLE_EQ(in.frame.stileWidth, 70);
+    const auto choices = panelMaterialChoices(s.project().libraries, "");
+    ASSERT_GE(choices.size(), 2u);
+    EXPECT_TRUE(choices[0].id.empty()); // "Same as front"
+    std::string other;
+    for (const auto& c : choices)
+        if (!c.id.empty() && c.id != frontMaterial && other.empty())
+            other = c.id;
+    ASSERT_FALSE(other.empty());
+    in.frame.panelMaterial = domain::MaterialId(other);
+    in.frame.joint = furniture::FrameJoint::Dowel;
+    run(frontCommand("cab1", "", in));
+    EXPECT_EQ(part(s, "cab1/door.panel")->material.str(), other);
+    EXPECT_EQ(part(s, "cab1/door.stile.left")->material.str(), frontMaterial);
+    EXPECT_EQ(frontInput(cabinet(s).interior.front).frame, in.frame);
+    // An unknown current material is listed as missing.
+    EXPECT_TRUE(panelMaterialChoices(s.project().libraries, "nope").back().missing);
+
+    // Engine refusal: clearance >= groove depth.
+    FrontInput bad = in;
+    bad.frame.panelClearance = 10;
+    refused(frontCommand("cab1", "", bad).value());
+
+    // Undo twice: back to the slab door.
+    ASSERT_TRUE(s.undo().ok());
+    ASSERT_TRUE(s.undo().ok());
+    EXPECT_NE(part(s, "cab1/door"), nullptr);
+    EXPECT_EQ(partCount(s), slabParts);
+}
+
+TEST_F(Fixture, SlabFrontRoundTripAndStyleOnlyWhereItApplies) {
+    const furniture::FrontSpec original = *cabinet(s).interior.front;
+    ASSERT_EQ(original.style, furniture::FrontStyle::Slab);
+    auto spec = frontSpec(frontInput(original));
+    ASSERT_TRUE(spec.ok());
+    EXPECT_EQ(spec.value().kind, original.kind);
+    EXPECT_EQ(spec.value().style, furniture::FrontStyle::Slab);
+    EXPECT_EQ(spec.value().frame, furniture::FramePanelSpec{});
+    EXPECT_EQ(spec.value().handle, original.handle);
+
+    EXPECT_TRUE(frontStyleApplies(FrontInput::Choice::DrawerStack));
+    EXPECT_FALSE(frontStyleApplies(FrontInput::Choice::SlidingDoors));
+    FrontInput in;
+    in.choice = FrontInput::Choice::SlidingDoors;
+    in.style = furniture::FrontStyle::FramePanel;
+    in.frame.stileWidth = 50;
+    spec = frontSpec(in);
+    ASSERT_TRUE(spec.ok());
+    EXPECT_EQ(spec.value().style, furniture::FrontStyle::Slab); // the disabled combo is not submitted
+    EXPECT_EQ(spec.value().frame, furniture::FramePanelSpec{});
 }
 
 } // namespace

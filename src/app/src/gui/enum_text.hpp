@@ -34,6 +34,8 @@ Choices<furniture::HingeSide> hingeSideChoices();
 Choices<furniture::HandlePosition> handleChoices();
 Choices<furniture::DrawerBottomMount> drawerBottomChoices();
 Choices<furniture::NicheVent> nicheVentChoices();
+Choices<furniture::FrontStyle> frontStyleChoices();
+Choices<furniture::FrameJoint> frameJointChoices();
 Choices<cutting::Objective> objectiveChoices();
 Choices<drawings::DimensionOrientation> orientationChoices();
 /// Shape editor choices.

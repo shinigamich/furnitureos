@@ -19,6 +19,9 @@
 #include <QTreeWidget>
 #include <QVBoxLayout>
 
+#include <initializer_list>
+#include <optional>
+
 namespace fos::app::gui {
 namespace {
 constexpr int kPathRole = Qt::UserRole;
@@ -164,6 +167,23 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
                              "(back cut-out)."));
     ventEndMargin_ = ventSpin("nicheVentEndMargin", frontBox);
     ventEndMargin_->setToolTip(tr("Distance of both ends of the opening from the panels left and right of the niche."));
+    frontStyle_ = choiceBox(frontStyleChoices(), furniture::FrontStyle::Slab, frontBox);
+    frontStyle_->setObjectName(QStringLiteral("frontStyle"));
+    frontStyle_->setToolTip(tr("Slab = one board; frame and panel = two stiles, two rails and a panel in a groove "
+                               "(doors, flaps and drawer fronts)."));
+    stileWidth_ = ventSpin("frameStileWidth", frontBox);
+    stileWidth_->setToolTip(tr("Visible width of the two vertical stiles."));
+    railWidth_ = ventSpin("frameRailWidth", frontBox);
+    railWidth_->setToolTip(tr("Visible width of the two horizontal rails between the stiles."));
+    panelThickness_ = ventSpin("framePanelThickness", frontBox);
+    grooveDepth_ = ventSpin("frameGrooveDepth", frontBox);
+    grooveDepth_->setToolTip(tr("Depth of the panel groove in the inner edges of the stiles and rails."));
+    panelClearance_ = ventSpin("framePanelClearance", frontBox);
+    panelClearance_->setToolTip(tr("Gap between the panel edge and the bottom of the groove."));
+    frameJoint_ = choiceBox(frameJointChoices(), furniture::FrameJoint::StubTenon, frontBox);
+    frameJoint_->setObjectName(QStringLiteral("frameJoint"));
+    panelMaterial_ = narrowCombo(frontBox);
+    panelMaterial_->setObjectName(QStringLiteral("framePanelMaterial"));
     applyFront_ = new QPushButton(tr("Apply front"), frontBox);
     applyFront_->setObjectName(QStringLiteral("applyFront"));
     frontForm->addRow(tr("Type:"), frontKind_);
@@ -171,6 +191,14 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
     frontForm->addRow(tr("Single door:"), hingeSide_);
     frontForm->addRow(hinges_);
     frontForm->addRow(tr("Handle:"), handle_);
+    frontForm->addRow(tr("Style:"), frontStyle_);
+    frontForm->addRow(tr("Stile width:"), stileWidth_);
+    frontForm->addRow(tr("Rail width:"), railWidth_);
+    frontForm->addRow(tr("Panel thickness:"), panelThickness_);
+    frontForm->addRow(tr("Groove depth:"), grooveDepth_);
+    frontForm->addRow(tr("Panel clearance:"), panelClearance_);
+    frontForm->addRow(tr("Frame joint:"), frameJoint_);
+    frontForm->addRow(tr("Panel material:"), panelMaterial_);
     frontForm->addRow(tr("Sliding doors:"), slidingDoors);
     frontForm->addRow(tr("Drawer heights:"), drawerHeights_);
     frontForm->addRow(tr("Drawer boxes:"), drawerBox_);
@@ -238,10 +266,17 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
         ventSize_->setEnabled(vent);
         ventEdge_->setEnabled(vent);
         ventEndMargin_->setEnabled(vent);
+        const bool styled = frontStyleApplies(choice);
+        frontStyle_->setEnabled(styled);
+        const bool frame = styled && valueOf<furniture::FrontStyle>(frontStyle_) == furniture::FrontStyle::FramePanel;
+        for (QWidget* w : std::initializer_list<QWidget*>{stileWidth_, railWidth_, panelThickness_, grooveDepth_,
+                                                          panelClearance_, frameJoint_, panelMaterial_})
+            w->setEnabled(frame);
     };
     connect(frontKind_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
     connect(drawerBox_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
     connect(nicheVent_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
+    connect(frontStyle_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
     connect(applyFront_, &QPushButton::clicked, this, [this] {
         FrontInput in;
         in.choice = valueOf<FrontInput::Choice>(frontKind_);
@@ -259,6 +294,16 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
         in.niche.ventSize = ventSize_->value();
         in.niche.ventEdgeDistance = ventEdge_->value();
         in.niche.ventEndMargin = ventEndMargin_->value();
+        in.style = valueOf<furniture::FrontStyle>(frontStyle_);
+        in.frame.stileWidth = stileWidth_->value();
+        in.frame.railWidth = railWidth_->value();
+        in.frame.panelThickness = panelThickness_->value();
+        in.frame.grooveDepth = grooveDepth_->value();
+        in.frame.panelClearance = panelClearance_->value();
+        in.frame.joint = valueOf<furniture::FrameJoint>(frameJoint_);
+        const std::string material = panelMaterial_->currentData().toString().toStdString();
+        in.frame.panelMaterial =
+            material.empty() ? std::nullopt : std::optional<domain::MaterialId>(domain::MaterialId(material));
         run(frontCommand(itemId_, selectedPath_, in));
     });
 
@@ -357,6 +402,18 @@ void InteriorEditor::showSelected() {
     ventSize_->setValue(in.niche.ventSize);
     ventEdge_->setValue(in.niche.ventEdgeDistance);
     ventEndMargin_->setValue(in.niche.ventEndMargin);
+    selectData(frontStyle_, static_cast<int>(in.style));
+    stileWidth_->setValue(in.frame.stileWidth);
+    railWidth_->setValue(in.frame.railWidth);
+    panelThickness_->setValue(in.frame.panelThickness);
+    grooveDepth_->setValue(in.frame.grooveDepth);
+    panelClearance_->setValue(in.frame.panelClearance);
+    selectData(frameJoint_, static_cast<int>(in.frame.joint));
+    const std::string panelMaterial = in.frame.panelMaterial ? in.frame.panelMaterial->str() : std::string{};
+    panelMaterial_->clear();
+    for (const auto& c : panelMaterialChoices(session_.project().libraries, panelMaterial))
+        panelMaterial_->addItem(c.text, QString::fromStdString(c.id));
+    selectData(panelMaterial_, QString::fromStdString(panelMaterial));
     applyFront_->setEnabled(have);
 }
 

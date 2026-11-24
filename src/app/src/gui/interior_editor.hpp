@@ -69,6 +69,14 @@ private:
     QDoubleSpinBox* ventSize_;      ///< ApplianceNicheSpec::ventSize, mm.
     QDoubleSpinBox* ventEdge_;      ///< ApplianceNicheSpec::ventEdgeDistance, mm.
     QDoubleSpinBox* ventEndMargin_; ///< ApplianceNicheSpec::ventEndMargin, mm.
+    QComboBox* frontStyle_;          ///< FrontStyle (door / pair / flap / drawer stack).
+    QDoubleSpinBox* stileWidth_;     ///< FramePanelSpec, mm.
+    QDoubleSpinBox* railWidth_;
+    QDoubleSpinBox* panelThickness_;
+    QDoubleSpinBox* grooveDepth_;
+    QDoubleSpinBox* panelClearance_;
+    QComboBox* frameJoint_;          ///< FrameJoint.
+    QComboBox* panelMaterial_;       ///< "" = same as front, else a material id.
     QPushButton* applyFront_;
     QLabel* selectedTitle_;
     QLabel* error_;

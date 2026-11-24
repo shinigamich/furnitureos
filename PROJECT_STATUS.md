@@ -104,6 +104,7 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 | T-056 | Desktop plan view: top-down footprints, gaps, snapping drag/rotate, SVG export | Done (room saved in the project) | 10 app core tests |
 | T-057 | Wall-cabinet mounting: generic concealed hangers + wall rail; desktop Hardware tab choices (hanger, rail, sliding system) | Done (generic, dimensions unverified) | hardware/furniture/project + 2 app tests |
 | T-058 | Linear hardware lengths priced per metre; optional project room settings (`commands::setRoom`) | Done | production + project tests |
+| T-059 | Frame-and-panel (five-piece) door/flap/drawer fronts with stub-tenon or dowel joints; desktop style and frame fields | Done (generic defaults) | 7 furniture + 1 project + 2 app tests |
 
 ## Independent review 2026-11-12 (calculation-critical modules)
 

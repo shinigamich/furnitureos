@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/app/interior_rows.hpp"
 
+#include "fos/app/cabinet_run_form.hpp"
 #include "fos/app/parameter_rows.hpp"
 #include "fos/core/units.hpp"
 
@@ -129,6 +130,8 @@ QString contentText(const SectionRow& row) {
             front = InteriorText::tr("appliance decor front");
             break;
         }
+        if (row.front->style == furniture::FrontStyle::FramePanel)
+            front += InteriorText::tr(", frame and panel");
         text += QStringLiteral("; ") + front;
     }
     return text;
@@ -261,7 +264,29 @@ FrontInput frontInput(const std::optional<furniture::FrontSpec>& front) {
         in.slide = front->drawerBox->slide.str();
         in.drawerBottom = front->drawerBox->bottom;
     }
+    in.style = front->style;
+    in.frame = front->frame;
     return in;
+}
+
+bool frontStyleApplies(FrontInput::Choice choice) noexcept {
+    return choice == FrontInput::Choice::Door || choice == FrontInput::Choice::DoorPair ||
+           choice == FrontInput::Choice::Flap || choice == FrontInput::Choice::DrawerStack;
+}
+
+std::vector<PanelMaterialChoice> panelMaterialChoices(const furniture::Libraries& libraries,
+                                                      const std::string& current) {
+    std::vector<PanelMaterialChoice> out;
+    out.push_back({std::string{}, InteriorText::tr("Same as front"), false});
+    bool found = current.empty();
+    for (const auto& m : libraries.materials) {
+        out.push_back({m.id.str(), materialChoiceText(m), false});
+        found = found || m.id.str() == current;
+    }
+    if (!found)
+        out.push_back({current, InteriorText::tr("%1 (not in the library)").arg(QString::fromStdString(current)),
+                       true});
+    return out;
 }
 
 std::vector<SlideChoice> slideChoices(const furniture::Libraries& libraries, const std::string& current) {
@@ -335,6 +360,10 @@ core::Result<furniture::FrontSpec> frontSpec(const FrontInput& input) {
         break;
     case FrontInput::Choice::None:
         break;
+    }
+    if (frontStyleApplies(input.choice) && input.style == furniture::FrontStyle::FramePanel) {
+        spec.style = furniture::FrontStyle::FramePanel;
+        spec.frame = input.frame;
     }
     return spec;
 }

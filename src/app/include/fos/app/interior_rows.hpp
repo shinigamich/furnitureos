@@ -93,7 +93,25 @@ struct FrontInput {
     /// Appliance niche only: vent settings (furniture::ApplianceNicheSpec), submitted as given;
     /// the furniture module validates them (sizes > 0, opening fits the niche).
     furniture::ApplianceNicheSpec niche;
+    /// Door / door pair / flap / drawer stack only (frontStyleApplies): Slab = one board,
+    /// FramePanel = five-piece front built from `frame` (furniture README "Frame-and-panel
+    /// fronts"). Submitted as given; the furniture module validates the frame values.
+    furniture::FrontStyle style = furniture::FrontStyle::Slab;
+    /// Frame settings (mm); kept while the style is Slab so switching back restores them.
+    furniture::FramePanelSpec frame;
 };
+/// True for the choices that may be built frame-and-panel (Door, DoorPair, Flap, DrawerStack).
+bool frontStyleApplies(FrontInput::Choice choice) noexcept;
+/// Panel material combo of a frame-and-panel front: first "Same as front" (empty id = the
+/// front material), then the library materials in library order ("Name — 18 mm (id)");
+/// `current` is appended with `missing` set when it is not empty and not in the library.
+struct PanelMaterialChoice {
+    std::string id;
+    QString text;
+    bool missing = false;
+};
+std::vector<PanelMaterialChoice> panelMaterialChoices(const furniture::Libraries& libraries,
+                                                      const std::string& current);
 /// Library entries of kind DrawerSlide (id, name) in library order; `current` is appended
 /// with `missing` set when it is not among them.
 struct SlideChoice {
@@ -105,7 +123,8 @@ std::vector<SlideChoice> slideChoices(const furniture::Libraries& libraries, con
 /// The FrontSpec the editor submits (drawer heights parsed for a drawer stack; for sliding
 /// doors a whole number in `slidingDoors` is the count, other text the count expression).
 /// InvalidArgument for Choice::None (no spec), an unparsable height list, an empty door count
-/// or a whole number outside 2..6.
+/// or a whole number outside 2..6. `style` / `frame` are copied for the choices where
+/// frontStyleApplies (otherwise the spec is a slab with the default frame).
 core::Result<furniture::FrontSpec> frontSpec(const FrontInput& input);
 /// Editor state of an existing front (None for std::nullopt).
 FrontInput frontInput(const std::optional<furniture::FrontSpec>& front);

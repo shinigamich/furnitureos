@@ -259,6 +259,18 @@
         <source>appliance decor front</source>
         <translation>декоративний фасад техніки</translation>
     </message>
+    <message>
+        <source>, frame and panel</source>
+        <translation>, рамковий з філенкою</translation>
+    </message>
+    <message>
+        <source>Same as front</source>
+        <translation>Як у фасаду</translation>
+    </message>
+    <message>
+        <source>%1 (not in the library)</source>
+        <translation>%1 (немає в бібліотеці)</translation>
+    </message>
 </context>
 <context>
     <name>LibraryText</name>
@@ -2916,6 +2928,18 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Appliance decor front</source>
         <translation>Декоративний фасад техніки</translation>
     </message>
+    <message>
+        <source>Slab</source>
+        <translation>Суцільний</translation>
+    </message>
+    <message>
+        <source>Frame and panel</source>
+        <translation>Рамковий з філенкою</translation>
+    </message>
+    <message>
+        <source>Stub tenon</source>
+        <translation>Короткий шип</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::ImportDxfDialog</name>
@@ -3476,6 +3500,58 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     <message>
         <source>End margin:</source>
         <translation>Відступ з боків:</translation>
+    </message>
+    <message>
+        <source>Slab = one board; frame and panel = two stiles, two rails and a panel in a groove (doors, flaps and drawer fronts).</source>
+        <translation>Суцільний = одна плита; рамковий з філенкою = дві стійки, дві поперечки і філенка в пазу (двері, підйомні фасади та фасади шухляд).</translation>
+    </message>
+    <message>
+        <source>Visible width of the two vertical stiles.</source>
+        <translation>Видима ширина двох вертикальних стійок.</translation>
+    </message>
+    <message>
+        <source>Visible width of the two horizontal rails between the stiles.</source>
+        <translation>Видима ширина двох горизонтальних поперечок між стійками.</translation>
+    </message>
+    <message>
+        <source>Depth of the panel groove in the inner edges of the stiles and rails.</source>
+        <translation>Глибина паза під філенку у внутрішніх кромках стійок і поперечок.</translation>
+    </message>
+    <message>
+        <source>Gap between the panel edge and the bottom of the groove.</source>
+        <translation>Зазор між краєм філенки і дном паза.</translation>
+    </message>
+    <message>
+        <source>Style:</source>
+        <translation>Конструкція:</translation>
+    </message>
+    <message>
+        <source>Stile width:</source>
+        <translation>Ширина стійки:</translation>
+    </message>
+    <message>
+        <source>Rail width:</source>
+        <translation>Ширина поперечки:</translation>
+    </message>
+    <message>
+        <source>Panel thickness:</source>
+        <translation>Товщина філенки:</translation>
+    </message>
+    <message>
+        <source>Groove depth:</source>
+        <translation>Глибина паза:</translation>
+    </message>
+    <message>
+        <source>Panel clearance:</source>
+        <translation>Зазор філенки:</translation>
+    </message>
+    <message>
+        <source>Frame joint:</source>
+        <translation>З’єднання рамки:</translation>
+    </message>
+    <message>
+        <source>Panel material:</source>
+        <translation>Матеріал філенки:</translation>
     </message>
 </context>
 <context>
