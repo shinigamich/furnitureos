@@ -1290,6 +1290,16 @@
         <source>  Return %1 (%2)</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>%1 × %2 mm</source>
+        <comment>plan: overall X × Y size of an item</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 mm</source>
+        <comment>plan: a gap or length</comment>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::CommandText</name>
@@ -4254,6 +4264,10 @@ Replace it?</source>
         <source>Add a kitchen plinth under a straight run of cabinets on feet</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Plan</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::NestingSettingsForm</name>
@@ -4526,6 +4540,156 @@ Replace it?</source>
     </message>
     <message>
         <source>-assembly.svg</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::PlanCanvas</name>
+    <message>
+        <source>No generated items to show.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>FurnitureOS plan, 1 unit = 1 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::PlanWorkspace</name>
+    <message>
+        <source>Fit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show all items and the room</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Zoom in</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Zoom in (also: mouse wheel)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Zoom out</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Zoom out (also: mouse wheel)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rotate 90°</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rotate the selected item 90° counter-clockwise about its centre</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export SVG…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Save the plan as an SVG drawing (1 unit = 1 mm)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Room</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Draw a rectangular room. It is not saved with the project.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inner room width along X</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inner room depth along Y</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Wall thickness (drawing only)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>X of the inner left wall</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Y of the inner front wall</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>W</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>D</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Wall</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>X</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Y</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>(not saved with the project)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Drag an item to move it (snaps to item edges and walls); wheel zooms, middle or right button pans. Each move or rotation is one undo step.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Move refused: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The project could not be resolved: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rotation refused: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export plan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>There are no generated items to export.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>plan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export plan as SVG</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>SVG drawing (*.svg)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Plan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not write %1.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -18,6 +18,7 @@
 #include "production_workspace.hpp"
 #include "project_browser.hpp"
 #include "packing_workspace.hpp"
+#include "plan_workspace.hpp"
 #include "quote_workspace.hpp"
 
 #include <QAction>
@@ -53,12 +54,14 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), preferences_(Pref
     cutting_ = new CuttingWorkspace(session_, tabs_);
     quote_ = new QuoteWorkspace(session_, tabs_);
     packing_ = new PackingWorkspace(session_, tabs_);
+    plan_ = new PlanWorkspace(session_, tabs_);
     tabs_->addTab(viewport_, tr("3D"));
     tabs_->addTab(drawings_, tr("Drawings"));
     tabs_->addTab(production_, tr("Production"));
     tabs_->addTab(cutting_, tr("Cutting"));
     tabs_->addTab(quote_, tr("Quote"));
     tabs_->addTab(packing_, tr("Packing"));
+    tabs_->addTab(plan_, tr("Plan"));
     setCentralWidget(tabs_);
 
     buildDocks();

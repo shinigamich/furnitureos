@@ -38,7 +38,8 @@ add_library(fos_app_core STATIC
     src/core/worktop_form.cpp
     src/core/cabinet_run_form.cpp
     src/core/plinth_form.cpp
-    src/core/packing_rows.cpp)
+    src/core/packing_rows.cpp
+    src/core/plan_view.cpp)
 add_library(fos::app_core ALIAS fos_app_core)
 # moc (Qt 6.4) cannot parse libstdc++ C++20 concepts with the compiler predefines (see viewport).
 set_target_properties(fos_app_core PROPERTIES AUTOMOC ON AUTOMOC_COMPILER_PREDEFINES OFF)
@@ -70,7 +71,8 @@ if(FOS_BUILD_TESTS)
         tests/core/appliance_tests.cpp
         tests/core/worktop_tests.cpp
         tests/core/plinth_tests.cpp
-        tests/core/packing_tests.cpp)
+        tests/core/packing_tests.cpp
+        tests/core/plan_view_tests.cpp)
     target_link_libraries(fos_app_core_tests PRIVATE fos::app_core Qt6::Test GTest::gtest GTest::gmock)
     fos_set_warnings(fos_app_core_tests PRIVATE)
     gtest_discover_tests(fos_app_core_tests DISCOVERY_TIMEOUT 60
@@ -138,7 +140,11 @@ set(FOS_APP_GUI_SOURCES
     src/gui/worktop_dialog.hpp
     src/gui/worktop_dialog.cpp
     src/gui/plinth_dialog.hpp
-    src/gui/plinth_dialog.cpp)
+    src/gui/plinth_dialog.cpp
+    src/gui/plan_workspace.hpp
+    src/gui/plan_workspace.cpp
+    src/gui/plan_canvas.hpp
+    src/gui/plan_canvas.cpp)
 
 # Everything except main.cpp goes into a static library shared by the executable and the
 # GUI smoke test.

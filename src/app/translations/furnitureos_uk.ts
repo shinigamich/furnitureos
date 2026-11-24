@@ -1294,6 +1294,16 @@
         <source>  Return %1 (%2)</source>
         <translation>  Бокова планка %1 (%2)</translation>
     </message>
+    <message>
+        <source>%1 × %2 mm</source>
+        <comment>plan: overall X × Y size of an item</comment>
+        <translation>%1 × %2 мм</translation>
+    </message>
+    <message>
+        <source>%1 mm</source>
+        <comment>plan: a gap or length</comment>
+        <translation>%1 мм</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::CommandText</name>
@@ -4270,6 +4280,10 @@ Replace it?</source>
         <source>Add a kitchen plinth under a straight run of cabinets on feet</source>
         <translation>Додати кухонний цоколь під прямий ряд корпусів на ніжках</translation>
     </message>
+    <message>
+        <source>Plan</source>
+        <translation>План</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::NestingSettingsForm</name>
@@ -4543,6 +4557,156 @@ Replace it?</source>
     <message>
         <source>-assembly.svg</source>
         <translation>-skladannia.svg</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::PlanCanvas</name>
+    <message>
+        <source>No generated items to show.</source>
+        <translation>Немає згенерованих виробів для показу.</translation>
+    </message>
+    <message>
+        <source>FurnitureOS plan, 1 unit = 1 mm</source>
+        <translation>План FurnitureOS, 1 одиниця = 1 мм</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::PlanWorkspace</name>
+    <message>
+        <source>Fit</source>
+        <translation>Вписати</translation>
+    </message>
+    <message>
+        <source>Show all items and the room</source>
+        <translation>Показати всі вироби та кімнату</translation>
+    </message>
+    <message>
+        <source>Zoom in</source>
+        <translation>Збільшити</translation>
+    </message>
+    <message>
+        <source>Zoom in (also: mouse wheel)</source>
+        <translation>Збільшити (також коліщатком миші)</translation>
+    </message>
+    <message>
+        <source>Zoom out</source>
+        <translation>Зменшити</translation>
+    </message>
+    <message>
+        <source>Zoom out (also: mouse wheel)</source>
+        <translation>Зменшити (також коліщатком миші)</translation>
+    </message>
+    <message>
+        <source>Rotate 90°</source>
+        <translation>Повернути на 90°</translation>
+    </message>
+    <message>
+        <source>Rotate the selected item 90° counter-clockwise about its centre</source>
+        <translation>Повернути вибраний виріб на 90° проти годинникової стрілки навколо його центру</translation>
+    </message>
+    <message>
+        <source>Export SVG…</source>
+        <translation>Експорт SVG…</translation>
+    </message>
+    <message>
+        <source>Save the plan as an SVG drawing (1 unit = 1 mm)</source>
+        <translation>Зберегти план як креслення SVG (1 одиниця = 1 мм)</translation>
+    </message>
+    <message>
+        <source>Room</source>
+        <translation>Кімната</translation>
+    </message>
+    <message>
+        <source>Draw a rectangular room. It is not saved with the project.</source>
+        <translation>Показати прямокутну кімнату. Вона не зберігається в проєкті.</translation>
+    </message>
+    <message>
+        <source>Inner room width along X</source>
+        <translation>Внутрішня ширина кімнати вздовж X</translation>
+    </message>
+    <message>
+        <source>Inner room depth along Y</source>
+        <translation>Внутрішня глибина кімнати вздовж Y</translation>
+    </message>
+    <message>
+        <source>Wall thickness (drawing only)</source>
+        <translation>Товщина стін (лише для зображення)</translation>
+    </message>
+    <message>
+        <source>X of the inner left wall</source>
+        <translation>X внутрішньої лівої стіни</translation>
+    </message>
+    <message>
+        <source>Y of the inner front wall</source>
+        <translation>Y внутрішньої передньої стіни</translation>
+    </message>
+    <message>
+        <source>W</source>
+        <translation>Ш</translation>
+    </message>
+    <message>
+        <source>D</source>
+        <translation>Г</translation>
+    </message>
+    <message>
+        <source>Wall</source>
+        <translation>Стіна</translation>
+    </message>
+    <message>
+        <source>X</source>
+        <translation>X</translation>
+    </message>
+    <message>
+        <source>Y</source>
+        <translation>Y</translation>
+    </message>
+    <message>
+        <source>(not saved with the project)</source>
+        <translation>(не зберігається в проєкті)</translation>
+    </message>
+    <message>
+        <source>Drag an item to move it (snaps to item edges and walls); wheel zooms, middle or right button pans. Each move or rotation is one undo step.</source>
+        <translation>Перетягніть виріб, щоб перемістити його (прилипає до країв виробів і стін); коліщатко змінює масштаб, середня або права кнопка зсуває вигляд. Кожне переміщення чи поворот — один крок скасування.</translation>
+    </message>
+    <message>
+        <source>Move refused: %1</source>
+        <translation>Переміщення відхилено: %1</translation>
+    </message>
+    <message>
+        <source>The project could not be resolved: %1</source>
+        <translation>Не вдалося обчислити проєкт: %1</translation>
+    </message>
+    <message>
+        <source>Rotation refused: %1</source>
+        <translation>Поворот відхилено: %1</translation>
+    </message>
+    <message>
+        <source>Export plan</source>
+        <translation>Експорт плану</translation>
+    </message>
+    <message>
+        <source>There are no generated items to export.</source>
+        <translation>Немає згенерованих виробів для експорту.</translation>
+    </message>
+    <message>
+        <source>plan</source>
+        <translation>план</translation>
+    </message>
+    <message>
+        <source>Export plan as SVG</source>
+        <translation>Експорт плану в SVG</translation>
+    </message>
+    <message>
+        <source>SVG drawing (*.svg)</source>
+        <translation>Креслення SVG (*.svg)</translation>
+    </message>
+    <message>
+        <source>Plan</source>
+        <translation>План</translation>
+    </message>
+    <message>
+        <source>Could not write %1.</source>
+        <translation>Не вдалося записати %1.</translation>
     </message>
 </context>
 <context>

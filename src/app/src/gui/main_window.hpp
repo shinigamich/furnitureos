@@ -32,6 +32,7 @@ class ProductionWorkspace;
 class ProjectBrowser;
 class QuoteWorkspace;
 class PackingWorkspace;
+class PlanWorkspace;
 class SectionToolBar;
 
 class MainWindow : public QMainWindow {
@@ -49,6 +50,7 @@ public:
     CuttingWorkspace* cuttingWorkspace() const noexcept { return cutting_; }
     QuoteWorkspace* quoteWorkspace() const noexcept { return quote_; }
     PackingWorkspace* packingWorkspace() const noexcept { return packing_; }
+    PlanWorkspace* planWorkspace() const noexcept { return plan_; }
     /// The library editor window (nullptr until Project > Libraries… was used).
     LibraryWindow* libraryWindow() const noexcept { return libraries_; }
     ComponentBrowser* componentBrowser() const noexcept { return components_; }
@@ -121,6 +123,7 @@ private:
     CuttingWorkspace* cutting_ = nullptr;
     QuoteWorkspace* quote_ = nullptr;
     PackingWorkspace* packing_ = nullptr;
+    PlanWorkspace* plan_ = nullptr;
     BatchWindow* batch_ = nullptr;
     LibraryWindow* libraries_ = nullptr;
     ProjectBrowser* browser_ = nullptr;
