@@ -89,7 +89,7 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 | T-041 | Reusable component library (`.foscomp`), in-use checks for all library references | Done | project tests |
 | T-042 | Inset and half-overlay hinges, lift-up flaps (generic lift) | Done | hardware/furniture tests |
 | T-043 | Realistic display mode and resize drag handles in the 3D view | Done | viewport tests |
-| T-044 | Sliding-door wardrobes: generic two-lane track system, interior set back behind tracks, codec, desktop front choice | Done (generic system, dimensions unverified) | 9 engine tests; no codec/app tests yet |
+| T-044 | Sliding-door wardrobes: generic two-lane track system, interior set back behind tracks, codec, desktop front choice | Done (generic system, dimensions unverified) | 9 engine + 1 codec + 1 app test |
 | T-045 | Production batches (`.fosbatch`): merged projects with quantities, explicit material substitution, batch cut list / plans / labels / summary; `fos batch` | Done | 8 tests |
 | T-046 | Desktop component browser (insert with conflict policy, save as component) | Done | 3 app core tests |
 | T-047 | Cost estimation and quotes (`fos quote`, `fos batch quote`); unpriced items flagged, never invented | Done | 11 tests |

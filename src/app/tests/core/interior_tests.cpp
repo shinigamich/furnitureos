@@ -321,5 +321,37 @@ TEST_F(Fixture, SlabFrontRoundTripAndStyleOnlyWhereItApplies) {
     EXPECT_EQ(spec.value().frame, furniture::FramePanelSpec{});
 }
 
+
+TEST(SlidingFront, WardrobeDoorsCountExpressionAndUndo) {
+    Session s;
+    ASSERT_TRUE(s.newFromTemplate(TemplateKind::WardrobeSection).ok());
+    const std::size_t before = partCount(s);
+    FrontInput in;
+    in.choice = FrontInput::Choice::SlidingDoors;
+    in.slidingDoors = QStringLiteral("2");
+    auto cmd = frontCommand("cab1", "", in);
+    ASSERT_TRUE(cmd.ok()) << cmd.error().message;
+    auto r = s.execute(cmd.value());
+    ASSERT_TRUE(r.ok()) << r.error().message;
+    int doors = 0;
+    for (const auto& p : s.resolved()->model.assemblies.at(0).parts)
+        doors += p.id.str().rfind("cab1/sliding.", 0) == 0 ? 1 : 0;
+    EXPECT_EQ(doors, 2);
+    // The editor round-trips the count; an expression is kept as text.
+    EXPECT_EQ(frontInput(cabinet(s).interior.front).choice, FrontInput::Choice::SlidingDoors);
+    EXPECT_EQ(frontInput(cabinet(s).interior.front).slidingDoors, QStringLiteral("2"));
+    in.slidingDoors = QStringLiteral("if(width > 1500, 3, 2)");
+    auto expr = frontSpec(in);
+    ASSERT_TRUE(expr.ok());
+    EXPECT_EQ(expr.value().sliding.countExpression, "if(width > 1500, 3, 2)");
+    // Out-of-range and empty counts are refused before reaching the engine.
+    in.slidingDoors = QStringLiteral("7");
+    EXPECT_FALSE(frontSpec(in).ok());
+    in.slidingDoors = QString();
+    EXPECT_FALSE(frontSpec(in).ok());
+    ASSERT_TRUE(s.undo().ok());
+    EXPECT_EQ(partCount(s), before);
+}
+
 } // namespace
 } // namespace fos::app::test
