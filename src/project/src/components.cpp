@@ -32,6 +32,12 @@ void collectSection(RefSets& r, const furniture::Section& s) {
         if (s.front->drawerBox) addId(r.hardware, s.front->drawerBox->slide.str());
         for (const auto& box : s.front->drawerBoxes)
             if (box) addId(r.hardware, box->slide.str());
+        if (s.front->style == furniture::FrontStyle::FramePanel && s.front->frame.panelMaterial)
+            addId(r.materials, s.front->frame.panelMaterial->str());
+    }
+    if (s.hangingRail) {
+        addId(r.hardware, s.hangingRail->rail.str());
+        addId(r.hardware, s.hangingRail->supports.str());
     }
     for (const auto& child : s.children) collectSection(r, child);
 }

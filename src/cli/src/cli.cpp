@@ -18,7 +18,8 @@ struct CommandEntry {
     Handler handler;
 };
 
-constexpr std::array<CommandEntry, 21> kCommands{{
+// Size deduced (std::to_array) so that adding a command needs no count edit.
+constexpr auto kCommands = std::to_array<CommandEntry>({
     {"new", "Create a project file, optionally with one cabinet from a template.", detail::cmdNew},
     {"info", "Show items, parameters, part counts and diagnostics of a project.", detail::cmdInfo},
     {"set", "Set a parameter of an item to a value or an expression and save.", detail::cmdSet},
@@ -31,6 +32,7 @@ constexpr std::array<CommandEntry, 21> kCommands{{
     {"drawing", "Assembly or part drawing as SVG (exact scale) or DXF (1:1).", detail::cmdDrawing},
     {"labels", "Part labels as SVG pages.", detail::cmdLabels},
     {"packing", "Packing list for delivery: packages by weight/size, hardware bags, package labels.", detail::cmdPacking},
+    {"merge", "Import furniture items (and the library entries they use) from another project.", detail::cmdMerge},
     {"assembly", "Assembly sheets: generic step order from part roles, hardware per step (text/SVG).", detail::cmdAssembly},
     {"cam", "UNVERIFIED G-code for one face of one part (fictional demo machine).", detail::cmdCam},
     {"export-obj", "Wavefront OBJ (+ MTL) of the resolved model.", detail::cmdExportObj},
@@ -40,7 +42,8 @@ constexpr std::array<CommandEntry, 21> kCommands{{
     {"plinth", "Add a kitchen plinth (toe-kick) under a run of cabinets on feet (setback, joints, returns).", detail::cmdPlinth},
     {"batch", "Production batches: several projects (orders) cut and labelled together (.fosbatch).", detail::cmdBatch},
     {"import-dxf", "Add a free panel whose outline (and cut-outs) come from an ASCII DXF file.", detail::cmdImportDxf},
-}};
+    {"tools", "Validate, list and export CAM tool tables (.fostools) for `fos cam --tools`.", detail::cmdTools},
+});
 
 } // namespace
 

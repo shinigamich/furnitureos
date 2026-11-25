@@ -20,6 +20,7 @@ fos_add_module(cli_core
         src/cmd_worktop.cpp
         src/cmd_plinth.cpp
         src/cmd_packing.cpp
+        src/cmd_merge.cpp
     DEPS fos::core fos::geometry fos::domain fos::machining fos::furniture fos::validation fos::production
          fos::cutting fos::cutting_model fos::nesting fos::nesting_model fos::linear fos::drawings fos::cam fos::formats fos::project)
 target_compile_definitions(fos_cli_core PRIVATE FOS_CLI_VERSION="${PROJECT_VERSION}")
@@ -35,6 +36,7 @@ fos_set_warnings(fos PRIVATE)
 
 fos_add_tests(cli
     SOURCES tests/cli_tests.cpp tests/cli_binary_tests.cpp tests/cli_shaped_tests.cpp tests/cli_import_dxf_tests.cpp tests/cli_linear_tests.cpp tests/cli_component_tests.cpp tests/cli_batch_tests.cpp tests/cli_quote_tests.cpp tests/cli_worktop_tests.cpp tests/cli_plinth_tests.cpp tests/cli_packing_tests.cpp
+        tests/cli_merge_tests.cpp
     DEPS fos::cli_core)
 if(FOS_BUILD_TESTS)
     add_dependencies(fos_cli_tests fos)
@@ -46,4 +48,11 @@ endif()
 # `cli` (the last module) they are added from here, after every module target exists.
 if(FOS_BUILD_TESTS AND FOS_MODULES AND EXISTS "${PROJECT_SOURCE_DIR}/tests/CMakeLists.txt")
     add_subdirectory("${PROJECT_SOURCE_DIR}/tests" "${PROJECT_BINARY_DIR}/tests")
+endif()
+
+# `fos tools` and `fos cam --tools` (.fostools tool tables, fos::formats_cam).
+target_sources(fos_cli_core PRIVATE src/cmd_tools.cpp)
+target_link_libraries(fos_cli_core PUBLIC fos::formats_cam)
+if(TARGET fos_cli_tests)
+    target_sources(fos_cli_tests PRIVATE tests/cli_tools_tests.cpp)
 endif()

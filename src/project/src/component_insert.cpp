@@ -24,11 +24,7 @@ formats::Library libraryOf(const Project& p) {
     return lib;
 }
 
-/// incomingId -> resultId of renamed entries, per category.
-struct Remap {
-    std::map<std::string, std::string> materials, edgeBands, hardware;
-    bool empty() const { return materials.empty() && edgeBands.empty() && hardware.empty(); }
-};
+using Remap = LibraryRemap;
 
 template <class Id> void remapId(Id& id, const std::map<std::string, std::string>& map) {
     if (const auto it = map.find(id.str()); it != map.end()) id = Id(it->second);
@@ -44,6 +40,11 @@ void remapSection(furniture::Section& s, const Remap& r) {
         for (auto& box : s.front->drawerBoxes)
             if (box) remapId(box->slide, r.hardware);
     }
+    if (s.hangingRail) {
+        remapId(s.hangingRail->rail, r.hardware);
+        remapId(s.hangingRail->supports, r.hardware);
+    }
+    if (s.front && s.front->frame.panelMaterial) remapId(*s.front->frame.panelMaterial, r.materials);
     for (auto& child : s.children) remapSection(child, r);
 }
 
@@ -59,7 +60,8 @@ void remapItem(Item& item, const Remap& r) {
             for (auto& [side, e] : o.edges) remapOptional(e, r.edgeBands);
         }
         auto& h = c->hardware;
-        for (auto* id : {&h.hinge, &h.handle, &h.shelfPin, &h.confirmat, &h.dowel, &h.foot}) remapId(*id, r.hardware);
+        for (auto* id : {&h.hinge, &h.hingeHalf, &h.hingeInset, &h.lift, &h.handle, &h.shelfPin, &h.confirmat,
+                          &h.dowel, &h.foot, &h.slidingSystem, &h.hanger, &h.wallRail}) remapId(*id, r.hardware);
         remapSection(c->interior, r);
     } else {
         auto& p = item.panel()->panel;
@@ -113,6 +115,8 @@ core::Result<formats::MergeReport> mergeComponentLibrary(formats::Library& targe
 }
 
 } // namespace
+
+void remapLibraryReferences(Item& item, const LibraryRemap& remap) { remapItem(item, remap); }
 
 formats::IdGenerator componentIdGenerator(const std::string& newItemId) {
     auto counter = std::make_shared<int>(0);

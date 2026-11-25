@@ -246,6 +246,13 @@ Wrote 10 labels on 1 page(s) to labels
 (exit code 0)
 ```
 
+`--barcode code128` adds a Code 128 (set B, with checksum) barcode to each label in place of the
+part-id text line; `--barcode-content part-id|project-part-id` chooses what it encodes (the part id,
+default, or `<project>|<part id>`). Quiet zones of 10 modules are kept; when a label is too narrow for
+modules of at least 0.25 mm the barcode is left out for that label and a warning
+`production.label.barcode_too_narrow` is printed (exit code unchanged). The same options work for
+`fos batch labels`.
+
 ### `fos quote`
 
 ```text
@@ -303,7 +310,7 @@ fos batch new <file.fosbatch> --name N [--date D] [--notes T]      # refuses to 
 fos batch add <file.fosbatch> <project.fosp> [--qty K] [--key KEY] [--note T]
 fos batch report <file.fosbatch> --type cutlist|summary|hardware [--csv]
 fos batch cut <file.fosbatch> [--out-dir DIR]
-fos batch labels <file.fosbatch> --svg-dir DIR
+fos batch labels <file.fosbatch> --svg-dir DIR [--barcode none|code128] [--barcode-content part-id|project-part-id]
 fos batch quote <file.fosbatch> [--format text|csv|json] [--sheets]
 ```
 
@@ -322,12 +329,13 @@ produced and the exit code is 1. With `--csv` the batch header and diagnostics g
 
 ### `fos cam`
 
-UNVERIFIED 3-axis program for the operations on face A or B of one part, using the FICTIONAL **"FurnitureOS demo profile — not a real machine"** and a fictional tool library (`fos/cli/demo_cam.hpp`: drills 3 4 5 7 8 10 12 15 20 35 mm, end mills 4 6 8 mm; stock min corner at machine (20, 20, 0)). The program is simulated independently and the generic ISO postprocessor refuses output when the simulation reports any error (exit 1). Operations on the other face are listed as needing the other setup, edge operations and pockets as UNSUPPORTED — never silently dropped. `verifiedForMachine` is always false.
+UNVERIFIED 3-axis program for the operations on face A or B of one part, using the FICTIONAL **"FurnitureOS demo profile — not a real machine"** and a fictional tool library (`fos/cli/demo_cam.hpp`: drills 3 4 5 7 8 10 12 15 20 35 mm, end mills 4 6 8 mm; stock min corner at machine (20, 20, 0)). The program is simulated independently and the generic ISO postprocessor refuses output when the simulation reports any error (exit 1). Operations on the other face are listed as needing the other setup, edge operations and pockets as UNSUPPORTED — never silently dropped. `verifiedForMachine` is always false. `--tools FILE.fostools` uses a tool table file instead of the demo tool library (see `fos tools`; output then shows `Tools: FILE (user tool table, ...)`).
 
 ```text
 $ fos cam kitchen.fosp cab1/side.left --face B --out side-left-B.nc
 Part cab1/side.left "Left side" 720 x 560 x 18 mm, 15 operations, face B up
 Machine: FurnitureOS demo profile — not a real machine (fictional, verified: no)
+Tools: fictional demo tool library
 Machining validation: no findings
 Machinable in this setup: 6
   cab1/hw.hinges.door.left/op.2
@@ -368,6 +376,7 @@ Review before use:
 $ fos cam kitchen.fosp cab1/bottom --face A --out bottom-A.nc
 Part cab1/bottom "Bottom" 864 x 560 x 18 mm, 6 operations, face A up
 Machine: FurnitureOS demo profile — not a real machine (fictional, verified: no)
+Tools: fictional demo tool library
 Machining validation: no findings
 Machinable in this setup: 0
 Needs the other face up: 0
@@ -431,6 +440,7 @@ parts are sawn to size. Any simulation error refuses the program (exit 1, nothin
 $ fos cam kitchen.fosp cab1/shelf.1 --face A --out shelf-A.nc
 Part cab1/shelf.1 "Shelf" 762 x 540 x 18 mm, 0 operations, face A up
 Machine: FurnitureOS demo profile — not a real machine (fictional, verified: no)
+Tools: fictional demo tool library
 Shaped part: outline routed; blank allowance 10 mm -> blank 782 x 560 x 18 mm
 Machining validation: no findings
 Machinable in this setup: 0
@@ -599,6 +609,40 @@ fos component insert <project.fosp> <file.foscomp> <component-name-or-id>
 Exit codes: 0 done; 1 `list` found unreadable files, or `insert` refused (item id in use, item does not
 generate; nothing saved); 2 usage error, unreadable project or component file (message names the file and a JSON
 pointer), unknown component name.
+
+### `fos merge`
+
+```
+fos merge <target.fosp> <source.fosp> [--items a,b] [--policy keep|replace|rename] [--offset x,y,z] [-o out.fosp]
+```
+
+Imports furniture items (default: all) of the source project with the library entries they use
+(`project::mergeProjects`) and saves atomically to `-o` (default: the target file). Clashing item ids are renamed
+(`cab1` → `cab3` when `cab1`, `cab2` exist); `--offset` (mm) moves every imported item. Library entries with an
+existing id but different content: `keep` (default) uses the target's entry, `replace` overwrites it, `rename`
+adds the source entry as `merge.libN` and points the imported items at it. Prints the imported items (with new
+ids) and every added / replaced / renamed / conflicting entry.
+
+Exit codes: 0 saved; 1 refused (an item does not generate in the target, an id given twice; nothing saved); 2 usage error, unreadable
+project, unknown item id or missing library entry (nothing saved).
+
+### `fos tools`
+
+CAM tool tables (`.fostools`, schema: `src/formats/README.md` section 4.1).
+
+```
+fos tools validate <file.fostools>        # every finding with its JSON path
+fos tools list <file.fostools>            # T, id, type, diameter, flute, overall, depth/pass, rpm, feed, plunge, name
+fos tools export-default -o <file.fostools> [--force]
+```
+
+`export-default` writes the built-in FICTIONAL demo tool library of `fos cam` (13 tools, not real tools) as a
+starting point. `fos cam ... --tools FILE` replaces the demo library with the table (every tool then needs
+rpm, feed and plunge rate); the machine profile stays the fictional demo profile. No table is checked against
+real tools or any machine.
+
+Exit codes: 0 ok (warnings allowed); 1 invalid tool table (structure or values; also for `fos cam --tools`);
+2 usage error, unreadable file, existing output without `--force`.
 
 ## Tests
 

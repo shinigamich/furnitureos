@@ -11,6 +11,7 @@
 #include "fos/formats/component.hpp"
 #include "fos/project/commands.hpp"
 
+#include <map>
 #include <filesystem>
 #include <string>
 #include <string_view>
@@ -40,6 +41,14 @@ struct LibraryRefs {
     std::vector<std::string> hardware;
 };
 LibraryRefs libraryReferences(const Item& item);
+
+/// incomingId -> resultId of renamed library entries, per category.
+struct LibraryRemap {
+    std::map<std::string, std::string> materials, edgeBands, hardware;
+    bool empty() const { return materials.empty() && edgeBands.empty() && hardware.empty(); }
+};
+/// Rewrites every library reference of `item` (the same fields as libraryReferences) through `remap`.
+void remapLibraryReferences(Item& item, const LibraryRemap& remap);
 
 /// Captures item `itemId` of `project` as a component. The item is copied with identity
 /// placement; the referenced library entries are copied from project.libraries.

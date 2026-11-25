@@ -13,6 +13,7 @@ This file is the **public documentation of the `.fosp` payload** and of the comm
 | `commands.hpp` | `Command`, `CommandLabel`, `Affected`, factory functions in `fos::project::commands` |
 | `document.hpp` | `Document`: current project, undo/redo, dirty flag, change notification |
 | `outputs.hpp` | `productionReports`, `cuttingPlans`, `assemblyDrawing`, `partDrawing` (thin glue) |
+| `merge.hpp` | `planMerge`, `mergeProjects`, `commands::mergeItems`: import items from another project (§4e) |
 
 ## Data flow
 
@@ -456,6 +457,29 @@ kitchen plinth (toe-kick) under a straight run of cabinets as free panel items (
   outer face of the end cabinet, from the back face of the front plinth to the back of that cabinet; refused at an
   end closed by an appliance end panel.
 * Rule of thumb (note only): integrated dishwashers often need a lower or notched plinth for the door swing.
+
+## 4e. Merging projects (`fos/project/merge.hpp`)
+
+`planMerge(target, source, MergeRequest{itemIds, conflictPolicy, offset})` is a dry run; `mergeProjects` returns
+the merged copy (plus plan and `Affected`); `commands::mergeItems(source, request)` is the undoable form for a
+`Document` (the plan is recomputed against the document's project when executed).
+
+* **Items**: `itemIds` empty = all; imported in source order and appended. A source id already used in the target
+  (or by an item imported before it) is renamed with `freeItemId`: trailing digits stripped, first free
+  `<prefix><n>` from n = 1 (`cab1` with target `cab1`, `cab2` → `cab3`; `sink` → `sink1`). Cabinet part ids
+  derive from the new id, a panel's part id becomes `<newId>/panel`. Placement = `offset * source placement`
+  (offset must be rigid). Each item must generate in the target, otherwise the whole merge fails.
+* **Library**: the union of the entries the selected items reference (`libraryReferences`) is merged ONCE with
+  the component rules (`planComponentInsert`): identical entries (same JSON) are skipped, new ids added,
+  conflicts follow the policy — `Skip` keeps the target entry, `Replace` overwrites it in place (all items become
+  `Affected`), `RenameWithNewId` adds the source entry as `merge.libN` (first id unused by any library entry)
+  and rewrites the imported items' references. `MergePlan::library` lists every referenced entry with its
+  action and a `conflict` flag (the target had that id with different content); `conflicts()`, `withAction()`.
+* Errors (nothing changes): source without items, requested id unknown (NotFound, lists the source ids) or given
+  twice, a referenced entry missing from the source libraries (NotFound, names item and entry), non-rigid offset,
+  an imported item that does not generate.
+* Not imported: stored drawing edits, cutting/nesting settings, remnants and custom data of the source. An entry
+  equal to a target entry under a *different* id is not recognised (repeated `rename` merges add `merge.lib2`, …).
 
 ## 5. Limitations
 

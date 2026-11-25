@@ -28,6 +28,7 @@ fos_add_module(project
         src/worktop.cpp
         src/cabinet_run.cpp
         src/plinth.cpp
+        src/merge.cpp
     DEPS fos::core fos::geometry fos::parametric fos::domain fos::machining fos::hardware fos::furniture
          fos::production fos::cutting fos::cutting_model fos::nesting fos::nesting_model fos::drawings fos::formats nlohmann_json::nlohmann_json)
 target_compile_definitions(fos_project PRIVATE FOS_PROJECT_APP_VERSION="${PROJECT_VERSION}")
@@ -46,4 +47,5 @@ fos_add_tests(project
         tests/batch_tests.cpp
         tests/worktop_tests.cpp
         tests/plinth_tests.cpp
-        tests/room_tests.cpp)
+        tests/room_tests.cpp
+        tests/merge_tests.cpp)

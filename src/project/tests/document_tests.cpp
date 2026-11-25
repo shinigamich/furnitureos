@@ -257,4 +257,18 @@ TEST(Document, RemovingAnEntryStillUsedByDrawersOrNewHardwareIsRefused) {
     ASSERT_FALSE(r.ok());
     EXPECT_EQ(state(doc), before);
 }
+
+TEST(Document, RemovingAFramePanelMaterialStillInUseIsRefused) {
+    Project p = newProject(meta());
+    Item item = baseCabinetItem();
+    auto& cab = std::get<furniture::CabinetDefinition>(item.definition);
+    ASSERT_TRUE(cab.interior.front.has_value());
+    cab.interior.front->style = furniture::FrontStyle::FramePanel;
+    cab.interior.front->frame.panelMaterial = domain::MaterialId(defaults::kMdf18);
+    p.items.push_back(item);
+    Document doc(p);
+    auto r = doc.execute(commands::removeMaterial(defaults::kMdf18));
+    ASSERT_FALSE(r.ok());
+    EXPECT_NE(r.error().message.find("cab1"), std::string::npos) << r.error().message;
+}
 } // namespace fos::project::test

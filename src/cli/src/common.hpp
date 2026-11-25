@@ -5,6 +5,7 @@
 #include "fos/core/diagnostic.hpp"
 #include "fos/core/result.hpp"
 #include "fos/production/common.hpp"
+#include "fos/production/labels.hpp"
 #include "fos/production/quote.hpp"
 #include "fos/project/file.hpp"
 
@@ -122,6 +123,9 @@ int cmdSet(const std::vector<std::string>& args, Io& io);
 int cmdValidate(const std::vector<std::string>& args, Io& io);
 int cmdReport(const std::vector<std::string>& args, Io& io);
 int cmdLabels(const std::vector<std::string>& args, Io& io);
+/// Applies `--barcode none|code128` and `--barcode-content part-id|project-part-id` (shared by
+/// `fos labels` and `fos batch labels`); returns a usage error message or nullopt.
+std::optional<std::string> applyLabelBarcodeOptions(const ParsedArgs& args, production::LabelSheetOptions& sheet);
 int cmdCut(const std::vector<std::string>& args, Io& io);
 int cmdDrawing(const std::vector<std::string>& args, Io& io);
 int cmdCam(const std::vector<std::string>& args, Io& io);
@@ -135,6 +139,8 @@ int cmdQuote(const std::vector<std::string>& args, Io& io);
 int cmdWorktop(const std::vector<std::string>& args, Io& io);
 int cmdPlinth(const std::vector<std::string>& args, Io& io);
 int cmdPacking(const std::vector<std::string>& args, Io& io);
+int cmdMerge(const std::vector<std::string>& args, Io& io);
 int cmdAssembly(const std::vector<std::string>& args, Io& io);
+int cmdTools(const std::vector<std::string>& args, Io& io);
 
 } // namespace fos::cli::detail
