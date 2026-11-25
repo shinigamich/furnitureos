@@ -265,18 +265,18 @@ core::Result<std::vector<fs::path>> exportBatchCutListCsv(const BatchEvaluation&
     return writeAll({{file, production::toCsv(table, options)}});
 }
 
-core::Result<std::vector<fs::path>> exportBatchLabels(const BatchEvaluation& evaluation, const fs::path& dir) {
+core::Result<std::vector<fs::path>> exportBatchLabels(const BatchEvaluation& evaluation, const fs::path& dir,
+                                                      const LabelBarcodeSettings& barcode, core::Diagnostics* warnings) {
     const auto set = project::batchLabels(evaluation.model, evaluation.loaded.batch);
     if (set.labels.empty())
         return core::makeError(core::ErrorCode::NotFound, "The batch has no parts to label.");
-    production::LabelSheetOptions options;
-    options.text = ProductionText::labelText();
-    auto pages = production::renderLabelSheetsSvg(set.labels, options);
-    if (!pages) return pages.error();
+    auto sheets = production::renderLabelSheets(set.labels, labelSheetOptions(barcode));
+    if (!sheets) return sheets.error();
+    if (warnings) *warnings = sheets.value().diagnostics;
     if (auto r = ensureDirectory(dir); !r) return r.error();
     std::vector<std::pair<fs::path, std::string>> files;
-    for (std::size_t i = 0; i < pages.value().size(); ++i)
-        files.emplace_back(dir / ("labels-" + std::to_string(i + 1) + ".svg"), pages.value()[i]);
+    for (std::size_t i = 0; i < sheets.value().pages.size(); ++i)
+        files.emplace_back(dir / ("labels-" + std::to_string(i + 1) + ".svg"), sheets.value().pages[i]);
     return writeAll(files);
 }
 

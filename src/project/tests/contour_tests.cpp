@@ -297,4 +297,42 @@ TEST(ProjectFramePanel, FramePanelFrontRoundTrips) {
     EXPECT_EQ(plainText.find("\"frame\""), std::string::npos);
 }
 
+// Glass-panel frame fronts: "panelKind" / "glass" survive a save / reload byte for byte, the
+// reloaded cabinet generates the glass pane and its beads; grooved frames write neither key.
+TEST(ProjectFramePanel, GlassPanelFrontRoundTrips) {
+    Project p = newProject(meta());
+    Item item = baseCabinetItem();
+    furniture::CabinetDefinition& c = *item.cabinet();
+    ASSERT_TRUE(c.interior.front.has_value());
+    furniture::FrontSpec& f = *c.interior.front;
+    f.style = furniture::FrontStyle::FramePanel;
+    f.frame.joint = furniture::FrameJoint::Dowel;
+    f.frame.panelKind = furniture::FramePanelKind::Glass;
+    f.frame.glass.glassThickness = 5;
+    f.frame.glass.rebateWidth = 12;
+    f.frame.glass.rebateDepth = 11;
+    f.frame.glass.beads = furniture::GlassBeads::Strip;
+    p.items = {item};
+    auto text = serializeProject(p, kSavedAt);
+    ASSERT_TRUE(text.ok()) << text.error().message;
+    EXPECT_NE(text.value().find("\"Glass\""), std::string::npos);
+    EXPECT_NE(text.value().find("\"rebateDepth\""), std::string::npos);
+    auto loaded = parseProject(text.value());
+    ASSERT_TRUE(loaded.ok()) << loaded.error().message;
+    const Project& q = loaded.value().project;
+    ASSERT_EQ(q.items.size(), 1u);
+    EXPECT_EQ(q.items[0].cabinet()->interior.front, c.interior.front);
+    EXPECT_EQ(serializeProject(q, kSavedAt).value(), text.value());
+    const domain::Part* glass = findPart(loaded.value().resolved, "cab1/door.left.panel");
+    ASSERT_NE(glass, nullptr);
+    EXPECT_EQ(glass->custom.at("furniture.glass"), "true");
+    EXPECT_NE(findPart(loaded.value().resolved, "cab1/door.left.bead.top"), nullptr);
+
+    f.frame.panelKind = furniture::FramePanelKind::Grooved;
+    p.items = {item};
+    const std::string grooved = serializeProject(p, kSavedAt).value();
+    EXPECT_EQ(grooved.find("\"panelKind\""), std::string::npos);
+    EXPECT_EQ(grooved.find("\"glass\""), std::string::npos);
+}
+
 } // namespace fos::project::test

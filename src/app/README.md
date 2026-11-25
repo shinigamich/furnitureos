@@ -63,7 +63,9 @@ existing items' bounding boxes).
     horizontally** into 2–9 equal shares (`splitSection`), **Remove split** (`replaceSection` with an empty leaf,
     front kept), **Empty interior** (`setInterior`), **Set size** of a child section (`setSectionSize`; `300` =
     fixed mm, `1*` / `2*` = share of the rest, other text = expression), **Shelves** of a leaf
-    (`setShelfCount`) and the **front** of the selected section: none, single door (hinge side), door pair,
+    (`setShelfCount`), a **Clothes rail** of a leaf (checkbox, height from top, rail / support library entries →
+    `hangingRailCommand` = `replaceSection` with `Section::hangingRail`; engine refusals shown; tree text
+    "clothes rail") and the **front** of the selected section: none, single door (hinge side), door pair,
     drawer stack (heights bottom to top, `;`-separated, same size syntax), overlay, cup hinges, handle
     position (`setFront`). For a drawer stack, **Drawer boxes** none / box on slides, **Slides** (library
     entries of kind DrawerSlide: `hw.slide_ball_bearing`, `hw.slide_undermount`) and **Drawer bottom**
@@ -117,7 +119,8 @@ existing items' bounding boxes).
   (unreadable DXF, no closed outline, unsupported cut-out, no material, panel refused) is shown in the dialog
   with the DXF diagnostics and the dialog stays open; diagnostics of a successful import are shown in a message box.
 * **Exports (File ▸ Export).** Cut list CSV, production sheet HTML (selected or first item), part labels SVG
-  (A4, 70 × 37 mm, one file per page), drawing PDF / SVG (one file per sheet) / DXF (one file per view, model
+  (A4, 70 × 37 mm, one file per page; barcode None / Code 128 of the part id or project|part id, remembered in
+  QSettings `export/labelBarcode*`; omitted-barcode warnings such as too narrow labels are shown, also for batch labels), drawing PDF / SVG (one file per sheet) / DXF (one file per view, model
   space 1:1 mm), model OBJ + MTL.
 * **Measure** (View menu, toolbar, key M; checkable): puts the 3D view in measure mode
   (`ViewportWidget::setMeasureMode`). The status bar shows the hovered snap kind (corner, outline vertex, edge

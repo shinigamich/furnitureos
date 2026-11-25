@@ -36,6 +36,7 @@ void checkAssemblyInterference(Context& c);
 void checkMachining(Context& c);
 void checkHardware(Context& c);
 void checkCompleteness(Context& c);
+void checkEngineering(Context& c);
 
 /// Contoured parts (ADR-0008): shape structure, bounds, cut-outs, band entries, raw outline
 /// (called by checkParts for parts with a valid size) ...

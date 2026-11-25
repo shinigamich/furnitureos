@@ -100,6 +100,12 @@ enum class FrontStyle { Slab, FramePanel };
 /// groove depth that sit in the stiles' panel groove; Dowel = rails butt the stiles, 2 dowels
 /// (HardwareSelection::dowel) per joint.
 enum class FrameJoint { StubTenon, Dowel };
+/// Panel of a frame-and-panel front: Grooved = a board panel floating in a groove (default);
+/// Glass = a glass pane in a rebate on the back (inner) edges of the frame.
+enum class FramePanelKind { Grooved, Glass };
+/// Retention of a glass pane: None = nothing generated (fixed by clips / silicone, not
+/// modelled); Strip = four glazing-bead strips in the rebate behind the glass.
+enum class GlassBeads { None, Strip };
 
 const char* toString(JointKind) noexcept;
 const char* toString(TopKind) noexcept;
@@ -124,6 +130,8 @@ const char* toString(NicheVent) noexcept;
 const char* toString(GapPanels) noexcept;
 const char* toString(FrontStyle) noexcept;
 const char* toString(FrameJoint) noexcept;
+const char* toString(FramePanelKind) noexcept;
+const char* toString(GlassBeads) noexcept;
 
 /// Inverse of toString for every enum above; std::nullopt for unknown text (case-sensitive).
 template <class E> std::optional<E> fromString(std::string_view text) noexcept;
@@ -149,6 +157,8 @@ template <> std::optional<CornerSide> fromString<CornerSide>(std::string_view) n
 template <> std::optional<NicheVent> fromString<NicheVent>(std::string_view) noexcept;
 template <> std::optional<FrontStyle> fromString<FrontStyle>(std::string_view) noexcept;
 template <> std::optional<FrameJoint> fromString<FrameJoint>(std::string_view) noexcept;
+template <> std::optional<FramePanelKind> fromString<FramePanelKind>(std::string_view) noexcept;
+template <> std::optional<GlassBeads> fromString<GlassBeads>(std::string_view) noexcept;
 template <> std::optional<GapPanels> fromString<GapPanels>(std::string_view) noexcept;
 
 } // namespace fos::furniture

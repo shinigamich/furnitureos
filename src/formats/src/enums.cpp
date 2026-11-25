@@ -8,7 +8,8 @@ using namespace fos::domain;
 constexpr EnumToken<MaterialKind> kMaterialKinds[] = {
     {MaterialKind::Particleboard, "particleboard"}, {MaterialKind::Mdf, "mdf"},
     {MaterialKind::Hdf, "hdf"},                     {MaterialKind::Plywood, "plywood"},
-    {MaterialKind::SolidWood, "solid_wood"},        {MaterialKind::Other, "other"}};
+    {MaterialKind::SolidWood, "solid_wood"},        {MaterialKind::Other, "other"},
+    {MaterialKind::Glass, "glass"}};
 
 constexpr EnumToken<EdgeBandKind> kEdgeBandKinds[] = {
     {EdgeBandKind::Abs, "abs"},       {EdgeBandKind::Pvc, "pvc"},

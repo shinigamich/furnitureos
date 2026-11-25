@@ -2,12 +2,12 @@
 fos_add_module(validation
     SOURCES src/obb.cpp src/util.cpp src/report.cpp src/validate.cpp
             src/check_parts.cpp src/check_interference.cpp src/check_machining.cpp
-            src/check_shapes.cpp src/shape_interference.cpp
+            src/check_shapes.cpp src/shape_interference.cpp src/check_engineering.cpp
     DEPS fos::core fos::geometry fos::domain fos::machining)
 fos_add_tests(validation
     SOURCES tests/obb_tests.cpp tests/check_tests.cpp tests/interference_tests.cpp
             tests/report_tests.cpp tests/large_model_tests.cpp
-            tests/rect_golden_tests.cpp tests/shape_tests.cpp)
+            tests/rect_golden_tests.cpp tests/shape_tests.cpp tests/engineering_tests.cpp)
 if(TARGET fos_validation_tests)
     target_compile_definitions(fos_validation_tests PRIVATE
         FOS_VALIDATION_GOLDEN_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/golden")

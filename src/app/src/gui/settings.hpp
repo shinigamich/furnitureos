@@ -2,6 +2,8 @@
 #pragma once
 /// \file
 /// Persistent user preferences (QSettings, organisation/application "FurnitureOS").
+#include "fos/app/label_export.hpp"
+
 #include <QString>
 #include <QStringList>
 
@@ -20,6 +22,11 @@ struct Preferences {
     static Preferences load();
     void save() const;
 };
+
+/// Barcode choice of the last label export (QSettings "export/labelBarcode",
+/// "export/labelBarcodeContent"; text keys of label_export.hpp).
+LabelBarcodeSettings loadLabelBarcodeSettings();
+void saveLabelBarcodeSettings(const LabelBarcodeSettings& settings);
 
 /// Language actually used: the stored choice, otherwise "uk" for a Ukrainian system locale
 /// and "en" for everything else.

@@ -3,7 +3,53 @@
 #include "fos/core/diagnostic.hpp"
 #include "fos/machining/validation.hpp"
 
+#include <vector>
+
 namespace fos::validation {
+
+/// One row of the door hinge-count table: doors whose hinged edge is up to `maxDoorHeight`
+/// (mm) long need at least `hinges` hinges.
+struct HingeHeightRule {
+    double maxDoorHeight = 0;
+    int hinges = 2;
+};
+
+/// Engineering rule checks (check 8, README "engineering"). EVERY rule here is a HEURISTIC
+/// with generic default assumptions, not a structural calculation or a manufacturer
+/// specification; findings are Warning or Info, never Error. Lengths in mm, masses in kg.
+struct EngineeringOptions {
+    /// validation.engineering.shelf_sag: mid-span deflection of PartRole::Shelf parts as a
+    /// simply supported beam over their length under a uniform load,
+    /// delta = 5 W L^3 / (384 E I), I = width * thickness^3 / 12, W = load * 9.81 N.
+    bool shelfSag = true;
+    /// Uniformly distributed load per shelf (generic default 15 kg, e.g. a row of books).
+    double shelfLoadKg = 15.0;
+    /// Add the shelf's own weight (material density, or the generic density table) to W.
+    bool shelfSelfWeight = true;
+    /// Sag limit = min(span / sagLimitSpanRatio, sagLimitMm); a term <= 0 is not used.
+    double sagLimitSpanRatio = 300.0;
+    double sagLimitMm = 2.0;
+
+    /// validation.engineering.too_few_hinges: hinges on a door (sum of the quantities of
+    /// Hinge instances that reference it) against max(table count, ceil(weight / doorKgPerHinge)).
+    bool hingeCount = true;
+    /// RULE OF THUMB, check the hinge maker's chart. Ascending maxDoorHeight.
+    std::vector<HingeHeightRule> hingeHeightTable{{900, 2}, {1600, 3}, {2000, 4}, {2400, 5}};
+    /// Door mass one hinge is assumed to carry (generic 5 kg); <= 0 disables the weight term.
+    double doorKgPerHinge = 5.0;
+
+    /// validation.engineering.drawer_* / slide_too_long: drawer box length (DrawerSide
+    /// extent along Y) against the cabinet interior depth and the drawer slide length.
+    bool drawerDepth = true;
+    /// Clear space required behind a drawer box inside the cabinet (default 0).
+    double drawerMinRearClearance = 0.0;
+
+    /// validation.engineering.tipping_risk: assembly height / depth above `tippingRatio`
+    /// (and height >= tippingMinHeight) without wall fixing hardware.
+    bool tipping = true;
+    double tippingRatio = 2.0;
+    double tippingMinHeight = 1000.0;
+};
 
 /// Switches and thresholds of validateModel(). All lengths in mm, angles in degrees.
 /// Every check can be switched off individually; see src/validation/README.md for the
@@ -16,6 +62,9 @@ struct ValidationOptions {
     bool checkMachining = true;            ///< machining.* (merged) + validation.machining.*
     bool checkHardware = true;             ///< validation.hardware.*
     bool checkCompleteness = true;         ///< validation.completeness.*
+    /// validation.engineering.* (heuristics, Warning/Info only). OFF by default: opt in
+    /// (CLI: fos validate --engineering); each rule has its own switch in `engineering`.
+    bool checkEngineering = false;
 
     /// A part whose finished length or width is below this is reported as implausibly small.
     double minPartSize = 10.0;
@@ -57,6 +106,8 @@ struct ValidationOptions {
 
     /// Options forwarded to machining::validateOperations for every part.
     machining::ValidationOptions machining;
+    /// Rules and assumptions of the engineering check (checkEngineering).
+    EngineeringOptions engineering;
 };
 
 } // namespace fos::validation

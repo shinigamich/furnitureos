@@ -165,6 +165,11 @@ TEST_F(Cli, ValidateTextAndMarkdown) {
     EXPECT_EQ(md.code, kExitOk);
     EXPECT_EQ(md.out.rfind("# Validation of Kitchen", 0), 0u);
     EXPECT_EQ(fos({"validate", project, "--format", "html"}).code, kExitUsageOrIo);
+    // Engineering heuristics are opt-in; they never produce errors, so the exit code stays 0.
+    EXPECT_TRUE(contains(text.out, "7 check(s) run")) << text.out;
+    const auto eng = fos({"validate", project, "--engineering"});
+    EXPECT_EQ(eng.code, kExitOk) << eng.out;
+    EXPECT_TRUE(contains(eng.out, "8 check(s) run")) << eng.out;
 }
 
 TEST_F(Cli, ReportTablesForEveryType) {

@@ -162,7 +162,7 @@ TEST(CodecEnums, TokensAreTheDocumentedStableStrings) {
     };
     using V = std::vector<std::string>;
     EXPECT_EQ(tokens(enumTokens<domain::MaterialKind>()),
-              (V{"particleboard", "mdf", "hdf", "plywood", "solid_wood", "other"}));
+              (V{"particleboard", "mdf", "hdf", "plywood", "solid_wood", "other", "glass"}));
     EXPECT_EQ(tokens(enumTokens<domain::EdgeBandKind>()), (V{"abs", "pvc", "melamine", "veneer", "solid_wood", "other"}));
     EXPECT_EQ(tokens(enumTokens<domain::HardwareKind>()),
               (V{"hinge", "mounting_plate", "drawer_slide", "handle", "shelf_support", "confirmat", "dowel",

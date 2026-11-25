@@ -12,8 +12,8 @@ namespace {
 
 /// The registry: every check, in execution order. Output order does not depend on it
 /// (the report is sorted), but stats such as checksRun do.
-const std::array<detail::Check, 7>& registry() {
-    static const std::array<detail::Check, 7> checks{{
+const std::array<detail::Check, 8>& registry() {
+    static const std::array<detail::Check, 8> checks{{
         {"parts", "Part sizes, materials, ids, placements and fit on the stock sheet (grain aware).",
          &ValidationOptions::checkParts, &detail::checkParts},
         {"edge-banding", "Edge band references, band width and thickness, cut size after banding.",
@@ -28,6 +28,8 @@ const std::array<detail::Check, 7>& registry() {
          &ValidationOptions::checkHardware, &detail::checkHardware},
         {"completeness", "Names, empty assemblies, material sheet data and costs.",
          &ValidationOptions::checkCompleteness, &detail::checkCompleteness},
+        {"engineering", "Heuristic engineering rules: shelf sag, hinge count, drawer depth, tipping (opt-in).",
+         &ValidationOptions::checkEngineering, &detail::checkEngineering},
     }};
     return checks;
 }

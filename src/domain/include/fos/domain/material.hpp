@@ -14,7 +14,8 @@ struct Color {
     bool operator==(const Color&) const = default;
 };
 
-enum class MaterialKind { Particleboard, Mdf, Hdf, Plywood, SolidWood, Other };
+/// Glass = bought-in glass panes (cut to size by the supplier, not on the saw).
+enum class MaterialKind { Particleboard, Mdf, Hdf, Plywood, SolidWood, Other, Glass };
 
 /// Sheet (board) material. Lengths in mm, costs in the project currency.
 struct Material {

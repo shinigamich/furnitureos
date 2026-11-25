@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 /// \file
-/// Small dialogs: template size, preferences, keyboard shortcuts.
+/// Small dialogs: template size, preferences, keyboard shortcuts, label barcode options.
 #include "fos/app/templates.hpp"
 #include "settings.hpp"
 
 #include <QDialog>
+
+#include <optional>
 
 class QAction;
 class QComboBox;
@@ -27,6 +29,10 @@ private:
     QDoubleSpinBox* height_;
     QDoubleSpinBox* depth_;
 };
+
+/// Asks for the barcode of a label export, pre-filled from and saved to QSettings
+/// (loadLabelBarcodeSettings / saveLabelBarcodeSettings). std::nullopt when cancelled.
+std::optional<LabelBarcodeSettings> askLabelBarcode(QWidget* parent);
 
 class PreferencesDialog : public QDialog {
     Q_OBJECT

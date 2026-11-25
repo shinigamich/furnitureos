@@ -6,6 +6,7 @@
 /// actions. Every edit is a project::commands call (furniture/edit.hpp is atomic: a refused
 /// edit leaves the project unchanged and its message is shown verbatim). Nothing is
 /// computed here: sizes in mm are resolved by the furniture generator.
+#include "fos/app/cabinet_parts.hpp"
 #include "fos/core/result.hpp"
 #include "fos/project/commands.hpp"
 
@@ -29,6 +30,7 @@ struct SectionRow {
     int childCount = 0;
     int shelfCount = 0; ///< Leaf only.
     std::optional<furniture::FrontSpec> front;
+    std::optional<furniture::HangingRailSpec> hangingRail; ///< Leaf only: clothes rail.
     bool isRoot() const noexcept { return depth == 0; }
     bool isLeaf() const noexcept { return split == furniture::SplitDirection::None; }
 };
@@ -42,7 +44,8 @@ QString sectionCaption(const SectionRow& row);
 /// Translated size column: "300 mm (fixed)", "share 1", "= width / 2" (root: empty).
 QString sizeDescription(const furniture::SectionSize& size);
 /// Translated content column, e.g. "2 side by side" (vertical split), "3 stacked"
-/// (horizontal split), "shelves: 2", "empty",
+/// (horizontal split), "shelves: 2", "clothes rail" (a leaf with a hanging rail; after the
+/// shelves when both are set), "empty",
 /// followed by the front ("; door pair", "; door, hinged left", "; drawers: 3").
 QString contentText(const SectionRow& row);
 
@@ -132,5 +135,31 @@ FrontInput frontInput(const std::optional<furniture::FrontSpec>& front);
 /// parsed only for a drawer stack; a parse error is returned without a command.
 core::Result<project::Command> frontCommand(const std::string& itemId, const std::string& path,
                                             const FrontInput& input);
+
+/// What the clothes-rail editor of a LEAF section shows / submits (furniture::HangingRailSpec,
+/// furniture README "Hanging rails"). Submitted as given: the furniture module judges the
+/// height, the section depth / height, the front and the library ids, and its refusal is shown.
+struct HangingRailInput {
+    bool enabled = false;
+    double heightFromTop = 60; ///< mm below the underside of the panel above the section.
+    std::string rail = std::string(hardware::ids::kClothesRailGeneric);
+    std::string supports = std::string(hardware::ids::kRailSupportGeneric);
+};
+/// Editor state of an existing rail (enabled = false and the generic defaults for std::nullopt).
+HangingRailInput hangingRailInput(const std::optional<furniture::HangingRailSpec>& rail);
+/// The spec the editor submits (std::nullopt when not enabled).
+std::optional<furniture::HangingRailSpec> hangingRailSpec(const HangingRailInput& input);
+/// Clothes rails in the library: kind Other entries carrying rail_height and hook_clearance (the
+/// keys of hw.clothes_rail_generic), library order; `current` appended as `missing` otherwise.
+std::vector<HardwareChoice> clothesRailChoices(const furniture::Libraries& libraries, const std::string& current);
+/// Rail supports in the library: kind Other entries carrying body_height and screw_spacing and no
+/// rail_height (the keys of hw.rail_support_generic); `current` appended as `missing` otherwise.
+std::vector<HardwareChoice> railSupportChoices(const furniture::Libraries& libraries, const std::string& current);
+/// commands::replaceSection of the leaf at `path` with its hanging rail set (or removed when
+/// not enabled); everything else of the section (size, shelves, front) is kept. InvalidArgument
+/// when the section does not exist or is split (a rail belongs to a leaf).
+core::Result<project::Command> hangingRailCommand(const furniture::CabinetDefinition& cabinet,
+                                                  const std::string& itemId, const std::string& path,
+                                                  const HangingRailInput& input);
 
 } // namespace fos::app

@@ -52,9 +52,11 @@ const char* kSetHelp =
     "accepted but the model then has errors (saved; the previous value is printed).\n";
 
 const char* kValidateHelp =
-    "Usage: fos validate <file.fosp> [--format text|markdown]\n\n"
+    "Usage: fos validate <file.fosp> [--format text|markdown] [--engineering]\n\n"
     "Runs the generator self-checks and every model validation check (collisions, materials,\n"
-    "edges, machining, hardware). Exit code 1 when an error is found, 0 otherwise.\n";
+    "edges, machining, hardware). Exit code 1 when an error is found, 0 otherwise.\n"
+    "--engineering also runs the heuristic engineering rules (shelf sag, hinge count, drawer\n"
+    "depth, tipping of tall units; warnings/infos only, generic assumptions).\n";
 
 using TemplateFn = furniture::CabinetDefinition (*)(domain::AssemblyId, const furniture::templates::TemplateMaterials&);
 
@@ -314,7 +316,7 @@ int cmdSet(const std::vector<std::string>& args, Io& io) {
 }
 
 int cmdValidate(const std::vector<std::string>& args, Io& io) {
-    auto parsed = parseArgs(args, {{"format"}});
+    auto parsed = parseArgs(args, {{"format"}, {"engineering", false}});
     if (!parsed) return usageError(io, "validate", parsed.error().message);
     const ParsedArgs& a = parsed.value();
     if (a.help) {
@@ -327,7 +329,9 @@ int cmdValidate(const std::vector<std::string>& args, Io& io) {
         return usageError(io, "validate", "--format must be 'text' or 'markdown', got '" + format + "'.");
     auto loaded = loadProjectOrReport(io, "validate", a.positional[0]);
     if (!loaded) return kExitUsageOrIo;
-    const auto report = validation::validateModel(loaded->resolved.model);
+    validation::ValidationOptions options;
+    options.checkEngineering = a.has("engineering");
+    const auto report = validation::validateModel(loaded->resolved.model, options);
     const core::Diagnostics& gen = loaded->diagnostics;
     if (format == "text") {
         io.out << "Generator diagnostics: " << (gen.empty() ? "none" : std::to_string(gen.size())) << "\n";

@@ -30,6 +30,18 @@ void Preferences::save() const {
     s.setValue(QStringLiteral("components/folders"), componentFolders);
 }
 
+LabelBarcodeSettings loadLabelBarcodeSettings() {
+    QSettings s;
+    return labelBarcodeSettings(s.value(QStringLiteral("export/labelBarcode")).toString(),
+                                s.value(QStringLiteral("export/labelBarcodeContent")).toString());
+}
+
+void saveLabelBarcodeSettings(const LabelBarcodeSettings& settings) {
+    QSettings s;
+    s.setValue(QStringLiteral("export/labelBarcode"), labelBarcodeKey(settings.barcode));
+    s.setValue(QStringLiteral("export/labelBarcodeContent"), labelBarcodeContentKey(settings.content));
+}
+
 QString effectiveLanguage(const Preferences& preferences) {
     if (!preferences.language.isEmpty()) return preferences.language;
     return QLocale::system().language() == QLocale::Ukrainian ? QStringLiteral("uk") : QStringLiteral("en");

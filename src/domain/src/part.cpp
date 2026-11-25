@@ -74,6 +74,7 @@ const char* toString(MaterialKind k) noexcept {
     case MaterialKind::Plywood: return "Plywood";
     case MaterialKind::SolidWood: return "SolidWood";
     case MaterialKind::Other: return "Other";
+    case MaterialKind::Glass: return "Glass";
     }
     return "?";
 }

@@ -2,8 +2,8 @@
 #pragma once
 /// \file
 /// Interior tab of the cabinet inspector: the section tree (fos::app::sectionRows) with the
-/// Split vertically / Split horizontally / Remove split / Set size / Shelves actions and the
-/// front of the selected section. Every action is one project command (interior_rows.hpp); a
+/// Split vertically / Split horizontally / Remove split / Set size / Shelves actions, the
+/// clothes rail and the front of the selected section. Every action is one project command (interior_rows.hpp); a
 /// refused edit shows the furniture module's message and changes nothing.
 #include "fos/app/interior_rows.hpp"
 
@@ -42,6 +42,7 @@ private:
     const SectionRow* selectedRow() const;
     /// Executes the command (or shows the input error); returns success.
     bool run(const core::Result<project::Command>& command);
+    void showRail(const SectionRow* row);
 
     Session& session_;
     std::string itemId_;
@@ -78,6 +79,11 @@ private:
     QComboBox* frameJoint_;          ///< FrameJoint.
     QComboBox* panelMaterial_;       ///< "" = same as front, else a material id.
     QPushButton* applyFront_;
+    QCheckBox* railEnabled_;      ///< Clothes rail in the (leaf) section.
+    QDoubleSpinBox* railHeight_;  ///< HangingRailSpec::heightFromTop, mm.
+    QComboBox* railHardware_;     ///< Clothes rail library entries.
+    QComboBox* railSupports_;     ///< Rail support library entries.
+    QPushButton* applyRail_;
     QLabel* selectedTitle_;
     QLabel* error_;
 };

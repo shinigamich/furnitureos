@@ -39,6 +39,46 @@ QDialogButtonBox* okCancel(QDialog* dialog) {
 }
 } // namespace
 
+std::optional<LabelBarcodeSettings> askLabelBarcode(QWidget* parent) {
+    const LabelBarcodeSettings current = loadLabelBarcodeSettings();
+    QDialog dialog(parent);
+    dialog.setWindowTitle(QCoreApplication::translate("fos::app::gui::LabelBarcodeDialog", "Part labels"));
+    auto* form = new QFormLayout(&dialog);
+    auto* barcode = new QComboBox(&dialog);
+    barcode->setObjectName(QStringLiteral("labelBarcode"));
+    for (const auto& [text, value] : labelBarcodeChoices()) {
+        barcode->addItem(text, static_cast<int>(value));
+        if (value == current.barcode) barcode->setCurrentIndex(barcode->count() - 1);
+    }
+    auto* content = new QComboBox(&dialog);
+    content->setObjectName(QStringLiteral("labelBarcodeContent"));
+    for (const auto& [text, value] : labelBarcodeContentChoices()) {
+        content->addItem(text, static_cast<int>(value));
+        if (value == current.content) content->setCurrentIndex(content->count() - 1);
+    }
+    const auto update = [barcode, content] {
+        content->setEnabled(barcode->currentData().toInt() != static_cast<int>(production::LabelBarcode::None));
+    };
+    QObject::connect(barcode, qOverload<int>(&QComboBox::currentIndexChanged), &dialog, update);
+    update();
+    form->addRow(QCoreApplication::translate("fos::app::gui::LabelBarcodeDialog", "Barcode:"), barcode);
+    form->addRow(QCoreApplication::translate("fos::app::gui::LabelBarcodeDialog", "Barcode content:"), content);
+    auto* hint = new QLabel(QCoreApplication::translate(
+                                "fos::app::gui::LabelBarcodeDialog",
+                                "The barcode replaces the part-id line of each label. A label too narrow for a "
+                                "readable barcode keeps the text instead, and you are told which ones."),
+                            &dialog);
+    hint->setWordWrap(true);
+    form->addRow(hint);
+    form->addRow(okCancel(&dialog));
+    if (dialog.exec() != QDialog::Accepted) return std::nullopt;
+    LabelBarcodeSettings chosen;
+    chosen.barcode = static_cast<production::LabelBarcode>(barcode->currentData().toInt());
+    chosen.content = static_cast<production::LabelBarcodeContent>(content->currentData().toInt());
+    saveLabelBarcodeSettings(chosen);
+    return chosen;
+}
+
 TemplateSizeDialog::TemplateSizeDialog(TemplateKind kind, QWidget* parent) : QDialog(parent) {
     setWindowTitle(tr("New %1").arg(templateTitle(kind)));
     const TemplateSize d = defaultTemplateSize(kind);

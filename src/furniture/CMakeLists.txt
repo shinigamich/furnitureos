@@ -13,4 +13,4 @@ fos_add_tests(furniture
             tests/contour_tests.cpp tests/contour_panel_tests.cpp tests/drawer_box_tests.cpp
             tests/drawer_joint_tests.cpp tests/flap_inset_tests.cpp tests/sliding_doors_tests.cpp
             tests/corner_tests.cpp tests/appliance_tests.cpp tests/hanger_tests.cpp tests/frame_panel_tests.cpp
-            tests/hanging_rail_tests.cpp)
+            tests/hanging_rail_tests.cpp tests/glass_panel_tests.cpp)

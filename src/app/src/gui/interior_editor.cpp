@@ -122,6 +122,28 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
         hintLabel(tr("Sizes: 300 = millimetres, 1* = share of the rest, or an expression."), sectionBox));
     layout->addWidget(sectionBox);
 
+    auto* railBox = new QGroupBox(tr("Clothes rail"), this);
+    auto* railForm = new QFormLayout(railBox);
+    railForm->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+    railEnabled_ = new QCheckBox(tr("Clothes rail"), railBox);
+    railEnabled_->setObjectName(QStringLiteral("clothesRail"));
+    railEnabled_->setToolTip(tr("A wardrobe rail across the section, cut to its clear width, on two screw-fixed "
+                                "supports (sections that are not split; no adjustable shelves; no front or doors)."));
+    railHeight_ = ventSpin("clothesRailHeight", railBox);
+    railHeight_->setToolTip(tr("Distance of the rail axis below the underside of the panel above the section."));
+    railHardware_ = narrowCombo(railBox);
+    railHardware_->setObjectName(QStringLiteral("clothesRailHardware"));
+    railSupports_ = narrowCombo(railBox);
+    railSupports_->setObjectName(QStringLiteral("clothesRailSupports"));
+    applyRail_ = new QPushButton(tr("Apply clothes rail"), railBox);
+    applyRail_->setObjectName(QStringLiteral("applyClothesRail"));
+    railForm->addRow(railEnabled_);
+    railForm->addRow(tr("Height from top:"), railHeight_);
+    railForm->addRow(tr("Rail:"), railHardware_);
+    railForm->addRow(tr("Supports:"), railSupports_);
+    railForm->addRow(applyRail_);
+    layout->addWidget(railBox);
+
     auto* frontBox = new QGroupBox(tr("Front of the section"), this);
     auto* frontForm = new QFormLayout(frontBox);
     frontForm->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
@@ -240,6 +262,25 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
             return;
         if (!run(project::commands::setShelfCount(itemId_, selectedPath_, count)))
             showSelected();
+    });
+    connect(railEnabled_, &QCheckBox::toggled, this, [this](bool on) {
+        const SectionRow* row = selectedRow();
+        const bool leaf = row && row->isLeaf();
+        railHeight_->setEnabled(leaf && on);
+        railHardware_->setEnabled(leaf && on);
+        railSupports_->setEnabled(leaf && on);
+    });
+    connect(applyRail_, &QPushButton::clicked, this, [this] {
+        const project::Item* item = session_.project().findItem(itemId_);
+        if (!item || !item->cabinet())
+            return;
+        HangingRailInput in;
+        in.enabled = railEnabled_->isChecked();
+        in.heightFromTop = railHeight_->value();
+        in.rail = railHardware_->currentData().toString().toStdString();
+        in.supports = railSupports_->currentData().toString().toStdString();
+        if (!run(hangingRailCommand(*item->cabinet(), itemId_, selectedPath_, in)))
+            showRail(selectedRow());
     });
     auto updateFrontFields = [this] {
         const auto choice = valueOf<FrontInput::Choice>(frontKind_);
@@ -415,6 +456,34 @@ void InteriorEditor::showSelected() {
         panelMaterial_->addItem(c.text, QString::fromStdString(c.id));
     selectData(panelMaterial_, QString::fromStdString(panelMaterial));
     applyFront_->setEnabled(have);
+    showRail(row);
+}
+
+void InteriorEditor::showRail(const SectionRow* row) {
+    const bool leaf = row && row->isLeaf();
+    const HangingRailInput in = hangingRailInput(leaf ? row->hangingRail : std::nullopt);
+    const auto fillCombo = [this](QComboBox* box, const std::vector<HardwareChoice>& choices, const std::string& id) {
+        box->clear();
+        for (const auto& c : choices) {
+            box->addItem(c.missing ? tr("%1 (not in the library)").arg(QString::fromStdString(c.id))
+                                   : QString::fromStdString(c.name),
+                         QString::fromStdString(c.id));
+            box->setItemData(box->count() - 1, QString::fromStdString(c.id), Qt::ToolTipRole);
+        }
+        selectData(box, QString::fromStdString(id));
+    };
+    const auto& libraries = session_.project().libraries;
+    fillCombo(railHardware_, clothesRailChoices(libraries, in.rail), in.rail);
+    fillCombo(railSupports_, railSupportChoices(libraries, in.supports), in.supports);
+    railHeight_->setValue(in.heightFromTop);
+    railEnabled_->blockSignals(true);
+    railEnabled_->setChecked(in.enabled);
+    railEnabled_->blockSignals(false);
+    railEnabled_->setEnabled(leaf);
+    railHeight_->setEnabled(leaf && in.enabled);
+    railHardware_->setEnabled(leaf && in.enabled);
+    railSupports_->setEnabled(leaf && in.enabled);
+    applyRail_->setEnabled(leaf);
 }
 
 bool InteriorEditor::run(const core::Result<project::Command>& command) {

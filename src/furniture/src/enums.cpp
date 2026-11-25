@@ -64,6 +64,8 @@ constexpr Table<GapPanels, 4> kGapPanels{{{GapPanels::None, "None"}, {GapPanels:
                                          {GapPanels::Right, "Right"}, {GapPanels::Both, "Both"}}};
 constexpr Table<FrontStyle, 2> kFrontStyle{{{FrontStyle::Slab, "Slab"}, {FrontStyle::FramePanel, "FramePanel"}}};
 constexpr Table<FrameJoint, 2> kFrameJoint{{{FrameJoint::StubTenon, "StubTenon"}, {FrameJoint::Dowel, "Dowel"}}};
+constexpr Table<FramePanelKind, 2> kFramePanelKind{{{FramePanelKind::Grooved, "Grooved"}, {FramePanelKind::Glass, "Glass"}}};
+constexpr Table<GlassBeads, 2> kGlassBeads{{{GlassBeads::None, "None"}, {GlassBeads::Strip, "Strip"}}};
 } // namespace
 
 #define FOS_FURNITURE_ENUM(E, table)                                                                \
@@ -93,6 +95,8 @@ FOS_FURNITURE_ENUM(NicheVent, kNicheVent)
 FOS_FURNITURE_ENUM(GapPanels, kGapPanels)
 FOS_FURNITURE_ENUM(FrontStyle, kFrontStyle)
 FOS_FURNITURE_ENUM(FrameJoint, kFrameJoint)
+FOS_FURNITURE_ENUM(FramePanelKind, kFramePanelKind)
+FOS_FURNITURE_ENUM(GlassBeads, kGlassBeads)
 #undef FOS_FURNITURE_ENUM
 
 } // namespace fos::furniture

@@ -37,7 +37,7 @@ TEST(Fixture, BasicCabinetIsClean) {
 }
 
 TEST(Registry, ChecksCanBeSwitchedOff) {
-    EXPECT_EQ(availableChecks().size(), 7u);
+    EXPECT_EQ(availableChecks().size(), 8u);
     EXPECT_EQ(availableChecks()[2].name, "part-interference");
     domain::Model m = domain::fixtures::basicCabinet();
     part(m, "cab1/shelf.1").length = std::numeric_limits<double>::quiet_NaN();

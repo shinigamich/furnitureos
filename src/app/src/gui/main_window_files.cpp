@@ -406,19 +406,14 @@ void MainWindow::exportLabelsSvg() {
     const QString file = QFileDialog::getSaveFileName(this, tr("Export part labels (A4, 70 × 37 mm)"),
                                                       baseName(session_) + tr("-labels.svg"), tr("SVG files (*.svg)"));
     if (file.isEmpty()) return;
-    production::LabelSheetOptions options;
-    options.text = ProductionText::labelText();
-    auto pages = production::renderLabelSheetsSvg(set.labels, options);
-    if (!pages) return showError(tr("Export failed"), pages.error());
-    const fs::path base = toPath(file);
+    const auto barcode = askLabelBarcode(this);
+    if (!barcode) return;
+    auto exported = exportLabelSheets(set.labels, toPath(file), *barcode);
+    if (!exported) return showError(tr("Export failed"), exported.error());
     QStringList written;
-    for (std::size_t i = 0; i < pages.value().size(); ++i) {
-        fs::path out = base;
-        if (pages.value().size() > 1)
-            out.replace_filename(base.stem().string() + "-" + std::to_string(i + 1) + base.extension().string());
-        if (auto r = production::writeTextFile(out, pages.value()[i]); !r) return showError(tr("Export failed"), r.error());
-        written << QString::fromStdString(out.string());
-    }
+    for (const auto& out : exported.value().files) written << QString::fromStdString(out.string());
+    if (!exported.value().warnings.empty())
+        QMessageBox::warning(this, tr("Part labels"), labelWarningsText(exported.value().warnings));
     statusBar()->showMessage(tr("Written: %1").arg(written.join(QStringLiteral(", "))), 8000);
 }
 

@@ -94,9 +94,32 @@ Json frontJson(const furniture::FrontSpec& f) {
         fr["grooveDepth"] = f.frame.grooveDepth;
         fr["panelClearance"] = f.frame.panelClearance;
         fr["joint"] = furniture::toString(f.frame.joint);
+        // Glass panel: "panelKind" / "glass" only for Glass (grooved fronts stay byte-identical).
+        if (f.frame.panelKind == furniture::FramePanelKind::Glass) {
+            fr["panelKind"] = furniture::toString(f.frame.panelKind);
+            Json gl = Json::object();
+            gl["glassThickness"] = f.frame.glass.glassThickness;
+            gl["rebateWidth"] = f.frame.glass.rebateWidth;
+            gl["rebateDepth"] = f.frame.glass.rebateDepth;
+            gl["beads"] = furniture::toString(f.frame.glass.beads);
+            fr["glass"] = std::move(gl);
+        }
         j["frame"] = std::move(fr);
     }
     return j;
+}
+
+core::Result<furniture::GlassPanelSpec> glassFromJson(const Json& json, std::string_view path) {
+    using namespace furniture;
+    Reader r(json, path, "a glass panel");
+    GlassPanelSpec gl;
+    r.number("glassThickness", gl.glassThickness, Num::Positive);
+    r.number("rebateWidth", gl.rebateWidth, Num::Positive);
+    r.number("rebateDepth", gl.rebateDepth, Num::Positive);
+    r.token("beads", gl.beads, furnitureEnum<GlassBeads>(), furnitureTokens({GlassBeads::None, GlassBeads::Strip}));
+    r.rejectUnknown();
+    if (!r.ok()) return r.error();
+    return gl;
 }
 
 core::Result<furniture::FramePanelSpec> frameFromJson(const Json& json, std::string_view path) {
@@ -111,6 +134,9 @@ core::Result<furniture::FramePanelSpec> frameFromJson(const Json& json, std::str
     r.number("grooveDepth", f.grooveDepth, Num::Positive);
     r.number("panelClearance", f.panelClearance, Num::NonNegative);
     r.token("joint", f.joint, furnitureEnum<FrameJoint>(), furnitureTokens({FrameJoint::StubTenon, FrameJoint::Dowel}));
+    r.token("panelKind", f.panelKind, furnitureEnum<FramePanelKind>(),
+            furnitureTokens({FramePanelKind::Grooved, FramePanelKind::Glass}));
+    r.nested("glass", f.glass, glassFromJson);
     r.rejectUnknown();
     if (!r.ok()) return r.error();
     if (material) f.panelMaterial = domain::MaterialId(*material);

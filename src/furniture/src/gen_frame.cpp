@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 /// Front pieces: slab fronts and five-piece frame-and-panel fronts (README "Frame-and-panel
-/// fronts"): stiles, rails, panel, panel grooves, stub-tenon cheeks or frame dowels.
+/// fronts"): stiles, rails, panel (board in a groove, or glass in a back rebate with optional
+/// glazing beads), stub-tenon cheeks or frame dowels.
 #include "fos/furniture/limits.hpp"
 #include "gen_context.hpp"
 
@@ -19,9 +20,14 @@ constexpr double kDowelHoleExtra = 1.0;
 /// GENERIC: the solid rail width (rail width - groove depth) must be at least this many
 /// dowel diameters so that both dowels keep clear of the rail edge and of the groove.
 constexpr double kDowelZoneDiameters = 4.0;
+/// GENERIC minimum solid stile / rail width left beside the glass rebate, mm.
+constexpr double kMinRebateShoulder = 20.0;
+/// GENERIC minimum glazing-bead thickness (rebate depth - glass thickness), mm.
+constexpr double kMinBeadThickness = 3.0;
 
 constexpr const char* kPieceKey = "furniture.front_piece";
 constexpr const char* kFrontKey = "furniture.front";
+constexpr const char* kGlassKey = "furniture.glass";
 
 core::Error constraint(const Gen& g, std::string message) {
     return core::makeError(core::ErrorCode::ConstraintViolation, std::move(message), g.def.id.str());
@@ -78,20 +84,103 @@ core::Result<void> frameDowels(Gen& g, const domain::HardwareDefinition& dowel, 
 }
 
 /// Sets the panel material (FramePanelSpec::panelMaterial unless the slot has a material
-/// override) and warns when its board thickness differs from the panel thickness.
+/// override) and warns when its board thickness differs from the panel (glass) thickness. A
+/// glass pane is flagged kGlassKey and warns when its material is not MaterialKind::Glass.
 void panelMaterial(Gen& g, std::size_t i, const FramePanelSpec& fs, const std::string& slot) {
     domain::Part& p = g.assembly.parts[i];
+    const bool glass = fs.panelKind == FramePanelKind::Glass;
+    const double t = glass ? fs.glass.glassThickness : fs.panelThickness;
     const auto ov = g.def.materials.overrides.find(slot);
     const bool overridden = ov != g.def.materials.overrides.end() && ov->second.material;
     if (!overridden && fs.panelMaterial) p.material = *fs.panelMaterial; // checkFrontStyle: exists
     const domain::Material* m = g.libs.findMaterial(p.material);
-    p.grain = m && m->hasGrain ? domain::GrainDirection::AlongLength : domain::GrainDirection::None;
-    if (!overridden && m && !core::approxEqual(m->thickness, fs.panelThickness))
+    p.grain = m && m->hasGrain && !glass ? domain::GrainDirection::AlongLength : domain::GrainDirection::None;
+    if (glass) {
+        p.custom[kGlassKey] = "true";
+        if (m && m->kind != domain::MaterialKind::Glass)
+            g.warn("furniture.front.glass_material",
+                   "Glass panel '" + p.name + "' (" + slot + ") uses the material '" + m->name + "' of kind " +
+                       domain::toString(m->kind) + "; set FramePanelSpec::panelMaterial to a material of kind Glass.",
+                   p.id.str());
+    }
+    if (!overridden && m && !core::approxEqual(m->thickness, t))
         g.warn("furniture.front.panel_thickness",
-               "Panel '" + p.name + "' (" + slot + ") is " + num(fs.panelThickness) + " mm thick but its material '" +
-                   m->name + "' is " + num(m->thickness) + " mm; set FramePanelSpec::panelMaterial to a " +
-                   num(fs.panelThickness) + " mm board.",
+               "Panel '" + p.name + "' (" + slot + ") is " + num(t) + " mm thick but its material '" + m->name +
+                   "' is " + num(m->thickness) + " mm; set FramePanelSpec::panelMaterial to a " + num(t) + " mm " +
+                   (glass ? "glass." : "board."),
                p.id.str());
+}
+
+/// Refusals of a Glass panel (README "Frame-and-panel fronts"); `who` names the front.
+core::Result<void> checkGlass(const Gen& g, const FramePanelSpec& f, const std::string& who) {
+    const GlassPanelSpec& gl = f.glass;
+    const auto err = [&](core::ErrorCode code, std::string msg) { return core::makeError(code, who + msg, g.def.id.str()); };
+    for (const auto& [field, v] : {std::pair{"glass thickness", gl.glassThickness},
+                                   std::pair{"rebate width", gl.rebateWidth}, std::pair{"rebate depth", gl.rebateDepth}})
+        if (!std::isfinite(v) || !(v > 0) || v > limits::kMaxDimension)
+            return err(core::ErrorCode::InvalidArgument, std::string(" has ") + field + " " + num(v) +
+                                                             " mm; it must be greater than 0 and at most " +
+                                                             num(limits::kMaxDimension) + " mm.");
+    if (f.joint != FrameJoint::Dowel)
+        return err(core::ErrorCode::Unsupported,
+                   " has a glass panel with joint StubTenon; stub tenons need a panel groove to sit in, which a "
+                   "glass rebate does not provide. Use joint Dowel.");
+    if (f.panelClearance >= gl.rebateWidth)
+        return err(core::ErrorCode::InvalidArgument,
+                   " has a panel clearance of " + num(f.panelClearance) + " mm, which is not less than the rebate width of " +
+                       num(gl.rebateWidth) + " mm; the glass would not reach into the rebate.");
+    const double narrow = std::min(f.stileWidth, f.railWidth);
+    if (narrow - gl.rebateWidth < kMinRebateShoulder - core::kLengthEps)
+        return err(core::ErrorCode::ConstraintViolation,
+                   " has stiles of " + num(f.stileWidth) + " mm and rails of " + num(f.railWidth) + " mm; a " +
+                       num(gl.rebateWidth) + " mm glass rebate leaves " + num(narrow - gl.rebateWidth) +
+                       " mm of solid frame, below the minimum of " + num(kMinRebateShoulder) +
+                       " mm (generic default). Use wider stiles / rails or a narrower rebate.");
+    const double ft = g.v(param::kFrontThickness);
+    if (ft - gl.rebateDepth < kMinFrameWall - core::kLengthEps)
+        return err(core::ErrorCode::ConstraintViolation,
+                   " has a glass rebate " + num(gl.rebateDepth) + " mm deep in a frame " + num(ft) +
+                       " mm thick, leaving a " + num(ft - gl.rebateDepth) + " mm lip in front of the glass; at least " +
+                       num(kMinFrameWall) + " mm (generic minimum) are needed. Use a shallower rebate.");
+    if (gl.rebateDepth < gl.glassThickness - core::kLengthEps)
+        return err(core::ErrorCode::InvalidArgument,
+                   " has a glass rebate " + num(gl.rebateDepth) + " mm deep for glass " + num(gl.glassThickness) +
+                       " mm thick; the glass would stand proud of the back face. Use a deeper rebate or thinner glass.");
+    if (gl.beads == GlassBeads::Strip && gl.rebateDepth - gl.glassThickness < kMinBeadThickness - core::kLengthEps)
+        return err(core::ErrorCode::ConstraintViolation,
+                   " has a glass rebate " + num(gl.rebateDepth) + " mm deep for glass " + num(gl.glassThickness) +
+                       " mm thick, leaving " + num(gl.rebateDepth - gl.glassThickness) +
+                       " mm for the glazing beads; at least " + num(kMinBeadThickness) +
+                       " mm (generic minimum) are needed. Use a deeper rebate, thinner glass or beads None.");
+    return {};
+}
+
+/// Four glazing beads (GlassBeads::Strip) in the rebate behind the glass: rebate width wide,
+/// rebate depth - glass thickness thick, flush with the back face A (y = yInner). The top and
+/// bottom beads span the rebated opening (opening width + 2 rebate widths), the side beads
+/// fit between them (opening height). Front material, no edge bands.
+void addGlazingBeads(Gen& g, const std::string& slot, const std::string& name, domain::PartRole role,
+                     const GlassPanelSpec& gl, double x0, double x1, double z0, double z1, double sw, double rw,
+                     double yInner) {
+    const double b = gl.rebateWidth, bt = gl.rebateDepth - gl.glassThickness, yb = yInner - bt;
+    const double hLen = x1 - x0 - 2 * sw + 2 * b, vLen = z1 - z0 - 2 * rw;
+    struct Bead {
+        const char* key;
+        double length;
+        Transform at;
+    };
+    const Bead beads[] = {
+        {"top", hLen, Transform::fromAxes(kRight, kDown, {x0 + sw - b, yb, z1 - rw + b})},
+        {"bottom", hLen, Transform::fromAxes(kRight, kDown, {x0 + sw - b, yb, z0 + rw})},
+        {"left", vLen, Transform::fromAxes(kUp, kRight, {x0 + sw - b, yb, z0 + rw})},
+        {"right", vLen, Transform::fromAxes(kUp, kRight, {x1 - sw, yb, z0 + rw})},
+    };
+    for (const Bead& bd : beads) {
+        const std::size_t i = g.addPart(slot + ".bead." + bd.key, name + " " + bd.key + " glazing bead", role,
+                                        MaterialRole::Front, bd.length, b, bt, bd.at, Edges{});
+        g.assembly.parts[i].custom[kPieceKey] = "bead";
+        g.assembly.parts[i].custom[kFrontKey] = slot;
+    }
 }
 
 } // namespace
@@ -107,6 +196,15 @@ core::Result<void> checkFrontStyle(const Gen& g, const FrontSpec& spec, const st
                                    "DoorPair, Flap and DrawerStack fronts. Use style Slab.",
                                g.def.id.str());
     const FramePanelSpec& f = spec.frame;
+    const auto materialKnown = [&]() -> core::Result<void> {
+        if (f.panelMaterial && !g.libs.findMaterial(*f.panelMaterial))
+            return core::makeError(core::ErrorCode::NotFound,
+                                   who + " uses the panel material '" + f.panelMaterial->str() +
+                                       "', which is not in the material library.",
+                                   g.def.id.str());
+        return {};
+    };
+    const bool glass = f.panelKind == FramePanelKind::Glass;
     const auto bad = [&](const char* field, double v, bool zeroOk) -> std::string {
         if (!std::isfinite(v) || (zeroOk ? v < 0 : !(v > 0)) || v > limits::kMaxDimension)
             return who + " has " + field + " " + num(v) + " mm; it must be " + (zeroOk ? "at least 0" : "greater than 0") +
@@ -114,10 +212,14 @@ core::Result<void> checkFrontStyle(const Gen& g, const FrontSpec& spec, const st
         return {};
     };
     for (const std::string& why : {bad("stile width", f.stileWidth, false), bad("rail width", f.railWidth, false),
-                                   bad("panel thickness", f.panelThickness, false),
-                                   bad("groove depth", f.grooveDepth, false),
+                                   glass ? std::string() : bad("panel thickness", f.panelThickness, false),
+                                   glass ? std::string() : bad("groove depth", f.grooveDepth, false),
                                    bad("panel clearance", f.panelClearance, true)})
         if (!why.empty()) return core::makeError(core::ErrorCode::InvalidArgument, why, g.def.id.str());
+    if (glass) {
+        if (auto r = checkGlass(g, f, who); !r) return r;
+        return materialKnown();
+    }
     if (f.panelClearance >= f.grooveDepth)
         return core::makeError(core::ErrorCode::InvalidArgument,
                                who + " has a panel clearance of " + num(f.panelClearance) +
@@ -139,12 +241,7 @@ core::Result<void> checkFrontStyle(const Gen& g, const FrontSpec& spec, const st
                                    " mm on each side; at least " + num(kMinFrameWall) +
                                    " mm (generic minimum) are needed. Use a thinner panel.",
                                g.def.id.str());
-    if (f.panelMaterial && !g.libs.findMaterial(*f.panelMaterial))
-        return core::makeError(core::ErrorCode::NotFound,
-                               who + " uses the panel material '" + f.panelMaterial->str() +
-                                   "', which is not in the material library.",
-                               g.def.id.str());
-    return {};
+    return materialKnown();
 }
 
 core::Result<FrontPieces> addFrontPieces(Gen& g, const FrontSpec& spec, const std::string& slot, const std::string& name,
@@ -173,14 +270,18 @@ core::Result<FrontPieces> addFrontPieces(Gen& g, const FrontSpec& spec, const st
                                    who + ": part '" + s + "' has a contour override; contoured frame-and-panel fronts "
                                    "are not supported. Remove the contour or use style Slab.",
                                    g.def.id.str());
-    const double W = x1 - x0, H = z1 - z0, sw = f.stileWidth, rw = f.railWidth, d = f.grooveDepth;
+    const bool glass = f.panelKind == FramePanelKind::Glass;
+    const GlassPanelSpec& gl = f.glass;
+    // d = depth of the edge cut into the inner frame edges: panel groove or glass rebate.
+    const double W = x1 - x0, H = z1 - z0, sw = f.stileWidth, rw = f.railWidth;
+    const double d = glass ? gl.rebateWidth : f.grooveDepth;
     const double openW = W - 2 * sw, openH = H - 2 * rw;
     if (openW < kMinPanelOpening - core::kLengthEps || openH < kMinPanelOpening - core::kLengthEps)
         return constraint(g, who + " measures " + num(W) + " x " + num(H) + " mm (width x height); with stiles of " +
                                  num(sw) + " mm and rails of " + num(rw) + " mm the panel opening would be " + num(openW) +
                                  " x " + num(openH) + " mm, below the minimum of " + num(kMinPanelOpening) +
                                  " mm (generic default). Use narrower stiles / rails, a larger front or style Slab.");
-    const bool tenon = f.joint == FrameJoint::StubTenon;
+    const bool tenon = !glass && f.joint == FrameJoint::StubTenon; // checkFrontStyle: glass -> Dowel
     const double tl = tenon ? d : 0.0, railLen = openW + 2 * tl;
     const double gw = f.panelThickness + g.v(param::kGrooveFit), mid = ft / 2;
     const auto R = EdgeUse::Raw, F = EdgeUse::Front;
@@ -198,13 +299,17 @@ core::Result<FrontPieces> addFrontPieces(Gen& g, const FrontSpec& spec, const st
                         Transform::fromAxes(kRight, kDown, {x0 + sw - tl, yOuter, z1}), Edges{F, R, R, R});
     out.bottom = g.addPart(pieces[4], name + " bottom rail", role, mr, railLen, rw, ft,
                            Transform::fromAxes(kRight, kDown, {x0 + sw - tl, yOuter, z0 + rw}), Edges{R, F, R, R});
-    // Panel: opening + (groove depth - clearance) on every side, centred in the frame thickness.
+    // Panel: opening + (groove depth / rebate width - clearance) on every side. A board panel
+    // is centred in the frame thickness; a glass pane lies on the rebate shoulder, rebate
+    // depth in front of the back face A (y = yInner).
     const double e = d - f.panelClearance, pw = openW + 2 * e, ph = openH + 2 * e;
-    const double py = yInner - mid - f.panelThickness / 2;
+    const double pt = glass ? gl.glassThickness : f.panelThickness;
+    const double py = glass ? yInner - gl.rebateDepth : yInner - mid - f.panelThickness / 2;
+    const std::string panelName = name + (glass ? " glass" : " panel");
     out.panel = horizontalGrain
-                    ? g.addPart(pieces[5], name + " panel", role, mr, pw, ph, f.panelThickness,
+                    ? g.addPart(pieces[5], panelName, role, mr, pw, ph, pt,
                                 Transform::fromAxes(kRight, kDown, {x0 + sw - e, py, z1 - rw + e}), Edges{})
-                    : g.addPart(pieces[5], name + " panel", role, mr, ph, pw, f.panelThickness,
+                    : g.addPart(pieces[5], panelName, role, mr, ph, pw, pt,
                                 Transform::fromAxes(kUp, kRight, {x0 + sw - e, py, z0 + rw - e}), Edges{});
     panelMaterial(g, out.panel, f, pieces[5]);
     const char* kinds[] = {"stile", "stile", "rail", "rail", "panel"};
@@ -214,14 +319,19 @@ core::Result<FrontPieces> addFrontPieces(Gen& g, const FrontSpec& spec, const st
         g.assembly.parts[idx[k]].custom[kFrontKey] = slot;
     }
 
-    // Panel grooves (centred in the thickness). Stub tenons fill the stile groove at the rail
-    // ends, so it runs through; with dowels it stops groove_depth beyond the panel opening.
+    // Panel grooves (centred in the thickness) or glass rebates (a groove open to the back
+    // face A: band v = T - rebate depth .. T, the part thickness T = front thickness). Stub
+    // tenons fill the stile groove at the rail ends, so it runs through; with dowels it stops
+    // `d` beyond the panel opening (a rebate's inner corner is left square).
     const double s0 = tenon ? 0.0 : rw - d, s1 = tenon ? H : H - rw + d;
-    const char* note = "Groove for the frame panel";
-    addGroove(g, out.left, domain::Face::L2, "groove.panel", s0, mid, s1, mid, gw, d, note);
-    addGroove(g, out.right, domain::Face::L1, "groove.panel", s0, mid, s1, mid, gw, d, note);
-    addGroove(g, out.top, domain::Face::L2, "groove.panel", 0, mid, railLen, mid, gw, d, note);
-    addGroove(g, out.bottom, domain::Face::L1, "groove.panel", 0, mid, railLen, mid, gw, d, note);
+    const double cv = glass ? ft - gl.rebateDepth / 2 : mid, cw = glass ? gl.rebateDepth : gw;
+    const char* note = glass ? "Rebate for the glass panel" : "Groove for the frame panel";
+    const char* opName = glass ? "rebate.glass" : "groove.panel";
+    addGroove(g, out.left, domain::Face::L2, opName, s0, cv, s1, cv, cw, d, note);
+    addGroove(g, out.right, domain::Face::L1, opName, s0, cv, s1, cv, cw, d, note);
+    addGroove(g, out.top, domain::Face::L2, opName, 0, cv, railLen, cv, cw, d, note);
+    addGroove(g, out.bottom, domain::Face::L1, opName, 0, cv, railLen, cv, cw, d, note);
+    if (glass && gl.beads == GlassBeads::Strip) addGlazingBeads(g, slot, name, role, gl, x0, x1, z0, z1, sw, rw, yInner);
 
     if (tenon) {
         // Stub tenon = groove width thick, groove depth long: a cheek cut (rebate across the
@@ -252,7 +362,7 @@ core::Result<FrontPieces> addFrontPieces(Gen& g, const FrontSpec& spec, const st
     const double zone = rw - d, depth = len->second / 2 + kDowelHoleExtra;
     if (zone < kDowelZoneDiameters * dia->second - core::kLengthEps)
         return constraint(g, who + ": the rails are " + num(rw) + " mm wide with a " + num(d) +
-                                 " mm groove, leaving " + num(zone) + " mm for the dowels; " +
+                                 (glass ? " mm rebate" : " mm groove") + ", leaving " + num(zone) + " mm for the dowels; " +
                                  num(kDowelZoneDiameters * dia->second) + " mm (" + num(kDowelZoneDiameters) +
                                  " x the dowel diameter of " + num(dia->second) +
                                  " mm, generic rule) are needed. Use wider rails or stub tenons.");

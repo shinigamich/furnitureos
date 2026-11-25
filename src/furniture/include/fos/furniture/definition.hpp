@@ -97,6 +97,18 @@ struct ApplianceNicheSpec {
 inline constexpr const char* kMountingKey = "furniture.mounting";
 inline constexpr const char* kMountingApplianceDoor = "fixed to appliance door";
 
+/// Glass pane of a frame-and-panel front (FramePanelKind::Glass; README "Frame-and-panel
+/// fronts"). The frame carries a rebate on the back (inner, face A) side of the inner edges of
+/// every stile and rail instead of a groove; the pane lies on the rebate shoulder. All lengths
+/// mm; GENERIC defaults, not taken from a manufacturer or standard.
+struct GlassPanelSpec {
+    double glassThickness = 4.0; ///< Thickness of the pane (> 0).
+    double rebateWidth = 10.0;   ///< Rebate width into the inner frame edge, in the front plane (> 0).
+    double rebateDepth = 10.0;   ///< Rebate depth from the back face A into the thickness (> 0).
+    GlassBeads beads = GlassBeads::Strip;
+    bool operator==(const GlassPanelSpec&) const = default;
+};
+
 /// A front closing the opening of a section (see README "Fronts"). For every generated front
 /// (door or drawer front) face A is the inner, cabinet-side face and face B the visible face.
 /// Five-piece (frame-and-panel, "shaker"-style) construction of a front (README
@@ -113,6 +125,12 @@ struct FramePanelSpec {
     double grooveDepth = 10.0;    ///< Depth of the panel groove into the inner frame edges (> 0).
     double panelClearance = 2.0;  ///< Gap between a panel edge and the groove bottom (>= 0, < grooveDepth).
     FrameJoint joint = FrameJoint::StubTenon;
+    /// Grooved (default) or Glass. With Glass, `panelThickness` and `grooveDepth` are ignored
+    /// (`glass` applies), `panelClearance` is the gap between a glass edge and the rebate
+    /// bottom, the joint must be Dowel and `panelMaterial` should be a MaterialKind::Glass
+    /// material (otherwise the warning furniture.front.glass_material).
+    FramePanelKind panelKind = FramePanelKind::Grooved;
+    GlassPanelSpec glass; ///< Used when panelKind == Glass.
     bool operator==(const FramePanelSpec&) const = default;
 };
 

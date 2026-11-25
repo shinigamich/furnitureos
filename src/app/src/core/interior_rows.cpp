@@ -4,6 +4,7 @@
 #include "fos/app/cabinet_run_form.hpp"
 #include "fos/app/parameter_rows.hpp"
 #include "fos/core/units.hpp"
+#include "fos/hardware/catalog.hpp"
 
 #include <QCoreApplication>
 #include <QStringList>
@@ -37,6 +38,7 @@ void collect(const furniture::Section& s, const std::string& path, int depth, in
     row.childCount = static_cast<int>(s.children.size());
     row.shelfCount = s.shelfCount;
     row.front = s.front;
+    row.hangingRail = s.hangingRail;
     out.push_back(row);
     if (s.split == SplitDirection::None)
         return;
@@ -98,8 +100,11 @@ QString contentText(const SectionRow& row) {
         text = InteriorText::tr("%1 stacked").arg(row.childCount);
     else if (row.shelfCount > 0)
         text = InteriorText::tr("shelves: %1").arg(row.shelfCount);
-    else
+    else if (!row.hangingRail)
         text = InteriorText::tr("empty");
+    if (row.isLeaf() && row.hangingRail)
+        text = text.isEmpty() ? InteriorText::tr("clothes rail")
+                              : text + QStringLiteral(", ") + InteriorText::tr("clothes rail");
     if (row.front) {
         QString front;
         switch (row.front->kind) {
@@ -376,6 +381,74 @@ core::Result<project::Command> frontCommand(const std::string& itemId, const std
     if (!spec)
         return spec.error();
     return project::commands::setFront(itemId, path, std::move(spec).value());
+}
+
+HangingRailInput hangingRailInput(const std::optional<furniture::HangingRailSpec>& rail) {
+    HangingRailInput in;
+    if (!rail)
+        return in;
+    in.enabled = true;
+    in.heightFromTop = rail->heightFromTop;
+    in.rail = rail->rail.str();
+    in.supports = rail->supports.str();
+    return in;
+}
+
+std::optional<furniture::HangingRailSpec> hangingRailSpec(const HangingRailInput& input) {
+    if (!input.enabled)
+        return std::nullopt;
+    furniture::HangingRailSpec spec;
+    spec.heightFromTop = input.heightFromTop;
+    spec.rail = domain::HardwareId(input.rail);
+    spec.supports = domain::HardwareId(input.supports);
+    return spec;
+}
+
+namespace {
+template <class Accept>
+std::vector<HardwareChoice> otherHardwareChoices(const furniture::Libraries& libraries, const std::string& current,
+                                                 Accept accept) {
+    std::vector<HardwareChoice> out;
+    bool found = false;
+    for (const auto& h : libraries.hardware) {
+        if (h.kind != domain::HardwareKind::Other || !accept(h))
+            continue;
+        out.push_back({h.id.str(), h.name, false, false});
+        found = found || h.id.str() == current;
+    }
+    if (!found && !current.empty())
+        out.push_back({current, current, true, false});
+    return out;
+}
+} // namespace
+
+std::vector<HardwareChoice> clothesRailChoices(const furniture::Libraries& libraries, const std::string& current) {
+    return otherHardwareChoices(libraries, current, [](const domain::HardwareDefinition& h) {
+        return h.params.count(hardware::keys::kRailHeight) && h.params.count(hardware::keys::kHookClearance);
+    });
+}
+
+std::vector<HardwareChoice> railSupportChoices(const furniture::Libraries& libraries, const std::string& current) {
+    return otherHardwareChoices(libraries, current, [](const domain::HardwareDefinition& h) {
+        return h.params.count(hardware::keys::kBodyHeight) && h.params.count(hardware::keys::kScrewSpacing) &&
+               !h.params.count(hardware::keys::kRailHeight);
+    });
+}
+
+core::Result<project::Command> hangingRailCommand(const furniture::CabinetDefinition& cabinet,
+                                                  const std::string& itemId, const std::string& path,
+                                                  const HangingRailInput& input) {
+    auto section = furniture::findSection(cabinet.interior, path);
+    if (!section)
+        return section.error();
+    const furniture::Section& current = *section.value();
+    if (current.split != SplitDirection::None)
+        return inputError(InteriorText::tr("Section “%1” is split: a clothes rail goes into a section that is not "
+                                           "split.")
+                              .arg(path.empty() ? InteriorText::tr("whole interior") : QString::fromStdString(path)));
+    furniture::Section leaf = current;
+    leaf.hangingRail = hangingRailSpec(input);
+    return project::commands::replaceSection(itemId, path, std::move(leaf));
 }
 
 } // namespace fos::app

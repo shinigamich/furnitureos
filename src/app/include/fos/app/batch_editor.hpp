@@ -6,6 +6,7 @@
 /// batchCutList, batchCuttingPlans, batchLabels); nothing is computed here. Entry paths are
 /// stored like `fos batch add`: relative to the directory of the batch file ('/'-separated),
 /// absolute while the batch is untitled (they are made relative on the first Save As).
+#include "fos/app/label_export.hpp"
 #include "fos/project/batch.hpp"
 #include "fos/project/commands.hpp"
 
@@ -112,10 +113,13 @@ private:
 /// Combined cut list (batchCutList, translated captions, UTF-8 BOM) to `file`.
 core::Result<std::vector<std::filesystem::path>> exportBatchCutListCsv(const BatchEvaluation& evaluation,
                                                                       const std::filesystem::path& file);
-/// Label sheets (batchLabels, A4 70 x 37 mm) as "<dir>/labels-<n>.svg". Error (NotFound) when
-/// the batch has no part to label.
+/// Label sheets (batchLabels, A4 70 x 37 mm, barcode per `barcode`) as "<dir>/labels-<n>.svg".
+/// Rendering warnings (e.g. barcode omitted on a too narrow label) are stored in `warnings` when
+/// given. Error (NotFound) when the batch has no part to label.
 core::Result<std::vector<std::filesystem::path>> exportBatchLabels(const BatchEvaluation& evaluation,
-                                                                  const std::filesystem::path& dir);
+                                                                  const std::filesystem::path& dir,
+                                                                  const LabelBarcodeSettings& barcode = {},
+                                                                  core::Diagnostics* warnings = nullptr);
 /// Cutting plans (batchCuttingPlans, heuristic): "<dir>/<material>-sheet-<n>.svg" per saw sheet
 /// and "<dir>/<material>-nest-<n>.svg" per nesting sheet (material id made file-name safe).
 /// Error (NotFound) when there is no sheet at all.

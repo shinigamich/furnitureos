@@ -134,12 +134,14 @@ int cmdImportDxf(const std::vector<std::string>& args, Io& io);
 int cmdExportDxf(const std::vector<std::string>& args, Io& io);
 int cmdLinear(const std::vector<std::string>& args, Io& io);
 int cmdEdgebandRolls(const std::vector<std::string>& args, Io& io);
+int cmdEdgebandJobs(const std::vector<std::string>& args, Io& io);
 int cmdBatch(const std::vector<std::string>& args, Io& io);
 int cmdQuote(const std::vector<std::string>& args, Io& io);
 int cmdWorktop(const std::vector<std::string>& args, Io& io);
 int cmdPlinth(const std::vector<std::string>& args, Io& io);
 int cmdPacking(const std::vector<std::string>& args, Io& io);
 int cmdMerge(const std::vector<std::string>& args, Io& io);
+int cmdDiff(const std::vector<std::string>& args, Io& io);
 int cmdAssembly(const std::vector<std::string>& args, Io& io);
 int cmdTools(const std::vector<std::string>& args, Io& io);
 

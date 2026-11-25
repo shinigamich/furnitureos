@@ -353,5 +353,111 @@ TEST(SlidingFront, WardrobeDoorsCountExpressionAndUndo) {
     EXPECT_EQ(partCount(s), before);
 }
 
+// Clothes rail (furniture README "Hanging rails"). Wardrobe section template: 1000 x 2200 x 580,
+// 18 mm carcass, split into two sections ("1" with 4 shelves, "2" with 1 shelf), door pair.
+// Clear width of each section = (1000 - 2 * 18 - 18 partition) / 2 = 473 = rail length.
+TEST(ClothesRail, WardrobeSectionRailSupportsRefusalsAndUndo) {
+    Session s;
+    ASSERT_TRUE(s.newFromTemplate(TemplateKind::WardrobeSection).ok());
+    const auto railCount = [&s](const char* definition) {
+        int n = 0;
+        for (const auto& h : s.resolved()->model.assemblies.at(0).hardware)
+            n += h.definition.str() == definition ? h.quantity : 0;
+        return n;
+    };
+    ASSERT_EQ(railCount(hardware::ids::kClothesRailGeneric), 0);
+
+    // Choices: the generic rail / support only (the wall rail is not a clothes rail); a missing
+    // id is appended so the editor can show it.
+    const auto& libs = s.project().libraries;
+    const auto rails = clothesRailChoices(libs, hardware::ids::kClothesRailGeneric);
+    ASSERT_EQ(rails.size(), 1u);
+    EXPECT_EQ(rails[0].id, hardware::ids::kClothesRailGeneric);
+    const auto supports = railSupportChoices(libs, "hw.unknown");
+    ASSERT_EQ(supports.size(), 2u);
+    EXPECT_EQ(supports[0].id, hardware::ids::kRailSupportGeneric);
+    EXPECT_TRUE(supports[1].missing);
+
+    HangingRailInput in;
+    in.enabled = true;
+    // The root is split: a rail belongs to a leaf (refused before reaching the engine).
+    EXPECT_FALSE(hangingRailCommand(cabinet(s), "cab1", "", in).ok());
+    EXPECT_FALSE(hangingRailCommand(cabinet(s), "cab1", "9", in).ok());
+
+    // Section "2" still has an adjustable shelf: the engine refuses, nothing changes.
+    const auto undoBefore = s.document().undoLabel();
+    auto withShelf = hangingRailCommand(cabinet(s), "cab1", "2", in);
+    ASSERT_TRUE(withShelf.ok());
+    auto refusedShelf = s.execute(withShelf.value());
+    ASSERT_FALSE(refusedShelf.ok());
+    EXPECT_FALSE(refusedShelf.error().message.empty());
+    EXPECT_FALSE(cabinet(s).interior.children.at(1).hangingRail.has_value());
+    EXPECT_EQ(s.document().undoLabel(), undoBefore);
+
+    ASSERT_TRUE(s.execute(project::commands::setShelfCount("cab1", "2", 0)).ok());
+    auto cmd = hangingRailCommand(cabinet(s), "cab1", "2", in);
+    ASSERT_TRUE(cmd.ok());
+    auto r = s.execute(cmd.value());
+    ASSERT_TRUE(r.ok()) << r.error().message;
+    ASSERT_TRUE(cabinet(s).interior.children.at(1).hangingRail.has_value());
+    EXPECT_EQ(cabinet(s).interior.children.at(1).hangingRail->heightFromTop, 60.0);
+    EXPECT_EQ(railCount(hardware::ids::kClothesRailGeneric), 1);
+    EXPECT_EQ(railCount(hardware::ids::kRailSupportGeneric), 2);
+    for (const auto& h : s.resolved()->model.assemblies.at(0).hardware)
+        if (h.definition.str() == hardware::ids::kClothesRailGeneric)
+            EXPECT_NEAR(h.length, 473.0, 1e-6);
+    // Editor state and tree text.
+    const auto input = hangingRailInput(cabinet(s).interior.children.at(1).hangingRail);
+    EXPECT_TRUE(input.enabled);
+    EXPECT_EQ(input.rail, hardware::ids::kClothesRailGeneric);
+    const auto rows = sectionRows(cabinet(s).interior);
+    ASSERT_EQ(rows.size(), 3u);
+    EXPECT_EQ(rows[2].path, "2");
+    EXPECT_EQ(contentText(rows[2]), QStringLiteral("clothes rail"));
+    EXPECT_EQ(contentText(rows[1]), QStringLiteral("shelves: 4"));
+
+    // A rail height below the support / hook clearance (50 mm generic) is refused by the engine.
+    HangingRailInput low = in;
+    low.heightFromTop = 20;
+    auto lowCmd = hangingRailCommand(cabinet(s), "cab1", "2", low);
+    ASSERT_TRUE(lowCmd.ok());
+    EXPECT_FALSE(s.execute(lowCmd.value()).ok());
+    EXPECT_EQ(cabinet(s).interior.children.at(1).hangingRail->heightFromTop, 60.0);
+
+    // Undo removes the rail and its supports again; redo restores them.
+    ASSERT_TRUE(s.undo().ok());
+    EXPECT_FALSE(cabinet(s).interior.children.at(1).hangingRail.has_value());
+    EXPECT_EQ(railCount(hardware::ids::kClothesRailGeneric), 0);
+    EXPECT_EQ(railCount(hardware::ids::kRailSupportGeneric), 0);
+    ASSERT_TRUE(s.redo().ok());
+    EXPECT_EQ(railCount(hardware::ids::kRailSupportGeneric), 2);
+
+    // Unticking removes the rail (the shelves / front of the section are kept).
+    HangingRailInput off;
+    auto offCmd = hangingRailCommand(cabinet(s), "cab1", "2", off);
+    ASSERT_TRUE(offCmd.ok());
+    ASSERT_TRUE(s.execute(offCmd.value()).ok());
+    EXPECT_EQ(railCount(hardware::ids::kClothesRailGeneric), 0);
+}
+
+// A shallow wardrobe (depth 400: clear depth < section_depth_min 500 mm) refuses the rail.
+TEST(ClothesRail, ShallowSectionRefused) {
+    Session s;
+    ASSERT_TRUE(s.newFromTemplate(TemplateKind::WardrobeSection).ok());
+    ASSERT_TRUE(s.execute(project::commands::setShelfCount("cab1", "1", 0)).ok());
+    auto depth = s.execute(project::commands::setParameter("cab1", "depth", 400));
+    ASSERT_TRUE(depth.ok()) << depth.error().message;
+    HangingRailInput in;
+    in.enabled = true;
+    auto cmd = hangingRailCommand(cabinet(s), "cab1", "1", in);
+    ASSERT_TRUE(cmd.ok());
+    const auto undo = s.document().undoLabel();
+    auto r = s.execute(cmd.value());
+    ASSERT_FALSE(r.ok());
+    EXPECT_FALSE(r.error().message.empty());
+    EXPECT_FALSE(cabinet(s).interior.children.at(0).hangingRail.has_value());
+    EXPECT_EQ(s.document().undoLabel(), undo);
+}
+
 } // namespace
 } // namespace fos::app::test

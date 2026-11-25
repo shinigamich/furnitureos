@@ -3,6 +3,7 @@
 // exports (combined cut list, labels, cutting plan SVGs).
 #include "batch_window.hpp"
 
+#include "dialogs.hpp"
 #include "enum_text.hpp"
 #include "fos/core/units.hpp"
 
@@ -234,7 +235,11 @@ void BatchWindow::exportLabels() {
     if (!confirmIncomplete()) return;
     const QString dir = QFileDialog::getExistingDirectory(this, tr("Folder for the batch labels"), exportDir(editor_));
     if (dir.isEmpty()) return;
-    reportWritten(exportBatchLabels(evaluation(), toPath(dir)));
+    const auto barcode = askLabelBarcode(this);
+    if (!barcode) return;
+    core::Diagnostics warnings;
+    reportWritten(exportBatchLabels(evaluation(), toPath(dir), *barcode, &warnings));
+    if (!warnings.empty()) QMessageBox::warning(this, tr("Batch labels"), labelWarningsText(warnings));
 }
 
 void BatchWindow::exportCuttingPlans() {
