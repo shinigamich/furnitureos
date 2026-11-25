@@ -193,6 +193,30 @@ core::Result<furniture::FrontSpec> frontFromJson(const Json& json, std::string_v
     return f;
 }
 
+/// "supports" / "rail" only when not the generic default.
+Json hangingRailJson(const furniture::HangingRailSpec& h) {
+    const furniture::HangingRailSpec defaults;
+    Json j = Json::object();
+    j["heightFromTop"] = h.heightFromTop;
+    if (h.rail != defaults.rail) j["rail"] = h.rail.str();
+    if (h.supports != defaults.supports) j["supports"] = h.supports.str();
+    return j;
+}
+
+core::Result<furniture::HangingRailSpec> hangingRailFromJson(const Json& json, std::string_view path) {
+    Reader r(json, path, "a hanging rail");
+    furniture::HangingRailSpec h;
+    std::optional<std::string> rail, supports;
+    r.number("heightFromTop", h.heightFromTop, Num::Positive);
+    r.optionalText("rail", rail, true);
+    r.optionalText("supports", supports, true);
+    r.rejectUnknown();
+    if (!r.ok()) return r.error();
+    if (rail) h.rail = domain::HardwareId(*rail);
+    if (supports) h.supports = domain::HardwareId(*supports);
+    return h;
+}
+
 } // namespace
 
 Json toJson(const furniture::Section& s) {
@@ -201,6 +225,8 @@ Json toJson(const furniture::Section& s) {
     j["split"] = furniture::toString(s.split);
     j["shelfCount"] = s.shelfCount;
     if (s.front) j["front"] = frontJson(*s.front);
+    // Written only when set, so files without hanging rails stay byte-identical.
+    if (s.hangingRail) j["hangingRail"] = hangingRailJson(*s.hangingRail);
     Json children = Json::array();
     for (const auto& c : s.children) children.push_back(toJson(c));
     j["children"] = std::move(children);
@@ -216,6 +242,7 @@ core::Result<furniture::Section> sectionFromJson(const Json& json, std::string_v
             furnitureTokens({SplitDirection::None, SplitDirection::Vertical, SplitDirection::Horizontal}));
     r.integerInRange("shelfCount", s.shelfCount, 0, furniture::limits::kMaxShelvesPerSection);
     if (const Json* f = r.find("front"); f != nullptr && !f->is_null()) r.nested("front", s.front, frontFromJson);
+    r.nested("hangingRail", s.hangingRail, hangingRailFromJson);
     r.limitArray("children", furniture::limits::kMaxSectionChildren, "child sections");
     r.array("children", s.children, sectionFromJson);
     r.rejectUnknown();

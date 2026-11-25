@@ -218,3 +218,45 @@ TEST(Components, LibraryIndexesByCategoryAndTagDeterministically) {
 }
 
 } // namespace
+
+// Hanging rails: the section codec writes "hangingRail" only when set (older files unchanged),
+// "rail" / "supports" only when not the generic default; both ids count as library references.
+TEST(Components, HangingRailCodecRoundTripAndLibraryReferences) {
+    furniture::Section plain;
+    EXPECT_FALSE(toJson(plain).contains("hangingRail"));
+
+    furniture::Section s;
+    s.hangingRail = furniture::HangingRailSpec{};
+    s.hangingRail->heightFromTop = 75;
+    const auto j = toJson(s);
+    ASSERT_TRUE(j.contains("hangingRail"));
+    EXPECT_DOUBLE_EQ(j["hangingRail"]["heightFromTop"].get<double>(), 75);
+    EXPECT_FALSE(j["hangingRail"].contains("supports"));
+    EXPECT_FALSE(j["hangingRail"].contains("rail"));
+    auto back = sectionFromJson(j, "/section");
+    ASSERT_TRUE(back.ok()) << back.error().message;
+    EXPECT_EQ(back.value(), s);
+
+    s.hangingRail->supports = domain::HardwareId("hw.my_support");
+    const auto j2 = toJson(s);
+    EXPECT_EQ(j2["hangingRail"]["supports"].get<std::string>(), "hw.my_support");
+    auto back2 = sectionFromJson(j2, "/section");
+    ASSERT_TRUE(back2.ok()) << back2.error().message;
+    EXPECT_EQ(back2.value(), s);
+
+    auto bad = j;
+    bad["hangingRail"]["heightFromTop"] = -5;
+    auto refused = sectionFromJson(bad, "/section");
+    ASSERT_FALSE(refused.ok());
+    EXPECT_THAT(refused.error().message, HasSubstr("heightFromTop"));
+
+    Item item = test::baseCabinetItem("cab1");
+    const auto has = [](const LibraryRefs& r, const char* id) {
+        return std::find(r.hardware.begin(), r.hardware.end(), id) != r.hardware.end();
+    };
+    EXPECT_FALSE(has(libraryReferences(item), hardware::ids::kClothesRailGeneric));
+    EXPECT_FALSE(has(libraryReferences(item), hardware::ids::kRailSupportGeneric));
+    item.cabinet()->interior.hangingRail = furniture::HangingRailSpec{};
+    EXPECT_TRUE(has(libraryReferences(item), hardware::ids::kClothesRailGeneric));
+    EXPECT_TRUE(has(libraryReferences(item), hardware::ids::kRailSupportGeneric));
+}

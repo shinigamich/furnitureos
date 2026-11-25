@@ -5,6 +5,7 @@
 #include "fos/furniture/generate.hpp"
 #include "fos/furniture/parameters.hpp"
 #include "fos/hardware/cabinet_hanger.hpp"
+#include "fos/hardware/clothes_rail.hpp"
 #include "fos/hardware/drawer_slides.hpp"
 #include "fos/hardware/handle.hpp"
 #include "fos/hardware/sliding_doors.hpp"
@@ -43,7 +44,7 @@ enum class EdgeUse { Raw, Visible, Hidden, Front };
 /// Indexed by domain::EdgeSide (L1, L2, W1, W2).
 using Edges = std::array<EdgeUse, 4>;
 
-enum class JobKind { Corner, ShelfPins, Hinges, Handle, Slide, Lift, SlidingTrack, SlidingRollers, Hanger, WallRail };
+enum class JobKind { Corner, ShelfPins, Hinges, Handle, Slide, Lift, SlidingTrack, SlidingRollers, Hanger, WallRail, ClothesRail };
 /// A deferred hardware placement; run after all parts exist (gen_hardware.cpp).
 struct Job {
     JobKind kind = JobKind::Corner;
@@ -65,6 +66,12 @@ struct Job {
     hardware::SlidingTrackConfig track;
     /// WallRail: rail ends, wall plane, reference height and parts (instanceId filled when placed).
     hardware::WallRailConfig rail;
+    /// ClothesRail: a = left panel, b = right panel; sharedPanel / sharedC = that panel is a divider.
+    /// railId / supportId: definitions (HangingRailSpec); clothesRail.space is the section's space,
+    /// the instance ids are `instance` (rail) and clothesSupportInstance (supports).
+    domain::HardwareId railId, supportId;
+    hardware::ClothesRailConfig clothesRail;
+    std::string clothesSupportInstance;
     domain::HardwareId slide; ///< Slide: definition id (DrawerBoxSpec::slide).
     double slideLength = 0;   ///< Slide: nominal length, mm.
     /// Corner (drawer-box joints): fastener zone along the joint (CornerJointConfig::zone).
@@ -157,6 +164,12 @@ core::Result<void> buildBack(Gen& g);
 /// name the cabinet, the hanger and the numbers.
 core::Result<void> buildHangers(Gen& g);
 core::Result<void> buildInterior(Gen& g, const Bounds& rootBounds);
+/// Hanging rail of the leaf section at `path` (gen_rail.cpp, README "Hanging rails"): checks that
+/// both definitions are in the library and the section's space (hardware::planClothesRail), then
+/// schedules the ClothesRail job (instances hw.rail.<path> and hw.rail_supports.<path>).
+/// Errors (NotFound / ConstraintViolation / InvalidArgument) name the section and the numbers.
+core::Result<void> buildHangingRail(Gen& g, const HangingRailSpec& spec, const std::string& path, const Box& box,
+                                    const Bounds& bounds);
 /// Open appliance niche of the section at `path` (gen_appliance.cpp): checks the spec and
 /// records its ventilation cut-out (ShelfSlot in the panel below, BackCutout in the back).
 core::Result<void> buildApplianceNiche(Gen& g, const FrontSpec& spec, const std::string& path, const Box& box,

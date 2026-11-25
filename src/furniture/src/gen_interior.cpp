@@ -2,6 +2,7 @@
 /// Interior: recursive section tree -> partitions, fixed shelves, adjustable shelves, fronts.
 #include "gen_context.hpp"
 #include <algorithm>
+#include <cmath>
 
 namespace fos::furniture::detail {
 namespace {
@@ -43,6 +44,23 @@ core::Result<void> checkTree(const Gen& g, const Section& s, const std::string& 
                                " per-drawer box entries but " + std::to_string(s.front->drawerHeights.size()) +
                                " drawer fronts; give one entry per drawer (or none to use the stack-wide drawer box).",
                            g);
+    }
+    if (s.hangingRail) {
+        if (s.split != SplitDirection::None)
+            return invalid(label + " is split into child sections and cannot hold a hanging rail itself; put the rail "
+                                   "into a leaf section.", g);
+        if (s.shelfCount != 0)
+            return invalid(label + " has a hanging rail and " + std::to_string(s.shelfCount) +
+                               " adjustable shelves; a section takes either a hanging rail or shelves. Split it "
+                               "horizontally to combine both.", g);
+        if (s.front && s.front->kind != FrontKind::Door && s.front->kind != FrontKind::DoorPair &&
+            s.front->kind != FrontKind::SlidingDoors)
+            return invalid(label + " has a hanging rail and a front of kind " + std::string(toString(s.front->kind)) +
+                               "; a hanging rail needs an open section or one behind a Door, DoorPair or SlidingDoors "
+                               "front.", g);
+        if (!std::isfinite(s.hangingRail->heightFromTop) || s.hangingRail->heightFromTop <= 0)
+            return invalid(label + " has a hanging rail " + num(s.hangingRail->heightFromTop) +
+                               " mm below the section top; the height must be a positive length.", g);
     }
     if (s.split == SplitDirection::None) {
         if (!s.children.empty())
@@ -143,7 +161,11 @@ core::Result<void> buildSection(Gen& g, const Section& s, const std::string& pat
     }
     // Dividers span the usable interior: from box.y0 (0, or behind sliding-door tracks) to the back.
     const double T = g.v(p::kThickness), depth = g.v(p::kInteriorDepth) - box.y0;
-    if (s.split == SplitDirection::None) return buildShelves(g, s, path, box, b);
+    if (s.split == SplitDirection::None) {
+        if (s.hangingRail)
+            if (auto r = buildHangingRail(g, *s.hangingRail, path, box, b); !r) return r;
+        return buildShelves(g, s, path, box, b);
+    }
 
     const bool vertical = s.split == SplitDirection::Vertical;
     const std::size_t n = s.children.size();

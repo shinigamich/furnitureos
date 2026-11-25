@@ -195,6 +195,13 @@ core::Result<void> checkPartSizes(const Gen& g) {
 } // namespace detail
 
 namespace {
+
+bool containsHangingRail(const Section& s) {
+    if (s.hangingRail) return true;
+    for (const auto& c : s.children)
+        if (containsHangingRail(c)) return true;
+    return false;
+}
 struct Sync {
     const char* parameter;
     MaterialRole role;
@@ -285,6 +292,13 @@ core::Result<GenerationResult> generate(const CabinetDefinition& definition, con
                                    "', but hangers are supported only on rectangular cabinets (not on " +
                                    (lShape ? "an L-shaped corner cabinet" : "an appliance gap") +
                                    "). Clear the hanger selection.",
+                               def.id.str());
+    if ((lShape || def.applianceGap) && containsHangingRail(def.interior))
+        return core::makeError(core::ErrorCode::Unsupported,
+                               "Cabinet '" + def.id.str() + "' has a hanging rail, but hanging rails are supported only "
+                               "in rectangular cabinets (not in " +
+                                   (lShape ? "an L-shaped corner cabinet" : "an appliance gap") +
+                                   "). Remove the hanging rail.",
                                def.id.str());
     if (def.applianceGap) { // refuses a corner kind itself
         if (auto r = detail::buildApplianceGap(g); !r) return r.error();

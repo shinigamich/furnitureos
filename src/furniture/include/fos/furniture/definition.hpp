@@ -154,6 +154,19 @@ std::optional<DrawerBoxSpec> drawerBoxFor(const FrontSpec& front, std::size_t in
 /// True when at least one drawer of `front` gets a box (drawerBoxFor of some index is set).
 bool hasDrawerBoxes(const FrontSpec& front);
 
+/// Wardrobe (clothes / hanging) rail in a LEAF section (README "Hanging rails"): one rail of
+/// definition `rail` (linear, e.g. hardware::ids::kClothesRailGeneric) cut to the section's clear
+/// width, carried by two screw-fixed supports of definition `supports` (e.g.
+/// hardware::ids::kRailSupportGeneric) on the inner faces of the panels left and right of the
+/// section, with the rail axis `heightFromTop` mm below the underside of the panel above the
+/// section and in the middle of its clear depth (hardware/clothes_rail.hpp).
+struct HangingRailSpec {
+    double heightFromTop = 60; ///< mm, > 0.
+    domain::HardwareId rail{hardware::ids::kClothesRailGeneric};
+    domain::HardwareId supports{hardware::ids::kRailSupportGeneric};
+    bool operator==(const HangingRailSpec&) const = default;
+};
+
 /// Node of the interior layout tree. PATHS: the root has the empty path ""; the k-th child
 /// (1-based) of a section with path P has path "P.k" ("k" below the root), e.g. "2.1".
 struct Section {
@@ -162,6 +175,8 @@ struct Section {
     std::vector<Section> children;    ///< Used when split != None (at least 2).
     int shelfCount = 0;               ///< Leaf only: adjustable shelves, evenly distributed.
     std::optional<FrontSpec> front;   ///< Front covering this section's opening (leaf or split).
+    /// Leaf only: hanging rail (no adjustable shelves; front none, Door, DoorPair or SlidingDoors).
+    std::optional<HangingRailSpec> hangingRail;
     bool operator==(const Section&) const = default;
 };
 

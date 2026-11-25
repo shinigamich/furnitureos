@@ -44,6 +44,19 @@ HardwareDefinition wallRail() {
     d.custom["unit"] = "m";
     return d;
 }
+/// Linear wardrobe (clothes) rail, sold per metre (custom "unit" = "m"); no drilling of its own.
+HardwareDefinition clothesRail() {
+    using namespace keys;
+    HardwareDefinition d = generic(ids::kClothesRailGeneric, HardwareKind::Other,
+                                   "Oval wardrobe rail 30x15, per metre (generic)",
+                                   {{kRailHeight, 30.0},
+                                    {kRailThickness, 15.0},
+                                    {kHookClearance, 35.0},
+                                    {kSectionDepthMin, 500.0},
+                                    {kHangingSpaceMin, 800.0}});
+    d.custom["unit"] = "m";
+    return d;
+}
 } // namespace
 
 std::vector<HardwareDefinition> builtinCatalog() {
@@ -170,6 +183,10 @@ std::vector<HardwareDefinition> builtinCatalog() {
                  {kScrewDepth, 10.0},
                  {kRailTopBelowTop, 20.0}}),
         wallRail(),
+        clothesRail(),
+        generic(ids::kRailSupportGeneric, HardwareKind::Other,
+                "End support for oval wardrobe rail, screw-fixed (generic)",
+                {{kBodyHeight, 50.0}, {kBodyDepth, 30.0}, {kScrewSpacing, 32.0}, {kScrewDiameter, 3.0}, {kScrewDepth, 10.0}}),
     };
 }
 

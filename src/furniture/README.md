@@ -212,6 +212,27 @@ corners and appliance gaps with a hanger fail (Unsupported); a missing hanger / 
 geometry of new wall cabinets and need the new definitions in older project libraries. Project files:
 `hardware.hanger` (and `hardware.wallRail` when not default) written only when a hanger is set.
 
+### Hanging rails (`Section::hangingRail`, `HangingRailSpec`)
+
+A LEAF section may hold one wardrobe (clothes) rail: `heightFromTop` (mm below the underside of the panel
+above the section, default 60), `rail` (default `hw.clothes_rail_generic`, linear, sold per metre) and
+`supports` (default `hw.rail_support_generic`), rules `hardware/clothes_rail.hpp`. Generation adds the rail
+`hw.rail.<path>` (quantity 1, `HardwareInstance::length` = section clear width, axis in the middle of the clear
+depth `box.y0 .. interior_depth`) and the supports `hw.rail_supports.<path>` (quantity 2) with two pilot holes
+each on the inner faces of the panels left and right of the section (sides or partitions; a partition follows
+the shared-panel rule, 8 mm deep in 18 mm board). Example: wardrobe 1000 × 2000 × 560 split into two sections,
+rail in '1': length 473, axis (y 280, z 1922), holes on side.left face B at (1938, 280) / (1906, 280) and on
+partition.1 face A at (1920, 280) / (1888, 280).
+**Refusals** (generation fails, message names the section and the numbers): clear depth below
+`section_depth_min` (500 mm, GENERIC heuristic), less than `hanging_space_min` (800 mm, GENERIC heuristic)
+below the rail axis ("too low"), `heightFromTop` below max(support height / 2, rail height / 2 +
+`hook_clearance`) (50 mm generic), a rail on a split section, together with adjustable shelves, behind a front
+other than Door / DoorPair / SlidingDoors, in an L-shaped corner or appliance gap (Unsupported), or a rail /
+support id missing from the library (NotFound). `splitSection` moves the rail to the first child. Project
+files: section key `hangingRail: {heightFromTop, rail?, supports?}` written only when set (`rail` /
+`supports` only when not the generic default), so older files stay byte-identical. Limitation: the clear depth
+ignores the thickness of inset doors (the rail sits mid-depth, far from them).
+
 ## Drawer boxes
 
 `FrontSpec::drawerBox` (`DrawerBoxSpec{slide, bottom, joint}`, DrawerStack only; `std::nullopt` = fronts only) puts a

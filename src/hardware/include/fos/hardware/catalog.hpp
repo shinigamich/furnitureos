@@ -156,6 +156,22 @@
 ///    rail_thickness             12    profile thickness off the wall (must be < back_space_min)
 ///    custom["unit"] = "m": a LINEAR article sold per metre and cut to length on site; one
 ///    instance (quantity 1) per cabinet, its length in the instance note (cabinet_hanger.hpp).
+///
+///  hw.clothes_rail_generic  kind Other  "Oval wardrobe rail 30x15, per metre (generic)"
+///    rail_height                30    profile height (vertical)
+///    rail_thickness             15    profile width (horizontal, across the section depth)
+///    hook_clearance             35    free space above the rail top for the hanger hooks
+///    section_depth_min          500   clear section depth needed for coat hangers (heuristic)
+///    hanging_space_min          800   clear height below the rail axis needed for garments (heuristic)
+///    custom["unit"] = "m": LINEAR article cut to the section's clear width; the instance carries
+///    HardwareInstance::length (clothes_rail.hpp).
+///
+///  hw.rail_support_generic  kind Other  "End support for oval wardrobe rail, screw-fixed (generic)"
+///    body_height                50    support height on the panel, centred on the rail axis
+///    body_depth                 30    support extent along the section depth, centred on the rail axis
+///    screw_spacing              32    two pilot holes, vertically +-16 around the rail axis
+///    screw_diameter / _depth    3 / 10  pilot holes in the panel's inner face
+///    (Two supports per rail, one on each side panel / divider; typical, unverified values.)
 namespace fos::hardware {
 
 namespace keys {
@@ -259,6 +275,9 @@ inline constexpr const char* kScrewDepth = "screw_depth";
 inline constexpr const char* kRailTopBelowTop = "rail_top_below_top";
 inline constexpr const char* kRailHeight = "rail_height";
 inline constexpr const char* kRailThickness = "rail_thickness";
+inline constexpr const char* kHookClearance = "hook_clearance";
+inline constexpr const char* kSectionDepthMin = "section_depth_min";
+inline constexpr const char* kHangingSpaceMin = "hanging_space_min";
 } // namespace keys
 
 namespace ids {
@@ -277,6 +296,8 @@ inline constexpr const char* kLiftGeneric = "hw.lift_generic";
 inline constexpr const char* kSlidingGeneric = "hw.sliding_generic";
 inline constexpr const char* kHangerGeneric = "hw.hanger_generic";
 inline constexpr const char* kWallRailGeneric = "hw.wall_rail_generic";
+inline constexpr const char* kClothesRailGeneric = "hw.clothes_rail_generic";
+inline constexpr const char* kRailSupportGeneric = "hw.rail_support_generic";
 } // namespace ids
 
 /// The generic catalogue, in the fixed order of the list above. unitCost is 0 (unknown).

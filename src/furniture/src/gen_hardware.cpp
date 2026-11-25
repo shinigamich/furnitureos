@@ -227,6 +227,18 @@ core::Result<hardware::Placement> place(Gen& g, const Job& j, const domain::Hard
         c.instanceId = id;
         return hardware::placeWallRail(rail.value(), hanger.value(), c);
     }
+    case JobKind::ClothesRail: {
+        auto rail = lookup(j.railId, "clothes rail");
+        if (!rail) return rail.error();
+        auto support = lookup(j.supportId, "rail support");
+        if (!support) return support.error();
+        hardware::ClothesRailConfig c = j.clothesRail;
+        c.railInstanceId = id;
+        c.supportInstanceId = domain::HardwareInstanceId(g.partId(j.clothesSupportInstance));
+        if (j.sharedPanel) c.maxScrewDepthLeft = sharedHoleDepthLimit(parts[j.a].thickness);
+        if (j.sharedC) c.maxScrewDepthRight = sharedHoleDepthLimit(parts[j.b].thickness);
+        return hardware::placeClothesRail(parts[j.a], parts[j.b], rail.value(), support.value(), c);
+    }
     case JobKind::Handle: {
         auto def = lookup(sel.handle, "handle");
         if (!def) return def.error();
