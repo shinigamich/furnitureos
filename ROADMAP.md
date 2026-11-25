@@ -22,7 +22,7 @@ parallel models.
 
 | Phase | Goal | Deliverable |
 |---|---|---|
-| 0 | Repository and architecture audit | Architecture, ownership, ADRs, risk register |
+| 0 | Repository and architecture audit | Architecture, module map, ADRs, risk register |
 | 1 | Engineering foundation | Build system, core, domain model, tests, file format foundation, CI, application shell |
 | 2 | Geometry and parametric foundation | Geometry kernel, parametric dependency engine |
 | 3 | Initial furniture CAD | Parametric cabinets, materials, edge banding, 3D viewport, property editing, undo/redo |

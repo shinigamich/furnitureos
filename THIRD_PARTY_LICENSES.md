@@ -1,12 +1,12 @@
 # Third-party licences
 
-Project licence: **AGPL-3.0-only** (SPDX identifier `AGPL-3.0-only`; text in the file `LICENSE`). This file is an engineering inventory, not legal advice. Items marked "not verified" were not checked against the upstream source in this session (only some GitHub pages were reachable; the Qt and Open CASCADE websites were not).
+Project licence: **AGPL-3.0-only** (SPDX identifier `AGPL-3.0-only`; text in the file `LICENSE`). This file is an engineering inventory, not legal advice. Items marked "not verified" were not checked against the upstream source at the time of writing (only some GitHub pages were reachable; the Qt and Open CASCADE websites were not).
 
 ## 1. Dependencies in use
 
 | Component | Licence | Linking / role | AGPL-3.0-only compatibility | Notes |
 |---|---|---|---|---|
-| Qt 6 (see section 2) | LGPL-3.0 (and GPL-2.0/GPL-3.0, or commercial) for the modules listed; from memory, not verified in this session | Dynamic linking, `app` and `printing` modules only | LGPL-3.0 libraries can be used by a GPL-3.0/AGPL-3.0 program (GPLv3/LGPLv3 permit combination; AGPLv3 section 13 covers AGPL-GPL combination). | Obligations in section 3. |
+| Qt 6 (see section 2) | LGPL-3.0 (and GPL-2.0/GPL-3.0, or commercial) for the modules listed; from memory, not verified at the time of writing | Dynamic linking, `app` and `printing` modules only | LGPL-3.0 libraries can be used by a GPL-3.0/AGPL-3.0 program (GPLv3/LGPLv3 permit combination; AGPLv3 section 13 covers AGPL-GPL combination). | Obligations in section 3. |
 | GoogleTest | BSD-3-Clause (from memory, not verified here) | Tests only; not shipped | Compatible. | Keep out of release packages. |
 | nlohmann/json | MIT (from memory, not verified here) | Header-only, in `formats`, `plugins`, `project` | Compatible. | Ship licence text with sources and binary packages (MIT requires the notice). |
 | CMake | BSD-3-Clause (from memory) | Build tool | Not linked; not distributed in output. | |
@@ -24,7 +24,7 @@ Project licence: **AGPL-3.0-only** (SPDX identifier `AGPL-3.0-only`; text in the
 | Qt PrintSupport | printing | LGPL-3.0 / GPL / commercial |
 | Qt Svg | app, printing | LGPL-3.0 / GPL / commercial |
 
-These are the "Qt Essentials" style modules, which I believe are available under LGPL-3.0. **Verify each against the Qt documentation page "Licenses Used in Qt" (not reachable in this session) and the `LICENSES` directory / `REUSE.toml` of the Qt sources (the qtbase repository lists both, contents not read).**
+These are the "Qt Essentials" style modules, believed to be available under LGPL-3.0. **Verify each against the Qt documentation page "Licenses Used in Qt" (not reachable at the time of writing) and the `LICENSES` directory / `REUSE.toml` of the Qt sources (the qtbase repository lists both, contents not read).**
 
 **GPL-only Qt modules to avoid unless accepted** (from memory, not verified): add-on modules such as Qt Charts, Qt Data Visualization, Qt Virtual Keyboard, Qt Wayland Compositor and some Qt Quick extras (for example Qt Quick 3D Physics, Qt Lottie, Qt Quick Timeline) have been offered under GPL/commercial only, without an LGPL option. Policy: use only the modules in the table above; adding any other Qt module requires a licence check. GPL-3.0-only code is compatible with AGPL-3.0-only (via GPLv3 section 13) but would take the dependency out of the LGPL category and restrict future relicensing choices. GPL-2.0-only terms would not be compatible, so never rely on a GPL-2.0-only choice for a Qt module.
 

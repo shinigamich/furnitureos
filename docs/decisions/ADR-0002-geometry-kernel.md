@@ -7,7 +7,7 @@
 
 The primary workload is panel furniture: axis-aligned rectangular panels (boxes) placed by rigid transforms, 2D contours (cut-outs, pockets, nesting shapes), prisms (extruded contours) and drawings with hidden-line removal (HLR). Cabinets are built from flat sheet material; free-form solids (curved handles, imported hardware models, upholstered shapes) are secondary. Exchange with other CAD systems usually means STEP, which requires a B-rep kernel.
 
-Facts about candidate libraries below are from general knowledge unless marked. Only the items marked "verified" were checked online in this session (GitHub pages only; the OCCT and Qt web sites were not reachable).
+Facts about candidate libraries below are from general knowledge unless marked. Only the items marked "verified" were checked online (GitHub pages only; the OCCT and Qt web sites were not reachable).
 
 ## Decision
 
@@ -18,7 +18,7 @@ Facts about candidate libraries below are from general knowledge unless marked. 
 ## Alternatives considered
 
 ### Open CASCADE Technology
-* Licence: LGPL-2.1 with the "OCCT exception" (file `OCCT_LGPL_EXCEPTION.txt`); a commercial licence is offered as an alternative (verified on the GitHub README; the OCCT site itself not reachable). Any claim that a newer major version changed the licence: not verified in this session. Check the tag you actually adopt.
+* Licence: LGPL-2.1 with the "OCCT exception" (file `OCCT_LGPL_EXCEPTION.txt`); a commercial licence is offered as an alternative (verified on the GitHub README; the OCCT site itself not reachable). Any claim that a newer major version changed the licence: not verified at the time of writing. Check the tag you actually adopt.
 * Pros: full B-rep, STEP/IGES/STL/OBJ I/O, booleans, fillets, HLR algorithms, meshing, long track record.
 * Cons: very large build (many toolkits; hours-scale on a laptop for a full build, not measured here), large API with its own handle/memory model and macros, steep learning curve, binary size, LGPL relinking obligations on top of Qt's, historically exceptions-based error handling. Dynamic linking is the practical way to comply with LGPL. Boolean/HLR robustness on thin panels with coincident faces needs fuzzy tolerances and still can fail.
 * Maintenance: actively developed (the repository references a version 8.0 documentation line; the exact current release was not verified).

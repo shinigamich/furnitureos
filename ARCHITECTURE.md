@@ -1,6 +1,6 @@
 # FurnitureOS Architecture
 
-Status: living document. Binding for all contributors and automation agents.
+Status: living document. Binding for all contributors.
 Decisions with rationale live in `docs/decisions/` (ADRs) and are indexed in `TECHNICAL_DECISIONS.md`.
 
 ## 1. Ecosystem

@@ -516,6 +516,6 @@ project not written; autosave + recovery; failed commands leave the document unc
 undo limit. `nesting_tests.cpp`: nesting settings absent → not written, explicit defaults and non-default values
 (seed > INT_MAX) round-trip byte for byte, range errors on load and in the command, cutting plans with a shaped shelf
 (nested, part spacing 6 + 0 + 2·0.1 = 6.2 with a 6 mm tool, both validators clean). Scenario F (tests/) covers
-the whole chain. `limits_tests.cpp`: the reviewer's hostile files (shelfCount 2000 / 10000, 51 children, 3 × 100 shelves,
+the whole chain. `limits_tests.cpp`: hostile test files (shelfCount 2000 / 10000, 51 children, 3 × 100 shelves,
 31 drawers, height 1e308, backupCount 1e6, 501 items) are rejected on load in well under a second with the exact
 messages; commands refuse the same limits; backup rotation through `saveProject`.

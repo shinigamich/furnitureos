@@ -1,6 +1,6 @@
 # Known limitations
 
-Honesty rule (ARCHITECTURE.md 4.7): nothing is labelled as working unless it is implemented and tested. This list starts with limitations that follow from the architectural decisions and will be extended by the integration lead.
+Honesty rule (ARCHITECTURE.md 4.7): nothing is labelled as working unless it is implemented and tested. This list starts with limitations that follow from the architectural decisions and is extended as features are added.
 
 ## Geometry and drawings
 * Hidden-line removal is rule-based and exact **for box-shaped parts only** (ADR-0002). Curved, tilted or free-form parts are not supported by drawings/HLR.

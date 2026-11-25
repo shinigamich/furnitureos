@@ -1,6 +1,6 @@
 # CAM and postprocessor survey
 
-Date: 2026-11-11. Limited web access: only a few facts were verified in this session; the rest is general knowledge and is labelled. Status labels: **documented** (public specification or manual known to exist), **partially documented**, **proprietary / unknown** (no public specification confirmed). None of the classifications below was verified against vendor documentation in this session unless a source is cited. Do not treat them as certification.
+Date: 2026-11-11. Limited web access: only a few facts were verified; the rest is general knowledge and is labelled. Status labels: **documented** (public specification or manual known to exist), **partially documented**, **proprietary / unknown** (no public specification confirmed). None of the classifications below was verified against vendor documentation unless a source is cited. Do not treat them as certification.
 
 ## 1. Controller and machine-software landscape
 
@@ -53,7 +53,7 @@ Principles:
 
 **LinuxCNC (RS-274/NGC).** Reasons:
 * A standalone interpreter binary `rs274` exists (Debian man page `rs274(1)` in package `linuxcnc-uspace`: "standalone G-code interpreter", options such as `-g file.ngc -t tool.tbl`; seen in search results, page not opened in full).
-* LinuxCNC ships simulator configurations under `configs/sim/` that run without hardware (search results show the AXIS sim INI files). Output can therefore be parsed and executed in simulation on a developer machine or CI runner (installation and CI feasibility not tested in this session).
+* LinuxCNC ships simulator configurations under `configs/sim/` that run without hardware (search results show the AXIS sim INI files). Output can therefore be parsed and executed in simulation on a developer machine or CI runner (installation and CI feasibility not tested).
 * The dialect is publicly documented.
 
 What this verification proves: the file is syntactically valid RS-274 and runs to completion in simulation, and that simulated positions match the model within tolerance. It does **not** prove safe behaviour on a real machine, correct tool offsets, spindle direction/M-codes of a specific controller, or collision-freedom.

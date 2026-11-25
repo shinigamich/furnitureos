@@ -72,7 +72,7 @@ add `-DFOS_BUILD_GUI=OFF`. See [`docs/user-guide/getting-started.md`](docs/user-
 
 * [`ARCHITECTURE.md`](ARCHITECTURE.md) — modules, dependency rules, units, coordinate systems, conventions.
 * [`TECHNICAL_DECISIONS.md`](TECHNICAL_DECISIONS.md) and `docs/decisions/` — decision records.
-* [`MODULE_OWNERSHIP.md`](MODULE_OWNERSHIP.md), [`PROJECT_STATUS.md`](PROJECT_STATUS.md), [`ROADMAP.md`](ROADMAP.md),
+* [`MODULES.md`](MODULES.md), [`PROJECT_STATUS.md`](PROJECT_STATUS.md), [`ROADMAP.md`](ROADMAP.md),
   [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md).
 * Module READMEs in `src/<module>/README.md`.
 

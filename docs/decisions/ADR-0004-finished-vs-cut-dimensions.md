@@ -28,7 +28,7 @@ Consequences of the convention that other modules must respect:
 
 * **Store cut size, derive finished size.** Used by some software and common in shops that work from cut lists. Rejected as the primary field because changing band material would silently change the assembled size or require manual recalculation; designers specify finished sizes.
 * **Store both and keep in sync.** Rejected: two sources of truth.
-* **Per-edge allowance only on the edgebander.** Industry practice (not verified for specific vendors in this session): edgebanders with pre-milling remove a small amount (typically a fraction of a millimetre) from the edge before gluing, and trim flush afterwards. A cut size therefore may need to be `finished - band + preMill` on that edge so that the pre-milled panel reaches finished size. The current rule ignores this.
+* **Per-edge allowance only on the edgebander.** Industry practice (not verified for specific vendors): edgebanders with pre-milling remove a small amount (typically a fraction of a millimetre) from the edge before gluing, and trim flush afterwards. A cut size therefore may need to be `finished - band + preMill` on that edge so that the pre-milled panel reaches finished size. The current rule ignores this.
 
 ## Adding a pre-milling allowance later
 

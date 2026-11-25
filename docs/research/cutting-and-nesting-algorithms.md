@@ -1,6 +1,6 @@
 # Cutting and nesting algorithms: short survey
 
-Date: 2026-11-11. Algorithm descriptions are general knowledge; licences marked "verified" were read on the project's GitHub page in this session, others are not verified.
+Date: 2026-11-11. Algorithm descriptions are general knowledge; licences marked "verified" were read on the project's GitHub page, others are not verified.
 
 ## 1. Rectangular cutting (panels on sheets)
 
@@ -28,7 +28,7 @@ Validation: any layout must be checked independently (no overlap, inside the she
 
 Libraries and licences:
 * **SVGnest**: MIT (verified on GitHub). Browser JavaScript; uses Clipper (the JavaScript port) and genetic search; algorithmic reference, not a drop-in C++ component.
-* **Deepnest**: derived from SVGnest; the GitHub page opened in this session (a repository under the Jack000 account) showed no licence file, so licence for that repository is **not established**; other forks may differ. Verify the fork and its licence before using code or ideas closely tied to it.
+* **Deepnest**: derived from SVGnest; the GitHub page opened (a repository under the Jack000 account) showed no licence file, so licence for that repository is **not established**; other forks may differ. Verify the fork and its licence before using code or ideas closely tied to it.
 * **libnest2d**: LGPL-3.0 (verified on GitHub), from the PrusaSlicer lineage; README says it works well for rectangles and convex polygons without holes/concavities and is not feature complete. LGPL adds relinking obligations; its fitness for furniture contours with holes is doubtful.
 * **Clipper2**: BSL-1.0 (verified); polygon offset and boolean operations, a building block for NFP-free approaches, kerf offsetting and overlap tests. The original repository is shown as archived with maintenance moving to `PolyClipping/Clipper2` (verified); confirm before adoption.
 

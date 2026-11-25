@@ -2,7 +2,7 @@
 
 * Status: Accepted
 * Date: 2026-11-11
-* Deciders: chief architect (see `ARCHITECTURE.md` section 2)
+* Deciders: project maintainers
 
 ## Context
 
@@ -26,7 +26,7 @@ FurnitureOS is an open-source (AGPL-3.0-only) desktop application for parametric
 
 | Option | For | Against (for this project) |
 |---|---|---|
-| Rust (+ egui/Slint/Tauri) | Memory safety; good package manager | CAD/CAM ecosystem is thin (kernel bindings, DXF/STEP libraries, print/PDF with exact scale); desktop UI toolkits are less mature for dense inspector-style CAD UIs; Slint is GPL-3.0/commercial/royalty-free-with-conditions (licence terms not re-verified in this session); smaller pool of contributors who know both CAD and Rust. A later Open CASCADE backend (ADR-0002) would need C++ FFI anyway. |
+| Rust (+ egui/Slint/Tauri) | Memory safety; good package manager | CAD/CAM ecosystem is thin (kernel bindings, DXF/STEP libraries, print/PDF with exact scale); desktop UI toolkits are less mature for dense inspector-style CAD UIs; Slint is GPL-3.0/commercial/royalty-free-with-conditions (licence terms not re-verified); smaller pool of contributors who know both CAD and Rust. A later Open CASCADE backend (ADR-0002) would need C++ FFI anyway. |
 | C#/.NET + Avalonia | Productive UI, garbage collection | Runtime must ship or be installed; interop with C++ geometry libraries needed for any serious kernel; GC pauses and layout of numeric arrays are less predictable for geometry-heavy loops; 3D viewport requires extra work. |
 | Electron / web stack | Fast UI iteration, shared code with website | Heavy runtime; numeric core would be JavaScript/WASM; exact-scale printing and file-system safety (atomic saves) are harder; conflicts with "no network, no account, small native tool" goal. A WASM build of the core remains possible later because the core is Qt-free. |
 | Python (PySide6/PyQt) | Very fast prototyping, large scientific ecosystem | Performance and packaging of a distributable desktop app (interpreter and wheels must be bundled per platform); type safety for a long-lived geometry core is weaker. Kept as a candidate for out-of-process plugins/scripting (ADR-0007). |
@@ -41,7 +41,7 @@ Positive:
 * Headless core allows CI without a display and a CLI front end.
 
 Negative / costs:
-* C++ memory-safety risks; mitigated by warnings-as-errors, sanitizers in CI and `Result<T>`-based error handling (ARCHITECTURE.md 4.5). Not yet verified in CI in this session.
+* C++ memory-safety risks; mitigated by warnings-as-errors, sanitizers in CI and `Result<T>`-based error handling (ARCHITECTURE.md 4.5). Not yet verified in CI.
 * Qt is a large dependency with LGPL-3.0 obligations (relinking, notices, no static linking without extra steps). See `THIRD_PARTY_LICENSES.md`.
 * Dependency management across three platforms (vcpkg/Conan/system packages) is not yet decided and is a build-engineering task.
 * Qt Commercial would be a separate licence; not used.

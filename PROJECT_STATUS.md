@@ -1,6 +1,6 @@
 # Project Status
 
-_Last updated: 2026-11-13._ This file is the authoritative statement of what exists. It is updated only
+_Last updated: 2026-11-25._ This file is the authoritative statement of what exists. It is updated only
 with facts verified by building and running tests.
 
 ## Overall
@@ -23,7 +23,7 @@ Verified on 2026-11-13 (after the second review), Ubuntu 24.04, Qt 6.4.2, from c
 | Headless, Clang 18, Debug, `-DFOS_WERROR=ON` | builds; 761/761 pass |
 | CLI end to end (`fos new` → `set width 900` → `report` → `validate` → `cut` → `drawing` → `cam`) | run by hand; results checked against hand-computed sizes |
 
-GitHub Actions runs on every push to the development branch (Linux GCC with Qt, Linux Clang, Windows MSVC with packaging); all three green at bc0473f.
+GitHub Actions builds and tests every push on Linux (GCC with Qt, Clang headless) and Windows (MSVC, with a portable ZIP).
 Not verified: macOS, physical printers, any real CNC machine or controller.
 
 ## Tests per module (GoogleTest cases)
@@ -38,7 +38,7 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 |---|---|---|---|---|
 | T-001 | Build system, core, geometry base, domain model | Done | tests above | — |
 | T-002 | ADRs, licence inventory, research surveys | Done | several facts marked unverified in the documents | — |
-| T-003 | Parametric engine | Done | 56 tests; reviewer fuzzed 4,719 random edits vs full rebuild, 0 mismatches | Independent review: no defects |
+| T-003 | Parametric engine | Done | 56 tests; fuzz test: 4,719 random edits vs full rebuild, 0 mismatches | Independent review: no defects |
 | T-004 | Geometry kernel | Done | 77 tests | — |
 | T-005 | Machining model | Done | 33 tests | Review: face frames verified |
 | T-006 | Hardware catalogue + placement rules | Done (generic, unverified data) | 31 tests | — |
@@ -146,8 +146,6 @@ envelope checks, CLI exit 1 on incomplete output, single bounded plugin read, pi
 
 ## Known bugs and technical debt
 
-* The DXF-to-panel conversion exists twice (CLI `cmd_import.cpp` and app `dxf_panel_import.cpp`, ~100 lines); move it into a non-Qt module (project) so both share one copy.
-
 * Documents may be saved while the generator reports errors (deliberate, to allow intermediate states);
   front ends must show the diagnostics (the app and `fos set` do).
 * Interference depth is reported as minimum separation distance in validation but as overlap extent in the
@@ -155,24 +153,18 @@ envelope checks, CLI exit 1 on incomplete output, single bounded plugin read, pi
 * Part names from the generator are English only; the app cannot translate them yet.
 * `formats::importLibrary` has no size limit of its own (plugins check size before reading).
 * `core::Error` has no stable machine code field; `core::Diagnostic` carries a single entity id.
-* Geometry: no curves or booleans; holes only partly supported; brute-force complexity.
-* Several WIP snapshot commits exist on the development branch from parallel work; they contain intermediate states.
+* Geometry: contours are lines and arcs only (no splines); some checks still have brute-force complexity.
 
-## Decisions requiring owner input
+## Open items
 
-1. **Default branch.** The development branch is the only branch. Create `main` (and branch protection)
-   when you are ready to accept the work. (CI already runs on every push to the development branch.)
-2. **Open CASCADE + AGPL-3.0-only** compatibility needs legal review before any OCCT backend ships.
-3. **Website**: production domain, licence of the website source, native review of the Ukrainian text.
-4. **Backend**: hosting target, allowed CORS origins, release asset naming and checksum file convention.
-5. **LICENSE text** was taken from the SPDX licence list (gnu.org unreachable from the build environment);
-   compare it with the canonical gnu.org text.
-6. **Real hardware and machine data**: which manufacturers' fittings and which CNC controllers to verify
-   first. This needs data sheets and, for CAM, access to the actual machine or its simulator.
+1. **Open CASCADE + AGPL-3.0-only** compatibility needs legal review before any OCCT backend ships.
+2. **LICENSE text** was taken from the SPDX licence list; compare it with the canonical gnu.org text.
+3. **Verified hardware and machine data**: no manufacturer's fittings and no CNC controller are verified yet.
+   This needs data sheets and, for CAM, the actual machine or its simulator.
 
 ## Next priorities
 
-1. First CI run on GitHub once `main` exists.
-2. Remove the remaining quadratic costs (pairwise hole validation, hardware placement scans) so model limits can be raised.
-3. Windows build (T-025) and packaging; then a first tagged pre-release with checksums.
-4. Verified data: one real hinge/connector system and one controller (e.g. LinuxCNC simulation) end to end.
+1. Remove the remaining quadratic costs (pairwise hole validation, hardware placement scans) so model limits can be raised.
+2. A first tagged pre-release with checksums (Windows portable ZIP and Linux build).
+3. Verified data: one real hinge/connector system and one controller (e.g. LinuxCNC simulation) end to end.
+4. macOS build.

@@ -31,7 +31,7 @@ Headless core only (no Qt): add `-DFOS_BUILD_GUI=OFF`. A subset of modules:
 
 1. Open an issue describing the problem or proposal (for larger changes, before coding).
 2. Branch from the default branch; never push to it directly.
-3. Keep changes focused. Each module owns its directory (`MODULE_OWNERSHIP.md`); cross-module changes need
+3. Keep changes focused. Respect module boundaries (`MODULES.md`); cross-module changes need
    agreement on the interface first.
 4. Add tests. Engineering tests must compare against independently derived expectations (write the
    arithmetic in a comment), not against whatever the code currently returns.

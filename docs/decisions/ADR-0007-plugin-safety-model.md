@@ -15,7 +15,7 @@ Users will want to share material, hardware and template libraries, report templ
 
 ## Options analysed
 
-| Option | Isolation | Security notes | Licensing notes (from general knowledge, not verified in this session) |
+| Option | Isolation | Security notes | Licensing notes (from general knowledge, not verified at the time of writing) |
 |---|---|---|---|
 | Declarative data (JSON) | Complete (no code) | Parser bugs and resource exhaustion remain; limit sizes and depth | None beyond content licences. |
 | Embedded Lua | Language-level sandbox only if the standard library is restricted; no memory/CPU limits by default | Must remove `io`, `os`, `package`, `debug`, bytecode loading; add instruction-count hooks and memory allocator limits; escapes have occurred historically in unrestricted setups | Lua is MIT. |
