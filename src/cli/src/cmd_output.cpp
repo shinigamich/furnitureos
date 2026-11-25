@@ -26,9 +26,13 @@ const char* kReportHelp =
     "materials report are AREA LOWER BOUNDS; real sheet counts come from 'fos cut'.\n";
 
 const char* kLabelsHelp =
-    "Usage: fos labels <file.fosp> --svg-dir DIR\n\n"
+    "Usage: fos labels <file.fosp> --svg-dir DIR [--barcode none|code128]\n"
+    "                  [--barcode-content part-id|project-part-id]\n\n"
     "Writes one label per part instance on A4 pages (70 x 37 mm labels, 3 x 8 per page) as\n"
     "DIR/labels-1.svg, DIR/labels-2.svg, ... (1 SVG user unit = 1 mm). DIR is created if needed.\n"
+    "--barcode code128 prints a Code 128 barcode (instead of the part-id text line) encoding the\n"
+    "part id, or \"<project>|<part id>\" with --barcode-content project-part-id. A barcode that\n"
+    "would need modules narrower than 0.25 mm on the label is omitted with a warning.\n"
     "Exit code 1 when the project has model errors (items that cannot be generated are missing\n"
     "from the output; stderr says which items).\n";
 
@@ -152,8 +156,23 @@ int cmdReport(const std::vector<std::string>& args, Io& io) {
     return core::hasErrors(table->diagnostics) || !incomplete.empty() ? kExitValidationErrors : kExitOk;
 }
 
+std::optional<std::string> applyLabelBarcodeOptions(const ParsedArgs& a, production::LabelSheetOptions& sheet) {
+    if (const auto b = a.value("barcode")) {
+        if (*b == "code128") sheet.barcode = production::LabelBarcode::Code128;
+        else if (*b == "none") sheet.barcode = production::LabelBarcode::None;
+        else return "unknown --barcode '" + *b + "' (none, code128).";
+    }
+    if (const auto c = a.value("barcode-content")) {
+        if (*c == "part-id") sheet.barcodeContent = production::LabelBarcodeContent::PartId;
+        else if (*c == "project-part-id") sheet.barcodeContent = production::LabelBarcodeContent::ProjectAndPartId;
+        else return "unknown --barcode-content '" + *c + "' (part-id, project-part-id).";
+        if (sheet.barcode == production::LabelBarcode::None) return "--barcode-content requires --barcode code128.";
+    }
+    return std::nullopt;
+}
+
 int cmdLabels(const std::vector<std::string>& args, Io& io) {
-    auto parsed = parseArgs(args, {{"svg-dir"}});
+    auto parsed = parseArgs(args, {{"svg-dir"}, {"barcode"}, {"barcode-content"}});
     if (!parsed) return usageError(io, "labels", parsed.error().message);
     const ParsedArgs& a = parsed.value();
     if (a.help) {
@@ -162,24 +181,28 @@ int cmdLabels(const std::vector<std::string>& args, Io& io) {
     }
     if (a.positional.size() != 1) return usageError(io, "labels", "expected exactly one project file.");
     if (!a.has("svg-dir")) return usageError(io, "labels", "--svg-dir is required.");
+    production::LabelSheetOptions sheet;
+    if (const auto bad = applyLabelBarcodeOptions(a, sheet)) return usageError(io, "labels", *bad);
     auto loaded = loadProjectOrReport(io, "labels", a.positional[0]);
     if (!loaded) return kExitUsageOrIo;
     production::LabelOptions options;
     options.projectName = loaded->project.metadata.name;
     options.cutList.groupAcrossAssemblies = loaded->project.settings.cutListGroupAcrossAssemblies;
-    const auto set = production::labels(loaded->resolved.model, options);
-    auto pages = production::renderLabelSheetsSvg(set.labels);
-    if (!pages) {
-        io.err << "fos labels: " << pages.error().message << "\n";
+    auto set = production::labels(loaded->resolved.model, options);
+    auto sheets = production::renderLabelSheets(set.labels, sheet);
+    if (!sheets) {
+        io.err << "fos labels: " << sheets.error().message << "\n";
         return kExitUsageOrIo;
     }
+    const auto& pages = sheets.value().pages;
+    set.diagnostics.insert(set.diagnostics.end(), sheets.value().diagnostics.begin(), sheets.value().diagnostics.end());
     const std::filesystem::path dir = pathFromUtf8(*a.value("svg-dir"));
     if (!ensureDirectory(io, "labels", dir)) return kExitUsageOrIo;
-    for (std::size_t i = 0; i < pages.value().size(); ++i) {
+    for (std::size_t i = 0; i < pages.size(); ++i) {
         const auto file = dir / ("labels-" + std::to_string(i + 1) + ".svg");
-        if (!writeOutputFile(io, "labels", file, pages.value()[i])) return kExitUsageOrIo;
+        if (!writeOutputFile(io, "labels", file, pages[i])) return kExitUsageOrIo;
     }
-    io.out << "Wrote " << set.labels.size() << " labels on " << pages.value().size() << " page(s) to " << pathToUtf8(dir)
+    io.out << "Wrote " << set.labels.size() << " labels on " << pages.size() << " page(s) to " << pathToUtf8(dir)
            << "\n";
     if (!set.diagnostics.empty()) {
         io.out << "Diagnostics:\n";

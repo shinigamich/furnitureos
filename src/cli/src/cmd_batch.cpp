@@ -25,7 +25,8 @@ const char* kBatchHelp =
     "  fos batch cut <file.fosbatch> [--out-dir DIR]\n"
     "      Combined cutting plans (guillotine HEURISTIC) and nesting plans (shaped parts, true-shape\n"
     "      HEURISTIC) with the batch cutting settings; SVGs + cutting-summary.txt as 'fos cut'.\n"
-    "  fos batch labels <file.fosbatch> --svg-dir DIR\n"
+    "  fos batch labels <file.fosbatch> --svg-dir DIR [--barcode none|code128]\n"
+    "                   [--barcode-content part-id|project-part-id]\n"
     "      Part labels naming batch, project and order copy on each part.\n"
     "  fos batch quote <file.fosbatch> [--format text|csv|json] [--sheets]\n"
     "      Quote of the merged batch (all copies) as 'fos quote'. Pricing settings and currency are\n"
@@ -224,26 +225,30 @@ int batchCut(const std::vector<std::string>& args, Io& io) {
 }
 
 int batchLabels(const std::vector<std::string>& args, Io& io) {
-    auto parsed = parseArgs(args, {{"svg-dir"}});
+    auto parsed = parseArgs(args, {{"svg-dir"}, {"barcode"}, {"barcode-content"}});
     if (!parsed) return usageError(io, "batch labels", parsed.error().message);
     const ParsedArgs& a = parsed.value();
     if (a.positional.size() != 1) return usageError(io, "batch labels", "expected exactly one batch file.");
     if (!a.has("svg-dir")) return usageError(io, "batch labels", "--svg-dir is required.");
+    production::LabelSheetOptions sheet;
+    if (const auto bad = applyLabelBarcodeOptions(a, sheet)) return usageError(io, "batch labels", *bad);
     auto m = loadMerged(io, "batch labels", a.positional[0]);
     if (!m) return kExitUsageOrIo;
-    const auto set = project::batchLabels(m->model, m->loaded.batch);
-    auto pages = production::renderLabelSheetsSvg(set.labels);
-    if (!pages) {
-        io.err << "fos batch labels: " << pages.error().message << "\n";
+    auto set = project::batchLabels(m->model, m->loaded.batch);
+    auto sheets = production::renderLabelSheets(set.labels, sheet);
+    if (!sheets) {
+        io.err << "fos batch labels: " << sheets.error().message << "\n";
         return kExitUsageOrIo;
     }
+    const auto& pages = sheets.value().pages;
+    set.diagnostics.insert(set.diagnostics.end(), sheets.value().diagnostics.begin(), sheets.value().diagnostics.end());
     const std::filesystem::path dir = pathFromUtf8(*a.value("svg-dir"));
     if (!ensureOutputDirectory(io, "batch labels", dir)) return kExitUsageOrIo;
-    for (std::size_t i = 0; i < pages.value().size(); ++i)
-        if (!writeOutputFile(io, "batch labels", dir / ("labels-" + std::to_string(i + 1) + ".svg"), pages.value()[i]))
+    for (std::size_t i = 0; i < pages.size(); ++i)
+        if (!writeOutputFile(io, "batch labels", dir / ("labels-" + std::to_string(i + 1) + ".svg"), pages[i]))
             return kExitUsageOrIo;
     bool incomplete = false;
-    io.out << batchHeader(*m, incomplete) << "Wrote " << set.labels.size() << " labels on " << pages.value().size()
+    io.out << batchHeader(*m, incomplete) << "Wrote " << set.labels.size() << " labels on " << pages.size()
            << " page(s) to " << pathToUtf8(dir) << "\n";
     if (!set.diagnostics.empty()) {
         io.out << "Diagnostics:\n";

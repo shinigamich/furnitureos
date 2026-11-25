@@ -38,6 +38,12 @@ TEST(CliBatch, NewAddReportCutLabels) {
     r = fos({"batch", "labels", batch, "--svg-dir", dir.file("labels")});
     ASSERT_EQ(r.code, 0) << r.err;
     EXPECT_TRUE(contains(readFile(dir.path / "labels" / "labels-1.svg"), "order kitchen#1"));
+    EXPECT_FALSE(contains(readFile(dir.path / "labels" / "labels-1.svg"), "data-barcode"));
+
+    r = fos({"batch", "labels", batch, "--svg-dir", dir.file("bc"), "--barcode", "code128"});
+    ASSERT_EQ(r.code, 0) << r.err;
+    EXPECT_TRUE(contains(readFile(dir.path / "bc" / "labels-1.svg"), "data-barcode=\"code128\"")) << r.out;
+    EXPECT_EQ(fos({"batch", "labels", batch, "--svg-dir", dir.file("bc"), "--barcode", "ean"}).code, 2);
 }
 
 TEST(CliBatch, MissingProjectIsReportedButOthersAreProduced) {

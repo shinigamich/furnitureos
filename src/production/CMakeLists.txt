@@ -13,12 +13,12 @@ if("linear" IN_LIST _fos_modules)
 endif()
 fos_add_module(production
     SOURCES src/collect.cpp src/part_list.cpp src/cut_list.cpp src/reports.cpp src/labels.cpp
-            src/label_svg.cpp src/cost.cpp src/tables.cpp src/csv.cpp src/html.cpp src/text.cpp
+            src/label_svg.cpp src/code128.cpp src/cost.cpp src/tables.cpp src/csv.cpp src/html.cpp src/text.cpp
             src/shape.cpp src/quote.cpp src/quote_writers.cpp src/packing.cpp src/packing_writers.cpp
             src/assembly_sheet.cpp ${_production_linear_sources}
     DEPS fos::core fos::geometry fos::domain ${_production_linear_deps})
 fos_add_tests(production
-    SOURCES tests/reports_tests.cpp tests/cut_list_tests.cpp tests/labels_tests.cpp
+    SOURCES tests/reports_tests.cpp tests/cut_list_tests.cpp tests/labels_tests.cpp tests/code128_tests.cpp
             tests/writers_tests.cpp tests/robustness_tests.cpp
             tests/rect_golden_tests.cpp tests/shaped_tests.cpp tests/quote_tests.cpp
             tests/packing_tests.cpp tests/assembly_sheet_tests.cpp tests/linear_hardware_tests.cpp

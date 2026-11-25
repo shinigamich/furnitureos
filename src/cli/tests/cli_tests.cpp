@@ -256,6 +256,33 @@ TEST_F(Cli, LabelsOnePagePerTwentyFourParts) {
     EXPECT_EQ(fos({"labels", project}).code, kExitUsageOrIo);
 }
 
+TEST_F(Cli, LabelsWithCode128Barcode) {
+    const auto plain = fos({"labels", project, "--svg-dir", dir.file("plain")});
+    ASSERT_EQ(plain.code, kExitOk) << plain.err;
+    EXPECT_FALSE(contains(readFile(dir.file("plain/labels-1.svg")), "data-barcode"));
+
+    const auto r = fos({"labels", project, "--svg-dir", dir.file("bc"), "--barcode", "code128"});
+    ASSERT_EQ(r.code, kExitOk) << r.err;
+    const std::string svg = readFile(dir.file("bc/labels-1.svg"));
+    EXPECT_TRUE(contains(svg, "<g data-barcode=\"code128\" data-text=\"cab1/")) << svg.substr(0, 2000);
+    EXPECT_TRUE(contains(svg, "<rect x=\""));
+
+    // "<project>|<part id>": every label gets either the barcode or a too-narrow warning.
+    const auto k = fos({"labels", project, "--svg-dir", dir.file("key"), "--barcode=code128", "--barcode-content",
+                        "project-part-id"});
+    ASSERT_EQ(k.code, kExitOk) << k.err; // warnings do not fail the command
+    EXPECT_TRUE(contains(readFile(dir.file("key/labels-1.svg")), "|cab1/") ||
+                contains(k.out, "production.label.barcode_too_narrow"))
+        << k.out;
+
+    EXPECT_EQ(fos({"labels", project, "--svg-dir", dir.file("x"), "--barcode", "qr"}).code, kExitUsageOrIo);
+    EXPECT_EQ(fos({"labels", project, "--svg-dir", dir.file("x"), "--barcode-content", "part-id"}).code,
+              kExitUsageOrIo);
+    EXPECT_EQ(fos({"labels", project, "--svg-dir", dir.file("x"), "--barcode", "code128", "--barcode-content",
+                   "serial"}).code,
+              kExitUsageOrIo);
+}
+
 TEST_F(Cli, CamWritesUnverifiedProgramForTheDemoProfile) {
     const std::string nc = dir.file("side_a.nc");
     const auto r = fos({"cam", project, "cab1/side.left", "--face", "A", "--out", nc});

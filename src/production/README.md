@@ -27,6 +27,24 @@ Pure functions of a read-only `domain::Model`; see the doc comments of the publi
 Limitations: no per-material waste factors, no rounding of quantities to purchasable units
 (by-area quotes price fractional m²), no edge-band roll rounding, no discounts.
 
+## Part-label barcodes (`fos/production/code128.hpp`, `labels.hpp`)
+
+`encodeCode128B(text)` encodes printable ASCII (32..126) in Code 128 code set B: Start B, data,
+weighted mod-103 checksum, Stop, as bar/space widths in modules (no quiet zones). Code sets A/C,
+FNC and shifts are not used; other bytes (e.g. UTF-8) are an `InvalidArgument` error.
+
+`LabelSheetOptions::barcode = LabelBarcode::Code128` draws it on each part label as SVG rects in
+exact paper mm, replacing the part-id text line (band at design rows 26.0..31.6 of the 37 mm label,
+scaled with the label height). `barcodeContent`: `PartId` (default) or `ProjectAndPartId`
+(`"<project>|<part id>"`). Module width = (label width − 2 × 2 mm padding, scaled) / (modules + 2 × 10
+quiet-zone modules). Below `barcodeMinModule` (default 0.25 mm) the barcode is omitted — never shrunk —
+and `renderLabelSheets` reports `production.label.barcode_too_narrow` (unencodable text:
+`production.label.barcode_unencodable`); the part-id text line then stays. Default `None` leaves the
+SVG byte-identical. `renderLabelSheetsSvg` returns the pages only (diagnostics dropped).
+
+Limitations: no human-readable line under the bars (part number and name stay printed); bar height is
+fixed by the layout, not checked against the 15 %-of-width recommendation; no print-gain compensation.
+
 ## Packing lists (`fos/production/packing.hpp`)
 
 `core::Result<PackingList> packingList(const domain::Model&, const PackingOptions& = {}, const Scope& = {})`
