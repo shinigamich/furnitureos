@@ -11,6 +11,7 @@
 #include "fos/production/csv.hpp"
 #include "main_window.hpp"
 #include "plinth_dialog.hpp"
+#include "recovery_dialog.hpp"
 #include "worktop_dialog.hpp"
 
 #include <QApplication>
@@ -19,10 +20,13 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QStatusBar>
 #include <QTimer>
+
+#include <algorithm>
 
 namespace fos::app::gui {
 
@@ -92,6 +96,32 @@ bool MainWindow::openFile(const QString& path, bool offerRecovery) {
     core::Result<core::Diagnostics> result = core::Diagnostics{};
     bool recovered = false;
     if (offerRecovery) {
+        // Unsaved changes of this file in the crash-recovery store (newer than the file).
+        const RecoveryStore store = session_.recoveryStore();
+        if (const auto entry = store.find(app::recoveryKey(p))) {
+            const QFileInfo info(path);
+            if (!info.exists() || entry->savedAt > info.lastModified().toUTC()) {
+                QMessageBox box(QMessageBox::Question, tr("Recover project"),
+                                tr("Unsaved changes of %1 from %2 were found (the application was not closed "
+                                   "normally). Restore them?")
+                                    .arg(path, QLocale().toString(entry->savedAt.toLocalTime(), QLocale::ShortFormat)),
+                                QMessageBox::Cancel, this);
+                QPushButton* restore = box.addButton(tr("Restore"), QMessageBox::AcceptRole);
+                QPushButton* discard = box.addButton(tr("Discard"), QMessageBox::DestructiveRole);
+                box.setDefaultButton(restore);
+                box.exec();
+                if (box.clickedButton() == restore) {
+                    if (!restoreRecovery(*entry)) return false;
+                    recent_.add(path);
+                    QSettings settings;
+                    recent_.save(settings);
+                    rebuildRecentMenu();
+                    return true;
+                }
+                if (box.clickedButton() != discard) return false;
+                (void)store.remove(entry->key);
+            }
+        }
         if (const auto offer = recoveryOffer(p)) {
             const QString kind = offer->candidate.kind == formats::RecoveryKind::Autosave ? tr("an autosave")
                                                                                          : tr("a backup");
@@ -180,38 +210,41 @@ void MainWindow::autosaveTick() {
     else statusBar()->showMessage(tr("Autosave failed: %1").arg(QString::fromStdString(r.error().message)), 10000);
 }
 
-void MainWindow::offerUntitledRecovery() {
-    const QString dir = QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)).filePath(QStringLiteral("autosave"));
-    const auto base = newestUntitledAutosave(toPath(dir));
-    if (!base) return;
-    const auto answer = QMessageBox::question(
-        this, tr("Recover project"),
-        tr("An autosave of a project that was never saved was found (%1). Open it?")
-            .arg(timeText(fs::last_write_time(formats::autosavePath(*base)))),
-        QMessageBox::Yes | QMessageBox::No | QMessageBox::Discard);
-    if (answer == QMessageBox::Discard) {
-        (void)formats::discardAutosave(*base);
-        return;
+void MainWindow::offerStartupRecovery() {
+    const RecoveryStore store = session_.recoveryStore();
+    auto entries = store.list();
+    // The copy of the document opened from the command line was already offered by openFile.
+    const std::string own = session_.recoveryKey();
+    entries.erase(std::remove_if(entries.begin(), entries.end(), [&](const RecoveryEntry& e) { return e.key == own; }),
+                      entries.end());
+    if (entries.empty()) return;
+    RecoveryDialog dialog(store, std::move(entries), this);
+    if (dialog.exec() != QDialog::Accepted || !dialog.chosen()) return;
+    if (!maybeSave()) return;
+    restoreRecovery(*dialog.chosen());
+}
+
+bool MainWindow::restoreRecovery(const RecoveryEntry& entry) {
+    auto r = session_.restoreRecovery(entry);
+    if (!r) {
+        QMessageBox::critical(this, tr("Recover project"),
+                              tr("The recovery copy %1 cannot be opened:\n\n%2")
+                                  .arg(QString::fromStdU16String(entry.file.u16string()),
+                                       QString::fromStdString(r.error().message)));
+        return false;
     }
-    if (answer != QMessageBox::Yes) return;
-    auto loaded = project::recoverProject(*base);
-    if (!loaded) {
-        showError(tr("Recover project"), loaded.error());
-        return;
+    if (!entry.untitled()) {
+        const QFileInfo original(entry.originalPath);
+        if (original.exists() && original.lastModified().toUTC() > entry.savedAt)
+            QMessageBox::warning(this, tr("Recover project"),
+                                 tr("%1 was changed after this autosave. Saving the recovered project replaces "
+                                    "those changes.")
+                                     .arg(entry.originalPath));
     }
-    // Opened as an untitled, modified project (one undoable step on top of an empty one);
-    // it keeps the recovered project id, so later autosaves overwrite the same file.
-    session_.newProject();
-    project::Command cmd;
-    cmd.label = {"Recover {0} from autosave or backup", {base->filename().string()}};
-    cmd.apply = [p = loaded.value().project](project::Project& target) -> core::Result<project::Affected> {
-        target = p;
-        project::Affected a;
-        for (const auto& item : target.items) a.items.push_back(item.id());
-        a.libraries = a.settings = true;
-        return a;
-    };
-    if (auto r = session_.execute(cmd); !r) showError(tr("Recover project"), r.error());
+    statusBar()->showMessage(tr("Recovered unsaved changes from %1; save to keep them.")
+                                 .arg(QLocale().toString(entry.savedAt.toLocalTime(), QLocale::ShortFormat)),
+                             8000);
+    return true;
 }
 
 void MainWindow::applyPreferences() {

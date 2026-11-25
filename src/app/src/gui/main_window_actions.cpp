@@ -161,6 +161,14 @@ void MainWindow::buildMenus() {
         fromTemplate->addAction(templateTitle(kind) + QStringLiteral("…"), this, [this, kind] { newFromTemplateDialog(kind); });
     file->addAction(a_.open);
     recentMenu_ = file->addMenu(tr("Open &recent"));
+    // Files deleted or moved while the application runs disappear from the list when it opens.
+    connect(recentMenu_, &QMenu::aboutToShow, this, [this] {
+        if (recent_.pruneMissing() > 0) {
+            QSettings settings;
+            recent_.save(settings);
+            rebuildRecentMenu();
+        }
+    });
     file->addSeparator();
     file->addAction(a_.save);
     file->addAction(a_.saveAs);
@@ -284,6 +292,11 @@ void MainWindow::buildViewTools() {
 
 void MainWindow::rebuildRecentMenu() {
     recentMenu_->clear();
+    // Missing files are not offered (and are dropped from the stored list).
+    if (recent_.pruneMissing() > 0) {
+        QSettings settings;
+        recent_.save(settings);
+    }
     for (const QString& path : recent_.entries())
         recentMenu_->addAction(QFileInfo(path).fileName() + QStringLiteral("  —  ") + path, this,
                                [this, path] { if (maybeSave()) openFile(path); });

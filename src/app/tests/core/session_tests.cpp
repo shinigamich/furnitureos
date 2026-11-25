@@ -7,6 +7,7 @@
 #include <QSignalSpy>
 
 #include <fstream>
+#include <iterator>
 
 namespace fos::app::test {
 namespace {
@@ -142,24 +143,102 @@ TEST(Session, SaveOpenRoundTripAndDirtyFlag) {
     EXPECT_EQ(other.filePath(), file);
 }
 
-TEST(Session, AutosaveAndRecovery) {
+std::string readAll(const fs::path& p) {
+    std::ifstream in(p, std::ios::binary);
+    return std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+}
+
+TEST(Session, AutosaveGoesToRecoveryStoreOnly) {
+    TempDir dir;
+    const fs::path file = dir.path / "k.fosp";
+    const fs::path rec = dir.path / "recovery";
+    Session s;
+    s.setRecoveryDirectory(rec);
+    ASSERT_TRUE(s.newFromTemplate(TemplateKind::BaseCabinet).ok());
+    // Untitled: key from the project id.
+    const std::string untitledKey = s.recoveryKey();
+    EXPECT_EQ(untitledKey, "untitled-" + s.project().metadata.id);
+    ASSERT_TRUE(s.autosave().ok());
+    EXPECT_EQ(s.autosaveTarget(), rec / (untitledKey + ".fosp"));
+    EXPECT_TRUE(fs::exists(rec / (untitledKey + ".fosp")));
+    EXPECT_TRUE(fs::exists(rec / (untitledKey + ".json")));
+    ASSERT_TRUE(s.saveAs(file).ok());
+    EXPECT_FALSE(fs::exists(rec / (untitledKey + ".fosp"))); // discarded by the first save
+    EXPECT_FALSE(fs::exists(rec / (untitledKey + ".json")));
+    const std::string onDisk = readAll(file);
+
+    ASSERT_TRUE(applyParameterInput(s, "cab1", "width", QStringLiteral("900")).ok());
+    EXPECT_EQ(s.recoveryKey(), recoveryKey(file));
+    ASSERT_TRUE(s.autosave().ok());
+    ASSERT_TRUE(s.autosave().ok()); // a second write must not rotate backups
+    EXPECT_EQ(s.lastAutosavedRevision(), s.revision());
+    EXPECT_TRUE(s.isDirty()); // autosave does not clear the dirty flag
+    EXPECT_EQ(readAll(file), onDisk); // the user's file is never written by autosave
+    EXPECT_FALSE(fs::exists(formats::autosavePath(file)));
+    EXPECT_FALSE(fs::exists(formats::backupPath(s.autosaveTarget(), 1)));
+
+    // "Crash": a new session restores the copy.
+    const auto entries = RecoveryStore(rec).list();
+    ASSERT_EQ(entries.size(), 1u);
+    Session r;
+    r.setRecoveryDirectory(rec);
+    auto restored = r.restoreRecovery(entries[0]);
+    ASSERT_TRUE(restored.ok()) << restored.error().message;
+    EXPECT_EQ(r.filePath(), file); // Save writes back to the original
+    EXPECT_TRUE(r.isDirty());
+    EXPECT_DOUBLE_EQ(shelfLength(r), 862); // 900 - 36 - 2
+    EXPECT_EQ(r.recoveryKey(), entries[0].key);
+    EXPECT_TRUE(fs::exists(entries[0].file)); // kept until saved / discarded
+    ASSERT_TRUE(r.save().ok());
+    EXPECT_FALSE(r.isDirty());
+    EXPECT_TRUE(RecoveryStore(rec).list().empty());
+    Session check;
+    ASSERT_TRUE(check.open(file).ok());
+    EXPECT_DOUBLE_EQ(shelfLength(check), 862);
+}
+
+TEST(Session, RestoreWithDamagedSidecarAndDiscard) {
+    TempDir dir;
+    const fs::path rec = dir.path / "recovery";
+    Session s;
+    ASSERT_TRUE(s.newFromTemplate(TemplateKind::BaseCabinet).ok());
+    const RecoveryStore store(rec);
+    ASSERT_TRUE(store.write("0123456789abcdef", s.project(), dir.path / "lost.fosp").ok());
+    std::ofstream(store.sidecarFor("0123456789abcdef"), std::ios::trunc) << "{\"kind\": \"furnitureos-rec"; // truncated
+    const auto entry = store.find("0123456789abcdef");
+    ASSERT_TRUE(entry.has_value());
+    EXPECT_FALSE(entry->sidecarValid);
+
+    Session r;
+    r.setRecoveryDirectory(rec);
+    ASSERT_TRUE(r.restoreRecovery(*entry).ok());
+    // Original path unknown -> untitled, modified; the copy moved to the document's own key.
+    EXPECT_TRUE(r.filePath().empty());
+    EXPECT_TRUE(r.isDirty());
+    EXPECT_EQ(r.project().items.size(), 1u);
+    EXPECT_FALSE(fs::exists(store.fileFor("0123456789abcdef")));
+    ASSERT_TRUE(store.find(r.recoveryKey()).has_value());
+    r.discardAutosave();
+    EXPECT_TRUE(store.list().empty());
+
+    // A copy that is not a project is refused; nothing changes.
+    std::ofstream(store.fileFor("junk")) << "not a project";
+    const auto junk = store.find("junk");
+    ASSERT_TRUE(junk.has_value());
+    const auto idBefore = r.project().metadata.id;
+    EXPECT_FALSE(r.restoreRecovery(*junk).ok());
+    EXPECT_EQ(r.project().metadata.id, idBefore);
+}
+
+TEST(Session, OpenRecoveredFromLegacyAutosave) {
     TempDir dir;
     const fs::path file = dir.path / "k.fosp";
     Session s;
-    s.setUntitledAutosaveDirectory(dir.path / "untitled");
     ASSERT_TRUE(s.newFromTemplate(TemplateKind::BaseCabinet).ok());
-    // Untitled autosave goes to the untitled directory.
-    ASSERT_TRUE(s.autosave().ok());
-    EXPECT_TRUE(fs::exists(formats::autosavePath(s.autosaveTarget())));
-    EXPECT_EQ(s.autosaveTarget().parent_path(), dir.path / "untitled");
-    const fs::path untitledAutosave = formats::autosavePath(s.autosaveTarget());
     ASSERT_TRUE(s.saveAs(file).ok());
-    EXPECT_FALSE(fs::exists(untitledAutosave)); // discarded after the first save
-
     ASSERT_TRUE(applyParameterInput(s, "cab1", "width", QStringLiteral("900")).ok());
-    ASSERT_TRUE(s.autosave().ok());
-    EXPECT_EQ(s.lastAutosavedRevision(), s.revision());
-    EXPECT_TRUE(s.isDirty()); // autosave does not clear the dirty flag
+    // An autosave beside the file, as earlier versions wrote it.
+    ASSERT_TRUE(project::writeProjectAutosave(file, s.project()).ok());
     fs::last_write_time(formats::autosavePath(file), fs::last_write_time(file) + std::chrono::minutes(1));
 
     Session r;
@@ -172,7 +251,7 @@ TEST(Session, AutosaveAndRecovery) {
     EXPECT_DOUBLE_EQ(shelfLength(r), 562);
     EXPECT_FALSE(r.isDirty());
 
-    // Saving discards the autosave.
+    // Saving also removes the legacy autosave.
     ASSERT_TRUE(s.save().ok());
     EXPECT_FALSE(fs::exists(formats::autosavePath(file)));
 }

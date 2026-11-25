@@ -64,8 +64,11 @@ public:
     bool saveToFile(const QString& path);
     /// "New from template" without the size dialog (nullopt = template size).
     bool newFromTemplate(TemplateKind kind, const std::optional<TemplateSize>& size);
-    /// Offers to open the newest autosave of an unsaved project (called once at start-up).
-    void offerUntitledRecovery();
+    /// Lists the recovery copies left by a session that did not end cleanly (RecoveryDialog)
+    /// and restores / discards them (called once at start-up; nothing shown when none).
+    void offerStartupRecovery();
+    /// Opens a recovery copy as the modified document (asks to save the current one first).
+    bool restoreRecovery(const RecoveryEntry& entry);
 
 protected:
     void closeEvent(QCloseEvent* event) override;

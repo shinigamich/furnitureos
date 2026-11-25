@@ -152,42 +152,62 @@ core::Result<core::Diagnostics> Session::openRecovered(const fs::path& path) {
     return diagnostics;
 }
 
+core::Result<core::Diagnostics> Session::restoreRecovery(const RecoveryEntry& entry) {
+    auto loaded = project::loadProject(entry.file);
+    if (!loaded) return loaded.error();
+    core::Diagnostics diagnostics = loaded.value().diagnostics;
+    const fs::path original = entry.originalPath.isEmpty() ? fs::path() : fs::path(entry.originalPath.toStdU16String());
+    replaceDocument(std::move(loaded.value().project), original);
+    forcedDirty_ = true;
+    emit savedStateChanged();
+    if (entry.key != recoveryKey()) {
+        // Keep the recovered state safe under the key later autosaves use, then drop the old copy.
+        if (auto r = autosave(); !r) return r.error();
+        (void)recoveryStore().remove(entry.key);
+    }
+    return diagnostics;
+}
+
 core::Result<void> Session::save() {
     if (path_.empty()) return notOpen();
     return saveAs(path_);
 }
 
 core::Result<void> Session::saveAs(const fs::path& path) {
-    const fs::path oldAutosave = autosaveTarget();
+    const std::string oldKey = recoveryKey();
     auto r = document_->save(path);
     if (!r) return r.error();
-    const bool wasUntitled = path_.empty();
     path_ = path;
     forcedDirty_ = false;
-    (void)formats::discardAutosave(path);
-    if (wasUntitled && !untitledDir_.empty()) (void)formats::discardAutosave(oldAutosave);
+    const RecoveryStore store = recoveryStore();
+    (void)store.remove(oldKey);
+    (void)store.remove(recoveryKey());
+    (void)formats::discardAutosave(path); // legacy "<file>.autosave" of earlier versions
     emit savedStateChanged();
     return {};
 }
 
-fs::path Session::autosaveTarget() const {
-    if (!path_.empty()) return path_;
-    return untitledAutosaveBase(untitledDir_.empty() ? fs::temp_directory_path() : untitledDir_, project().metadata.id);
+std::string Session::recoveryKey() const {
+    return path_.empty() ? untitledRecoveryKey(project().metadata.id) : app::recoveryKey(path_);
 }
 
-void Session::setUntitledAutosaveDirectory(fs::path directory) { untitledDir_ = std::move(directory); }
+fs::path Session::autosaveTarget() const { return recoveryStore().fileFor(recoveryKey()); }
+
+void Session::setRecoveryDirectory(fs::path directory) { recoveryDir_ = std::move(directory); }
+
+RecoveryStore Session::recoveryStore() const {
+    std::error_code ec;
+    return RecoveryStore(recoveryDir_.empty() ? fs::temp_directory_path(ec) / "furnitureos-recovery" : recoveryDir_);
+}
 
 core::Result<void> Session::autosave() {
-    const fs::path target = autosaveTarget();
-    std::error_code ec;
-    fs::create_directories(target.parent_path(), ec);
-    auto r = document_->autosave(target);
+    auto r = recoveryStore().write(recoveryKey(), project(), path_);
     if (!r) return r.error();
     autosavedRevision_ = revision_;
     return {};
 }
 
-void Session::discardAutosave() { (void)formats::discardAutosave(autosaveTarget()); }
+void Session::discardAutosave() { (void)recoveryStore().remove(recoveryKey()); }
 
 core::Result<void> Session::execute(const project::Command& command, project::Merge merge) {
     return document_->execute(command, merge);

@@ -101,7 +101,7 @@ TEST(CabinetHardware, HangerRailAndSlidingChoices) {
     EXPECT_EQ(hangers[1].id, hardware::ids::kHangerGeneric);
     EXPECT_TRUE(hardwareRoleOptional(HardwareRole::Hanger));
     EXPECT_FALSE(hardwareRoleOptional(HardwareRole::WallRail));
-    // Wall rail: only kind-Other entries carrying the rail keys.
+    // Wall rail: only kind-Other entries carrying the rail keys (clothes rails excluded).
     const auto rails = hardwareChoices(libs, HardwareRole::WallRail, cabinet(s).hardware.wallRail.str());
     ASSERT_EQ(rails.size(), 1u);
     EXPECT_EQ(rails[0].id, hardware::ids::kWallRailGeneric);

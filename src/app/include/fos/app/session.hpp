@@ -4,6 +4,7 @@
 /// Session: the open project document of the application window plus the derived data the
 /// views display. All edits go through project::Document commands; everything shown is
 /// regenerated from project::resolve() after each change (nothing is computed here).
+#include "fos/app/recovery_store.hpp"
 #include "fos/app/templates.hpp"
 #include "fos/project/document.hpp"
 #include "fos/project/file.hpp"
@@ -50,15 +51,30 @@ public:
     /// document is associated with `path` and marked modified (the recovered state is not
     /// what is on disk); the replacement is one undoable step when `path` itself loads.
     core::Result<core::Diagnostics> openRecovered(const std::filesystem::path& path);
-    /// Saves to filePath() (error when untitled). Discards the autosave on success.
+    /// Opens a recovery copy from the crash-recovery store: the document becomes the recovered
+    /// project, associated with the entry's original path (empty = untitled) and marked
+    /// modified, so Save writes back to the original. The recovery copy is kept until the next
+    /// save / discard; when its key differs from the document's key (unreadable sidecar), it is
+    /// rewritten under the document's key first and the old copy removed.
+    core::Result<core::Diagnostics> restoreRecovery(const RecoveryEntry& entry);
+    /// Saves to filePath() (error when untitled). Discards the recovery copy on success.
     core::Result<void> save();
+    /// Saves to `path`; on success the recovery copies of the previous and of the new key are
+    /// deleted (as is a legacy `<path>.autosave`).
     core::Result<void> saveAs(const std::filesystem::path& path);
-    /// Document::autosave to autosaveTarget(); records the revision written.
+    /// Writes the project to the recovery store (RecoveryStore::write under recoveryKey());
+    /// the user's file is never touched. Records the revision written.
     core::Result<void> autosave();
-    /// filePath() or, for an untitled document, untitledAutosaveBase(untitledDir, project id).
+    /// Key of the current document in the recovery store: app::recoveryKey(filePath()) or
+    /// untitledRecoveryKey(project id) while untitled.
+    std::string recoveryKey() const;
+    /// File autosave() writes: recoveryStore().fileFor(recoveryKey()).
     std::filesystem::path autosaveTarget() const;
-    void setUntitledAutosaveDirectory(std::filesystem::path directory);
-    /// Deletes the autosave of the current document (after save, or when the user discards).
+    /// Directory of the recovery store (the app: AppDataLocation/recovery). Default when never
+    /// set: <system temp>/furnitureos-recovery.
+    void setRecoveryDirectory(std::filesystem::path directory);
+    RecoveryStore recoveryStore() const;
+    /// Deletes the recovery copy of the current document (after save, clean close, discard).
     void discardAutosave();
 
     // --- editing ---------------------------------------------------------------------
@@ -120,7 +136,7 @@ private:
 
     std::unique_ptr<project::Document> document_;
     std::filesystem::path path_;
-    std::filesystem::path untitledDir_;
+    std::filesystem::path recoveryDir_;
     bool forcedDirty_ = false;
     std::uint64_t revision_ = 0;
     std::optional<std::uint64_t> autosavedRevision_;

@@ -30,6 +30,6 @@ int main(int argc, char** argv) {
     window.show();
     const QStringList args = app.arguments();
     if (args.size() > 1) window.openFile(args.at(1));
-    else QTimer::singleShot(0, &window, &fos::app::gui::MainWindow::offerUntitledRecovery);
+    QTimer::singleShot(0, &window, &fos::app::gui::MainWindow::offerStartupRecovery);
     return app.exec();
 }

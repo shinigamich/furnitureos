@@ -3912,10 +3912,6 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>An autosave of a project that was never saved was found (%1). Open it?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Preferences</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4362,6 +4358,32 @@ Replace it?</source>
     </message>
     <message>
         <source>Plan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unsaved changes of %1 from %2 were found (the application was not closed normally). Restore them?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Restore</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Discard</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The recovery copy %1 cannot be opened:
+
+%2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 was changed after this autosave. Saving the recovered project replaces those changes.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Recovered unsaved changes from %1; save to keep them.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -5120,6 +5142,69 @@ Replace it?</source>
     </message>
     <message>
         <source>Export failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::RecoveryDialog</name>
+    <message>
+        <source>Recover unsaved work</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>FurnitureOS was not closed normally. Unsaved changes of these projects were autosaved. Restore opens a copy as a modified project; Save then writes it back to the original file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Project</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Original file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Autosaved</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Restore</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Discard</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Keep for later</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>(unknown project)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>(unknown: the recovery information is damaged)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>(never saved)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Discard recovered work</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>Delete %n recovery copy(ies)? The unsaved changes in them are lost.</source>
+        <translation>
+            <numerusform>Delete %n recovery copy? The unsaved changes in it are lost.</numerusform>
+            <numerusform>Delete %n recovery copies? The unsaved changes in them are lost.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>These recovery files could not be deleted:
+%1</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

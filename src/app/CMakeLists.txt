@@ -13,6 +13,7 @@ add_library(fos_app_core STATIC
     src/core/window_title.cpp
     src/core/recent_files.cpp
     src/core/autosave.cpp
+    src/core/recovery_store.cpp
     src/core/templates.cpp
     src/core/command_text.cpp
     src/core/session.cpp
@@ -53,6 +54,7 @@ if(FOS_BUILD_TESTS)
     add_executable(fos_app_core_tests
         tests/core/test_main.cpp
         tests/core/basics_tests.cpp
+        tests/core/recovery_tests.cpp
         tests/core/session_tests.cpp
         tests/core/parameter_tests.cpp
         tests/core/views_tests.cpp
@@ -115,6 +117,8 @@ set(FOS_APP_GUI_SOURCES
     src/gui/nesting_settings_form.cpp
     src/gui/dialogs.hpp
     src/gui/dialogs.cpp
+    src/gui/recovery_dialog.hpp
+    src/gui/recovery_dialog.cpp
     src/gui/settings.hpp
     src/gui/settings.cpp
     src/gui/enum_text.hpp

@@ -84,20 +84,6 @@ TEST(Autosave, DueOnlyForUnsavedNewRevisions) {
     EXPECT_FALSE(autosaveDue(s)); // disabled
 }
 
-TEST(Autosave, UntitledBaseAndNewest) {
-    TempDir dir;
-    EXPECT_EQ(untitledAutosaveBase(dir.path, "abc"), dir.path / "untitled-abc.fosp");
-    EXPECT_FALSE(newestUntitledAutosave(dir.path).has_value());
-    touch(dir.path / "untitled-old.fosp.autosave");
-    touch(dir.path / "other.fosp.autosave"); // not an untitled autosave
-    fs::last_write_time(dir.path / "untitled-old.fosp.autosave", fs::file_time_type::clock::now() - std::chrono::hours(1));
-    touch(dir.path / "untitled-new.fosp.autosave");
-    const auto newest = newestUntitledAutosave(dir.path);
-    ASSERT_TRUE(newest.has_value());
-    EXPECT_EQ(*newest, dir.path / "untitled-new.fosp");
-    EXPECT_FALSE(newestUntitledAutosave(dir.path / "missing").has_value());
-}
-
 TEST(Autosave, RecoveryOfferOnlyWhenNewer) {
     TempDir dir;
     const fs::path doc = dir.path / "k.fosp";

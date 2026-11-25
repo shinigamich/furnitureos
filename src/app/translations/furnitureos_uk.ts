@@ -3927,10 +3927,6 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <translation>Помилка автозбереження: %1</translation>
     </message>
     <message>
-        <source>An autosave of a project that was never saved was found (%1). Open it?</source>
-        <translation>Знайдено автозбереження проєкту, який ще не зберігався (%1). Відкрити його?</translation>
-    </message>
-    <message>
         <source>Preferences</source>
         <translation>Параметри</translation>
     </message>
@@ -4379,6 +4375,34 @@ Replace it?</source>
     <message>
         <source>Plan</source>
         <translation>План</translation>
+    </message>
+    <message>
+        <source>Unsaved changes of %1 from %2 were found (the application was not closed normally). Restore them?</source>
+        <translation>Знайдено незбережені зміни %1 від %2 (програму не було закрито належним чином). Відновити їх?</translation>
+    </message>
+    <message>
+        <source>Restore</source>
+        <translation>Відновити</translation>
+    </message>
+    <message>
+        <source>Discard</source>
+        <translation>Відкинути</translation>
+    </message>
+    <message>
+        <source>The recovery copy %1 cannot be opened:
+
+%2</source>
+        <translation>Не вдається відкрити копію для відновлення %1:
+
+%2</translation>
+    </message>
+    <message>
+        <source>%1 was changed after this autosave. Saving the recovered project replaces those changes.</source>
+        <translation>%1 було змінено після цього автозбереження. Збереження відновленого проєкту замінить ці зміни.</translation>
+    </message>
+    <message>
+        <source>Recovered unsaved changes from %1; save to keep them.</source>
+        <translation>Відновлено незбережені зміни від %1; збережіть, щоб їх не втратити.</translation>
     </message>
 </context>
 <context>
@@ -5137,6 +5161,71 @@ Replace it?</source>
     <message>
         <source>Export failed</source>
         <translation>Помилка експорту</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::RecoveryDialog</name>
+    <message>
+        <source>Recover unsaved work</source>
+        <translation>Відновлення незбереженої роботи</translation>
+    </message>
+    <message>
+        <source>FurnitureOS was not closed normally. Unsaved changes of these projects were autosaved. Restore opens a copy as a modified project; Save then writes it back to the original file.</source>
+        <translation>FurnitureOS не було закрито належним чином. Незбережені зміни цих проєктів було автозбережено. «Відновити» відкриває копію як змінений проєкт; «Зберегти» потім записує її в початковий файл.</translation>
+    </message>
+    <message>
+        <source>Project</source>
+        <translation>Проєкт</translation>
+    </message>
+    <message>
+        <source>Original file</source>
+        <translation>Початковий файл</translation>
+    </message>
+    <message>
+        <source>Autosaved</source>
+        <translation>Автозбережено</translation>
+    </message>
+    <message>
+        <source>Restore</source>
+        <translation>Відновити</translation>
+    </message>
+    <message>
+        <source>Discard</source>
+        <translation>Відкинути</translation>
+    </message>
+    <message>
+        <source>Keep for later</source>
+        <translation>Залишити на потім</translation>
+    </message>
+    <message>
+        <source>(unknown project)</source>
+        <translation>(невідомий проєкт)</translation>
+    </message>
+    <message>
+        <source>(unknown: the recovery information is damaged)</source>
+        <translation>(невідомо: інформацію для відновлення пошкоджено)</translation>
+    </message>
+    <message>
+        <source>(never saved)</source>
+        <translation>(ще не збережено)</translation>
+    </message>
+    <message>
+        <source>Discard recovered work</source>
+        <translation>Відкинути відновлену роботу</translation>
+    </message>
+    <message numerus="yes">
+        <source>Delete %n recovery copy(ies)? The unsaved changes in them are lost.</source>
+        <translation>
+            <numerusform>Видалити %n копію для відновлення? Незбережені зміни в ній буде втрачено.</numerusform>
+            <numerusform>Видалити %n копії для відновлення? Незбережені зміни в них буде втрачено.</numerusform>
+            <numerusform>Видалити %n копій для відновлення? Незбережені зміни в них буде втрачено.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>These recovery files could not be deleted:
+%1</source>
+        <translation>Не вдалося видалити ці файли відновлення:
+%1</translation>
     </message>
 </context>
 <context>

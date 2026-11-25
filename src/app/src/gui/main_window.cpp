@@ -42,7 +42,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), preferences_(Pref
         recent_.load(settings);
     }
     const QString dataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    session_.setUntitledAutosaveDirectory((QDir(dataDir).filePath(QStringLiteral("autosave"))).toStdString());
+    session_.setRecoveryDirectory(QDir(dataDir).filePath(QStringLiteral("recovery")).toStdU16String());
 
     tabs_ = new QTabWidget(this);
     tabs_->setObjectName(QStringLiteral("workspaces"));
@@ -249,7 +249,7 @@ void MainWindow::closeEvent(QCloseEvent* event) {
         event->ignore();
         return;
     }
-    // Leaving deliberately: the autosave of this document is no longer needed.
+    // Leaving deliberately (saved or changes discarded): the recovery copy is no longer needed.
     session_.discardAutosave();
     event->accept();
 }

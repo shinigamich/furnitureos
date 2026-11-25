@@ -113,7 +113,8 @@ std::vector<HardwareChoice> hardwareChoices(const furniture::Libraries& librarie
     for (const auto& h : libraries.hardware) {
         if (h.kind != hardwareKind(role))
             continue;
-        if (role == HardwareRole::WallRail && (!h.params.count("rail_height") || !h.params.count("rail_thickness")))
+        if (role == HardwareRole::WallRail && (!h.params.count("rail_height") || !h.params.count("rail_thickness") ||
+                                             h.params.count("hook_clearance"))) // clothes rails carry hook_clearance
             continue;
         out.push_back({h.id.str(), h.name, false, false});
         found = found || h.id.str() == current;
