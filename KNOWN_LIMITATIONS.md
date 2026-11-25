@@ -48,3 +48,15 @@ Honesty rule (ARCHITECTURE.md 4.7): nothing is labelled as working unless it is 
   closed (covered by watertightness tests; not observed).
 * Nesting settings are project-wide (not per material). Shaped parts are nested separately from the
   saw layouts of the same material (no combined sheet use of guillotine and nested parts).
+
+## Kitchen and wardrobe features (T-044 … T-059)
+
+- **Generic hardware only.** The sliding-door track system, cabinet hangers, wall rail, inset/half hinges and lift fittings are generic models with `dimensionsVerified = false`. Check every drilling position against the real fitting's data sheet before production.
+- **Sliding doors:** one inset two-lane system; no face-mounted tracks, soft-close or door-weight checks. A sliding section cannot hold other fronts.
+- **Corner cabinets:** blind corner and 90° L-shape only. Bi-fold corner hinges are not modelled; the L-shape uses two independent doors.
+- **Appliance housings:** niche and gap sizes are generic parameters, never matched to a real appliance; no plinth notching, appliance fixings or worktop over a dishwasher gap are generated.
+- **Worktops and plinths:** straight runs only (no mitres, connector-bolt pockets, wall scribing or plinth clips). They do not follow later cabinet edits and must be rebuilt.
+- **Frame-and-panel fronts:** generic frame defaults; the panel uses the front material (with a thickness warning) until a panel material is chosen. Not available for sliding doors, appliance fronts, L-corners or contoured fronts.
+- **Quotes:** no rounding to purchasable units, no per-material waste, no discounts; batch files carry no pricing of their own. Missing prices are listed as unpriced, never estimated.
+- **Packing lists:** weights need a material density; hardware and packaging weight are not included. Assembly sheets give a generic, role-based order, not a verified instruction.
+- **Plan view:** footprints exclude handles and feet; gaps are measured along X between bounding boxes.
