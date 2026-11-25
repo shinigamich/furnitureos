@@ -55,24 +55,28 @@ Revisit as the scope grows: ADR-0002 (own kernel vs OCCT for solids, phase 13), 
 `.fosp` archive once textures/meshes are stored, phase 13/20), ADR-0007 (code plugins, phase 22),
 ARCHITECTURE.md §4.3 (finished vs cut size for contoured and curved parts, phase 12).
 
-## Current state (2026-11-16)
+## Current state (2026-11-25)
 
 | Phase | State |
 |---|---|
 | 0–2 | Done |
-| 3 Furniture CAD | Done for panel furniture (engine + desktop editors) |
+| 3 Furniture CAD | Done for panel furniture (engine + desktop editors), plus corner cabinets, appliance housings, sliding doors, frame-and-panel fronts, inset/flap doors, drawer boxes, wall-cabinet hangers (T-035, T-042, T-044, T-051, T-054, T-057, T-059) |
 | 4 Drawing Studio | Done; physical print verification pending |
-| 5 Production documentation | Done |
+| 5 Production documentation | Done; plus cost quotes (T-047, T-049), packing lists and assembly sheets (T-053) |
 | 6 Cutting optimisation | Done (heuristic, validated layouts) |
-| 7 Drilling, machining, nesting | Done for the documented scope; nesting not yet fed by projects (→ phase 12) |
+| 7 Drilling, machining, nesting | Done for the documented scope; nesting fed by project shaped parts (T-034) |
 | 8 CAM foundation | Done; no machine-specific adapter verified (→ phase 19) |
-| 9 Website and backend | v1 done |
+| 9 Website and backend | v1 done; feature data synced 2026-11-24 |
 | 10 Plugins and interoperability | Data plugins done; interoperability → phase 21; code plugins → phase 22 |
 | 11 Production hardening | Linux done (GCC + Clang, warnings as errors); Windows done (MSVC, portable ZIP in CI, T-025); macOS, installers, signing not started |
-| 12 Geometry kernel II | Done for lines and arcs (T-027–T-034); splines and nesting layouts in the desktop UI remain |
-| 21 Interoperability | DXF outline import started (T-036) |
-| 18 Linear cutting | Done: heuristic 1D optimiser with lower bound + independent validator (`fos::linear`), edge-band roll planning, `fos linear` / `fos edgeband-rolls` |
-| 13–17, 19, 20, 22 | Not started |
+| 12 Geometry kernel II | Done for lines and arcs (T-027–T-034); splines remain |
+| 14 Parametric assemblies | Started: reusable component library and desktop browser (T-041, T-046); no constraint solver |
+| 15 Direct modelling | Started: measure/section tools, resize drag handles, plan view with snapping (T-040, T-043, T-056) |
+| 16 Universal furniture domains | Started: sliding-door wardrobes, kitchen worktops and plinths (T-044, T-052, T-055); generic hardware only |
+| 18 Linear cutting | Done: 1D optimiser + validator, edge-band rolls; production batches across projects (T-037, T-045, T-048) |
+| 20 Rendering | Realistic display mode only (T-043) |
+| 21 Interoperability | DXF outline import and export (T-036, T-038) |
+| 13, 17, 19, 22 | Not started (17: no verified manufacturer hardware data) |
 
 ## Near-term priorities
 
