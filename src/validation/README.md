@@ -150,10 +150,71 @@ Same SAT/sweep and contoured-part refinement as check 3, no groove allowance. St
 | `validation.completeness.material_thickness` | error | library material thickness not finite or <= 0 |
 | `validation.completeness.unknown_cost` | info | material used by a part has no cost per sheet |
 
+### 8. engineering (`checkEngineering`, OFF by default; CLI `fos validate --engineering`)
+HEURISTICS with generic, documented assumptions — groundwork for roadmap phase 17, not a
+structural calculation and not a manufacturer specification. Findings are Warning or Info,
+never Error, and every message names the numbers and the assumption used. Each rule has its
+own switch in `ValidationOptions::engineering` (`EngineeringOptions`). g = 9.81 N/kg.
+
+| Code | Severity | Condition |
+|---|---|---|
+| `validation.engineering.shelf_sag` | warning | estimated mid-span sag of a `PartRole::Shelf` part > sag limit |
+| `validation.engineering.unknown_modulus` | info | shelf material of kind Other without custom `elastic_modulus_mpa` (not estimated) |
+| `validation.engineering.invalid_custom_value` | info | custom `elastic_modulus_mpa` not a positive number (not estimated) |
+| `validation.engineering.too_few_hinges` | warning | hinges on a door < suggested count |
+| `validation.engineering.hinge_table_exceeded` | info | hinged edge longer than the last row of the hinge table |
+| `validation.engineering.drawer_too_deep` | warning | drawer box length + `drawerMinRearClearance` > cabinet interior depth |
+| `validation.engineering.slide_too_long` | warning | drawer slide length > cabinet interior depth (`relatedIds` = slide instance) |
+| `validation.engineering.drawer_longer_than_slide` | warning | drawer box length > its slide length |
+| `validation.engineering.tipping_risk` | warning | assembly height/depth > `tippingRatio`, height >= `tippingMinHeight`, no wall fixing (`entityId` = assembly id) |
+
+**Shelf sag.** Simply supported beam over the shelf LENGTH (supports at both short ends),
+uniformly distributed load: `delta = 5 W L^3 / (384 E I)`, `I = b t^3 / 12` (b = shelf width,
+t = thickness, mm), `W = (shelfLoadKg + self weight) * 9.81` N, E in MPa (N/mm^2) -> delta in
+mm. Default load 15 kg per shelf (a generic assumption, e.g. a row of books), self weight
+added (`shelfSelfWeight`). Limit `min(span / sagLimitSpanRatio, sagLimitMm)` = `min(L/300, 2 mm)`;
+a term <= 0 is dropped. No creep (long-term sag of particleboard/MDF under permanent load is
+noticeably larger), no edge-band or front-rail stiffening, no point loads.
+E: material custom `"elastic_modulus_mpa"` if present, else a GENERIC table by `MaterialKind`
+(order-of-magnitude typical values of the kind found in board data sheets and the minimum
+requirements of EN 312 / EN 622-5, chosen on the low side; not values of any product):
+Particleboard 2500, MDF 3000, HDF 4000, Plywood 6000, SolidWood 9000, Glass 70000 (soda-lime
+textbook value) MPa; Other -> unknown (info).
+Density (self weight and door weight): `Material::density` if > 0, else generic Particleboard
+650, MDF 750, HDF 900, Plywood 600, SolidWood 600, Glass 2500 kg/m3; Other -> unknown (term skipped).
+
+**Hinge count.** Hinges on a door = sum of `quantity` of Hinge instances listing the door in
+`parts`; doors without any hinge instance (sliding, lift, pivot) are not judged. Hinged edge =
+the door's extent along Z, or along X when a hinge is carried by a horizontal panel
+(top-hinged flap). Suggested = max(table count, max(2, ceil(door mass / `doorKgPerHinge`))).
+RULE OF THUMB, check the hinge maker's chart: <= 900 mm: 2, <= 1600: 3, <= 2000: 4, <= 2400: 5
+(`hingeHeightTable`, same numbers as the hardware module's medium column); 5 kg per hinge.
+
+**Drawer depth.** Interior depth along Y = from the front edge of the `Side` parts to the
+front face of the `Back` panel (when it lies within the sides), else to the rear edge of the
+sides; assemblies without sides are skipped. Box length = extent of each `DrawerSide` part
+along Y (drawer runs along Y). Slide length of a DrawerSlide instance that lists the drawer
+side: definition param `length` (fixed-length definition), else the note
+`"slide length <L> mm"` written by `hardware::placeDrawerSlides`; unknown -> slide rules skipped.
+Tolerance 0.1 mm on all comparisons.
+
+**Tipping.** Assembly bounding box (valid parts, assembly frame): height = Z, depth = Y.
+Warns when height >= 1000 mm and height/depth > 2.0 and no hardware instance uses a
+Suspension definition (cabinet hanger) or a definition with custom `wall_fixing` = `"true"`
+(e.g. an anti-tip bracket). Not a stability calculation (no centre of gravity, no loads,
+no doors/drawers opened).
+
 ## Options (`ValidationOptions`)
 | Option | Default | Meaning |
 |---|---|---|
-| `checkParts` ... `checkCompleteness` | true | enable the seven checks |
+| `checkParts` ... `checkCompleteness` | true | enable checks 1-7 |
+| `checkEngineering` | false | enable check 8 (heuristics) |
+| `engineering.shelfSag` / `hingeCount` / `drawerDepth` / `tipping` | true | individual engineering rules |
+| `engineering.shelfLoadKg` / `shelfSelfWeight` | 15 kg / true | shelf load assumption |
+| `engineering.sagLimitSpanRatio` / `sagLimitMm` | 300 / 2 mm | sag limit min(L/ratio, mm); <= 0 drops a term |
+| `engineering.hingeHeightTable` / `doorKgPerHinge` | see check 8 / 5 kg | hinge rule of thumb; <= 0 drops the weight term |
+| `engineering.drawerMinRearClearance` | 0 mm | space required behind a drawer box |
+| `engineering.tippingRatio` / `tippingMinHeight` | 2.0 / 1000 mm | tipping thresholds |
 | `minPartSize` | 10 mm | `part.too_small` threshold |
 | `maxBandThicknessShare` | 0.25 | `edge.band_too_thick` threshold |
 | `interferenceTolerance` | 0.01 mm | accepted overlap (touching) |
@@ -172,4 +233,6 @@ Same SAT/sweep and contoured-part refinement as check 3, no groove allowance. St
   grooves do not remove material in the interference test (except the groove engagement rule).
 * Groove recognition only for axis-aligned parts and axis-parallel grooves.
 * Mating-hole pairing is a heuristic; holes from `"user"` operations are never paired.
+* Engineering rules (check 8) are heuristics with generic constants; no creep, no load
+  ratings of real fittings, no centre-of-gravity stability analysis.
 * Hole/groove and groove/groove collisions inside one part are not checked (machining module scope).
