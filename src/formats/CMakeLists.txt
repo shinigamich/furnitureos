@@ -39,3 +39,14 @@ fos_add_tests(formats
         tests/dxf_import_tests.cpp
         tests/dxf_export_tests.cpp
         tests/component_tests.cpp)
+
+# `.fostools` CAM tool table files (fos/formats/tool_table.hpp). Separate target so that fos::formats
+# itself stays free of CAM; created only when fos::cam is part of the build. Tested by module name (the
+# root's module list) rather than by target, so that an explicit FOS_MODULES list naming formats before
+# cam also works: fos::cam is resolved at generate time.
+if(TARGET fos_cam OR "cam" IN_LIST _fos_modules)
+    fos_add_module(formats_cam
+        SOURCES src/tool_table.cpp src/tool_table_check.cpp
+        DEPS fos::formats fos::cam)
+    fos_add_tests(formats_cam SOURCES tests/tool_table_tests.cpp)
+endif()

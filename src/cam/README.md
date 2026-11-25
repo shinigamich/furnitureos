@@ -79,6 +79,16 @@ Unsupported — always reported explicitly in `SetupPlan::unsupported`, never si
 * Holes larger than any drill (no helical interpolation of holes), canned cycles, tabs/bridges, ramped
   entries, clamps/fixtures, tool-length offsets, multiple parts per program.
 
+## Tool tables in files (`.fostools`)
+
+`cam::ToolLibrary` is built in code; to keep tool tables in files use `fos::formats_cam`
+(`fos/formats/tool_table.hpp`, schema in `src/formats/README.md` section 4.1). It lives beside the
+`formats` module (cam may not depend on formats in the module order). Only the two tool kinds CAM models
+are accepted: `drill` (ToolKind::Drill) and `flat_end_mill` (ToolKind::EndMill); ball-nose, compression,
+V-bits etc. are refused, not approximated. `toToolLibrary()` converts a validated table and requires
+spindle rpm, feed and plunge rate on every tool (optional in the file). Overall length and notes are kept
+in the file only. Nothing checks a table against real tools or a machine.
+
 ## Contour routing (phase 12)
 
 * **Source.** No new domain operation type: the targets come straight from the domain

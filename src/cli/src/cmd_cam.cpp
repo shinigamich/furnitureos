@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // fos cam (UNVERIFIED output, fictional demo machine)
+#include "cmd_tools.hpp"
 #include "common.hpp"
 
 #include "fos/cam/contour.hpp"
@@ -18,7 +19,7 @@ constexpr double kDefaultBlankAllowance = 10.0;
 
 const char* kCamHelp =
     "Usage: fos cam <file.fosp> <part-id> --face A|B --out prog.nc [--peck DEPTH]\n"
-    "               [--blank-allowance MM]\n\n"
+    "               [--blank-allowance MM] [--tools FILE.fostools]\n\n"
     "Generates a 3-axis program for the operations on one face of one part, using the\n"
     "FICTIONAL 'FurnitureOS demo profile — not a real machine' and a fictional demo tool\n"
     "library (drills 3 4 5 7 8 10 12 15 20 35 mm, end mills 4 6 8 mm). The part's length runs\n"
@@ -34,6 +35,8 @@ const char* kCamHelp =
     "part's bounding box grown by --blank-allowance on every side (default 10 mm for shaped\n"
     "parts); its minimum corner is at machine (20, 20, 0). --blank-allowance > 0 is refused for\n"
     "rectangular parts (they are sawn to size; exit code 2).\n"
+    "--tools FILE replaces the demo tool library with a .fostools tool table (see `fos tools`);\n"
+    "every tool then needs rpm, feed and plunge rate. An invalid table: exit code 1.\n"
     "Exit code 1 also when the project has model errors (stderr lists the items that are missing).\n";
 
 const domain::Part* findPart(const domain::Model& model, const std::string& id) {
@@ -50,7 +53,7 @@ void printPlanned(std::ostream& out, const char* title, const std::vector<cam::P
 } // namespace
 
 int cmdCam(const std::vector<std::string>& args, Io& io) {
-    auto parsed = parseArgs(args, {{"face"}, {"out"}, {"peck"}, {"blank-allowance"}});
+    auto parsed = parseArgs(args, {{"face"}, {"out"}, {"peck"}, {"blank-allowance"}, {"tools"}});
     if (!parsed) return usageError(io, "cam", parsed.error().message);
     const ParsedArgs& a = parsed.value();
     if (a.help) {
@@ -73,6 +76,12 @@ int cmdCam(const std::vector<std::string>& args, Io& io) {
         if (!v || !(*v >= 0) || *v > 1000) return usageError(io, "cam", "--blank-allowance must be from 0 to 1000 mm.");
         blankAllowance = *v;
     }
+    std::optional<cam::ToolLibrary> fileTools;
+    if (auto toolsPath = a.value("tools")) {
+        int exitCode = kExitOk;
+        fileTools = loadToolLibraryOrReport(io, "cam", *toolsPath, exitCode);
+        if (!fileTools) return exitCode;
+    }
     auto loaded = loadProjectOrReport(io, "cam", a.positional[0]);
     if (!loaded) return kExitUsageOrIo;
     const std::string& partId = a.positional[1];
@@ -85,7 +94,7 @@ int cmdCam(const std::vector<std::string>& args, Io& io) {
 
     auto& out = io.out;
     const cam::MachineProfile machine = demoMachineProfile();
-    const cam::ToolLibrary tools = demoToolLibrary();
+    const cam::ToolLibrary tools = fileTools ? std::move(*fileTools) : demoToolLibrary();
     const bool shaped = cam::needsContourRouting(*part);
     if (!shaped && blankAllowance.value_or(0) > 0) {
         io.err << incomplete;
@@ -101,7 +110,9 @@ int cmdCam(const std::vector<std::string>& args, Io& io) {
     out << "Part " << partId << " \"" << part->name << "\" " << core::formatLength(part->length) << " x "
         << core::formatLength(part->width) << " x " << core::formatLength(part->thickness) << " mm, "
         << part->operations.size() << " operations, face " << faceText << " up\n"
-        << "Machine: " << machine.name << " (fictional, verified: no)\n";
+        << "Machine: " << machine.name << " (fictional, verified: no)\n"
+        << "Tools: " << (fileTools ? *a.value("tools") + " (user tool table, not checked against real tools)"
+                                   : std::string("fictional demo tool library")) << "\n";
     if (shaped) {
         const double al = setup.blankAllowance;
         out << "Shaped part: outline" << (part->shape && !part->shape->cutouts.empty()

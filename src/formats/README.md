@@ -409,6 +409,36 @@ The report has one entry per incoming item (category, action, incoming id, resul
 all-or-nothing. Renaming does not rewrite references to the old id elsewhere; callers remap with the report.
 Two entries with different ids but identical content are not detected as duplicates.
 
+### 4.1 CAM tool tables (`.fostools`, target `fos::formats_cam`)
+
+`fos/formats/tool_table.hpp`, sources `src/tool_table.cpp`, `src/tool_table_check.cpp`. A separate
+target linking `fos::formats` + `fos::cam`, created only when `cam` is part of the build, so that
+`fos::formats` stays free of CAM. Container kind `furnitureos-tools`, version 1 (no migrations),
+checksum as for every container. Payload:
+
+```json
+{ "tools": [
+  { "id": "mill.6", "number": 12, "name": "6 mm upcut", "type": "flat_end_mill",
+    "diameter": 6, "fluteLength": 22, "overallLength": 60, "maxDepthPerPass": 3,
+    "centerCutting": true, "spindleRpm": 18000, "feedRate": 3000, "plungeRate": 1000,
+    "notes": "free text" } ] }
+```
+
+* Required: `id`, `number` (integer), `type` (`drill` | `flat_end_mill`), `diameter`, `fluteLength`.
+  Optional: `name`, `overallLength`, `maxDepthPerPass`, `centerCutting` (end mills, default true),
+  `spindleRpm`, `feedRate`, `plungeRate`, `notes`. Unknown keys in a tool are refused; other payload keys
+  are kept (`ToolTable::extra`).
+* `toolTableFromJson`: structural errors (first one, ParseError, JSON path in message and context).
+* `validateToolTable`: all value findings as diagnostics with the JSON path as entity, e.g.
+  `/payload/tools/1/maxDepthPerPass: tool 'mill.6' has max depth per pass 25 mm, more than its flute
+  length 22 mm.` Rules: at least one tool; unique ids and numbers; number >= 1; diameter, flute length,
+  overall length, max depth per pass, rpm and feeds > 0; overall length >= flute length; max depth per
+  pass <= flute length and required for flat end mills; on a drill it is unused (warning).
+* `saveToolTable` refuses an invalid table; `loadToolTable` / `parseToolTableText` fail on container or
+  structural errors and return value findings as diagnostics (check `core::hasErrors`).
+* `toToolLibrary` / `toolTableFromLibrary` convert to / from `cam::ToolLibrary`; CAM needs rpm, feed and
+  plunge rate on every tool. Tests: `tests/tool_table_tests.cpp` (`fos_formats_cam_tests`).
+
 ---
 
 ## 5. Exchange formats
