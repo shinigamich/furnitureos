@@ -289,6 +289,16 @@ go to stdout (CSV diagnostics to stderr; JSON includes them, unknown weights are
 writes package labels (one per package and per hardware bag, 70 × 37 mm part-label geometry) as
 `DIR/package-labels-<n>.svg`. Invalid limits are usage errors (exit 2).
 
+### `fos edgeband-jobs`
+
+`fos edgeband-jobs <file.fosp> [--format text|csv|json] [--svg DIR] [--assembly ID]` prints the
+edge-banding job list for the banding machine operator (`production::edgeBandingJobs`): grouped by
+band, per part the cut size and per banded edge the cut edge length, edge length, strip length incl.
+the project's overhang per end and a suggested step (long edges first, then short: common practice,
+not a machine requirement); totals per band; shaped parts listed separately for contour banding.
+CSV/JSON go to stdout with diagnostics on stderr. `--svg DIR` writes `edgeband-<band>[-<page>].svg`
+(A4 per band). Not to be confused with `fos edgeband-rolls` (roll planning).
+
 ### `fos assembly`
 
 ```text

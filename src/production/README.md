@@ -86,3 +86,27 @@ non-finite length is ignored (`production.hardware.invalid_length`). `hardwareTa
 reports keep their layout; per-metre unit prices read "12.5 / m". `costTable` shows per-metre rows
 in metres; `CostEstimate::HardwareCostLine` carries `perMetre` / `totalLengthM`. Packing bag lines
 carry `BagLine::totalLengthM` and the text / CSV show "total length X m".
+
+## Edge-banding job list (`fos/production/edge_banding_jobs.hpp`)
+
+`EdgeBandingJobs edgeBandingJobs(const domain::Model&, const EdgeBandingOptions& = {}, const Scope& = {})`
+
+* For the banding machine operator: one `EdgeBandJobGroup` per band (model order, then missing ids
+  sorted) = one roll change per band, with totals (edge count, edge length, strip length).
+* Per part: cut size (`domain::cutSize`) and per banded L1/L2/W1/W2 edge the cut edge length, the
+  finished edge length (`domain::edgeLength`, as in `edgeBandingReport`), the strip length
+  (edge + 2 × `overhangPerEnd`; `wastePercent` is not used) and a SUGGESTED `step`: longer edges
+  first, then shorter (ties L1, L2, W1, W2), numbered over all bands of the part
+  (`otherBands` flags parts split over groups). `kBandingOrderNote`: common practice, not a machine
+  requirement.
+* Shaped parts go to `contour` (`kContourBandingNote`: manual / edge bander with contour unit) with
+  banded segment lengths and tangent-continuous strips (same strip rule as `edgeBandingReport`),
+  plus `contourTotals`. A shape with an invalid outline / wrong `outerEdges` count is still listed,
+  without lengths (`production.edgeband_jobs.shape_lengths_unavailable`); `Part::edges` on a shaped
+  part are ignored with `production.edgeband_jobs.edges_on_shaped_part`; zero-length banded edges are
+  skipped with `production.edgeband_jobs.invalid_edge`.
+* Writers: `edgeBandingJobsText`, `edgeBandingJobsTable` (→ `toCsv`), `edgeBandingJobsJson`,
+  `edgeBandingJobSheetsSvg` (A4 portrait pages per band, 12 rows per page, edge diagram with steps).
+
+Limitations: no machine-specific sequencing (feed direction, pre-milling, corner rounding units); the
+order is a generic rule; parts within a band are in part-number order (not sorted by thickness).
