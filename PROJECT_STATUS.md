@@ -116,6 +116,11 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 | T-068 | Compare projects (`fos diff`, optional model-level diff) | Done | 8 project + cli tests |
 | T-069 | Edge-banding job list per band (`fos edgeband-jobs`) | Done (generic banding order) | production + 3 cli tests |
 | T-070 | Glass panes as bought-in items: excluded from cutting, nesting, banding and CAM; bought-in list; quoted by area | Done | production/project/cam/cli tests |
+| T-071 | CAM pocket clearing (contour-parallel, finishing wall, ramp/plunge entry, simulator checks) | Done (rectangular face pockets) | 9 cam tests |
+| T-072 | Desktop: edge-banding jobs and bought-in tabs, Compare with…, engineering checks toggle | Done | 5 app core tests |
+| T-073 | Isometric and exploded isometric assembly views with part balloons (`fos drawing --view iso|exploded`) | Done (painter's hidden-line removal) | 11 drawings + 1 cli tests |
+| T-074 | Inner drawers behind doors with hinge packers | Done (generic clearances) | 9 furniture + 1 project tests |
+| T-075 | Job pack: single printable HTML for the workshop (`fos jobpack`) | Done | 9 production + 4 cli tests |
 
 ## Independent review 2026-11-12 (calculation-critical modules)
 
