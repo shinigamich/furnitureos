@@ -171,6 +171,30 @@ fronts whose slot or piece slots have a contour override (Unsupported). Project 
 "FramePanel"` and a `"frame"` object (`stileWidth`, `railWidth`, `panelThickness`, `panelMaterial` only
 when set, `grooveDepth`, `panelClearance`, `joint`) written only for FramePanel fronts.
 
+**Glass panels** (`FramePanelSpec::panelKind = FramePanelKind::Glass`, default `Grooved` = the board
+panel above). `FramePanelSpec::glass` (GlassPanelSpec; GENERIC defaults): glass thickness 4, rebate
+width 10 (into the inner edge, in the front plane), rebate depth 10 (from the back face A), beads
+`Strip` (or `None`: pane fixed by clips / silicone, not modelled). `panelThickness` / `grooveDepth` are
+ignored; `panelClearance` is the gap between a glass edge and the rebate bottom. Instead of the groove,
+every stile and rail gets a rebate `<part>/op.rebate.glass`: a Groove on the inner edge face L1/L2, depth =
+rebate width, band v = thickness - rebate depth .. thickness (open to face A); stile rebates stop rebate
+width beyond the opening (square inner corner). The pane `<slot>.panel` ("<front> glass") measures
+(W - 2 stile + 2 e) x (H - 2 rail + 2 e), e = rebate width - clearance, glass thickness, and lies on the
+rebate shoulder (rebate depth in front of face A); no grain, custom `furniture.glass = "true"`. Its
+material should be of `MaterialKind::Glass`, otherwise warning `furniture.front.glass_material` (plus
+`furniture.front.panel_thickness` on a thickness mismatch). Beads (`Strip`): `<slot>.bead.top|bottom|left|right`
+("<front> top glazing bead", custom `furniture.front_piece = bead`), front material, rebate width wide,
+rebate depth - glass thickness thick, flush with face A; top / bottom span W - 2 stile + 2 rebate width,
+the sides fit between them (H - 2 rail). The dowel zone is rail width - rebate width.
+**Production must treat parts with `furniture.glass = "true"` as bought-in** (ordered cut to size from a
+glazier; no sheet cutting / nesting) — the production module does not do this yet (follow-up).
+Refused: joint StubTenon with glass (Unsupported; use Dowel), clearance >= rebate width, glass /
+rebate sizes <= 0 (InvalidArgument), less than 20 mm (generic) of solid stile / rail beside the rebate,
+a lip in front of the rebate below 2 mm, rebate depth < glass thickness (InvalidArgument), and with beads
+less than 3 mm (generic) for the beads (rebate depth - glass thickness) (ConstraintViolation). Project
+files: `"panelKind": "Glass"` and a `"glass"` object (`glassThickness`, `rebateWidth`, `rebateDepth`,
+`beads`) in `"frame"`, written only for Glass (grooved files stay byte-identical).
+
 ### Sliding doors (`FrontKind::SlidingDoors`)
 
 Inset doors running in the two-lane track system `HardwareSelection::slidingSystem` (default
