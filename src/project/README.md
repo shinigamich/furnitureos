@@ -481,6 +481,18 @@ the merged copy (plus plan and `Affected`); `commands::mergeItems(source, reques
 * Not imported: stored drawing edits, cutting/nesting settings, remnants and custom data of the source. An entry
   equal to a target entry under a *different* id is not recognised (repeated `rename` merges add `merge.lib2`, …).
 
+## 4f. Comparing projects (`fos/project/diff.hpp`)
+
+`diffProjects(a, b, DiffOptions{model, tolerance = 1e-6, ignoreTimestamps})` → `ProjectDiff`; `diffText` (grouped,
+readable) and `diffToJson` (tools). The project-level comparison runs on the codec JSON (`projectToJson`), so every
+stored field is compared without a hand-written field list. Array elements that are objects with a unique string
+`id` (else `name`) are matched by that key (`/remnants[r1]/length`), other arrays by index (`/children[1]/front`).
+Numbers within the tolerance are equal. Items are matched by id (renamed = same id, other name); parameters are
+compared as stored definitions (constant or `= expression`), not evaluated values. With `model = true` both
+projects are resolved and the parts compared by id (size, material, edge bands, grain, operation count) plus the
+hardware quantity per definition; items that fail to generate are listed. Limitations: an entity whose id changed
+appears as removed + added; a reordered section tree is reported as per-index field changes.
+
 ## 5. Limitations
 
 * The per-project parts limit is checked on the estimate (`estimatePartCount`), an upper bound; custom parameter

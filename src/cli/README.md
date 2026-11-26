@@ -626,6 +626,21 @@ ids) and every added / replaced / renamed / conflicting entry.
 Exit codes: 0 saved; 1 refused (an item does not generate in the target, an id given twice; nothing saved); 2 usage error, unreadable
 project, unknown item id or missing library entry (nothing saved).
 
+### `fos diff`
+
+```
+fos diff <a.fosp> <b.fosp> [--model] [--format text|json] [--ignore-timestamps]
+```
+
+Prints what changed from A to B (`project::diffProjects`), grouped: metadata, library entries (added / removed /
+changed field paths), items (added / removed / renamed; parameters old → new, materials, hardware, construction,
+interior and fronts as field paths, placement moved / rotated), settings (cutting, pricing, room, other) and other
+stored data. `--model` also generates both projects and compares parts by id (added / removed / finished size /
+material / edge bands / grain / operation count) and hardware quantities. `--format json` for tools.
+
+Exit codes: 0 identical; 1 different; 2 usage error, unreadable project (or, with `--model`, a project that cannot
+be resolved).
+
 ### `fos tools`
 
 CAM tool tables (`.fostools`, schema: `src/formats/README.md` section 4.1).
