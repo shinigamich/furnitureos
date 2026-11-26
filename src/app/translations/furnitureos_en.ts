@@ -2,6 +2,263 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US">
 <context>
+    <name>BoughtInText</name>
+    <message>
+        <source>Item</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Material</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Width</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Height</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Thickness</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Qty</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Area each (m2)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Total area (m2)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Part numbers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Glass pane</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No bought-in items.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n bought-in item(s) to order, total area %1 m2</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>CompareText</name>
+    <message>
+        <source>%1 (%2)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>cabinet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>panel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 × %2 × %3 mm, %4</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Materials</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edge bands</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hardware</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cutting</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pricing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Room</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Project settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Parameters</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Materials and edges</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Construction</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Interior</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fronts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Placement (moved, rotated)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Placement (rotated)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Placement (moved)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Other</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Production model</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Parts added</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Parts removed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Parts changed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>material</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>edge bands</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>grain</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>operations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Operations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hardware quantities</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Item %1 could not be generated in the current project</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Item %1 could not be generated in the other file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Change</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Current project</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Other file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No differences</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Metadata</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Libraries</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Added: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Changed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 (%2, %3)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Item order changed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>ContourText</name>
     <message>
         <source>Vertex %1: the bulge “%2” is not a number (0 = straight, 1 = half circle, negative = clockwise).</source>
@@ -112,6 +369,128 @@
     <message>
         <source>Check with a ruler: the mark above must measure exactly the size stated.</source>
         <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>EdgeBandingText</name>
+    <message>
+        <source>%1 (MISSING from the library)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 (%2) — %3 × %4 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Error: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Warning: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Note: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Item</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edge</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Step</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cut edge length</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edge length</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Strip length</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Suggested order (common practice, not a machine requirement): long edges first, then short edges, so the short-edge band overlaps the ends of the long-edge band.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>contour banding - manual / edge bander with contour unit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n edge(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>#%1 %2 — cut %3 × %4 × %5 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> (other edges: another band)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>#%1 %2 — blank %3 × %4 × %5 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> (segment lengths unavailable)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>segments %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Strip %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Total %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 (MISSING)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n strip(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Overhang per end: %1 mm · %n band(s) · </source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n straight edge(s) · </source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n shaped part(s) · strips total %1 m</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
     </message>
 </context>
 <context>
@@ -1204,6 +1583,14 @@
         <source>TOTAL (%1)</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Bought-in</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Bought-in items subtotal</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app</name>
@@ -2182,6 +2569,49 @@
     </message>
 </context>
 <context>
+    <name>fos::app::gui::CompareDialog</name>
+    <message>
+        <source>Compare with %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Changes from the current project (left) to %1 (right), including the generated parts and hardware.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export as text…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export as JSON…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>-comparison</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export comparison as text</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Text files (*.txt)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export comparison as JSON</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>JSON files (*.json)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>fos::app::gui::ComponentBrowser</name>
     <message>
         <source>Search components</source>
@@ -2522,6 +2952,10 @@
         <source>Validation</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Engineering (heuristic)</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::DrawingsWorkspace</name>
@@ -2697,6 +3131,64 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     <message>
         <source>Fit width</source>
         <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::EdgeBandingView</name>
+    <message>
+        <source>Export CSV…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export SVG sheets…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The model could not be generated.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Shaped parts: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>untitled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>-edge-banding</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export edge-banding jobs as CSV</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>CSV files (*.csv)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export edge-banding job sheets as SVG</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>SVG files (*.svg)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n file(s) written.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
     </message>
 </context>
 <context>
@@ -4486,6 +4978,37 @@ Replace it?</source>
         <source>Recovered unsaved changes from %1; save to keep them.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Engineering checks</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Also run the engineering rule checks: shelf sag, hinge count, drawer depth and tipping risk. They are heuristics with generic assumptions, not structural calculations; findings are warnings or notes, never errors.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n engineering finding(s) (heuristics)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Compare with project</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Compare with</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Co&amp;mpare with…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show what differs between the open project and another project file</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::NestingSettingsForm</name>
@@ -5140,6 +5663,18 @@ Replace it?</source>
     </message>
     <message>
         <source>Export failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Bought-in items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edge-banding jobs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Bought-in items are ordered finished to size from a supplier (glass panes); they are not in the cut list, the material totals or the edge banding. %1</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

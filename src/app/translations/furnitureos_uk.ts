@@ -2,6 +2,264 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="uk_UA">
 <context>
+    <name>BoughtInText</name>
+    <message>
+        <source>Item</source>
+        <translation>Позиція</translation>
+    </message>
+    <message>
+        <source>Material</source>
+        <translation>Матеріал</translation>
+    </message>
+    <message>
+        <source>Width</source>
+        <translation>Ширина</translation>
+    </message>
+    <message>
+        <source>Height</source>
+        <translation>Висота</translation>
+    </message>
+    <message>
+        <source>Thickness</source>
+        <translation>Товщина</translation>
+    </message>
+    <message>
+        <source>Qty</source>
+        <translation>К-сть</translation>
+    </message>
+    <message>
+        <source>Area each (m2)</source>
+        <translation>Площа одиниці (м2)</translation>
+    </message>
+    <message>
+        <source>Total area (m2)</source>
+        <translation>Загальна площа (м2)</translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation>Назва</translation>
+    </message>
+    <message>
+        <source>Part numbers</source>
+        <translation>Номери деталей</translation>
+    </message>
+    <message>
+        <source>Glass pane</source>
+        <translation>Скло</translation>
+    </message>
+    <message>
+        <source>No bought-in items.</source>
+        <translation>Покупних виробів немає.</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n bought-in item(s) to order, total area %1 m2</source>
+        <translation>
+            <numerusform>%n покупний виріб до замовлення, загальна площа %1 м2</numerusform>
+            <numerusform>%n покупні вироби до замовлення, загальна площа %1 м2</numerusform>
+            <numerusform>%n покупних виробів до замовлення, загальна площа %1 м2</numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>CompareText</name>
+    <message>
+        <source>%1 (%2)</source>
+        <translation>%1 (%2)</translation>
+    </message>
+    <message>
+        <source>cabinet</source>
+        <translation>шафа</translation>
+    </message>
+    <message>
+        <source>panel</source>
+        <translation>панель</translation>
+    </message>
+    <message>
+        <source>%1 × %2 × %3 mm, %4</source>
+        <translation>%1 × %2 × %3 мм, %4</translation>
+    </message>
+    <message>
+        <source>Materials</source>
+        <translation>Матеріали</translation>
+    </message>
+    <message>
+        <source>Edge bands</source>
+        <translation>Кромки</translation>
+    </message>
+    <message>
+        <source>Hardware</source>
+        <translation>Фурнітура</translation>
+    </message>
+    <message>
+        <source>Cutting</source>
+        <translation>Розкрій</translation>
+    </message>
+    <message>
+        <source>Pricing</source>
+        <translation>Ціноутворення</translation>
+    </message>
+    <message>
+        <source>Room</source>
+        <translation>Кімната</translation>
+    </message>
+    <message>
+        <source>Project settings</source>
+        <translation>Налаштування проєкту</translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation>Назва</translation>
+    </message>
+    <message>
+        <source>Type</source>
+        <translation>Тип</translation>
+    </message>
+    <message>
+        <source>Parameters</source>
+        <translation>Параметри</translation>
+    </message>
+    <message>
+        <source>Materials and edges</source>
+        <translation>Матеріали та кромки</translation>
+    </message>
+    <message>
+        <source>Construction</source>
+        <translation>Конструкція</translation>
+    </message>
+    <message>
+        <source>Interior</source>
+        <translation>Наповнення</translation>
+    </message>
+    <message>
+        <source>Fronts</source>
+        <translation>Фасади</translation>
+    </message>
+    <message>
+        <source>Placement (moved, rotated)</source>
+        <translation>Розташування (переміщено, повернуто)</translation>
+    </message>
+    <message>
+        <source>Placement (rotated)</source>
+        <translation>Розташування (повернуто)</translation>
+    </message>
+    <message>
+        <source>Placement (moved)</source>
+        <translation>Розташування (переміщено)</translation>
+    </message>
+    <message>
+        <source>Other</source>
+        <translation>Інше</translation>
+    </message>
+    <message>
+        <source>Production model</source>
+        <translation>Виробнича модель</translation>
+    </message>
+    <message>
+        <source>Parts added</source>
+        <translation>Додані деталі</translation>
+    </message>
+    <message>
+        <source>Parts removed</source>
+        <translation>Вилучені деталі</translation>
+    </message>
+    <message>
+        <source>Parts changed</source>
+        <translation>Змінені деталі</translation>
+    </message>
+    <message>
+        <source>size</source>
+        <translation>розмір</translation>
+    </message>
+    <message>
+        <source>material</source>
+        <translation>матеріал</translation>
+    </message>
+    <message>
+        <source>edge bands</source>
+        <translation>кромки</translation>
+    </message>
+    <message>
+        <source>grain</source>
+        <translation>текстура</translation>
+    </message>
+    <message>
+        <source>operations</source>
+        <translation>операції</translation>
+    </message>
+    <message>
+        <source>%1: %2</source>
+        <translation>%1: %2</translation>
+    </message>
+    <message>
+        <source>Operations</source>
+        <translation>Операції</translation>
+    </message>
+    <message>
+        <source>Hardware quantities</source>
+        <translation>Кількість фурнітури</translation>
+    </message>
+    <message>
+        <source>Item %1 could not be generated in the current project</source>
+        <translation>Позицію %1 не вдалося згенерувати в поточному проєкті</translation>
+    </message>
+    <message>
+        <source>Item %1 could not be generated in the other file</source>
+        <translation>Позицію %1 не вдалося згенерувати в іншому файлі</translation>
+    </message>
+    <message>
+        <source>Change</source>
+        <translation>Зміна</translation>
+    </message>
+    <message>
+        <source>Current project</source>
+        <translation>Поточний проєкт</translation>
+    </message>
+    <message>
+        <source>Other file</source>
+        <translation>Інший файл</translation>
+    </message>
+    <message>
+        <source>No differences</source>
+        <translation>Відмінностей немає</translation>
+    </message>
+    <message>
+        <source>Metadata</source>
+        <translation>Метадані</translation>
+    </message>
+    <message>
+        <source>Libraries</source>
+        <translation>Бібліотеки</translation>
+    </message>
+    <message>
+        <source>Added: %1</source>
+        <translation>Додано: %1</translation>
+    </message>
+    <message>
+        <source>Removed: %1</source>
+        <translation>Вилучено: %1</translation>
+    </message>
+    <message>
+        <source>Changed: %1</source>
+        <translation>Змінено: %1</translation>
+    </message>
+    <message>
+        <source>Items</source>
+        <translation>Позиції</translation>
+    </message>
+    <message>
+        <source>%1 (%2, %3)</source>
+        <translation>%1 (%2, %3)</translation>
+    </message>
+    <message>
+        <source>Item order changed</source>
+        <translation>Змінено порядок позицій</translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation>Налаштування</translation>
+    </message>
+</context>
+<context>
     <name>ContourText</name>
     <message>
         <source>Vertex %1: the bulge “%2” is not a number (0 = straight, 1 = half circle, negative = clockwise).</source>
@@ -112,6 +370,133 @@
     <message>
         <source>Check with a ruler: the mark above must measure exactly the size stated.</source>
         <translation>Перевірте лінійкою: позначка вище має точно відповідати вказаному розміру.</translation>
+    </message>
+</context>
+<context>
+    <name>EdgeBandingText</name>
+    <message>
+        <source>%1 (MISSING from the library)</source>
+        <translation>%1 (ВІДСУТНЯ в бібліотеці)</translation>
+    </message>
+    <message>
+        <source>%1 (%2) — %3 × %4 mm</source>
+        <translation>%1 (%2) — %3 × %4 мм</translation>
+    </message>
+    <message>
+        <source>Error: </source>
+        <translation>Помилка: </translation>
+    </message>
+    <message>
+        <source>Warning: </source>
+        <translation>Попередження: </translation>
+    </message>
+    <message>
+        <source>Note: </source>
+        <translation>Примітка: </translation>
+    </message>
+    <message>
+        <source>Item</source>
+        <translation>Позиція</translation>
+    </message>
+    <message>
+        <source>Edge</source>
+        <translation>Кромка</translation>
+    </message>
+    <message>
+        <source>Step</source>
+        <translation>Крок</translation>
+    </message>
+    <message>
+        <source>Cut edge length</source>
+        <translation>Довжина краю після розкрою</translation>
+    </message>
+    <message>
+        <source>Edge length</source>
+        <translation>Довжина кромки</translation>
+    </message>
+    <message>
+        <source>Strip length</source>
+        <translation>Довжина смуги</translation>
+    </message>
+    <message>
+        <source>Suggested order (common practice, not a machine requirement): long edges first, then short edges, so the short-edge band overlaps the ends of the long-edge band.</source>
+        <translation>Рекомендований порядок (поширена практика, а не вимога верстата): спершу довгі краї, потім короткі, щоб кромка коротких країв перекривала кінці кромки довгих.</translation>
+    </message>
+    <message>
+        <source>contour banding - manual / edge bander with contour unit</source>
+        <translation>контурне кромкування - вручну / на кромкооблицювальному верстаті з контурним вузлом</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n edge(s)</source>
+        <translation>
+            <numerusform>%n край</numerusform>
+            <numerusform>%n краї</numerusform>
+            <numerusform>%n країв</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>#%1 %2 — cut %3 × %4 × %5 mm</source>
+        <translation>#%1 %2 — розкрій %3 × %4 × %5 мм</translation>
+    </message>
+    <message>
+        <source> (other edges: another band)</source>
+        <translation> (інші краї: інша кромка)</translation>
+    </message>
+    <message>
+        <source>#%1 %2 — blank %3 × %4 × %5 mm</source>
+        <translation>#%1 %2 — заготовка %3 × %4 × %5 мм</translation>
+    </message>
+    <message>
+        <source> (segment lengths unavailable)</source>
+        <translation> (довжини сегментів недоступні)</translation>
+    </message>
+    <message>
+        <source>segments %1</source>
+        <translation>сегменти %1</translation>
+    </message>
+    <message>
+        <source>Strip %1</source>
+        <translation>Смуга %1</translation>
+    </message>
+    <message>
+        <source>Total %1</source>
+        <translation>Разом %1</translation>
+    </message>
+    <message>
+        <source>%1 (MISSING)</source>
+        <translation>%1 (ВІДСУТНЯ)</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n strip(s)</source>
+        <translation>
+            <numerusform>%n смуга</numerusform>
+            <numerusform>%n смуги</numerusform>
+            <numerusform>%n смуг</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Overhang per end: %1 mm · %n band(s) · </source>
+        <translation>
+            <numerusform>Звис на кожен кінець: %1 мм · %n кромка · </numerusform>
+            <numerusform>Звис на кожен кінець: %1 мм · %n кромки · </numerusform>
+            <numerusform>Звис на кожен кінець: %1 мм · %n кромок · </numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n straight edge(s) · </source>
+        <translation>
+            <numerusform>%n прямий край · </numerusform>
+            <numerusform>%n прямі краї · </numerusform>
+            <numerusform>%n прямих країв · </numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n shaped part(s) · strips total %1 m</source>
+        <translation>
+            <numerusform>%n фігурна деталь · смуг разом %1 м</numerusform>
+            <numerusform>%n фігурні деталі · смуг разом %1 м</numerusform>
+            <numerusform>%n фігурних деталей · смуг разом %1 м</numerusform>
+        </translation>
     </message>
 </context>
 <context>
@@ -1210,6 +1595,14 @@
         <source>TOTAL (%1)</source>
         <translation>УСЬОГО (%1)</translation>
     </message>
+    <message>
+        <source>Bought-in</source>
+        <translation>Покупні вироби</translation>
+    </message>
+    <message>
+        <source>Bought-in items subtotal</source>
+        <translation>Разом покупні вироби</translation>
+    </message>
 </context>
 <context>
     <name>fos::app</name>
@@ -2189,6 +2582,49 @@
     </message>
 </context>
 <context>
+    <name>fos::app::gui::CompareDialog</name>
+    <message>
+        <source>Compare with %1</source>
+        <translation>Порівняння з %1</translation>
+    </message>
+    <message>
+        <source>Changes from the current project (left) to %1 (right), including the generated parts and hardware.</source>
+        <translation>Зміни від поточного проєкту (ліворуч) до %1 (праворуч), включно зі згенерованими деталями та фурнітурою.</translation>
+    </message>
+    <message>
+        <source>Export as text…</source>
+        <translation>Експорт як текст…</translation>
+    </message>
+    <message>
+        <source>Export as JSON…</source>
+        <translation>Експорт як JSON…</translation>
+    </message>
+    <message>
+        <source>-comparison</source>
+        <translation>-порівняння</translation>
+    </message>
+    <message>
+        <source>Export failed</source>
+        <translation>Помилка експорту</translation>
+    </message>
+    <message>
+        <source>Export comparison as text</source>
+        <translation>Експорт порівняння як тексту</translation>
+    </message>
+    <message>
+        <source>Text files (*.txt)</source>
+        <translation>Текстові файли (*.txt)</translation>
+    </message>
+    <message>
+        <source>Export comparison as JSON</source>
+        <translation>Експорт порівняння як JSON</translation>
+    </message>
+    <message>
+        <source>JSON files (*.json)</source>
+        <translation>Файли JSON (*.json)</translation>
+    </message>
+</context>
+<context>
     <name>fos::app::gui::ComponentBrowser</name>
     <message>
         <source>Search components</source>
@@ -2531,6 +2967,10 @@
         <source>Validation</source>
         <translation>Перевірка</translation>
     </message>
+    <message>
+        <source>Engineering (heuristic)</source>
+        <translation>Інженерна (евристика)</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::DrawingsWorkspace</name>
@@ -2711,6 +3151,65 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     <message>
         <source>Fit width</source>
         <translation>За шириною</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::EdgeBandingView</name>
+    <message>
+        <source>Export CSV…</source>
+        <translation>Експорт CSV…</translation>
+    </message>
+    <message>
+        <source>Export SVG sheets…</source>
+        <translation>Експорт аркушів SVG…</translation>
+    </message>
+    <message>
+        <source>The model could not be generated.</source>
+        <translation>Модель не вдалося згенерувати.</translation>
+    </message>
+    <message>
+        <source>Shaped parts: %1</source>
+        <translation>Фігурні деталі: %1</translation>
+    </message>
+    <message>
+        <source>untitled</source>
+        <translation>без назви</translation>
+    </message>
+    <message>
+        <source>-edge-banding</source>
+        <translation>-кромкування</translation>
+    </message>
+    <message>
+        <source>Export edge-banding jobs as CSV</source>
+        <translation>Експорт завдань кромкування як CSV</translation>
+    </message>
+    <message>
+        <source>CSV files (*.csv)</source>
+        <translation>Файли CSV (*.csv)</translation>
+    </message>
+    <message>
+        <source>Export failed</source>
+        <translation>Помилка експорту</translation>
+    </message>
+    <message>
+        <source>Export edge-banding job sheets as SVG</source>
+        <translation>Експорт аркушів завдань кромкування як SVG</translation>
+    </message>
+    <message>
+        <source>SVG files (*.svg)</source>
+        <translation>Файли SVG (*.svg)</translation>
+    </message>
+    <message>
+        <source>Export</source>
+        <translation>Експорт</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n file(s) written.</source>
+        <translation>
+            <numerusform>Записано %n файл.</numerusform>
+            <numerusform>Записано %n файли.</numerusform>
+            <numerusform>Записано %n файлів.</numerusform>
+        </translation>
     </message>
 </context>
 <context>
@@ -4506,6 +5005,38 @@ Replace it?</source>
         <source>Recovered unsaved changes from %1; save to keep them.</source>
         <translation>Відновлено незбережені зміни від %1; збережіть, щоб їх не втратити.</translation>
     </message>
+    <message>
+        <source>Engineering checks</source>
+        <translation>Інженерні перевірки</translation>
+    </message>
+    <message>
+        <source>Also run the engineering rule checks: shelf sag, hinge count, drawer depth and tipping risk. They are heuristics with generic assumptions, not structural calculations; findings are warnings or notes, never errors.</source>
+        <translation>Також виконувати інженерні перевірки: прогин полиць, кількість петель, глибина шухляд і ризик перекидання. Це евристики з типовими припущеннями, а не розрахунки міцності; результати — попередження або примітки, ніколи не помилки.</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n engineering finding(s) (heuristics)</source>
+        <translation>
+            <numerusform>%n інженерне зауваження (евристики)</numerusform>
+            <numerusform>%n інженерні зауваження (евристики)</numerusform>
+            <numerusform>%n інженерних зауважень (евристики)</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Compare with project</source>
+        <translation>Порівняти з проєктом</translation>
+    </message>
+    <message>
+        <source>Compare with</source>
+        <translation>Порівняння</translation>
+    </message>
+    <message>
+        <source>Co&amp;mpare with…</source>
+        <translation>По&amp;рівняти з…</translation>
+    </message>
+    <message>
+        <source>Show what differs between the open project and another project file</source>
+        <translation>Показати відмінності між відкритим проєктом та іншим файлом проєкту</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::NestingSettingsForm</name>
@@ -5161,6 +5692,18 @@ Replace it?</source>
     <message>
         <source>Export failed</source>
         <translation>Помилка експорту</translation>
+    </message>
+    <message>
+        <source>Bought-in items</source>
+        <translation>Покупні вироби</translation>
+    </message>
+    <message>
+        <source>Edge-banding jobs</source>
+        <translation>Завдання кромкування</translation>
+    </message>
+    <message>
+        <source>Bought-in items are ordered finished to size from a supplier (glass panes); they are not in the cut list, the material totals or the edge banding. %1</source>
+        <translation>Покупні вироби замовляють у постачальника готовими в розмір (скло); їх немає в карті розкрою, підсумках матеріалів і кромкуванні. %1</translation>
     </message>
 </context>
 <context>
