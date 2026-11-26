@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Codecs of the section tree and fronts (sizes, drawer boxes, sliding doors, appliance niches).
+// Codecs of the section tree and fronts (sizes, drawer boxes, sliding doors, appliance niches,
+// inner drawers).
 #include "codec_common.hpp"
 #include "fos/furniture/limits.hpp"
 #include "fos/project/codec.hpp"
@@ -243,6 +244,42 @@ core::Result<furniture::HangingRailSpec> hangingRailFromJson(const Json& json, s
     return h;
 }
 
+/// "joint" only when not Dowel, "handle" only for a Facia front.
+Json innerDrawersJson(const furniture::InnerDrawerSpec& d) {
+    Json j = Json::object();
+    Json heights = Json::array();
+    for (const auto& h : d.heights) heights.push_back(sizeJson(h));
+    j["heights"] = std::move(heights);
+    j["slide"] = d.slide.str();
+    j["bottom"] = furniture::toString(d.bottom);
+    if (d.joint != furniture::JointFastener::Dowel) j["joint"] = furniture::toString(d.joint);
+    j["front"] = furniture::toString(d.front);
+    if (d.front == furniture::InnerDrawerFront::Facia) j["handle"] = furniture::toString(d.handle);
+    return j;
+}
+
+core::Result<furniture::InnerDrawerSpec> innerDrawersFromJson(const Json& json, std::string_view path) {
+    using namespace furniture;
+    Reader r(json, path, "inner drawers");
+    InnerDrawerSpec d;
+    std::string slide;
+    r.limitArray("heights", furniture::limits::kMaxDrawerHeights, "inner drawer heights");
+    r.array("heights", d.heights, sizeFromJson);
+    r.text("slide", slide, true, true);
+    r.token("bottom", d.bottom, furnitureEnum<DrawerBottomMount>(),
+            furnitureTokens({DrawerBottomMount::Grooved, DrawerBottomMount::NailedUnder}));
+    r.token("joint", d.joint, furnitureEnum<JointFastener>(),
+            furnitureTokens({JointFastener::None, JointFastener::Confirmat, JointFastener::Dowel}));
+    r.token("front", d.front, furnitureEnum<InnerDrawerFront>(),
+            furnitureTokens({InnerDrawerFront::Box, InnerDrawerFront::Facia}));
+    r.token("handle", d.handle, furnitureEnum<InnerFaciaHandle>(),
+            furnitureTokens({InnerFaciaHandle::None, InnerFaciaHandle::CutOut}));
+    r.rejectUnknown();
+    if (!r.ok()) return r.error();
+    d.slide = domain::HardwareId(slide);
+    return d;
+}
+
 } // namespace
 
 Json toJson(const furniture::Section& s) {
@@ -253,6 +290,8 @@ Json toJson(const furniture::Section& s) {
     if (s.front) j["front"] = frontJson(*s.front);
     // Written only when set, so files without hanging rails stay byte-identical.
     if (s.hangingRail) j["hangingRail"] = hangingRailJson(*s.hangingRail);
+    // Written only when set, so files without inner drawers stay byte-identical.
+    if (s.innerDrawers) j["innerDrawers"] = innerDrawersJson(*s.innerDrawers);
     Json children = Json::array();
     for (const auto& c : s.children) children.push_back(toJson(c));
     j["children"] = std::move(children);
@@ -269,6 +308,7 @@ core::Result<furniture::Section> sectionFromJson(const Json& json, std::string_v
     r.integerInRange("shelfCount", s.shelfCount, 0, furniture::limits::kMaxShelvesPerSection);
     if (const Json* f = r.find("front"); f != nullptr && !f->is_null()) r.nested("front", s.front, frontFromJson);
     r.nested("hangingRail", s.hangingRail, hangingRailFromJson);
+    r.nested("innerDrawers", s.innerDrawers, innerDrawersFromJson);
     r.limitArray("children", furniture::limits::kMaxSectionChildren, "child sections");
     r.array("children", s.children, sectionFromJson);
     r.rejectUnknown();

@@ -315,6 +315,57 @@ graph, so width / depth / drawer-height changes regenerate the box; rules of `ha
 * Template `templates::drawerUnitWithBoxes()`: `drawerUnit()` with `drawerBox = DrawerBoxSpec{}` (ball-bearing
   slides, grooved bottom, dowelled corners) behind all four fronts; name "Drawer unit with boxes".
 
+## Inner drawers (`Section::innerDrawers`, `InnerDrawerSpec`)
+
+Drawer boxes behind a door, as in wardrobes and pantry units. A LEAF section (no adjustable
+shelves, no hanging rail) gets `innerDrawers`: `heights` (one compartment per drawer, bottom to top,
+`SectionSize` syntax like drawer stacks, sharing the section's clear height without gaps), `slide`
+(kind `DrawerSlide`), `bottom`, `joint` and `front`:
+`Box` (no separate front: the box's own front panel is seen when the door opens) or `Facia` (a thin
+internal front of the drawer material in front of the box front, with `handle` `CutOut` = a grip
+cut-out or `None`).
+
+* **Covering front** (on the section or an enclosing one): `Door` / `DoorPair`, or `SlidingDoors` when
+  the depth behind the tracks takes the shortest slide. Refused (InvalidArgument naming the section):
+  no front, `Flap` (the lift mechanisms leave no room), `DrawerStack`, `ApplianceNiche` / `ApplianceFront`;
+  L-shaped corner cabinets and appliance gaps (Unsupported).
+* **Boxes**: the drawer-box generator of drawer stacks ("Drawer boxes": slide length, box width / length,
+  grooves, corner joints, top / bottom clearances inside each compartment, slide jobs). Slots
+  `inner_drawer.<path>.<i>.side.left|side.right|box_front|box_back|bottom`, facia
+  `inner_drawer.<path>.<i>.facia`, packers `inner_drawer.<path>.<i>.packer.left|right.<k>`; slides
+  `hw.slide.inner_drawer.<path>.<i>.left|right`; grip cut-outs have source `<cabinet>/rule.inner_drawer_grip`.
+* **DOOR CLEARANCE RULE**: the drawer front (facia front face, or box front) stands
+  `inner_drawer_door_clearance` behind the inner face of the closed door (`-front_offset` for overlay
+  doors, `front_thickness` for inset doors); behind sliding doors it starts at the usable interior front
+  (behind the tracks). `drawer_box_front_setback` adds to it. The facia lies directly in front of the box.
+* **PACKER RULE**: a bounding panel of the section that carries the hinges of the covering door (the hinge
+  side of a `Door`, both sides of a `DoorPair`, when `hinges` is true) gets
+  `ceil(inner_drawer_hinge_projection / thickness)` packer strips of carcass board (at most 3, else
+  ConstraintViolation): length = the slide length from the box front, height
+  `inner_drawer_packer_height` from the box underside (at most up to the compartment top). The slide is
+  fixed to the innermost packer, so its carrying face stands at least the hinge projection inside the
+  panel, clear of the hinge arms / mounting plates and of the opened door. A partition (no hinges)
+  carries the slide directly. Packers count like shelves for moving intermediate hinges ("Hinges and
+  shelves"); packers are glued / screwed to the panel (no fixing is generated).
+* **HINGE CONFLICT**: after the fittings are placed, a plate hole of the covering door's hinges on the
+  packer's face of the panel within `inner_drawer_hinge_plate_margin` of a packer is error
+  `furniture.inner_drawers.hinge_conflict` (top / bottom hinges keep their rule positions: change the
+  drawer heights or `hinge_offset`).
+* **Facia**: x from the carrying faces inward by `inner_drawer_facia_gap`, z the compartment minus the
+  same gap at top and bottom, edges `frontEdge`. Grip: `inner_drawer_grip_width` x `inner_drawer_grip_height`
+  through cut-out (Pocket on face B) centred on the width, `inner_drawer_grip_top_offset` below the top
+  edge, at least 5 mm of material at every edge (else ConstraintViolation).
+* GENERIC optional graph parameters (mm; rules of thumb, not manufacturer data: check the hinge and
+  slide data sheets): `inner_drawer_door_clearance` 20, `inner_drawer_hinge_projection` 16,
+  `inner_drawer_packer_height` 60, `inner_drawer_hinge_plate_margin` 20, `inner_drawer_facia_gap` 3,
+  `inner_drawer_grip_width` 100, `inner_drawer_grip_height` 30, `inner_drawer_grip_top_offset` 20.
+* Example (600 x 2000 x 560 wardrobe, one full-overlay door hinged left, drawer compartment z 318 .. 568,
+  ball-bearing slides): front y = -2 + 20 = 18; one packer x 18 .. 36; box 546 - 2 x 12.7 = 520.6 wide
+  (x 48.7 .. 569.3), slide 500 (560 - 18 - 10 = 532 usable), box z 333 .. 543, packer z 333 .. 393.
+* Limitations: whether a drawer behind sliding doors can be pulled out depends on the door positions
+  (not checked); the opened door's swing is modelled only by the hinge projection; a door with
+  `hinges = false` gets no packers.
+
 ## Hinges and shelves
 
 Intermediate hinges (not the top / bottom one) are moved out of the zone `[shelf bottom - c,

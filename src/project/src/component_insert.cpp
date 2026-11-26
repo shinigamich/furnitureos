@@ -44,6 +44,7 @@ void remapSection(furniture::Section& s, const Remap& r) {
         remapId(s.hangingRail->rail, r.hardware);
         remapId(s.hangingRail->supports, r.hardware);
     }
+    if (s.innerDrawers) remapId(s.innerDrawers->slide, r.hardware);
     if (s.front && s.front->frame.panelMaterial) remapId(*s.front->frame.panelMaterial, r.materials);
     for (auto& child : s.children) remapSection(child, r);
 }

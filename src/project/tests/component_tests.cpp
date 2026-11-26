@@ -260,3 +260,44 @@ TEST(Components, HangingRailCodecRoundTripAndLibraryReferences) {
     EXPECT_TRUE(has(libraryReferences(item), hardware::ids::kClothesRailGeneric));
     EXPECT_TRUE(has(libraryReferences(item), hardware::ids::kRailSupportGeneric));
 }
+
+// Inner drawers: "innerDrawers" only when set (older files unchanged), "joint" only when not
+// Dowel, "handle" only for a Facia; the slide counts as a library reference.
+TEST(Components, InnerDrawersCodecRoundTripAndLibraryReferences) {
+    EXPECT_FALSE(toJson(furniture::Section{}).contains("innerDrawers"));
+
+    furniture::Section s;
+    s.innerDrawers = furniture::InnerDrawerSpec{};
+    s.innerDrawers->heights = {furniture::SectionSize::fixed(200), furniture::SectionSize::weight()};
+    s.innerDrawers->slide = domain::HardwareId("hw.my_slide");
+    const auto j = toJson(s);
+    ASSERT_TRUE(j.contains("innerDrawers"));
+    EXPECT_EQ(j["innerDrawers"]["front"].get<std::string>(), "Box");
+    EXPECT_FALSE(j["innerDrawers"].contains("joint"));
+    EXPECT_FALSE(j["innerDrawers"].contains("handle"));
+    auto back = sectionFromJson(j, "/section");
+    ASSERT_TRUE(back.ok()) << back.error().message;
+    EXPECT_EQ(back.value(), s);
+
+    s.innerDrawers->front = furniture::InnerDrawerFront::Facia;
+    s.innerDrawers->handle = furniture::InnerFaciaHandle::None;
+    s.innerDrawers->joint = furniture::JointFastener::Confirmat;
+    const auto j2 = toJson(s);
+    EXPECT_EQ(j2["innerDrawers"]["handle"].get<std::string>(), "None");
+    EXPECT_EQ(j2["innerDrawers"]["joint"].get<std::string>(), "Confirmat");
+    auto back2 = sectionFromJson(j2, "/section");
+    ASSERT_TRUE(back2.ok()) << back2.error().message;
+    EXPECT_EQ(back2.value(), s);
+
+    auto bad = j2;
+    bad["innerDrawers"]["front"] = "Drawer";
+    EXPECT_FALSE(sectionFromJson(bad, "/section").ok());
+
+    Item item = test::baseCabinetItem("cab1");
+    const auto has = [](const LibraryRefs& r, const char* id) {
+        return std::find(r.hardware.begin(), r.hardware.end(), id) != r.hardware.end();
+    };
+    EXPECT_FALSE(has(libraryReferences(item), "hw.my_slide"));
+    item.cabinet()->interior.innerDrawers = s.innerDrawers;
+    EXPECT_TRUE(has(libraryReferences(item), "hw.my_slide"));
+}

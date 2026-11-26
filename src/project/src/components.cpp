@@ -39,6 +39,7 @@ void collectSection(RefSets& r, const furniture::Section& s) {
         addId(r.hardware, s.hangingRail->rail.str());
         addId(r.hardware, s.hangingRail->supports.str());
     }
+    if (s.innerDrawers) addId(r.hardware, s.innerDrawers->slide.str());
     for (const auto& child : s.children) collectSection(r, child);
 }
 

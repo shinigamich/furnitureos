@@ -67,7 +67,7 @@ TEST(InnerDrawers, BoxesBehindDoorWithPackerOnHingeSide) {
     for (const char* s : {"box_front", "box_back", "bottom"}) EXPECT_TRUE(has(a, std::string("inner_drawer.2.1.") + s));
     EXPECT_FALSE(has(a, "inner_drawer.2.1.facia"));
 
-    const domain::Part& packer = part(a, "inner_drawer.2.1.packer.left.1");
+    const domain::Part packer = part(a, "inner_drawer.2.1.packer.left.1");
     expectSize(packer, 500, 60, 18);
     EXPECT_EQ(packer.role, domain::PartRole::Generic);
     EXPECT_EQ(packer.material.str(), "mat.pb18");
@@ -101,11 +101,11 @@ TEST(InnerDrawers, FaciaWithGripCutOut) {
     const domain::Assembly& a = r.assembly;
     EXPECT_THAT(errorsOf(r.diagnostics), IsEmpty());
     EXPECT_THAT(interpenetrations(a), IsEmpty());
-    const domain::Part& facia = part(a, "inner_drawer.2.1.facia");
+    const domain::Part facia = part(a, "inner_drawer.2.1.facia");
     expectSize(facia, 540, 244, 16);
     EXPECT_EQ(facia.role, domain::PartRole::DrawerFront);
     expectBox(facia, {39, 18, 321}, {579, 34, 565});
-    expectBox(part(a, "inner_drawer.2.1.side.left"), {50.7, 34, 333}, {66.7, 534, 543});
+    expectBox(part(a, "inner_drawer.2.1.side.left"), {48.7, 34, 333}, {64.7, 534, 543}); // 16 mm side
     ASSERT_EQ(facia.operations.size(), 1u);
     const auto* pocket = std::get_if<domain::Pocket>(&facia.operations[0].shape);
     ASSERT_NE(pocket, nullptr);
