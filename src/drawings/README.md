@@ -30,6 +30,7 @@ The model is only ever taken by `const&`; nothing in this module can change it.
 | `part_view.hpp` | `generatePartView`, `annotatePartView`, `PartDrawingLabels` |
 | `sheet.hpp` | paper sizes, margins, `Scale`, `ScaleRequest`, title block, calibration mark, `Sheet`, `makeSheet` |
 | `drawing.hpp` | `generateAssemblyDrawing`, `generatePartDrawing`, `ProjectionMethod` |
+| `pictorial.hpp` | isometric / exploded isometric assembly views, part balloons, `generatePictorialDrawing` |
 | `svg.hpp`, `dxf.hpp` | exporters |
 
 ## Conventions
@@ -101,6 +102,34 @@ viewer's side are removed, intersected parts are truncated at the plane and list
 are projected with HLR. Hatch lines (alternating 45°/135° per cut part) are produced at render time, properly
 clipped to the cut rectangle, with spacing in paper mm.
 
+## Pictorial views (isometric, exploded)
+
+`generatePictorialView` / `generatePictorialDrawing` (`pictorial.hpp`; CLI `fos drawing <p> <item> --view iso|exploded
+[--explode F] [--balloons]`). Ids `<assembly>/view.iso|exploded`, sheet `<assembly>/sheet.iso|exploded`,
+balloons `<view>/balloon[<part-id>]`.
+
+* **Projection**: isometric *drawing* (ISO 5456-3), true length along X/Y/Z, axes at 120°. `FrontLeft` (default):
+  `u = (x − y)·cos30, v = (x + y)·sin30 + z`; `FrontRight`: `u = (x + y)·cos30, v = (y − x)·sin30 + z`.
+* **Visibility**: painter's ordering per pair of parts by a separating plane (SAT over face normals and edge
+  cross products of the two part boxes; exact for disjoint convex boxes, so no cyclic-overlap failure), applied
+  in object space: every edge is clipped against the convex projected silhouette of each part in front of it.
+  Own far edges are kept only where an adjacent face looks at the viewer. Hidden lines are omitted.
+  **Limits**: occluders are bounding boxes (contoured parts hide what lies behind their cut-outs and rounded
+  corners); interpenetrating parts are ordered along the axis of least penetration (Info
+  `drawings.pictorial.overlap`); for concave outlines a far edge seen through the part's own notch may be drawn.
+* **Contoured parts** are drawn as their extruded finished outline: arcs tessellated (`chordTolerance`, default
+  0.5 mm) into Lines (not ellipse primitives), connecting edges at corners and arc silhouette points, cut-outs on
+  the viewer-side face only.
+* **Exploded**: moving parts are offset by `(factor − 1) × assembly size` along the role axis (`explodeDirection`):
+  sides ±X (by side of the centre), top/worktop +Z, bottom/plinth −Z, back +Y (backwards; the front is y = 0),
+  doors/drawer fronts and drawer box parts −Y, shelves/partitions/rails/generic stay. Factor in [1, 10].
+* **Balloons**: circle + number + leader with dot, numbered like `production::PartRow::number` (1-based over the
+  whole model in model order; `firstPartListNumber`). Anchor = midpoint of the part's longest visible segment;
+  placed on the ray from the view centre through the anchor, outside the geometry box, pushed outwards on
+  collision (heuristic). A completely hidden part gets no balloon (Warning `drawings.pictorial.balloon_hidden`).
+* **No dimensions** on pictorial views: only axis-parallel lengths are true on the picture; dimensions belong
+  on the orthographic views. Hardware and machining are not drawn. DXF via `pictorialModelSpacePrimitives`.
+
 ## Dimensions
 
 `Dimension` = two anchors in view coordinates + orientation + signed paper offset. The value is always
@@ -162,7 +191,7 @@ its own sheet.
 * HLR and section cutting handle axis-aligned boxes only. A rotated part is drawn with all 12 edges visible,
   hides nothing, is not cut, and is reported (`drawings.hlr.not_axis_aligned`). Machining (holes, grooves,
   cut-outs) and hardware are not shown in assembly views; panels are plain boxes there.
-* No isometric/perspective views, no detail views (a `DetailMarker` only marks the region), no view captions.
+* No perspective views; isometric views are pictorial only (see above). No detail views (a `DetailMarker` only marks the region), no view captions.
 * Dimensions are linear horizontal/vertical plus radius/diameter leaders of contoured parts (no aligned or
   angular dimensions). Edge-face operations of contoured parts are drawn against the bounding rectangle.
 * Edge-on contoured parts occlude with their full bounding box depth (only matters for geometry placed inside
