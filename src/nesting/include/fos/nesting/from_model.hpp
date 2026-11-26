@@ -67,6 +67,10 @@ struct MaterialNestJob {
 /// * Stock: one unlimited sheet "<material id>/sheet" of the material's sheet size with
 ///   settings.margins.
 ///
+/// Bought-in parts (domain::isBoughtIn: glass panes, ordered cut to size) are never nested; one
+/// Info nesting.adapter.bought_in per call counts the SHAPED ones (rectangular ones are counted by
+/// cutting::cuttingFromModel, so the two counts never overlap).
+///
 /// Diagnostics (never dropped silently; the part gets no nesting entry on Error):
 ///   nesting.adapter.invalid_settings (Error, once; no jobs at all) tool diameter / tolerance <= 0,
 ///                                     clearance < 0 or non-finite values;

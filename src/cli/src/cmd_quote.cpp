@@ -51,6 +51,7 @@ std::string quoteJson(const production::Quote& q) {
     j["lines"] = std::move(lines);
     // Money totals as 2-decimal strings: exact for display / accounting, no binary float noise.
     j["materialsSubtotal"] = jsonNumberText(q.materialsSubtotal);
+    j["boughtInSubtotal"] = jsonNumberText(q.boughtInSubtotal);
     j["edgeBandsSubtotal"] = jsonNumberText(q.edgeBandsSubtotal);
     j["hardwareSubtotal"] = jsonNumberText(q.hardwareSubtotal);
     j["labourSubtotal"] = jsonNumberText(q.labourSubtotal);

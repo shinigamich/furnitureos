@@ -79,6 +79,19 @@ struct Part {
 /// Length of the finished edge `s` of the part (L1/L2 -> length, W1/W2 -> width).
 double edgeLength(const Part& part, EdgeSide s) noexcept;
 
+/// Part::custom key marking a glass pane (set by the furniture generator on the glass of
+/// glass-panel frame fronts, value "true").
+inline constexpr const char* kGlassPaneKey = "furniture.glass";
+
+/// True for a glass pane: Part::custom[kGlassPaneKey] == "true".
+bool isGlassPane(const Part& part) noexcept;
+
+/// THE bought-in rule (used by `production`, `cutting`, `nesting`, `cam`; nothing else may
+/// re-derive it): a bought-in part is ordered finished to size from a supplier (a glass pane
+/// from a glazier) and is NOT sheet cut, nested, edge banded or machined in the workshop.
+/// Currently exactly the glass panes (isGlassPane()). Glazing beads are normal parts.
+bool isBoughtIn(const Part& part) noexcept;
+
 const char* toString(PartRole r) noexcept;
 const char* toString(EdgeSide s) noexcept;
 const char* toString(GrainDirection g) noexcept;

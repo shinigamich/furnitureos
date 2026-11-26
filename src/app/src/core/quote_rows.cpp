@@ -93,6 +93,7 @@ QString QuoteText::category(production::QuoteCategory category) {
     case production::QuoteCategory::EdgeBand: return tr("Edge band");
     case production::QuoteCategory::Hardware: return tr("Hardware");
     case production::QuoteCategory::Labour: return tr("Labour");
+    case production::QuoteCategory::BoughtIn: return tr("Bought-in");
     }
     return {};
 }
@@ -120,6 +121,9 @@ QuoteRows QuoteText::rows(const production::Quote& q) {
         r.unpriced.push_back(false);
     };
     total(tr("Materials subtotal"), q.materialsSubtotal);
+    bool boughtIn = false;
+    for (const auto& l : q.lines) boughtIn = boughtIn || l.category == production::QuoteCategory::BoughtIn;
+    if (boughtIn) total(tr("Bought-in items subtotal"), q.boughtInSubtotal);
     total(tr("Edge banding subtotal"), q.edgeBandsSubtotal);
     total(tr("Hardware subtotal"), q.hardwareSubtotal);
     total(tr("Labour subtotal"), q.labourSubtotal);

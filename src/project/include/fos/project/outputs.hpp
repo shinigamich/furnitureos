@@ -26,7 +26,8 @@ ProductionOptions productionOptions(const Project& project);
 
 struct ProductionReports {
     production::PartList parts;
-    production::CutList cutList;
+    production::CutList cutList;           ///< Without bought-in parts (see boughtIn).
+    production::BoughtInList boughtIn;     ///< Glass panes ordered cut to size.
     production::MaterialReport materials;
     production::EdgeBandingReport edgeBanding;
     production::HardwareReport hardware;

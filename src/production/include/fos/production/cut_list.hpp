@@ -76,7 +76,8 @@ struct CutList {
 /// different outlines, cut-outs or outline bands never merge) and - unless
 /// `groupAcrossAssemblies` - the owning assembly. Name and role do not matter.
 /// Sorted by material name, material id, then descending cut length, descending cut
-/// width, then lowest part number.
+/// width, then lowest part number. Bought-in parts (domain::isBoughtIn: glass panes) are left
+/// out (see bought_in.hpp) with one Info production.bought_in.excluded giving their count.
 CutList cutList(const domain::Model& model, const CutListOptions& options = {}, const Scope& scope = {});
 
 } // namespace fos::production

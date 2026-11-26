@@ -186,8 +186,9 @@ material should be of `MaterialKind::Glass`, otherwise warning `furniture.front.
 ("<front> top glazing bead", custom `furniture.front_piece = bead`), front material, rebate width wide,
 rebate depth - glass thickness thick, flush with face A; top / bottom span W - 2 stile + 2 rebate width,
 the sides fit between them (H - 2 rail). The dowel zone is rail width - rebate width.
-**Production must treat parts with `furniture.glass = "true"` as bought-in** (ordered cut to size from a
-glazier; no sheet cutting / nesting) — the production module does not do this yet (follow-up).
+Parts with `furniture.glass = "true"` are **bought-in** (`domain::isBoughtIn`; ordered cut to size from
+a glazier): no cut list, cutting / nesting job, edge banding or CNC program; they appear in the
+production bought-in items list and the quote (by area). See the production README.
 Refused: joint StubTenon with glass (Unsupported; use Dowel), clearance >= rebate width, glass /
 rebate sizes <= 0 (InvalidArgument), less than 20 mm (generic) of solid stile / rail beside the rebate,
 a lip in front of the rebate below 2 mm, rebate depth < glass thickness (InvalidArgument), and with beads

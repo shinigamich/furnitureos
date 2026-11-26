@@ -25,7 +25,7 @@ std::vector<EdgeBandStripJob> edgeBandStripJobs(const domain::Model& model, cons
         j.appliedLength += length;
         j.job.pieces.push_back(linear::Piece{std::move(id), label, length + 2.0 * overhang, 1});
     };
-    for (const auto& ref : detail::collect(model, options.scope).parts) {
+    for (const auto& ref : detail::collect(model, options.scope, detail::PartSet::Workshop).parts) {
         const auto& part = *ref.part;
         int n = 0;
         for (const auto& strip : detail::bandStrips(part))

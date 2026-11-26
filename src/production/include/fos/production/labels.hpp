@@ -39,6 +39,8 @@ struct LabelSet {
     core::Diagnostics diagnostics;
 };
 
+/// One label per cut-list part; bought-in parts (domain::isBoughtIn) get none (one Info
+/// production.bought_in.excluded).
 LabelSet labels(const domain::Model& model, const LabelOptions& options = {}, const Scope& scope = {});
 
 /// Captions printed on a label (English defaults; pass translations from the app).

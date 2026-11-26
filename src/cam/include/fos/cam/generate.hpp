@@ -76,7 +76,8 @@ struct CamResult {
     std::vector<int> toolsUsed; ///< in order of first use
 };
 
-/// Errors (Result): invalid setup or profile, machining validation errors on the part,
+/// Errors (Result): Unsupported for a bought-in part (domain::isBoughtIn: a glass pane, ordered
+/// cut to size, never machined; checked first), invalid setup or profile, machining validation errors on the part,
 /// missing/unsuitable tool (message from ToolLibrary), tool rpm/feed above machine limits,
 /// safe Z below the clearance plane, breakthrough allowance beyond the spoilboard limit,
 /// invalid options, closed groove shorter than the tool diameter, no end mill able to route a

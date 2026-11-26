@@ -199,3 +199,15 @@ TEST(CamGenerate, Deterministic) {
     for (std::size_t i = 0; i < a.value().program.motions.size(); ++i)
         EXPECT_EQ(describe(a.value().program.motions[i]), describe(b.value().program.motions[i]));
 }
+
+// A bought-in glass pane (domain::isBoughtIn) is ordered cut to size: no CNC program, even
+// though the same part without the flag generates one.
+TEST(CamGenerate, BoughtInGlassPaneIsRefused) {
+    auto part = test::leftSide();
+    ASSERT_TRUE(generateProgram(part, {Face::B, {10, 20, 0}}, test::testProfile(), test::testTools()));
+    part.custom[domain::kGlassPaneKey] = "true";
+    auto r = generateProgram(part, {Face::B, {10, 20, 0}}, test::testProfile(), test::testTools());
+    ASSERT_FALSE(r);
+    EXPECT_EQ(r.error().code, core::ErrorCode::Unsupported);
+    EXPECT_NE(r.error().message.find("bought-in glass pane"), std::string::npos) << r.error().message;
+}

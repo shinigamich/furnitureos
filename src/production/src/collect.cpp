@@ -5,7 +5,7 @@
 
 namespace fos::production::detail {
 
-Collected collect(const domain::Model& model, const Scope& scope) {
+Collected collect(const domain::Model& model, const Scope& scope, PartSet set) {
     Collected out;
     int number = 0;
     for (const auto& a : model.assemblies) {
@@ -13,7 +13,11 @@ Collected collect(const domain::Model& model, const Scope& scope) {
         if (inScope) out.assemblies.push_back(&a);
         for (const auto& p : a.parts) {
             ++number;
-            if (inScope) out.parts.push_back({&a, &p, number});
+            if (!inScope) continue;
+            if (set == PartSet::Workshop && domain::isBoughtIn(p))
+                ++out.boughtInExcluded;
+            else
+                out.parts.push_back({&a, &p, number});
         }
     }
     if (scope.assembly && out.assemblies.empty())
@@ -21,6 +25,15 @@ Collected collect(const domain::Model& model, const Scope& scope) {
              "Assembly '" + scope.assembly->str() + "' is not in the model; the report is empty.",
              scope.assembly->str());
     return out;
+}
+
+void noteBoughtIn(core::Diagnostics& out, const Collected& c, const std::string& what) {
+    if (c.boughtInExcluded <= 0) return;
+    out.push_back({core::Severity::Info, "production.bought_in.excluded",
+                   std::to_string(c.boughtInExcluded) +
+                       " bought-in part(s) (glass panes, ordered cut to size) are not in the " + what +
+                       "; see the bought-in items list.",
+                   ""});
 }
 
 EdgeCell resolveEdge(const domain::Model& model, const std::optional<domain::EdgeBandId>& e) {

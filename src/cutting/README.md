@@ -172,6 +172,10 @@ guillotine pieces: `cuttingFromModel()` returns the unchanged jobs plus `routedP
 stays a piece. Nesting jobs for the routed parts: `fos::nesting::nestingJobsFromModel()`
 (target `fos::nesting_model`).
 
+Bought-in parts (`domain::isBoughtIn`: glass panes, ordered cut to size) are in no job and not in
+`routedParts`; one Info `cutting.adapter.bought_in` per call counts the rectangular ones
+(`ModelCutting::boughtInCount`); shaped ones are counted by the nesting adapter instead.
+
 ## Limits
 
 * Heuristic only; no exact or branch-and-bound solver, no optimality proof.

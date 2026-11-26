@@ -90,9 +90,10 @@ std::string CutListRow::name() const {
 }
 
 CutList cutList(const domain::Model& model, const CutListOptions& options, const Scope& scope) {
-    const auto c = detail::collect(model, scope);
+    const auto c = detail::collect(model, scope, detail::PartSet::Workshop);
     CutList out;
-    out.diagnostics = partList(model, scope).diagnostics;
+    out.diagnostics = detail::partList(model, c).diagnostics;
+    detail::noteBoughtIn(out.diagnostics, c, "cut list");
     const double tol = std::isfinite(options.sizeTolerance) ? std::max(0.0, options.sizeTolerance) : 0.0;
 
     for (const auto& ref : c.parts) {

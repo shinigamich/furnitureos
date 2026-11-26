@@ -42,10 +42,15 @@ std::vector<MaterialNestJob> nestingJobsFromModel(const domain::Model& model, co
     }
     std::vector<int> jobOfMaterial(model.materials.size(), -1);
     std::vector<char> badSheet(model.materials.size(), 0);
+    int boughtIn = 0;
 
     for (const domain::Assembly& assembly : model.assemblies) {
         for (const domain::Part& part : assembly.parts) {
             if (domain::isRectangularOutline(part)) continue; // guillotine cutting
+            if (domain::isBoughtIn(part)) { // ordered cut to size (glass panes); THE rule lives in domain
+                ++boughtIn;
+                continue;
+            }
             std::size_t mi = 0;
             while (mi < model.materials.size() && model.materials[mi].id != part.material) ++mi;
             if (mi == model.materials.size()) {
@@ -154,6 +159,12 @@ std::vector<MaterialNestJob> nestingJobsFromModel(const domain::Model& model, co
             mj.frames.push_back(std::move(frame));
         }
     }
+    if (boughtIn > 0)
+        diagnostics.push_back({core::Severity::Info, "nesting.adapter.bought_in",
+                               std::to_string(boughtIn) +
+                                   " shaped bought-in part(s) (glass panes, ordered cut to size) are not in any "
+                                   "nesting job; see the bought-in items list.",
+                               ""});
     std::vector<MaterialNestJob> ordered;
     for (std::size_t mi = 0; mi < model.materials.size(); ++mi)
         if (jobOfMaterial[mi] >= 0) ordered.push_back(std::move(jobs[static_cast<std::size_t>(jobOfMaterial[mi])]));

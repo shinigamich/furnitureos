@@ -13,7 +13,7 @@ namespace fos::cli::detail {
 namespace {
 
 const char* kReportHelp =
-    "Usage: fos report <file.fosp> --type parts|cutlist|materials|edgebanding|hardware|machining|summary\n"
+    "Usage: fos report <file.fosp> --type parts|cutlist|boughtin|materials|edgebanding|hardware|machining|summary\n"
     "                  [--csv out.csv] [--separator ';']\n"
     "       fos report <file.fosp> --html out.html <item-id>\n\n"
     "Production reports of the resolved model. Without --csv the report is printed as a text\n"
@@ -23,7 +23,9 @@ const char* kReportHelp =
     "Exit code 1 when the report has errors or the project has model errors (e.g. an item that\n"
     "cannot be generated: it is missing from the report; stderr says which items).\n"
     "Cut sizes are saw sizes (finished size minus edge banding). Material sheet counts in the\n"
-    "materials report are AREA LOWER BOUNDS; real sheet counts come from 'fos cut'.\n";
+    "materials report are AREA LOWER BOUNDS; real sheet counts come from 'fos cut'.\n"
+    "Bought-in items (glass panes of glass-panel fronts, ordered cut to size) are not in the cut\n"
+    "list, materials, edge banding or machining reports; '--type boughtin' lists them.\n";
 
 const char* kLabelsHelp =
     "Usage: fos labels <file.fosp> --svg-dir DIR [--barcode none|code128]\n"
@@ -52,6 +54,7 @@ struct ReportTable {
 std::optional<ReportTable> reportTable(const std::string& type, const project::ProductionReports& r) {
     if (type == "parts") return ReportTable{production::partListTable(r.parts), r.parts.diagnostics};
     if (type == "cutlist") return ReportTable{production::cutListTable(r.cutList), r.cutList.diagnostics};
+    if (type == "boughtin") return ReportTable{production::boughtInTable(r.boughtIn), r.boughtIn.diagnostics};
     if (type == "materials") return ReportTable{production::materialTable(r.materials), r.materials.diagnostics};
     if (type == "edgebanding")
         return ReportTable{production::edgeBandingTable(r.edgeBanding), r.edgeBanding.diagnostics};
@@ -101,10 +104,10 @@ int cmdReport(const std::vector<std::string>& args, Io& io) {
         separator = (*s)[0];
     }
     const std::string type = a.value("type").value_or("");
-    if (!html && type != "parts" && type != "cutlist" && type != "materials" && type != "edgebanding" &&
+    if (!html && type != "parts" && type != "cutlist" && type != "boughtin" && type != "materials" && type != "edgebanding" &&
         type != "hardware" && type != "machining" && type != "summary")
         return usageError(io, "report", "unknown report type '" + type +
-                                            "' (parts, cutlist, materials, edgebanding, hardware, machining, summary).");
+                                            "' (parts, cutlist, boughtin, materials, edgebanding, hardware, machining, summary).");
 
     auto loaded = loadProjectOrReport(io, "report", a.positional[0]);
     if (!loaded) return kExitUsageOrIo;

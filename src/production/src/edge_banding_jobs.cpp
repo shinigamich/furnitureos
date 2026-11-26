@@ -92,8 +92,9 @@ EdgeBandingJobs edgeBandingJobs(const domain::Model& model, const EdgeBandingOpt
     EdgeBandingJobs out;
     out.overhangPerEnd = detail::positiveFinite(settings.overhangPerEnd) ? settings.overhangPerEnd : 0.0;
     const double overhang = out.overhangPerEnd;
-    auto collected = detail::collect(model, scope);
+    auto collected = detail::collect(model, scope, detail::PartSet::Workshop);
     out.diagnostics = std::move(collected.diagnostics);
+    detail::noteBoughtIn(out.diagnostics, collected, "edge-banding jobs");
 
     std::map<domain::EdgeBandId, std::vector<PartBandingJob>> byBand;
     std::set<domain::EdgeBandId> used;

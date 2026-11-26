@@ -14,7 +14,10 @@ double PartRow::finishedAreaM2() const noexcept {
 double PartRow::cutAreaM2() const noexcept { return detail::areaM2(cutLength, cutWidth); }
 
 PartList partList(const domain::Model& model, const Scope& scope) {
-    auto c = detail::collect(model, scope);
+    return detail::partList(model, detail::collect(model, scope));
+}
+
+PartList detail::partList(const domain::Model& model, Collected c) {
     PartList out;
     out.diagnostics = std::move(c.diagnostics);
     out.rows.reserve(c.parts.size());

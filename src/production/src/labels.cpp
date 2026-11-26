@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/production/labels.hpp"
 
+#include "collect.hpp"
+
 #include <map>
 
 namespace fos::production {
@@ -8,7 +10,9 @@ namespace fos::production {
 std::string Label::quantityText() const { return std::to_string(indexInGroup) + "/" + std::to_string(groupQuantity); }
 
 LabelSet labels(const domain::Model& model, const LabelOptions& options, const Scope& scope) {
-    const PartList parts = partList(model, scope);
+    // Labels go on workshop parts: bought-in parts (glass panes) are neither cut nor labelled.
+    const auto collected = detail::collect(model, scope, detail::PartSet::Workshop);
+    const PartList parts = detail::partList(model, collected);
     const CutList cuts = cutList(model, options.cutList, scope);
 
     // part number -> (1-based index in group, group size)
@@ -19,6 +23,7 @@ LabelSet labels(const domain::Model& model, const LabelOptions& options, const S
 
     LabelSet out;
     out.diagnostics = parts.diagnostics;
+    detail::noteBoughtIn(out.diagnostics, collected, "labels");
     out.labels.reserve(parts.rows.size());
     for (const auto& r : parts.rows) {
         Label l;

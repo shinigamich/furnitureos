@@ -37,7 +37,9 @@ struct MaterialReport {
     core::Diagnostics diagnostics;
 };
 
-/// Per-material totals. Only materials referenced by at least one part appear.
+/// Per-material totals. Only materials referenced by at least one part appear. Bought-in parts
+/// (domain::isBoughtIn) are left out (one Info production.bought_in.excluded); so are they in
+/// edgeBandingReport() and machiningSummary() (without a notice).
 MaterialReport materialReport(const domain::Model& model, const Scope& scope = {});
 
 // ------------------------------------------------------------- edge banding

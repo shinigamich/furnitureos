@@ -123,7 +123,8 @@ in the file only. Nothing checks a table against real tools or a machine.
 
 ## Safety model
 
-1. `generateProgram` refuses parts with machining validation errors, invalid profiles/options,
+1. `generateProgram` refuses bought-in parts (`domain::isBoughtIn`: glass panes, Unsupported),
+   parts with machining validation errors, invalid profiles/options,
    missing tools, tools above machine rpm/feed limits, safe Z below the clearance plane, a stock origin
    below Z = 0 (`makeSetupFrame`: Z = 0 is the spoilboard top), and any generated position outside the
    machine envelope (e.g. a groove lead-out past an open end with the stock clamped near the envelope

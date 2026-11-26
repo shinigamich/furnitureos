@@ -92,3 +92,47 @@ TEST(CliQuote, BatchQuoteCountsCopies) {
 
 } // namespace
 } // namespace fos::cli::test
+
+namespace fos::cli::test {
+
+// Glass-panel frame front: the panes are bought-in items (report type boughtin, quote line by
+// area), not in the cut list.
+TEST(CliQuote, GlassPanesAreBoughtInItems) {
+    TempDir dir;
+    const std::string file = dir.file("g.fosp");
+    ASSERT_EQ(newBaseCabinet(file).code, 0);
+    auto loaded = project::loadProject(file);
+    ASSERT_TRUE(loaded) << loaded.error().message;
+    project::Project p = loaded.value().project;
+    domain::Material g;
+    g.id = domain::MaterialId("glass.float4");
+    g.name = "Float glass 4 mm";
+    g.kind = domain::MaterialKind::Glass;
+    g.thickness = 4;
+    g.costPerSquareMeter = 60;
+    p.libraries.materials.push_back(g);
+    ASSERT_FALSE(p.items.empty());
+    auto* cab = p.items[0].cabinet();
+    ASSERT_TRUE(cab != nullptr && cab->interior.front.has_value());
+    auto& f = *cab->interior.front;
+    f.style = furniture::FrontStyle::FramePanel;
+    f.frame.joint = furniture::FrameJoint::Dowel;
+    f.frame.panelKind = furniture::FramePanelKind::Glass;
+    f.frame.panelMaterial = g.id;
+    formats::SaveOptions so;
+    so.backupCount = 0;
+    ASSERT_TRUE(project::saveProject(file, p, so));
+
+    const auto bought = fos({"report", file, "--type", "boughtin"});
+    EXPECT_EQ(bought.code, 0) << bought.out << bought.err;
+    EXPECT_TRUE(contains(bought.out, "Glass pane")) << bought.out;
+    EXPECT_TRUE(contains(bought.out, "Float glass 4 mm")) << bought.out;
+    const auto cut = fos({"report", file, "--type", "cutlist"});
+    EXPECT_FALSE(contains(cut.out, "Float glass 4 mm")) << cut.out;
+    EXPECT_TRUE(contains(cut.out, "production.bought_in.excluded")) << cut.out;
+    const auto q = fos({"quote", file});
+    EXPECT_TRUE(contains(q.out, "Bought-in")) << q.out;
+    EXPECT_TRUE(contains(q.out, "Glass pane")) << q.out;
+}
+
+} // namespace fos::cli::test

@@ -25,6 +25,7 @@ ProductionReports productionReports(const domain::Model& m, const ProductionOpti
     ProductionReports r;
     r.parts = production::partList(m, o.scope);
     r.cutList = production::cutList(m, o.cutList, o.scope);
+    r.boughtIn = production::boughtInList(m, o.scope);
     r.materials = production::materialReport(m, o.scope);
     r.edgeBanding = production::edgeBandingReport(m, o.edgeBanding, o.scope);
     r.hardware = production::hardwareReport(m, o.scope);

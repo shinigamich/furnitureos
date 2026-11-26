@@ -10,6 +10,7 @@
 ///
 /// Currency is a label only: no conversion is performed. Quantities: m2, sheets, metres, pieces.
 #include "fos/core/result.hpp"
+#include "fos/production/bought_in.hpp"
 #include "fos/production/reports.hpp"
 
 #include <map>
@@ -59,7 +60,7 @@ struct QuoteOptions {
     std::map<domain::MaterialId, SheetUsage> sheetUsage;
 };
 
-enum class QuoteCategory { Material, EdgeBand, Hardware, Labour };
+enum class QuoteCategory { Material, EdgeBand, Hardware, Labour, BoughtIn };
 const char* toString(QuoteCategory c) noexcept;
 
 struct QuoteLine {
@@ -76,8 +77,9 @@ struct QuoteLine {
 
 struct Quote {
     std::string currency;
-    std::vector<QuoteLine> lines; ///< Materials (model order), edge bands, hardware, labour.
+    std::vector<QuoteLine> lines; ///< Materials (model order), bought-in items, edge bands, hardware, labour.
     double materialsSubtotal = 0, edgeBandsSubtotal = 0, hardwareSubtotal = 0, labourSubtotal = 0;
+    double boughtInSubtotal = 0; ///< Bought-in items (glass panes).
     double subtotal = 0;
     double markupPercent = 0, markup = 0; ///< markup = subtotal * markupPercent / 100.
     double taxPercent = 0, tax = 0;       ///< tax = (subtotal + markup) * taxPercent / 100.
@@ -95,6 +97,11 @@ struct Quote {
 ///    costPerSquareMeter * sheet area (noted);
 ///  * by area: quantity = cut area (domain::cutSize blanks) * (1 + wastePercent / 100) m2, price =
 ///    costPerSquareMeter, else costPerSheet / sheet area (noted).
+/// Sheet materials exclude bought-in parts (domain::isBoughtIn). Bought-in lines (category
+/// BoughtIn, one per BoughtInRow of boughtInList, in its order): id = material id, description
+/// "Glass pane <W> x <H> x <T> mm (<material>)", quantity = total area in m2 (no waste: the
+/// supplier cuts to size), price = the material's costPerSquareMeter; unpriced when it is 0 or the
+/// material is missing (costPerSheet is never used for glass: no price is invented).
 /// Edge band lines: purchase length (EdgeBandingReport) * costPerMeter. Hardware: quantity * unitCost
 /// in "pc"; a definition sold per metre (custom "unit" = "m", isPricedPerMetre) has unitCost PER
 /// METRE and is quoted as total length (HardwareRow::totalLengthM) in "m" * unitCost, unpriced when

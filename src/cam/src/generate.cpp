@@ -133,6 +133,13 @@ core::Result<void> checkEnvelope(const Program& prog, const MachineProfile& m, c
 
 core::Result<CamResult> generateProgram(const domain::Part& part, const Setup& setup, const MachineProfile& machine,
                                         const ToolLibrary& tools, const CamOptions& o) {
+    // THE bought-in rule lives in domain: a glass pane is ordered cut to size, never machined.
+    if (domain::isBoughtIn(part))
+        return makeError(ErrorCode::Unsupported,
+                         "Part '" + part.name + "' (" + part.id.str() +
+                             ") is a bought-in glass pane (ordered cut to size from a glazier); it is not machined "
+                             "and gets no CNC program.",
+                         part.id.str());
     auto frameR = makeSetupFrame(part, setup);
     if (!frameR) return frameR.error();
     const SetupFrame& frame = frameR.value();

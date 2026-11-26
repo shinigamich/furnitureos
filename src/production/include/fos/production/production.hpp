@@ -2,6 +2,7 @@
 #pragma once
 /// Umbrella header of the production documentation module.
 #include "fos/production/assembly_sheet.hpp"
+#include "fos/production/bought_in.hpp"
 #include "fos/production/common.hpp"
 #include "fos/production/cost.hpp"
 #include "fos/production/csv.hpp"

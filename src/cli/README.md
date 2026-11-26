@@ -102,7 +102,7 @@ Validation passed: 0 error(s), 0 warning(s), 6 info(s); 10 part(s) in 1 assembly
 
 ### `fos report`
 
-`--type parts|cutlist|materials|edgebanding|hardware|machining|summary` prints a text table followed by the report's diagnostics; `--csv out.csv [--separator ';']` writes RFC 4180 CSV instead; `--html out.html <item-id>` writes the printable production sheet of one item. Cut sizes are saw sizes (finished size minus edge banding, ADR-0004). Sheet counts in the materials report are *area lower bounds*.
+`--type parts|cutlist|boughtin|materials|edgebanding|hardware|machining|summary` prints a text table followed by the report's diagnostics; `--csv out.csv [--separator ';']` writes RFC 4180 CSV instead; `--html out.html <item-id>` writes the printable production sheet of one item. Cut sizes are saw sizes (finished size minus edge banding, ADR-0004). Sheet counts in the materials report are *area lower bounds*. Bought-in items (glass panes of glass-panel fronts, ordered cut to size) are left out of the cut list, materials, edge banding and machining reports and listed by `--type boughtin` (grouped by size and material); `fos quote` prices them by area (`Bought-in` lines).
 
 ```text
 $ fos report kitchen.fosp --type cutlist

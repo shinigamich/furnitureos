@@ -29,10 +29,12 @@ int sheetsByArea(double cutArea, double sheetArea) {
 // ---------------------------------------------------------------- materials
 
 MaterialReport materialReport(const domain::Model& model, const Scope& scope) {
-    const PartList parts = partList(model, scope);
+    const auto c = detail::collect(model, scope, detail::PartSet::Workshop);
+    const PartList parts = detail::partList(model, c);
     MaterialReport out;
     for (const auto& d : parts.diagnostics)
         if (d.code != "production.edgeband.missing") out.diagnostics.push_back(d);
+    detail::noteBoughtIn(out.diagnostics, c, "sheet material totals");
 
     std::map<domain::MaterialId, MaterialRow> acc;
     for (const auto& r : parts.rows) {
@@ -76,9 +78,9 @@ MaterialReport materialReport(const domain::Model& model, const Scope& scope) {
 
 EdgeBandingReport edgeBandingReport(const domain::Model& model, const EdgeBandingOptions& options,
                                     const Scope& scope) {
-    const auto c = detail::collect(model, scope);
+    const auto c = detail::collect(model, scope, detail::PartSet::Workshop);
     EdgeBandingReport out;
-    for (const auto& d : partList(model, scope).diagnostics)
+    for (const auto& d : detail::partList(model, c).diagnostics)
         if (d.code == "production.edgeband.missing" || d.code == "production.scope.unknown_assembly")
             out.diagnostics.push_back(d);
 
@@ -212,7 +214,7 @@ HardwareReport hardwareReport(const domain::Model& model, const Scope& scope) {
 
 MachiningSummary machiningSummary(const domain::Model& model, const MachiningOptions& options,
                                   const Scope& scope) {
-    auto c = detail::collect(model, scope);
+    auto c = detail::collect(model, scope, detail::PartSet::Workshop);
     MachiningSummary out;
     out.diagnostics = std::move(c.diagnostics);
     const double tol = detail::positiveFinite(options.diameterTolerance) ? options.diameterTolerance : 0.0;

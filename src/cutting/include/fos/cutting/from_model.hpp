@@ -35,6 +35,10 @@ struct Settings {
 ///   costPerSheet. Job::id = material id, Job::name = material name.
 ///
 /// * Parts whose outline is not a plain rectangle are NOT included (see cuttingFromModel()).
+/// * Bought-in parts (domain::isBoughtIn: glass panes) are NOT included: they are ordered cut to
+///   size, and are not listed in `routedParts`. One Info diagnostic cutting.adapter.bought_in per
+///   call gives the count of the RECTANGULAR ones (none when 0); shaped bought-in parts are counted
+///   by nesting::nestingJobsFromModel (nesting.adapter.bought_in), so the two never overlap.
 ///
 /// Problems are appended to `diagnostics` (never dropped silently):
 ///   cutting.adapter.material_missing (Error)   part references a material not in the model;
@@ -42,6 +46,7 @@ struct Settings {
 ///   cutting.adapter.invalid_sheet (Error)      material sheet size is not positive (its parts get no job);
 ///   cutting.adapter.thickness_mismatch (Warning) part thickness differs from the material's;
 ///   cutting.adapter.routed (Info)              shaped part left to routing / nesting;
+///   cutting.adapter.bought_in (Info, once)     count of bought-in parts left out;
 ///   cutting.adapter.edgeband_missing (Warning)  an edge references an edge band not in the model
 ///                                               (one per edge; the band counts as 0 mm, so the
 ///                                               piece is cut oversize on that edge).
@@ -65,6 +70,7 @@ struct RoutedPart {
 struct ModelCutting {
     std::vector<Job> jobs;                ///< Exactly what jobsFromModel() returns.
     std::vector<RoutedPart> routedParts;  ///< Model order (assemblies, then parts).
+    int boughtInCount = 0;                ///< Rectangular bought-in parts left out (domain::isBoughtIn).
 };
 
 /// Routing split (phase 12). Rectangular parts (`domain::isRectangularOutline`) are handled

@@ -28,8 +28,16 @@ ModelCutting cuttingFromModel(const domain::Model& model, const Settings& settin
     std::vector<int> jobOfMaterial(model.materials.size(), -1);
     std::vector<char> badSheet(model.materials.size(), 0);
 
+    int boughtIn = 0;
     for (const domain::Assembly& assembly : model.assemblies) {
         for (const domain::Part& part : assembly.parts) {
+            // Bought-in parts (glass panes) are ordered cut to size; THE rule lives in domain. Only
+            // rectangular ones are counted here: a shaped one is counted by the nesting adapter (each
+            // part belongs to exactly one side of the routing split, so the counts never overlap).
+            if (domain::isBoughtIn(part)) {
+                if (domain::isRectangularOutline(part)) ++boughtIn;
+                continue;
+            }
             // Routing split (ADR-0008): a non-rectangular outline cannot be cut with guillotine cuts.
             if (!domain::isRectangularOutline(part)) {
                 out.routedParts.push_back(
@@ -156,6 +164,13 @@ ModelCutting cuttingFromModel(const domain::Model& model, const Settings& settin
     // Jobs in material order (they were created in order of first use).
     for (std::size_t mi = 0; mi < model.materials.size(); ++mi)
         if (jobOfMaterial[mi] >= 0) out.jobs.push_back(std::move(jobs[static_cast<std::size_t>(jobOfMaterial[mi])]));
+    out.boughtInCount = boughtIn;
+    if (boughtIn > 0)
+        diagnostics.push_back({core::Severity::Info, "cutting.adapter.bought_in",
+                               std::to_string(boughtIn) +
+                                   " bought-in part(s) (glass panes, ordered cut to size) are not in any cutting job; "
+                                   "see the bought-in items list.",
+                               ""});
     return out;
 }
 

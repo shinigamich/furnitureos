@@ -44,6 +44,7 @@ fos_add_tests(project
         tests/scenario_tests.cpp
         tests/limits_tests.cpp
         tests/contour_tests.cpp
+        tests/bought_in_tests.cpp
         tests/nesting_tests.cpp
         tests/dxf_panel_tests.cpp
         tests/component_tests.cpp

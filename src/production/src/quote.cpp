@@ -101,6 +101,28 @@ QuoteLine materialLine(const domain::Model& model, const MaterialRow& row, const
     return line;
 }
 
+QuoteLine boughtInLine(const domain::Model& model, const BoughtInRow& row) {
+    QuoteLine line;
+    line.category = QuoteCategory::BoughtIn;
+    line.id = row.materialId.str();
+    line.description = row.kind + " " + core::formatLength(row.width) + " x " + core::formatLength(row.height) +
+                       " x " + core::formatLength(row.thickness) + " mm (" +
+                       (row.materialMissing ? row.materialId.str() : row.materialName) + ")";
+    line.quantity = row.totalAreaM2;
+    line.unit = "m2";
+    const std::string pieces = std::to_string(row.quantity) + " pc x " + core::formatLength(row.areaEachM2, 4) +
+                               " m2, ordered cut to size";
+    const domain::Material* mat = row.materialMissing ? nullptr : model.findMaterial(row.materialId);
+    if (mat == nullptr)
+        line.note = pieces + "; material is not in the libraries";
+    else if (detail::positiveFinite(mat->costPerSquareMeter)) {
+        line.unitPrice = mat->costPerSquareMeter;
+        line.note = pieces;
+    } else
+        line.note = pieces + "; no price per m2 in the library";
+    return line;
+}
+
 QuoteLine labourLine(const char* id, const char* description, double quantity, const char* unit, double rate,
                      std::string note) {
     QuoteLine line;
@@ -122,6 +144,7 @@ const char* toString(QuoteCategory c) noexcept {
     case QuoteCategory::EdgeBand: return "Edge band";
     case QuoteCategory::Hardware: return "Hardware";
     case QuoteCategory::Labour: return "Labour";
+    case QuoteCategory::BoughtIn: return "Bought-in";
     }
     return "Unknown";
 }
@@ -165,6 +188,10 @@ core::Result<Quote> quote(const domain::Model& model, const PricingSettings& set
                              " sheet(s)) but no part in the quote uses it; it is not priced.",
                          id.str());
     }
+
+    const BoughtInList bought = boughtInList(model, options.scope);
+    b.take(bought.diagnostics);
+    for (const auto& row : bought.rows) b.add(boughtInLine(model, row), b.q.boughtInSubtotal);
 
     const EdgeBandingReport bands = edgeBandingReport(model, options.edgeBanding, options.scope);
     b.take(bands.diagnostics);
@@ -250,7 +277,7 @@ core::Result<Quote> quote(const domain::Model& model, const PricingSettings& set
     }
 
     Quote& q = b.q;
-    q.subtotal = q.materialsSubtotal + q.edgeBandsSubtotal + q.hardwareSubtotal + q.labourSubtotal;
+    q.subtotal = q.materialsSubtotal + q.boughtInSubtotal + q.edgeBandsSubtotal + q.hardwareSubtotal + q.labourSubtotal;
     q.markup = q.subtotal * settings.markupPercent / 100.0;
     q.tax = (q.subtotal + q.markup) * settings.taxPercent / 100.0;
     q.total = q.subtotal + q.markup + q.tax;

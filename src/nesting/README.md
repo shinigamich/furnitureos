@@ -16,7 +16,9 @@ Free → Quarter, LengthAlongSheet → Half, LengthAcrossSheet → outline pre-r
 (`NestedPartFrame::preRotationDeg`). `partSpacing = toolDiameter + clearance + 2·chordTolerance`,
 `edgeSpacing = toolDiameter + chordTolerance` (the tolerance terms make the EXACT arcs keep the distance).
 Separate target in `src/nesting` because `cutting` precedes `nesting` in the module order; built only
-when `fos::domain` is. Diagnostics `nesting.adapter.*` (see header).
+when `fos::domain` is. Diagnostics `nesting.adapter.*` (see header). Bought-in parts
+(`domain::isBoughtIn`: glass panes) are never nested; one Info `nesting.adapter.bought_in` counts
+the shaped ones (the guillotine adapter counts the rectangular ones).
 
 ## Model
 

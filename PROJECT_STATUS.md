@@ -115,6 +115,7 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 | T-067 | Desktop: clothes rails in the interior editor, barcode options for label export | Done | app core tests |
 | T-068 | Compare projects (`fos diff`, optional model-level diff) | Done | 8 project + cli tests |
 | T-069 | Edge-banding job list per band (`fos edgeband-jobs`) | Done (generic banding order) | production + 3 cli tests |
+| T-070 | Glass panes as bought-in items: excluded from cutting, nesting, banding and CAM; bought-in list; quoted by area | Done | production/project/cam/cli tests |
 
 ## Independent review 2026-11-12 (calculation-critical modules)
 

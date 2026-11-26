@@ -3,6 +3,29 @@
 Pure functions of a read-only `domain::Model`; see the doc comments of the public headers in
 `include/fos/production/` (mm unless a field ends in `M` / `M2`).
 
+## Bought-in items (`fos/production/bought_in.hpp`)
+
+Glass panes of glass-panel frame fronts (`Part::custom["furniture.glass"] = "true"`, see the
+furniture README "Frame-and-panel fronts") are ordered cut to size from a glazier. THE rule is
+`domain::isBoughtIn(part)` (`fos/domain/part.hpp`), shared with `cutting`, `nesting` and `cam`;
+production applies it in one place, `detail::collect(model, scope, PartSet::Workshop)`.
+
+* Left out of: `cutList` (hence `labels`), `materialReport` (sheet totals; hence the quote's sheet
+  materials), `edgeBandingReport`, `edgeBandingJobs`, `edgeBandStripJobs` and `machiningSummary`.
+  `cutList`, `materialReport`, `edgeBandingJobs` and `labels` add ONE Info
+  `production.bought_in.excluded` ("N bought-in part(s) ...") when any was left out. The part
+  list, packing lists and assembly sheets still show every part.
+* `boughtInList(model, scope)`: rows grouped by material id, thickness and W × H (either
+  orientation, within `core::kLengthEps`): kind "Glass pane", W = `Part::length`, H = `Part::width`,
+  thickness, quantity, area each / total (m²), part numbers. `boughtInTable()` renders it (text /
+  CSV via `toCsv`); `fos report --type boughtin` prints it, `project::ProductionReports::boughtIn`
+  carries it.
+* Quote: one `QuoteCategory::BoughtIn` line per row, quantity = total area (m², no waste), price =
+  the glass material's `costPerSquareMeter`; UNPRICED when 0 or the material is missing
+  (`costPerSheet` is never used for glass). `Quote::boughtInSubtotal`.
+* Glazing beads (`<slot>.bead.*`) are normal parts cut from the front material and carry no edge
+  bands (the generator gives them none).
+
 ## Customer quotes (`fos/production/quote.hpp`)
 
 `core::Result<Quote> quote(const domain::Model&, const PricingSettings&, const QuoteOptions& = {})`

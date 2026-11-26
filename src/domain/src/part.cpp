@@ -10,6 +10,13 @@ double edgeLength(const Part& part, EdgeSide s) noexcept {
     return (s == EdgeSide::L1 || s == EdgeSide::L2) ? part.length : part.width;
 }
 
+bool isGlassPane(const Part& part) noexcept {
+    const auto it = part.custom.find(kGlassPaneKey);
+    return it != part.custom.end() && it->second == "true";
+}
+
+bool isBoughtIn(const Part& part) noexcept { return isGlassPane(part); }
+
 Face faceOf(const Operation& op) noexcept {
     return std::visit([](const auto& s) { return s.face; }, op.shape);
 }

@@ -17,9 +17,26 @@ struct Collected {
     std::vector<const domain::Assembly*> assemblies; ///< In scope, model order.
     std::vector<PartRef> parts;                      ///< In scope, number order.
     core::Diagnostics diagnostics;                   ///< Unknown scope assembly.
+    int boughtInExcluded = 0; ///< In-scope bought-in parts left out (PartSet::Workshop only).
 };
 
-Collected collect(const domain::Model& model, const Scope& scope);
+/// Which parts collect() returns.
+enum class PartSet {
+    All,      ///< Every part (part list, packing, assembly sheets).
+    Workshop  ///< Without bought-in parts (domain::isBoughtIn): cut list, banding, materials.
+};
+
+/// THE single place where production drops bought-in parts (glass panes) from the workshop
+/// outputs; part numbers stay model-wide either way.
+Collected collect(const domain::Model& model, const Scope& scope, PartSet set = PartSet::All);
+
+/// Appends Info production.bought_in.excluded ("N bought-in part(s) ... are not in the <what>")
+/// when c.boughtInExcluded > 0.
+void noteBoughtIn(core::Diagnostics& out, const Collected& c, const std::string& what);
+
+/// The part list (rows + per-part diagnostics) of the collected parts; the public
+/// production::partList() is partList(model, collect(model, scope)).
+PartList partList(const domain::Model& model, Collected c);
 
 /// Edge band reference resolved against the model (raw cell for nullopt).
 EdgeCell resolveEdge(const domain::Model& model, const std::optional<domain::EdgeBandId>& e);

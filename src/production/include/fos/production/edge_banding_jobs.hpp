@@ -107,6 +107,7 @@ struct EdgeBandingJobs {
     std::vector<EdgeBandJobGroup> groups;     ///< Edge bands in model order, then missing ids sorted.
     std::vector<ContourBandingJob> contour;   ///< Part-number order.
     std::vector<ContourBandTotal> contourTotals; ///< Same band order as `groups`.
+    /// production.bought_in.excluded (Info: bought-in parts, e.g. glass panes, are never banded),
     /// production.edgeband.missing, production.scope.unknown_assembly,
     /// production.edgeband_jobs.invalid_edge (edge of non-positive length, skipped),
     /// production.edgeband_jobs.shape_lengths_unavailable,
