@@ -273,7 +273,7 @@
     </message>
     <message>
         <source>clothes rail</source>
-        <translation type="unfinished"></translation>
+        <translation>штанга для одягу</translation>
     </message>
     <message>
         <source>Section “%1” is split: a clothes rail goes into a section that is not split.</source>
@@ -511,7 +511,7 @@
     </message>
     <message>
         <source>Glass</source>
-        <translation type="unfinished"></translation>
+        <translation>Скло</translation>
     </message>
 </context>
 <context>
@@ -2185,7 +2185,7 @@
     </message>
     <message>
         <source>Batch labels</source>
-        <translation type="unfinished"></translation>
+        <translation>Етикетки партії</translation>
     </message>
 </context>
 <context>
@@ -3610,7 +3610,7 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
     <message>
         <source>Clothes rail</source>
-        <translation type="unfinished"></translation>
+        <translation>Штанга для одягу</translation>
     </message>
     <message>
         <source>A wardrobe rail across the section, cut to its clear width, on two screw-fixed supports (sections that are not split, without adjustable shelves; open or behind doors or sliding doors).</source>
