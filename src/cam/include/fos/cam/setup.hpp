@@ -75,14 +75,18 @@ struct PlannedOperation {
 
 /// Explicit partition of ALL operations of the part; every operation is in exactly one list,
 /// each list in Part::operations order. Unsupported: edge-face operations (no horizontal
-/// spindle) and all pockets (no verified pocket strategy exists).
+/// spindle) and pockets whose shape pocket.hpp does not support (through pockets, non-rectangular
+/// contours, sharp inner corners while `pocketCornerRadius` is 0, ...; checked for every A/B pocket,
+/// whichever face is up).
 struct SetupPlan {
     std::vector<PlannedOperation> machinableNow;
     std::vector<PlannedOperation> needsOtherSetup;
     std::vector<PlannedOperation> unsupported;
 };
 
-core::Result<SetupPlan> planSetup(const domain::Part& part, const Setup& setup);
+/// `pocketCornerRadius` (mm, >= 0): accepted inner corner radius of pockets (pocket.hpp); pass the
+/// same value as CamOptions::pocketCornerRadius / SimulationOptions::pocketCornerRadius.
+core::Result<SetupPlan> planSetup(const domain::Part& part, const Setup& setup, double pocketCornerRadius = 0);
 
 /// Nominal hole volume in the machine frame (from the domain operation only).
 struct HoleTarget {

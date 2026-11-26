@@ -38,7 +38,12 @@
 ///                                  < 0.001 mm, or start == end (full circles are not allowed)
 /// Material checks (coarse heightmap of cell centres over the WHOLE stock, last row/column
 /// clipped to the stock edge; flat-bottomed cylindrical tool):
-///   cam.sim.hole_not_cut / cam.sim.groove_not_cut   expected cells not cut to the floor
+///   cam.sim.hole_not_cut / cam.sim.groove_not_cut / cam.sim.pocket_not_cut   expected cells not cut
+///                                  to the floor (pockets: the rectangle with inner corners rounded to
+///                                  SimulationOptions::pocketCornerRadius, pocket.hpp; removal is allowed
+///                                  inside the sharp rectangle, open sides extended past the stock edge)
+///   cam.sim.plunge_not_centre_cutting  vertical feed move of a non-centre-cutting tool below the
+///                                  material surface at the cell nearest its centre (heuristic: one cell)
 ///   cam.sim.too_deep               cut inside an operation footprint below its floor
 ///   cam.sim.gouge                  material removed outside every operation footprint
 ///   cam.sim.unresolved (warning)   operation too small for the cell size
@@ -64,6 +69,8 @@ struct SimulationOptions {
     /// Model providing the edge bands for domain::cutContour(); may be null unless an outline
     /// segment is banded (cam.sim.setup_mismatch otherwise). Not owned.
     const domain::Model* model = nullptr;
+    /// Accepted pocket inner corner radius, mm; must equal CamOptions::pocketCornerRadius (pocket.hpp).
+    double pocketCornerRadius = 0;
 };
 
 struct SimulationReport {

@@ -37,7 +37,8 @@ GenericIsoPostprocessor ── text  ──►  parseGenericIso / checkRoundTrip
 | `setup.hpp` | `Setup`, `SetupFrame`, frame mapping, `planSetup`, `HoleTarget`/`GrooveTarget` |
 | `toolpath.hpp` | `Motion` (Rapid, Linear, ArcCW, ArcCCW with exact centre, ToolChange, SpindleOn, SpindleOff, Dwell), `Program` |
 | `contour.hpp` | `ContourTarget`, `needsContourRouting`, `contourToMachineXY`, `contourTargets` (shaped parts) |
-| `generate.hpp` | `CamOptions`, `ContourDirection`, `generateProgram` (drilling, pecking, grooves, contour routing) |
+| `pocket.hpp` | `PocketTarget`, `pocketUnsupportedReason`, `pocketTarget` (rectangular face pockets) |
+| `generate.hpp` | `CamOptions`, `ContourDirection`, `generateProgram` (drilling, pecking, grooves, pockets, contour routing) |
 | `simulate.hpp` | `simulate`, `SimulationReport` (diagnostics, path lengths, time estimate) |
 | `postprocessor.hpp` | `Postprocessor` (NVI: `generate` simulates then `emit`s), `PostprocessorRegistry` |
 | `generic_iso.hpp` | the single reference postprocessor |
@@ -75,9 +76,37 @@ Supported (3-axis, single vertical spindle, tool along −Z):
 
 Unsupported — always reported explicitly in `SetupPlan::unsupported`, never silently skipped:
 * Every operation on an edge face (L1, L2, W1, W2): needs a horizontal spindle or aggregate.
-* Pockets (blind and through): no pocket strategy exists that the simulator verifies.
+* Through pockets, non-rectangular pockets, sharp-cornered pockets while `pocketCornerRadius` is 0,
+  open-sided pockets on a blank with allowance (see Pockets below).
+* Rebates `op.rebate.glass` (frame stiles/rails) are Grooves on the EDGE faces L1/L2 in the domain, so
+  they stay unsupported (edge face). Stub-tenon cheeks `op.tenon.*` are face A/B Grooves open at both
+  ends and are already milled by the groove strategy (several lateral passes).
 * Holes larger than any drill (no helical interpolation of holes), canned cycles, tabs/bridges, ramped
   entries, clamps/fixtures, tool-length offsets, multiple parts per program.
+
+## Pockets (`pocket.hpp`, `src/pocket*.cpp`)
+
+* **Shape.** Blind, axis-parallel rectangular `domain::Pocket` on the upward face (e.g. the sliding-door
+  grip `rule.sliding_grip`, face B). The domain pocket has sharp corners and NO corner radius field, so
+  the caller states the accepted inner corner radius: `CamOptions::pocketCornerRadius` and the same value
+  in `SimulationOptions::pocketCornerRadius` (0 = such pockets are unsupported, the reason names the option).
+* **Open sides.** A side on the part boundary (blank allowance 0) is open: the tool-centre region runs
+  r + (path corner radius) past it; only corners between two closed sides are inner corners.
+* **Tool.** `pocketToolNumber` or the largest flat end mill with diameter <= 2 x corner radius (and <= the
+  narrowest closed width), flute >= depth, centre-cutting or with room to ramp; the refusal names the
+  needed diameter.
+* **Strategy (chosen: contour-parallel, inside out).** Per level (step-down `maxDepthOfCut`): entry at the
+  centre, the centre segment, then rounded-rectangle loops (exact G2/G3 corners) at insets spaced <=
+  `pocketStepoverFraction` (default 0.4) x d out to `pocketFinishAllowance` (default 0.2 mm). Then a
+  finishing loop exactly on the wall offset per level. Climb = counter-clockwise loops.
+* **Entry.** Centre-cutting: plunge at the plunge rate. Otherwise: feed down to the previous (cleared)
+  level and a linear zigzag ramp at `pocketRampAngle` (default 3 deg) along the centre segment; refused
+  when that segment is shorter than d. No helical entry.
+* **Simulation.** Expected: the rectangle with inner corners rounded to the accepted radius cut to the
+  floor (`cam.sim.pocket_not_cut`); removal allowed inside the sharp rectangle (open sides extended),
+  otherwise `cam.sim.gouge`; below the floor `cam.sim.too_deep`. New check
+  `cam.sim.plunge_not_centre_cutting`: a vertical feed of a non-centre-cutting tool below the material
+  surface at the cell nearest its centre (one-cell heuristic). Nothing here is proven on a machine.
 
 ## Tool tables in files (`.fostools`)
 

@@ -4,6 +4,7 @@
 #include "arc_math.hpp"
 #include "builder.hpp"
 #include "contour_gen.hpp"
+#include "pocket_gen.hpp"
 
 #include "fos/core/units.hpp"
 #include "fos/machining/ordering.hpp"
@@ -153,6 +154,11 @@ core::Result<CamResult> generateProgram(const domain::Part& part, const Setup& s
         return makeError(ErrorCode::InvalidArgument,
                          "CAM options are invalid: stepoverFraction must be in (0, 1] and peck depth, breakthrough "
                          "allowance, dwells, lead-out and contour lead radius must not be negative.");
+    if (!(o.pocketCornerRadius >= 0) || !(o.pocketStepoverFraction > 0 && o.pocketStepoverFraction <= 1) ||
+        !(o.pocketFinishAllowance >= 0) || !(o.pocketRampAngle > 0 && o.pocketRampAngle <= 45))
+        return makeError(ErrorCode::InvalidArgument,
+                         "CAM pocket options are invalid: pocketCornerRadius and pocketFinishAllowance must not be "
+                         "negative, pocketStepoverFraction must be in (0, 1] and pocketRampAngle in (0, 45] degrees.");
     const auto vd = machining::validateOperations(part);
     std::size_t nErr = 0;
     const core::Diagnostic* first = nullptr;
@@ -163,7 +169,7 @@ core::Result<CamResult> generateProgram(const domain::Part& part, const Setup& s
                          "Part '" + part.name + "' has " + std::to_string(nErr) +
                              " machining validation error(s); no toolpath is generated. First: " + first->message,
                          part.id.str());
-    auto planR = planSetup(part, setup);
+    auto planR = planSetup(part, setup, o.pocketCornerRadius);
     if (!planR) return planR.error();
     res.plan = std::move(planR).value();
     for (const auto& p : res.plan.needsOtherSetup)
@@ -230,6 +236,23 @@ core::Result<CamResult> generateProgram(const domain::Part& part, const Setup& s
                     res.toolsUsed.push_back(tool.value()->number);
             }
         }
+    }
+    for (const auto& p : res.plan.machinableNow) {
+        const auto& op = part.operations[p.index];
+        if (!std::holds_alternative<domain::Pocket>(op.shape)) continue;
+        const PocketTarget t = pocketTarget(part, frame, op, o.pocketCornerRadius);
+        auto tool = detail::selectPocketTool(t, part, tools, o);
+        if (!tool) return tool.error();
+        if (auto lim = checkToolLimits(*tool.value(), machine); !lim) return lim.error();
+        if (t.hasInnerCorner())
+            res.diagnostics.push_back({core::Severity::Warning, "cam.pocket.rounded_corner",
+                                       "Pocket '" + op.id.str() + "' of '" + part.name +
+                                           "' has sharp inner corners in the model; they are cut with the accepted "
+                                           "radius " + mm(t.cornerRadius) + " mm.", part.id.str()});
+        b.useTool(*tool.value());
+        if (auto r = detail::millPocket(b, t, *tool.value(), part, o); !r) return r.error();
+        if (std::find(res.toolsUsed.begin(), res.toolsUsed.end(), tool.value()->number) == res.toolsUsed.end())
+            res.toolsUsed.push_back(tool.value()->number);
     }
     if (o.routeContours) {
         auto targets = contourTargets(part, frame, o.model);

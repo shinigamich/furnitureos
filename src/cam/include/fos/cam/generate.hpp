@@ -25,7 +25,27 @@
 /// to the end at feed rate, rapid straight up. The centre line is shortened by d/2 at closed
 /// ends and extended by d/2 + grooveLeadOut at open ends (see GrooveTarget).
 ///
-/// Pockets are NOT generated: they are reported as unsupported by planSetup.
+/// POCKETS (pocket.hpp; after holes and grooves, before contour routing, in Part::operations order):
+///  * Only pockets planSetup(part, setup, pocketCornerRadius) lists as machinable: blind, axis-parallel
+///    rectangles; inner corners cut with the ACCEPTED radius `pocketCornerRadius` (the domain pocket
+///    carries none; warning cam.pocket.rounded_corner); sides on the part boundary are open.
+///  * Tool: `pocketToolNumber` if set, else the LARGEST flat end mill (ties: lowest number) with
+///    diameter <= min(2 x pocketCornerRadius if there is an inner corner, narrowest closed width),
+///    flute length >= depth, and centre-cutting or with room to ramp. The error names the needed diameter.
+///  * Strategy: CONTOUR-PARALLEL (offset) clearing from the INSIDE OUT. Finishing region C = pocket
+///    shrunk by r on closed sides, extended r + rho0 past open sides (rho0 = pocketCornerRadius - r,
+///    the tool-centre corner radius, >= 0). Roughing per level: the centre segment of C (C shrunk by
+///    m = half its smaller size; a point for a square), then closed loops at insets evenly spaced from
+///    m down to pocketFinishAllowance with spacing <= pocketStepoverFraction x d, each starting at the
+///    middle of its -Y side, linked by straight feed moves. Loops are rounded rectangles with corner
+///    radius rho0 - inset (exact ArcCW/ArcCCW; sharp below 0.001 mm).
+///  * Direction: Climb (default) = counter-clockwise loops (wall on the right, spindle CW); Conventional = clockwise.
+///  * Step-down: levels maxDepthOfCut, 2*maxDepthOfCut, ..., depth. Entry per level at the centre:
+///    centre-cutting tool: plunge at the plunge rate from the clearance plane; otherwise feed down to
+///    the previous level (already cleared) and a LINEAR ZIGZAG RAMP at pocketRampAngle along the centre
+///    segment (needs a segment >= d; refused otherwise). No helical entry.
+///  * Finishing: after all roughing, one loop exactly on C (the wall) per level: feed down at
+///    (cx, b0 + allowance) in the cleared area, radial move to the wall, loop, back, retract.
 ///
 /// CONTOUR ROUTING (shaped parts, `needsContourRouting(part)`, contour.hpp; after all holes and
 /// grooves, cut-outs first, then the outline):
@@ -65,13 +85,20 @@ struct CamOptions {
     /// Model providing the edge bands for domain::cutContour(). May be null unless an outline
     /// segment of a routed part is banded. Not owned.
     const domain::Model* model = nullptr;
+    /// Accepted inner corner radius of pockets, mm (pocket.hpp); 0 = pockets with an inner corner are
+    /// unsupported. Pass the same value to SimulationOptions::pocketCornerRadius.
+    double pocketCornerRadius = 0;
+    double pocketStepoverFraction = 0.4; ///< pocket roughing stepover <= fraction * tool diameter, (0, 1]
+    double pocketFinishAllowance = 0.2;  ///< mm left on the walls by roughing; >= 0 and < stepover
+    double pocketRampAngle = 3;          ///< degrees, (0, 45]; ramped entry of non-centre-cutting tools
+    int pocketToolNumber = 0;            ///< 0 = automatic selection
 };
 
 struct CamResult {
     Program program;
     SetupPlan plan;
     /// Warnings: cam.setup.needs_other_setup, cam.setup.unsupported, cam.groove.rounded_end,
-    /// cam.contour.rounded_corner, cam.profile.unverified.
+    /// cam.contour.rounded_corner, cam.pocket.rounded_corner, cam.profile.unverified.
     core::Diagnostics diagnostics;
     std::vector<int> toolsUsed; ///< in order of first use
 };
@@ -80,7 +107,7 @@ struct CamResult {
 /// cut to size, never machined; checked first), invalid setup or profile, machining validation errors on the part,
 /// missing/unsuitable tool (message from ToolLibrary), tool rpm/feed above machine limits,
 /// safe Z below the clearance plane, breakthrough allowance beyond the spoilboard limit,
-/// invalid options, closed groove shorter than the tool diameter, no end mill able to route a
+/// invalid options, no pocket tool (message names the needed diameter), closed groove shorter than the tool diameter, no end mill able to route a
 /// contour (message names the contour and the tools tried), invalid shape / missing model for a
 /// banded outline (contourTargets), stock origin Z < 0
 /// (makeSetupFrame), and any generated position outside the machine envelope (ConstraintViolation

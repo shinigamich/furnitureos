@@ -5,6 +5,7 @@
 #include "contour_sim.hpp"
 #include "heightmap.hpp"
 
+#include "fos/cam/pocket.hpp"
 #include "fos/core/units.hpp"
 
 #include <algorithm>
@@ -70,6 +71,8 @@ bool overStock(Vec2 a, Vec2 b, double r, const Rect& s) {
 struct Target {
     std::string id;
     bool hole = true;
+    bool pocket = false; ///< then `pk` holds the target (hole == false)
+    PocketTarget pk;
     // hole
     Vec2 centre;
     double radius = 0;
@@ -91,6 +94,7 @@ void grooveCoords(const Target& t, Vec2 p, double& s, double& lat) {
 bool inAllowed(const Target& t, Vec2 p) {
     constexpr double tol = 1e-4;
     if (t.hole) return geometry::length(p - t.centre) <= t.radius + tol;
+    if (t.pocket) return t.pk.allows(p, tol);
     double s, lat;
     grooveCoords(t, p, s, lat);
     if (std::fabs(lat) > t.halfWidth + tol) return false;
@@ -102,6 +106,7 @@ bool inAllowed(const Target& t, Vec2 p) {
 bool inExpected(const Target& t, Vec2 p) {
     constexpr double tol = 1e-4;
     if (t.hole) return geometry::length(p - t.centre) <= t.radius - tol;
+    if (t.pocket) return t.pk.expects(p, tol);
     double s, lat;
     grooveCoords(t, p, s, lat);
     if (std::fabs(lat) > t.halfWidth - tol) return false;
@@ -247,6 +252,23 @@ SimulationReport simulate(const Program& program, const domain::Part& part, cons
                 error("cam.sim.flute_length", at(i) + " cuts " + mm(frame.topZ - lowZ) +
                                                   " mm below the stock top but tool '" + tool->id +
                                                   "' has flute length " + mm(tool->fluteLength) + " mm.");
+            // A tool that is not centre-cutting must not feed straight down into material under its centre.
+            if (tool && !rapid && !tool->centerCutting && core::approxEqual(a.x, b.x) && core::approxEqual(a.y, b.y) &&
+                target.z < from.z - kEps && a.x >= stock.x0 && a.x <= stock.x1 && a.y >= stock.y0 && a.y <= stock.y1) {
+                int ci0, ci1, cj0, cj1;
+                hm.range(a.x - options.cellSize, a.x + options.cellSize, true, ci0, ci1);
+                hm.range(a.y - options.cellSize, a.y + options.cellSize, false, cj0, cj1);
+                double best = 1e300, surface = frame.topZ;
+                for (int cj = cj0; cj <= cj1; ++cj)
+                    for (int ci = ci0; ci <= ci1; ++ci) {
+                        const double dc = geometry::length(hm.centre(ci, cj) - a);
+                        if (dc < best) { best = dc; surface = std::min(hm.minZ(ci, cj), hm.topZ()); }
+                    }
+                if (target.z < surface - options.depthTolerance)
+                    error("cam.sim.plunge_not_centre_cutting",
+                          at(i) + " plunges tool '" + tool->id + "', which is not centre-cutting, from material at Z " +
+                              mm(surface) + " mm down to Z " + mm(target.z) + " mm.");
+            }
             if (tool) hm.cut(from, target, r, i);
             if (tool && !rapid) cutterOf.try_emplace(m.source.str(), tool->diameter);
             pos = target;
@@ -343,7 +365,7 @@ SimulationReport simulate(const Program& program, const domain::Part& part, cons
 
     // ---- material verification -------------------------------------------------------
     std::vector<Target> targets;
-    auto planR = planSetup(part, setup);
+    auto planR = planSetup(part, setup, options.pocketCornerRadius);
     if (planR) {
         for (const auto& p : planR.value().machinableNow) {
             const auto& op = part.operations[p.index];
@@ -365,6 +387,11 @@ SimulationReport simulate(const Program& program, const domain::Part& part, cons
                 t.startOpen = g.startOpen;
                 t.endOpen = g.endOpen;
                 t.expectedFloor = t.allowedFloor = g.floorZ;
+            } else if (std::holds_alternative<domain::Pocket>(op.shape)) {
+                t.hole = false;
+                t.pocket = true;
+                t.pk = pocketTarget(part, frame, op, options.pocketCornerRadius);
+                t.expectedFloor = t.allowedFloor = t.pk.floorZ;
             } else {
                 continue;
             }
@@ -374,7 +401,9 @@ SimulationReport simulate(const Program& program, const domain::Part& part, cons
     const double tol = options.depthTolerance;
     for (const auto& t : targets) {
         double bx0, bx1, by0, by1;
-        if (t.hole) {
+        if (t.pocket) {
+            bx0 = t.pk.x0; bx1 = t.pk.x1; by0 = t.pk.y0; by1 = t.pk.y1;
+        } else if (t.hole) {
             bx0 = t.centre.x - t.radius; bx1 = t.centre.x + t.radius;
             by0 = t.centre.y - t.radius; by1 = t.centre.y + t.radius;
         } else {
@@ -398,17 +427,19 @@ SimulationReport simulate(const Program& program, const domain::Part& part, cons
                     shallowest = std::max(shallowest, z);
                 }
             }
-        const char* kind = t.hole ? "Hole" : "Groove";
+        const char* kind = t.pocket ? "Pocket" : t.hole ? "Hole" : "Groove";
         if (n == 0) {
             rep.diagnostics.push_back({core::Severity::Warning, "cam.sim.unresolved",
                                        std::string(kind) + " '" + t.id + "' is too small for the simulation cell size " +
                                            mm(options.cellSize) + " mm and was not verified.", pid});
         } else if (shallow > 0) {
-            std::string where = t.hole ? " (diameter " + mm(2 * t.radius) + " mm at machine X " + mm(t.centre.x) +
+            std::string where = t.pocket ? " (machine X " + mm(t.pk.x0) + ".." + mm(t.pk.x1) + ", Y " + mm(t.pk.y0) +
+                                               ".." + mm(t.pk.y1) + " mm)"
+                                : t.hole ? " (diameter " + mm(2 * t.radius) + " mm at machine X " + mm(t.centre.x) +
                                              ", Y " + mm(t.centre.y) + ")"
                                        : " (width " + mm(2 * t.halfWidth) + " mm from machine X " + mm(t.start.x) +
                                              ", Y " + mm(t.start.y) + ")";
-            error(t.hole ? "cam.sim.hole_not_cut" : "cam.sim.groove_not_cut",
+            error(t.pocket ? "cam.sim.pocket_not_cut" : t.hole ? "cam.sim.hole_not_cut" : "cam.sim.groove_not_cut",
                   std::string(kind) + " '" + t.id + "'" + where + " is not cut to its floor Z " + mm(t.expectedFloor) +
                       " mm: " + std::to_string(shallow) + " of " + std::to_string(n) +
                       " sampled cells are shallower (shallowest at Z " + mm(shallowest) + " mm" +

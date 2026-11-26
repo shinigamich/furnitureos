@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "fos/cam/setup.hpp"
 
+#include "fos/cam/pocket.hpp"
+
 #include "fos/core/units.hpp"
 #include "fos/domain/model.hpp"
 #include "fos/machining/face.hpp"
@@ -74,7 +76,7 @@ geometry::Vec2 faceToMachineXY(const domain::Part& part, const SetupFrame& frame
     return {frame.origin.x + view.x, frame.origin.y + view.y};
 }
 
-core::Result<SetupPlan> planSetup(const domain::Part& part, const Setup& setup) {
+core::Result<SetupPlan> planSetup(const domain::Part& part, const Setup& setup, double pocketCornerRadius) {
     auto frame = makeSetupFrame(part, setup);
     if (!frame) return frame.error();
     SetupPlan plan;
@@ -86,15 +88,16 @@ core::Result<SetupPlan> planSetup(const domain::Part& part, const Setup& setup) 
         const Face face = domain::faceOf(op);
         const std::string name = "Operation '" + op.id.str() + "' on face " + domain::toString(face) + " of '" +
                                  part.name + "'";
-        if (std::holds_alternative<domain::Pocket>(op.shape)) {
-            p.disposition = Disposition::Unsupported;
-            p.reason = name + " is a pocket; pocket milling is not implemented in the CAM module (no pocket "
-                              "strategy verified by the simulator exists). Machine it by other means.";
-            plan.unsupported.push_back(std::move(p));
-        } else if (machining::isEdgeFace(face)) {
+        if (machining::isEdgeFace(face)) {
             p.disposition = Disposition::Unsupported;
             p.reason = name + " is on an edge face; it needs a horizontal spindle or an angle aggregate, which a "
                               "3-axis vertical-spindle machine profile does not have.";
+            plan.unsupported.push_back(std::move(p));
+        } else if (const auto why = std::holds_alternative<domain::Pocket>(op.shape)
+                                        ? pocketUnsupportedReason(part, frame.value(), op, pocketCornerRadius)
+                                        : std::nullopt) {
+            p.disposition = Disposition::Unsupported;
+            p.reason = *why;
             plan.unsupported.push_back(std::move(p));
         } else if (face != setup.faceUp) {
             p.disposition = Disposition::NeedsOtherSetup;

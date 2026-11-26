@@ -145,7 +145,8 @@ TEST(CamSetup, EdgeOperationsAndPocketsAreUnsupportedNotSkipped) {
     EXPECT_EQ(p.unsupported[0].id.str(), "edge");
     EXPECT_NE(p.unsupported[0].reason.find("edge face"), std::string::npos);
     EXPECT_EQ(p.unsupported[1].id.str(), "pocket");
-    EXPECT_NE(p.unsupported[1].reason.find("pocket milling is not implemented"), std::string::npos);
+    // Sharp-cornered pocket and no accepted corner radius (planSetup default 0): unsupported.
+    EXPECT_NE(p.unsupported[1].reason.find("pocketCornerRadius"), std::string::npos);
     ASSERT_EQ(p.needsOtherSetup.size(), 1u);
     EXPECT_EQ(p.needsOtherSetup[0].id.str(), "under");
 }
