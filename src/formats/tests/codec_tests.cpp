@@ -72,7 +72,7 @@ domain::Model richModel() {
     groove.note = "for the back panel";
     domain::Operation pocket;
     pocket.id = domain::OperationId("cab1/bottom/op.pocket");
-    pocket.shape = domain::Pocket{domain::Face::L1, {{10, 2}, {60.5, 2}, {60.5, 16}, {10, 16}}, 12.5, false};
+    pocket.shape = domain::Pocket{domain::Face::L1, {{10, 2}, {60.5, 2}, {60.5, 16}, {10, 16}}, 12.5, false, 0.1 + 0.2};
     domain::Operation cutout;
     cutout.id = domain::OperationId("cab1/bottom/op.cutout");
     cutout.shape = domain::Pocket{domain::Face::B, {{100, 100}, {200, 100}, {150, 180}}, 0.0, true};
@@ -94,6 +94,31 @@ core::Result<domain::Model> throughText(const domain::Model& model) {
 } // namespace
 
 // ---------------------------------------------------------------- round trips
+
+// Pocket::cornerRadius: written only when > 0 (older files and sharp pockets stay byte-identical),
+// read back exactly, optional on read (default 0), negative values rejected.
+TEST(CodecRoundTrip, PocketCornerRadiusIsWrittenOnlyWhenSet) {
+    domain::Operation op;
+    op.id = domain::OperationId("p");
+    op.shape = domain::Pocket{domain::Face::B, {{0, 0}, {40, 0}, {40, 200}, {0, 200}}, 8.0, false, 0.0};
+    const Json sharp = toJson(op);
+    EXPECT_FALSE(sharp.contains("cornerRadius"));
+    std::get<domain::Pocket>(op.shape).cornerRadius = 6.0;
+    const Json rounded = toJson(op);
+    ASSERT_TRUE(rounded.contains("cornerRadius"));
+    EXPECT_EQ(rounded["cornerRadius"], 6.0);
+    auto back = operationFromJson(Json::parse(rounded.dump()), "/op");
+    ASSERT_TRUE(back.ok()) << back.error().message;
+    EXPECT_EQ(std::get<domain::Pocket>(back.value().shape).cornerRadius, 6.0);
+    auto old = operationFromJson(Json::parse(sharp.dump()), "/op");
+    ASSERT_TRUE(old.ok()) << old.error().message;
+    EXPECT_EQ(std::get<domain::Pocket>(old.value().shape).cornerRadius, 0.0);
+    EXPECT_EQ(toJson(old.value()).dump(), sharp.dump());
+    EXPECT_EQ(operationFromJson(Json::parse(
+                  R"({"id": "o", "type": "pocket", "face": "a", "contour": [[0, 0], [1, 0], [1, 1]], "depth": 3, "cornerRadius": -1})"),
+                  "/op").error().message,
+              "/op/cornerRadius: expected a non-negative number, got -1");
+}
 
 TEST(CodecRoundTrip, BasicCabinetFixtureIsLossless) {
     const domain::Model original = domain::fixtures::basicCabinet();
@@ -247,7 +272,7 @@ TEST(CodecErrors, WrongTypesAndMissingKeys) {
 TEST(CodecErrors, UnknownEnumValuesListTheAllowedTokens) {
     EXPECT_EQ(modelError([](Json& j) { j["materials"][0]["kind"] = "Particleboard"; }).message,
               "/materials/0/kind: expected one of \"particleboard\", \"mdf\", \"hdf\", \"plywood\", \"solid_wood\", "
-              "\"other\", got \"Particleboard\"");
+              "\"other\", \"glass\", got \"Particleboard\"");
     EXPECT_EQ(modelError([](Json& j) { j["assemblies"][0]["parts"][0]["grain"] = "diagonal"; }).message,
               "/assemblies/0/parts/0/grain: expected one of \"none\", \"along_length\", \"along_width\", got \"diagonal\"");
     EXPECT_EQ(modelError([](Json& j) { j["assemblies"][0]["parts"][0]["operations"][1]["face"] = "c"; }).message,

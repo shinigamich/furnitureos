@@ -40,7 +40,7 @@
 /// clipped to the stock edge; flat-bottomed cylindrical tool):
 ///   cam.sim.hole_not_cut / cam.sim.groove_not_cut / cam.sim.pocket_not_cut   expected cells not cut
 ///                                  to the floor (pockets: the rectangle with inner corners rounded to
-///                                  SimulationOptions::pocketCornerRadius, pocket.hpp; removal is allowed
+///                                  the effective radius, pocket.hpp precedence; removal is allowed
 ///                                  inside the sharp rectangle, open sides extended past the stock edge)
 ///   cam.sim.plunge_not_centre_cutting  vertical feed move of a non-centre-cutting tool below the
 ///                                  material surface at the cell nearest its centre (heuristic: one cell)
@@ -69,7 +69,8 @@ struct SimulationOptions {
     /// Model providing the edge bands for domain::cutContour(); may be null unless an outline
     /// segment is banded (cam.sim.setup_mismatch otherwise). Not owned.
     const domain::Model* model = nullptr;
-    /// Accepted pocket inner corner radius, mm; must equal CamOptions::pocketCornerRadius (pocket.hpp).
+    /// Fallback inner corner radius for sharp pockets, mm; must equal CamOptions::pocketCornerRadius
+    /// (pocket.hpp; a pocket's own Pocket::cornerRadius > 0 takes precedence).
     double pocketCornerRadius = 0;
 };
 

@@ -200,6 +200,9 @@ void checkPocket(Ctx& c, const domain::Operation& op, const domain::Pocket& p) {
     if (!p.through && !(p.depth > 0))
         c.add(Severity::Error, "machining.pocket.invalid_size",
               what + " has a non-positive depth of " + num(p.depth) + " mm and is not marked as through.");
+    if (!(p.cornerRadius >= 0) || !std::isfinite(p.cornerRadius))
+        c.add(Severity::Error, "machining.pocket.invalid_size",
+              what + " has an invalid corner radius of " + num(p.cornerRadius) + " mm; it must be 0 (sharp) or positive.");
     const FaceExtents e = faceExtents(c.part, p.face);
     if (!p.through && p.depth > e.materialDepth + eps)
         c.add(Severity::Error, "machining.pocket.too_deep",

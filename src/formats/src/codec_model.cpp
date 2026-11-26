@@ -41,6 +41,8 @@ Json toJson(const domain::Operation& op) {
             j["contour"] = std::move(contour);
             j["depth"] = p.depth;
             j["through"] = p.through;
+            // Written only when set, so models without radii stay byte-identical to older files.
+            if (p.cornerRadius > 0) j["cornerRadius"] = p.cornerRadius;
         }
     };
     std::visit(Writer{j}, op.shape);
@@ -85,6 +87,7 @@ core::Result<domain::Operation> operationFromJson(const Json& json, std::string_
             r.failAt("contour", "expected at least 3 points [u, v], got " + std::to_string(p.contour.size()));
         r.number("depth", p.depth, NumberRule::NonNegative);
         r.boolean("through", p.through);
+        r.number("cornerRadius", p.cornerRadius, NumberRule::NonNegative);
         op.shape = std::move(p);
     } else {
         return schemaError(r.childPath("type"),

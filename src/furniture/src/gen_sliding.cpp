@@ -2,6 +2,7 @@
 /// Sliding doors: door parts in the two track lanes, track / roller jobs, recessed grips.
 #include "gen_context.hpp"
 
+#include <algorithm>
 #include <cmath>
 
 namespace fos::furniture::detail {
@@ -38,6 +39,11 @@ core::Result<int> doorCount(const Gen& g, const SlidingDoorSpec& spec, const std
 /// width; Center = at mid height, Top / Bottom = its centre handle_end_offset from that edge.
 /// Size from the optional parameters sliding_grip_length (vertical, 200), sliding_grip_width
 /// (40) and sliding_grip_depth (8 mm).
+/// CORNER RADIUS: the pocket's corners are rounded with kGripCornerRadius = 6 mm, a GENERIC value
+/// (not from a grip or tool datasheet) chosen so any end mill of 12 mm diameter or smaller can cut
+/// it; it is capped at half the grip's narrower side (a narrower grip gets fully rounded ends).
+constexpr double kGripCornerRadius = 6.0;
+
 core::Result<void> addGrip(Gen& g, std::size_t partIndex, HandlePosition pos) {
     namespace p = param;
     domain::Part& door = g.assembly.parts[partIndex];
@@ -69,6 +75,7 @@ core::Result<void> addGrip(Gen& g, std::size_t partIndex, HandlePosition pos) {
     domain::Pocket pocket;
     pocket.face = domain::Face::B;
     pocket.depth = dep;
+    pocket.cornerRadius = std::min(kGripCornerRadius, std::min(wid, len) / 2);
     for (const auto& [dx, dz] : {std::pair{-1, -1}, {1, -1}, {1, 1}, {-1, 1}}) {
         const auto c = machining::assemblyToFace(door, domain::Face::B,
                                                  {cx + dx * wid / 2, b.min.y, cz + dz * len / 2});

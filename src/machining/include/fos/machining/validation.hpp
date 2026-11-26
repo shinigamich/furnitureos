@@ -23,7 +23,7 @@
 ///   machining.groove.invalid_size               error    width/depth <= 0 or zero length
 ///   machining.groove.out_of_bounds              error    groove rectangle leaves the face
 ///   machining.groove.too_deep                   error    depth >= material behind the face
-///   machining.pocket.invalid_size               error    blind pocket with depth <= 0
+///   machining.pocket.invalid_size               error    blind pocket with depth <= 0, or cornerRadius < 0 / NaN
 ///   machining.pocket.invalid_contour            error    < 3 points, repeated point, zero area,
 ///                                                        self-intersecting or self-touching
 ///   machining.pocket.contour_clockwise          warning  contour is clockwise (must be CCW)

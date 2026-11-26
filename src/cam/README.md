@@ -76,7 +76,8 @@ Supported (3-axis, single vertical spindle, tool along −Z):
 
 Unsupported — always reported explicitly in `SetupPlan::unsupported`, never silently skipped:
 * Every operation on an edge face (L1, L2, W1, W2): needs a horizontal spindle or aggregate.
-* Through pockets, non-rectangular pockets, sharp-cornered pockets while `pocketCornerRadius` is 0,
+* Through pockets, non-rectangular pockets, sharp-cornered pockets (`Pocket::cornerRadius` 0) while
+  `pocketCornerRadius` is 0,
   open-sided pockets on a blank with allowance (see Pockets below).
 * Rebates `op.rebate.glass` (frame stiles/rails) are Grooves on the EDGE faces L1/L2 in the domain, so
   they stay unsupported (edge face). Stub-tenon cheeks `op.tenon.*` are face A/B Grooves open at both
@@ -87,9 +88,13 @@ Unsupported — always reported explicitly in `SetupPlan::unsupported`, never si
 ## Pockets (`pocket.hpp`, `src/pocket*.cpp`)
 
 * **Shape.** Blind, axis-parallel rectangular `domain::Pocket` on the upward face (e.g. the sliding-door
-  grip `rule.sliding_grip`, face B). The domain pocket has sharp corners and NO corner radius field, so
-  the caller states the accepted inner corner radius: `CamOptions::pocketCornerRadius` and the same value
-  in `SimulationOptions::pocketCornerRadius` (0 = such pockets are unsupported, the reason names the option).
+  grip `rule.sliding_grip`, face B).
+* **Corner radius — precedence.** (1) The operation's own `domain::Pocket::cornerRadius` when > 0 (the
+  sliding-door grip carries a generic 6 mm, so any end mill <= 12 mm fits); the options are ignored for
+  that pocket and no `cam.pocket.rounded_corner` warning is issued. (2) For a SHARP pocket
+  (`cornerRadius` 0) the caller's fallback `CamOptions::pocketCornerRadius` (and the same value in
+  `SimulationOptions::pocketCornerRadius`) is used, with the warning. Neither set = the pocket is
+  unsupported, and the reason names both. `effectivePocketCornerRadius()` implements this rule.
 * **Open sides.** A side on the part boundary (blank allowance 0) is open: the tool-centre region runs
   r + (path corner radius) past it; only corners between two closed sides are inner corners.
 * **Tool.** `pocketToolNumber` or the largest flat end mill with diameter <= 2 x corner radius (and <= the

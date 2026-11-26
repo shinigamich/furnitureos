@@ -284,6 +284,7 @@ Common keys: `id` (R, non-empty), `type` (R: `"hole"`, `"groove"` or `"pocket"`)
 | `pocket` | `contour` | array of `[u, v]` | R | | at least 3 points, counter-clockwise |
 | | `depth` | number | | 0 | non-negative |
 | | `through` | boolean | | `false` | |
+| | `cornerRadius` | number | | 0 | non-negative, mm; inner corner radius. Written only when > 0, so files without radii are unchanged |
 
 ### 3.9 Part *(custom)*
 

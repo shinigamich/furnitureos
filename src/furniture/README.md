@@ -211,7 +211,9 @@ the panel above (must be a full panel: stretcher rails fail generation) and belo
 on a fixed shelf); `hw.rollers.<slot>` = 4 roller / guide holes on each door's rear face. Handle: `None` = no
 grip; otherwise one recessed grip (Pocket on face B, centred on the door width; Center = mid height, Top /
 Bottom = centre `handle_end_offset` from that edge; optional parameters `sliding_grip_length` 200,
-`sliding_grip_width` 40, `sliding_grip_depth` 8).
+`sliding_grip_width` 40, `sliding_grip_depth` 8). The grip pocket carries `Pocket::cornerRadius` = 6 mm, a
+GENERIC value (no grip or tool datasheet) chosen so that any end mill of 12 mm diameter or smaller fits its corners;
+it is capped at half the grip's narrower side.
 **Interior depth rule:** partitions, fixed shelves and adjustable shelves of the section and all its
 descendants start at y = `interiorFrontY` = track setback + track depth + interior clearance (95 mm generic)
 and end at the back, i.e. their depth is `interior_depth − 95` (shelves: min(`shelf_depth`, that)); the

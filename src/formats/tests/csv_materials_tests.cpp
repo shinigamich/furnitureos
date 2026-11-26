@@ -123,7 +123,7 @@ TEST(CsvMaterials, RowErrorsCarryFileLineNumbersAndAreAllListed) {
     EXPECT_THAT(m, HasSubstr("\nrow 4, column 'thickness': expected a positive number, got 'abc'."));
     EXPECT_THAT(m, HasSubstr("\nrow 5, column 'name': expected a material name, got ''."));
     EXPECT_THAT(m, HasSubstr("\nrow 6, column 'kind': expected one of \"particleboard\", \"mdf\", \"hdf\", \"plywood\", "
-                             "\"solid_wood\", \"other\", got 'chipboard'."));
+                             "\"solid_wood\", \"other\", \"glass\", got 'chipboard'."));
     EXPECT_THAT(m, HasSubstr("\nrow 7, column 'hasGrain': expected true/false, yes/no or 1/0, got 'maybe'."));
     EXPECT_THAT(m, HasSubstr("\nrow 8, column 'thickness': expected a positive number, got '-18'."));
     EXPECT_THAT(m, HasSubstr("\nrow 8, column 'costPerSheet': expected a non-negative number, got '-1'."));

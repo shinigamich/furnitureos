@@ -76,7 +76,7 @@ struct PlannedOperation {
 /// Explicit partition of ALL operations of the part; every operation is in exactly one list,
 /// each list in Part::operations order. Unsupported: edge-face operations (no horizontal
 /// spindle) and pockets whose shape pocket.hpp does not support (through pockets, non-rectangular
-/// contours, sharp inner corners while `pocketCornerRadius` is 0, ...; checked for every A/B pocket,
+/// contours, sharp inner corners (Pocket::cornerRadius 0) while `pocketCornerRadius` is 0, ...; checked for every A/B pocket,
 /// whichever face is up).
 struct SetupPlan {
     std::vector<PlannedOperation> machinableNow;
@@ -84,7 +84,8 @@ struct SetupPlan {
     std::vector<PlannedOperation> unsupported;
 };
 
-/// `pocketCornerRadius` (mm, >= 0): accepted inner corner radius of pockets (pocket.hpp); pass the
+/// `pocketCornerRadius` (mm, >= 0): fallback inner corner radius of SHARP pockets (pocket.hpp; a
+/// pocket's own Pocket::cornerRadius > 0 takes precedence); pass the
 /// same value as CamOptions::pocketCornerRadius / SimulationOptions::pocketCornerRadius.
 core::Result<SetupPlan> planSetup(const domain::Part& part, const Setup& setup, double pocketCornerRadius = 0);
 

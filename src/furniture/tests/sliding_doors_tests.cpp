@@ -72,6 +72,22 @@ TEST(SlidingDoors, TwoDoorWardrobe) {
     // Recessed grip (handle Center): one pocket on the visible face, no handle holes.
     EXPECT_EQ(opsFrom(part(a, "sliding.1"), "cab/rule.sliding_grip"), 1u);
     EXPECT_EQ(instance(a, "hw.handle.sliding.1"), nullptr);
+    // The grip pocket: 40 x 200 x 8 with the generic 6 mm corner radius (min(6, 40 / 2) = 6).
+    for (const auto& op : part(a, "sliding.1").operations) {
+        if (op.source != "cab/rule.sliding_grip") continue;
+        const auto& pk = std::get<domain::Pocket>(op.shape);
+        EXPECT_EQ(pk.face, domain::Face::B);
+        EXPECT_DOUBLE_EQ(pk.depth, 8.0);
+        EXPECT_DOUBLE_EQ(pk.cornerRadius, 6.0);
+        ASSERT_EQ(pk.contour.size(), 4u);
+        double u0 = 1e9, u1 = -1e9, v0 = 1e9, v1 = -1e9;
+        for (const auto& c : pk.contour) {
+            u0 = std::min(u0, c.x); u1 = std::max(u1, c.x);
+            v0 = std::min(v0, c.y); v1 = std::max(v1, c.y);
+        }
+        EXPECT_NEAR(std::min(u1 - u0, v1 - v0), 40, 1e-9);
+        EXPECT_NEAR(std::max(u1 - u0, v1 - v0), 200, 1e-9);
+    }
     // Interior behind the tracks: 10 + 80 + 5 = 95; partition 600 - 95 = 505 deep, shelves too.
     expectBox(part(a, "partition.1"), {891, 95, 18}, {909, 600, 2382});
     EXPECT_NEAR(part(a, "shelf.1.1").bounds().min.y, 95, 1e-9);

@@ -90,7 +90,9 @@ core::Result<const Tool*> selectPocketTool(const PocketTarget& t, const domain::
     double dMax = t.closedSpan();
     if (corner) dMax = std::min(dMax, 2 * t.cornerRadius);
     std::string limit;
-    if (corner) limit = "2 x the accepted inner corner radius " + mm(t.cornerRadius) + " mm";
+    if (corner)
+        limit = std::string("2 x the ") + (t.radiusFromModel ? "pocket's" : "accepted") + " inner corner radius " +
+                mm(t.cornerRadius) + " mm";
     if (std::isfinite(t.closedSpan()) && (!corner || t.closedSpan() < 2 * t.cornerRadius))
         limit = "the narrowest closed width " + mm(t.closedSpan()) + " mm";
     auto fits = [&](const Tool& tl, std::string& why) {

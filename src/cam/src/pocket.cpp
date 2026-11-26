@@ -96,6 +96,10 @@ bool PocketTarget::expects(geometry::Vec2 p, double tol) const noexcept {
     return true;
 }
 
+double effectivePocketCornerRadius(const domain::Pocket& pocket, double acceptedRadius) noexcept {
+    return pocket.cornerRadius > 0 ? pocket.cornerRadius : acceptedRadius;
+}
+
 std::optional<std::string> pocketUnsupportedReason(const domain::Part& part, const SetupFrame& frame,
                                                    const domain::Operation& op, double cornerRadius) {
     const auto& pk = std::get<domain::Pocket>(op.shape);
@@ -119,17 +123,20 @@ std::optional<std::string> pocketUnsupportedReason(const domain::Part& part, con
                mm(frame.blankAllowance) + " mm allowance, so that edge is not the stock edge; open pockets are "
                "only milled on stock without blank allowance.";
     if (t.hasInnerCorner()) {
-        if (!(cornerRadius > 0))
+        const bool fromModel = pk.cornerRadius > 0;
+        const double radius = effectivePocketCornerRadius(pk, cornerRadius);
+        if (!(radius > 0))
             return name + " has sharp inner corners, which no end mill can cut, and the domain pocket carries no "
-                          "corner radius. Set CamOptions::pocketCornerRadius (and SimulationOptions::"
-                          "pocketCornerRadius) to the inner corner radius you accept; the end mill diameter is then "
-                          "limited to 2 x that radius.";
+                          "corner radius (Pocket::cornerRadius is 0). Give the pocket a corner radius, or set "
+                          "CamOptions::pocketCornerRadius (and SimulationOptions::pocketCornerRadius) to the inner "
+                          "corner radius you accept for sharp pockets; the end mill diameter is then limited to 2 x "
+                          "that radius.";
         double span = std::numeric_limits<double>::infinity();
         if (!t.open[0] || !t.open[1]) span = std::min(span, t.x1 - t.x0);
         if (!t.open[2] || !t.open[3]) span = std::min(span, t.y1 - t.y0);
-        if (2 * cornerRadius > span + kEps)
-            return name + ": the accepted corner radius " + mm(cornerRadius) + " mm is more than half its " +
-                   mm(span) + " mm side.";
+        if (2 * radius > span + kEps)
+            return name + ": the " + (fromModel ? "pocket's corner radius " : "accepted corner radius ") + mm(radius) +
+                   " mm is more than half its " + mm(span) + " mm side.";
     }
     return std::nullopt;
 }
@@ -138,7 +145,9 @@ PocketTarget pocketTarget(const domain::Part& part, const SetupFrame& frame, con
                           double cornerRadius) {
     const auto fr = asRectangle(std::get<domain::Pocket>(op.shape).contour);
     PocketTarget t = rawTarget(part, frame, op, fr.value_or(FaceRect{0, 0, 0, 0}));
-    t.cornerRadius = t.hasInnerCorner() ? cornerRadius : 0;
+    const auto& pk = std::get<domain::Pocket>(op.shape);
+    t.cornerRadius = t.hasInnerCorner() ? effectivePocketCornerRadius(pk, cornerRadius) : 0;
+    t.radiusFromModel = t.hasInnerCorner() && pk.cornerRadius > 0;
     return t;
 }
 

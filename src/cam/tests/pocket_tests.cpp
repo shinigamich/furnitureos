@@ -246,3 +246,35 @@ TEST(CamPocket, NonCentreCuttingToolRampsOrIsRefused) {
     ASSERT_FALSE(r3);
     EXPECT_NE(r3.error().message.find("ramp"), std::string::npos) << r3.error().message;
 }
+
+// Precedence: the operation's own Pocket::cornerRadius (6) wins over the option (4 here, or 0);
+// no rounded-corner warning. em.6 (d 6 <= 2 x 6) mills it and the simulator expects R = 6 corners.
+TEST(CamPocket, ModelCornerRadiusTakesPrecedenceOverTheOption) {
+    auto part = gripPanel();
+    std::get<domain::Pocket>(part.operations[0].shape).cornerRadius = 6;
+    EXPECT_DOUBLE_EQ(effectivePocketCornerRadius(std::get<domain::Pocket>(part.operations[0].shape), 4), 6);
+    EXPECT_DOUBLE_EQ(effectivePocketCornerRadius(domain::Pocket{}, 4), 4);
+    for (double option : {0.0, 4.0}) {
+        auto r = generateProgram(part, kSetupA, test::testProfile(), test::testTools(), opts(option));
+        ASSERT_TRUE(r) << r.error().message;
+        EXPECT_EQ(r.value().plan.machinableNow.size(), 1u);
+        EXPECT_EQ(r.value().toolsUsed, std::vector<int>{4});
+        EXPECT_FALSE(has(r.value().diagnostics, "cam.pocket.rounded_corner"));
+        auto frame = makeSetupFrame(part, kSetupA);
+        ASSERT_TRUE(frame);
+        const auto t = pocketTarget(part, frame.value(), part.operations[0], option);
+        EXPECT_DOUBLE_EQ(t.cornerRadius, 6);
+        EXPECT_TRUE(t.radiusFromModel);
+        const auto sim = simulate(r.value().program, part, kSetupA, test::testProfile(), test::testTools(),
+                                  simOpts(option));
+        EXPECT_FALSE(sim.hasErrors()) << dump(sim.diagnostics);
+    }
+    // A model radius of 25 on the 40 mm wide pocket: 2 x 25 = 50 > 40, unsupported, naming the pocket's radius.
+    std::get<domain::Pocket>(part.operations[0].shape).cornerRadius = 25;
+    auto plan = planSetup(part, kSetupA, 4);
+    ASSERT_TRUE(plan);
+    ASSERT_EQ(plan.value().unsupported.size(), 1u);
+    EXPECT_NE(plan.value().unsupported[0].reason.find("pocket's corner radius 25 mm is more than half its 40 mm side"),
+              std::string::npos)
+        << plan.value().unsupported[0].reason;
+}

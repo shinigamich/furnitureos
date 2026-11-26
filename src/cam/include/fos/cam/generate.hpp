@@ -27,13 +27,14 @@
 ///
 /// POCKETS (pocket.hpp; after holes and grooves, before contour routing, in Part::operations order):
 ///  * Only pockets planSetup(part, setup, pocketCornerRadius) lists as machinable: blind, axis-parallel
-///    rectangles; inner corners cut with the ACCEPTED radius `pocketCornerRadius` (the domain pocket
-///    carries none; warning cam.pocket.rounded_corner); sides on the part boundary are open.
+///    rectangles; inner corners cut with radius R = the operation's Pocket::cornerRadius when > 0, else
+///    the accepted fallback `pocketCornerRadius` (warning cam.pocket.rounded_corner, only in that
+///    fallback case); sides on the part boundary are open.
 ///  * Tool: `pocketToolNumber` if set, else the LARGEST flat end mill (ties: lowest number) with
-///    diameter <= min(2 x pocketCornerRadius if there is an inner corner, narrowest closed width),
+///    diameter <= min(2 x R if there is an inner corner, narrowest closed width),
 ///    flute length >= depth, and centre-cutting or with room to ramp. The error names the needed diameter.
 ///  * Strategy: CONTOUR-PARALLEL (offset) clearing from the INSIDE OUT. Finishing region C = pocket
-///    shrunk by r on closed sides, extended r + rho0 past open sides (rho0 = pocketCornerRadius - r,
+///    shrunk by r on closed sides, extended r + rho0 past open sides (rho0 = R - r,
 ///    the tool-centre corner radius, >= 0). Roughing per level: the centre segment of C (C shrunk by
 ///    m = half its smaller size; a point for a square), then closed loops at insets evenly spaced from
 ///    m down to pocketFinishAllowance with spacing <= pocketStepoverFraction x d, each starting at the
@@ -85,8 +86,9 @@ struct CamOptions {
     /// Model providing the edge bands for domain::cutContour(). May be null unless an outline
     /// segment of a routed part is banded. Not owned.
     const domain::Model* model = nullptr;
-    /// Accepted inner corner radius of pockets, mm (pocket.hpp); 0 = pockets with an inner corner are
-    /// unsupported. Pass the same value to SimulationOptions::pocketCornerRadius.
+    /// FALLBACK inner corner radius for SHARP pockets (Pocket::cornerRadius == 0), mm (pocket.hpp);
+    /// a pocket with its own cornerRadius > 0 always uses that. 0 = sharp pockets with an inner corner
+    /// are unsupported. Pass the same value to SimulationOptions::pocketCornerRadius.
     double pocketCornerRadius = 0;
     double pocketStepoverFraction = 0.4; ///< pocket roughing stepover <= fraction * tool diameter, (0, 1]
     double pocketFinishAllowance = 0.2;  ///< mm left on the walls by roughing; >= 0 and < stepover

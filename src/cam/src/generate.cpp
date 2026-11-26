@@ -244,7 +244,7 @@ core::Result<CamResult> generateProgram(const domain::Part& part, const Setup& s
         auto tool = detail::selectPocketTool(t, part, tools, o);
         if (!tool) return tool.error();
         if (auto lim = checkToolLimits(*tool.value(), machine); !lim) return lim.error();
-        if (t.hasInnerCorner())
+        if (t.hasInnerCorner() && !t.radiusFromModel)
             res.diagnostics.push_back({core::Severity::Warning, "cam.pocket.rounded_corner",
                                        "Pocket '" + op.id.str() + "' of '" + part.name +
                                            "' has sharp inner corners in the model; they are cut with the accepted "

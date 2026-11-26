@@ -45,11 +45,17 @@ struct Groove {
 };
 
 /// Closed pocket milled to constant depth. Contour is counter-clockwise in face coordinates.
+///
+/// `cornerRadius` (mm, >= 0) is the radius of the pocket's INNER (concave) corners as designed:
+/// the contour vertices stay the sharp corners, and a consumer that cuts or draws the pocket rounds
+/// every concave corner with this radius. 0 (default) = sharp corners as modelled (no rotating end
+/// mill can cut them; CAM then needs an explicitly accepted radius, see fos/cam/pocket.hpp).
 struct Pocket {
     Face face = Face::A;
     std::vector<geometry::Vec2> contour;
     double depth = 0.0;
     bool through = false;        ///< Cut-out through the whole thickness.
+    double cornerRadius = 0.0;   ///< Inner corner radius, mm; 0 = sharp.
     bool operator==(const Pocket&) const = default;
 };
 
