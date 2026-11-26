@@ -3,6 +3,25 @@
 Pure functions of a read-only `domain::Model`; see the doc comments of the public headers in
 `include/fos/production/` (mm unless a field ends in `M` / `M2`).
 
+## Job pack (`fos/production/job_pack.hpp`)
+
+`jobPackHtml(model, JobPackOptions)` composes one self-contained, printable UTF-8 HTML document
+for the workshop: cover (project, date, author, items with quantities from `itemQuantities`,
+default 1, totals, linked contents), part list, cut list per material, bought-in items,
+edge-banding jobs per band, hardware (total length of linear fittings), packing list with
+hardware bags, assembly sheets, cutting-plan drawings and warnings. Each section is a
+`<section id="<name>">` (names: `toString(JobPackSection)`), starts on a new printed page
+(A4 landscape `@page`) and the document has no external resources and no script. Every string
+from the model or the options is escaped (`escapeXml`). The module does not depend on the
+cutting optimiser: plans come in as rendered SVG documents (`JobPackPlanImage`; prolog stripped,
+embedded verbatim, so they must come from a trusted renderer such as `cutting::renderSheetSvg`).
+Output is deterministic (no clock: the date is an option). Errors: no section, quantity < 1,
+invalid packing options, a plan image without `<svg`. The warnings section lists each
+Warning/Error of the included reports plus `extraDiagnostics` once (Info omitted).
+
+`productionSheetHtml` (one assembly) now also has a "Bought-in items" section (when the assembly
+has any; caption `HtmlSheetText::boughtIn`).
+
 ## Bought-in items (`fos/production/bought_in.hpp`)
 
 Glass panes of glass-panel frame fronts (`Part::custom["furniture.glass"] = "true"`, see the

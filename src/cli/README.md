@@ -310,6 +310,27 @@ counts. The order is GENERIC, from part roles and hardware kinds only (carcass �
 shelves/dividers → drawer boxes → fronts → handles → other), and every sheet says so; it is not a
 verified instruction. `--svg` writes `DIR/assembly-<item id>.svg` (A4 width, text only).
 
+### `fos jobpack`
+
+```text
+fos jobpack <file.fosp> -o|--output job.html [--no-plans] [--sections a,b,...] [--date YYYY-MM-DD]
+```
+
+ONE self-contained printable HTML document for the workshop (`production::jobPackHtml`): A4
+landscape print CSS, each section on a new page, no external resources and no JavaScript; every
+text from the project (item, part, material names) is XML-escaped. Sections, always in this
+order: `cover` (project, date, author, items with quantity 1 each, totals, contents with links),
+`parts`, `cutlist` (one table per material), `boughtin` (glass panes ordered cut to size),
+`edgebanding` (job list per band: edges, suggested step, cut edge / edge / strip lengths; contour
+strips of shaped parts), `hardware` (with total metres of linear fittings), `packing` (default
+limits of `fos packing`, hardware bags with tick boxes), `assembly` (GENERIC step order, with the
+caveat), `plans` (the guillotine and nesting sheets of `fos cut` as inline SVG, HEURISTIC
+layouts) and `warnings` (Warning/Error findings of the included reports and of the cutting plans,
+without duplicates; omitted when there is none). `--sections` selects a subset; `--no-plans`
+drops the plans and skips the optimisation. `--date` is printed as given (default: today, UTC);
+with a fixed `--date` the output is byte-identical between runs. Exit 1 when the project has
+model errors or a cutting plan failed.
+
 ### `fos batch`
 
 Production batches: several projects (orders) produced together (`.fosbatch`, schema in
@@ -318,12 +339,14 @@ src/project/README.md "Production batches").
 ```text
 fos batch new <file.fosbatch> --name N [--date D] [--notes T]      # refuses to overwrite
 fos batch add <file.fosbatch> <project.fosp> [--qty K] [--key KEY] [--note T]
-fos batch report <file.fosbatch> --type cutlist|summary|hardware [--csv]
+fos batch report <file.fosbatch> --type cutlist|summary|hardware|boughtin [--csv]
 fos batch cut <file.fosbatch> [--out-dir DIR]
 fos batch labels <file.fosbatch> --svg-dir DIR [--barcode none|code128] [--barcode-content part-id|project-part-id]
 fos batch quote <file.fosbatch> [--format text|csv|json] [--sheets]
 ```
 
+`report --type boughtin` lists the bought-in items of all copies (glass panes ordered cut to
+size, grouped by material and size; they are never in the batch cut list).
 `quote` prices the merged batch (all copies) like `fos quote`, with the pricing settings and
 currency of the first included project (a project with different ones: warning
 `cli.quote.pricing_mismatch`) and the batch cutting settings for `--sheets`.

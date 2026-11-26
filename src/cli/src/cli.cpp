@@ -36,6 +36,7 @@ constexpr auto kCommands = std::to_array<CommandEntry>({
     {"merge", "Import furniture items (and the library entries they use) from another project.", detail::cmdMerge},
     {"diff", "Compare two projects: metadata, libraries, items, settings; --model for parts (exit 1 if different).", detail::cmdDiff},
     {"assembly", "Assembly sheets: generic step order from part roles, hardware per step (text/SVG).", detail::cmdAssembly},
+    {"jobpack", "One self-contained printable HTML job pack: cover, parts, cut list, bought-in, banding, hardware, packing, assembly, cutting plans.", detail::cmdJobpack},
     {"cam", "UNVERIFIED G-code for one face of one part (fictional demo machine).", detail::cmdCam},
     {"export-obj", "Wavefront OBJ (+ MTL) of the resolved model.", detail::cmdExportObj},
     {"export-dxf", "Part outlines, cut-outs, holes and grooves as DXF R12 for CNC/cutting software.", detail::cmdExportDxf},

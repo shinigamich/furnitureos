@@ -39,6 +39,10 @@ std::vector<DiagnosticRow> diagnosticRows(const project::Resolved& resolved,
     return rows;
 }
 
+bool isEngineeringFinding(const DiagnosticRow& row) {
+    return row.source == DiagnosticSource::Validation && row.code.rfind("validation.engineering.", 0) == 0;
+}
+
 DiagnosticSummary summarize(const std::vector<DiagnosticRow>& rows) {
     DiagnosticSummary s;
     for (const auto& r : rows) {
@@ -47,6 +51,7 @@ DiagnosticSummary summarize(const std::vector<DiagnosticRow>& rows) {
         case core::Severity::Warning: ++s.warnings; break;
         case core::Severity::Info: ++s.infos; break;
         }
+        if (isEngineeringFinding(r)) ++s.engineering;
     }
     return s;
 }

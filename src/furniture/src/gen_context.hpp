@@ -120,6 +120,8 @@ struct Gen {
     std::unordered_map<std::string, std::size_t> slotIndex;
     /// Generator cut-outs, in creation order (applied by applyContours()).
     std::vector<PendingCutout> cutouts;
+    /// Inner-drawer packers (packer part index, panel it is fixed to), in creation order.
+    std::vector<std::pair<std::size_t, std::size_t>> packers;
 
     /// Value of a parameter of the resolved graph (all standard names exist).
     double v(const char* name) const { return values.at(name); }
@@ -193,6 +195,41 @@ core::Result<double> buildSlidingDoors(Gen& g, const FrontSpec& spec, const std:
 /// NotFound) name the drawer.
 core::Result<void> buildDrawerBox(Gen& g, const FrontSpec& spec, const DrawerBoxSpec& ds, const std::string& frontSlot,
                                   double fz0, double fz1, const Box& box, const Bounds& bounds);
+/// Where a drawer box goes: box front (front face of the sides) at y = y0, centred between the
+/// carrying faces x0 .. x1 (clear width the slide rule applies to), opening zMin .. zMax.
+struct DrawerBoxSite {
+    double y0 = 0, x0 = 0, x1 = 0, zMin = 0, zMax = 0;
+};
+/// The generated box: side part indices, chosen nominal slide length and the box envelope
+/// (x0 .. x1, y0 .. y0 + length, zLow .. zLow + height), mm, assembly frame.
+struct DrawerBoxParts {
+    std::size_t left = 0, right = 0;
+    double slideLength = 0, x0 = 0, x1 = 0, y0 = 0, length = 0, zLow = 0, height = 0;
+};
+/// The five box parts (slots `<frontSlot>.side.left` ...) and their corner-joint jobs, for a
+/// box whose front span is z in [fz0, fz1] (clamped to the opening). Errors as buildDrawerBox.
+core::Result<DrawerBoxParts> addDrawerBoxParts(Gen& g, const DrawerBoxSpec& ds, const std::string& frontSlot,
+                                               const DrawerBoxSite& site, double fz0, double fz1);
+/// The two slide jobs (instances hw.slide.<frontSlot>.left / .right) between the box sides and
+/// the carrying panels; `*Shared` = the panel is a divider (shared-panel hole depth).
+void addSlideJobs(Gen& g, const DrawerBoxSpec& ds, const std::string& frontSlot, const DrawerBoxParts& box,
+                  std::size_t leftPanel, bool leftShared, std::size_t rightPanel, bool rightShared);
+/// The front covering a section and the opening / bounds of the section that carries it.
+struct Cover {
+    const FrontSpec* front = nullptr; ///< nullptr = open section.
+    Box box;
+    Bounds bounds;
+    double interiorFrontY = 0; ///< Sliding doors: y behind the tracks (Box::y0 of the section).
+};
+/// Inner drawers of the leaf section at `path` (gen_inner_drawers.cpp, README "Inner drawers"):
+/// drawer boxes, optional facias, packers on hinge-carrying panels, slide jobs. Errors
+/// (InvalidArgument / ConstraintViolation / NotFound) name the section and the numbers.
+core::Result<void> buildInnerDrawers(Gen& g, const InnerDrawerSpec& spec, const std::string& path, const Box& box,
+                                     const Bounds& bounds, const Cover& cover);
+/// After runHardware: a hinge mounting plate of the covering door (its plate holes on the
+/// packer's panel face) within furniture.inner_drawers.hinge_plate_margin of an inner-drawer
+/// packer -> error furniture.inner_drawers.hinge_conflict.
+void checkInnerDrawerHinges(Gen& g);
 /// Handle job for front part `front` (slot `slot`): door = vertical handle near the free edge
 /// (`freeEdgeRight` = the free edge is the right / larger-coordinate one), else horizontal.
 /// `onRail` (frame-and-panel fronts): the target is a rail; the handle is centred in the rail's

@@ -257,6 +257,8 @@ core::Result<EditResult> splitSection(CabinetDefinition& definition, const Libra
         s.shelfCount = 0;
         s.children.front().hangingRail = std::move(s.hangingRail); // a rail belongs to a leaf
         s.hangingRail.reset();
+        s.children.front().innerDrawers = std::move(s.innerDrawers); // inner drawers belong to a leaf
+        s.innerDrawers.reset();
         return {};
     });
 }

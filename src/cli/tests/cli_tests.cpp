@@ -251,6 +251,27 @@ TEST_F(Cli, DrawingSvgDxfAndScaleErrors) {
     EXPECT_EQ(fos({"drawing", project, "nothing", "--svg", svg}).code, kExitUsageOrIo);
 }
 
+TEST_F(Cli, DrawingIsometricAndExplodedViews) {
+    const std::string svg = dir.file("e.svg"), dxf = dir.file("e.dxf");
+    const auto r = fos({"drawing", project, "cab1", "--view", "exploded", "--explode", "2", "--balloons", "--svg", svg,
+                        "--dxf", dxf});
+    ASSERT_EQ(r.code, kExitOk) << r.err;
+    EXPECT_TRUE(contains(r.out, "exploded view"));
+    const std::string s = readFile(svg);
+    EXPECT_TRUE(contains(s, "cab1/view.exploded/balloon["));
+    EXPECT_FALSE(contains(s, "/dim.")); // no dimensions on pictorial views
+    EXPECT_TRUE(contains(readFile(dxf), "AC1009"));
+    ASSERT_EQ(fos({"drawing", project, "cab1", "--view", "iso", "--svg", dir.file("i.svg")}).code, kExitOk);
+    EXPECT_TRUE(contains(readFile(dir.file("i.svg")), "data-source="));
+    EXPECT_EQ(fos({"drawing", project, "cab1", "--view", "persp", "--svg", svg}).code, kExitUsageOrIo);
+    EXPECT_EQ(fos({"drawing", project, "cab1", "--balloons", "--svg", svg}).code, kExitUsageOrIo);
+    EXPECT_EQ(fos({"drawing", project, "cab1", "--view", "iso", "--explode", "2", "--svg", svg}).code, kExitUsageOrIo);
+    EXPECT_EQ(fos({"drawing", project, "cab1/side.left", "--view", "iso", "--svg", svg}).code, kExitUsageOrIo);
+    const auto bad = fos({"drawing", project, "cab1", "--view", "exploded", "--explode", "20", "--svg", svg});
+    EXPECT_EQ(bad.code, kExitValidationErrors);
+    EXPECT_TRUE(contains(bad.err, "Explode factor 20"));
+}
+
 TEST_F(Cli, LabelsOnePagePerTwentyFourParts) {
     const auto r = fos({"labels", project, "--svg-dir", dir.file("labels")});
     ASSERT_EQ(r.code, kExitOk) << r.err;

@@ -19,9 +19,10 @@ const char* kBatchHelp =
     "  fos batch add <file.fosbatch> <project.fosp> [--qty K] [--key KEY] [--note T]\n"
     "      Add a project K times (default 1); the path is stored relative to the batch file.\n"
     "      Adding a project that is already listed adds K to its quantity.\n"
-    "  fos batch report <file.fosbatch> --type cutlist|summary|hardware [--csv]\n"
+    "  fos batch report <file.fosbatch> --type cutlist|summary|hardware|boughtin [--csv]\n"
     "      Combined cut list (part ids '<project key>/<part id>', '<key>#<n>/...' for copies),\n"
-    "      per-project + total summary, or hardware totals.\n"
+    "      per-project + total summary, hardware totals, or bought-in items (glass panes ordered\n"
+    "      cut to size, all copies; not in the cut list).\n"
     "  fos batch cut <file.fosbatch> [--out-dir DIR]\n"
     "      Combined cutting plans (guillotine HEURISTIC) and nesting plans (shaped parts, true-shape\n"
     "      HEURISTIC) with the batch cutting settings; SVGs + cutting-summary.txt as 'fos cut'.\n"
@@ -157,8 +158,8 @@ int batchReport(const std::vector<std::string>& args, Io& io) {
     const ParsedArgs& a = parsed.value();
     if (a.positional.size() != 1) return usageError(io, "batch report", "expected exactly one batch file.");
     const std::string type = a.value("type").value_or("");
-    if (type != "cutlist" && type != "summary" && type != "hardware")
-        return usageError(io, "batch report", "--type must be cutlist, summary or hardware.");
+    if (type != "cutlist" && type != "summary" && type != "hardware" && type != "boughtin")
+        return usageError(io, "batch report", "--type must be cutlist, summary, hardware or boughtin.");
     auto m = loadMerged(io, "batch report", a.positional[0]);
     if (!m) return kExitUsageOrIo;
     const project::Batch& batch = m->loaded.batch;
@@ -167,6 +168,10 @@ int batchReport(const std::vector<std::string>& args, Io& io) {
     if (type == "cutlist") {
         const auto list = project::batchCutList(m->model, batch);
         table = production::cutListTable(list);
+        reportDiagnostics = list.diagnostics;
+    } else if (type == "boughtin") {
+        const auto list = production::boughtInList(m->model.model);
+        table = production::boughtInTable(list);
         reportDiagnostics = list.diagnostics;
     } else if (type == "hardware") {
         const auto hw = production::hardwareReport(m->model.model);

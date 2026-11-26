@@ -185,6 +185,28 @@ struct HangingRailSpec {
     bool operator==(const HangingRailSpec&) const = default;
 };
 
+/// Inner drawers in a LEAF section behind a door (README "Inner drawers"): drawer boxes (the
+/// drawer-box generator of drawer stacks, DrawerBoxSpec) stacked in the section, each carried by
+/// a pair of slides, set back behind the closed door. The covering front (on the section itself
+/// or on an enclosing section) must be a Door or DoorPair (or SlidingDoors with enough depth
+/// behind the tracks); Flap, DrawerStack, ApplianceNiche / ApplianceFront and an open section
+/// are refused. The section holds nothing else (no adjustable shelves, no hanging rail). Where
+/// a bounding panel carries the hinges of the covering door, packer strips (carcass material)
+/// are fixed to it so that the slides mount clear of the hinges and the opened door. All
+/// clearances are GENERIC optional graph parameters (README), not manufacturer data.
+struct InnerDrawerSpec {
+    /// One compartment per drawer, BOTTOM to TOP (SectionSize syntax, like drawer stacks),
+    /// sharing the section's clear height without gaps; at least one entry. Each box sits in
+    /// its compartment with the drawer-box top / bottom clearances.
+    std::vector<SectionSize> heights;
+    domain::HardwareId slide{hardware::ids::kSlideBallBearing}; ///< Kind DrawerSlide.
+    DrawerBottomMount bottom = DrawerBottomMount::Grooved;
+    JointFastener joint = JointFastener::Dowel; ///< Box corner joints, as DrawerBoxSpec::joint.
+    InnerDrawerFront front = InnerDrawerFront::Box;
+    InnerFaciaHandle handle = InnerFaciaHandle::CutOut; ///< Facia only.
+    bool operator==(const InnerDrawerSpec&) const = default;
+};
+
 /// Node of the interior layout tree. PATHS: the root has the empty path ""; the k-th child
 /// (1-based) of a section with path P has path "P.k" ("k" below the root), e.g. "2.1".
 struct Section {
@@ -195,6 +217,8 @@ struct Section {
     std::optional<FrontSpec> front;   ///< Front covering this section's opening (leaf or split).
     /// Leaf only: hanging rail (no adjustable shelves; front none, Door, DoorPair or SlidingDoors).
     std::optional<HangingRailSpec> hangingRail;
+    /// Leaf only: inner drawers behind the covering door (InnerDrawerSpec).
+    std::optional<InnerDrawerSpec> innerDrawers;
     bool operator==(const Section&) const = default;
 };
 

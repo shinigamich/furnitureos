@@ -104,6 +104,7 @@ private:
     void exportLabelsSvg();
     void exportModelObj();
     void importDxfOutline();
+    void compareWithDialog();
     void autosaveTick();
     void applyPreferences();
     void showPreferences();
@@ -141,7 +142,7 @@ private:
 
     struct Actions {
         QAction *newProject, *open, *save, *saveAs, *print, *quit, *batch;
-        QAction *exportCsv, *exportHtml, *exportLabels, *exportPdf, *exportSvg, *exportDxf, *exportObj, *importDxf;
+        QAction *exportCsv, *exportHtml, *exportLabels, *exportPdf, *exportSvg, *exportDxf, *exportObj, *importDxf, *compare;
         QAction *undo, *redo, *addWorktop, *addPlinth, *deleteItem, *duplicateItem, *saveAsComponent, *preferences;
         QAction *fitAll, *perspective, *orthographic, *shaded, *shadedEdges, *wireframe, *realistic;
         QAction *measure, *section;

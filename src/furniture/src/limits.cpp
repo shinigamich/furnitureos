@@ -92,6 +92,7 @@ SectionTreeStats sectionTreeStats(const Section& root) {
         if (s->shelfCount > 0) st.shelves += static_cast<std::size_t>(s->shelfCount);
         if (s->children.size() > 1) st.dividers += s->children.size() - 1;
         st.fronts += frontCount(*s);
+        if (s->innerDrawers) st.innerDrawerParts += kPartsPerInnerDrawer * s->innerDrawers->heights.size();
         for (const auto& c : s->children) stack.emplace_back(&c, depth + 1);
     }
     return st;
@@ -99,7 +100,7 @@ SectionTreeStats sectionTreeStats(const Section& root) {
 
 std::size_t estimatePartCount(const Section& root) {
     const SectionTreeStats st = sectionTreeStats(root);
-    return limits::kMaxCarcassParts + st.dividers + st.shelves + st.fronts;
+    return limits::kMaxCarcassParts + st.dividers + st.shelves + st.fronts + st.innerDrawerParts;
 }
 
 core::Result<void> checkSectionLimits(const Section& root, const std::string& owner) {
@@ -145,6 +146,15 @@ core::Result<void> checkSectionLimits(const Section& root, const std::string& ow
                                   owner);
             for (std::size_t i = 0; i < heights.size(); ++i)
                 if (auto r = checkSize(heights[i], label + ", drawer front " + std::to_string(i + 1), owner); !r) return r;
+        }
+        if (s.innerDrawers) {
+            const auto& heights = s.innerDrawers->heights;
+            if (heights.size() > kMaxDrawerHeights)
+                return limitError(label + " has " + std::to_string(heights.size()) + " inner drawers; the limit is " +
+                                      std::to_string(kMaxDrawerHeights) + ".",
+                                  owner);
+            for (std::size_t i = 0; i < heights.size(); ++i)
+                if (auto r = checkSize(heights[i], label + ", inner drawer " + std::to_string(i + 1), owner); !r) return r;
         }
         for (std::size_t i = s.children.size(); i-- > 0;)
             stack.push_back({&s.children[i], childPath(n.path, i), n.depth + 1});

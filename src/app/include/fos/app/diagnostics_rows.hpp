@@ -25,7 +25,13 @@ struct DiagnosticRow {
 
 struct DiagnosticSummary {
     std::size_t errors = 0, warnings = 0, infos = 0;
+    /// Findings of the engineering rule checks (isEngineeringFinding), any severity.
+    std::size_t engineering = 0;
 };
+
+/// True for a finding of the engineering rule checks (code "validation.engineering.*",
+/// ValidationOptions::checkEngineering): heuristics, never Error.
+bool isEngineeringFinding(const DiagnosticRow& row);
 
 /// Generation diagnostics (resolved.diagnostics, in order) followed by the validation
 /// findings (report order). partId: the finding's part (validation) or the entity when it

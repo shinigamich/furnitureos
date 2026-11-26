@@ -106,6 +106,13 @@ enum class FramePanelKind { Grooved, Glass };
 /// Retention of a glass pane: None = nothing generated (fixed by clips / silicone, not
 /// modelled); Strip = four glazing-bead strips in the rebate behind the glass.
 enum class GlassBeads { None, Strip };
+/// Front of an inner drawer (definition.hpp InnerDrawerSpec, README "Inner drawers").
+/// Box = no separate front: the drawer box's own front panel is what is seen when the door
+/// opens. Facia = a thin internal front (drawer material) in front of the box front.
+enum class InnerDrawerFront { Box, Facia };
+/// Grip of an inner-drawer facia: None, or CutOut = a rectangular through cut-out near the
+/// top edge of the facia, centred on its width.
+enum class InnerFaciaHandle { None, CutOut };
 
 const char* toString(JointKind) noexcept;
 const char* toString(TopKind) noexcept;
@@ -132,6 +139,8 @@ const char* toString(FrontStyle) noexcept;
 const char* toString(FrameJoint) noexcept;
 const char* toString(FramePanelKind) noexcept;
 const char* toString(GlassBeads) noexcept;
+const char* toString(InnerDrawerFront) noexcept;
+const char* toString(InnerFaciaHandle) noexcept;
 
 /// Inverse of toString for every enum above; std::nullopt for unknown text (case-sensitive).
 template <class E> std::optional<E> fromString(std::string_view text) noexcept;
@@ -160,5 +169,7 @@ template <> std::optional<FrameJoint> fromString<FrameJoint>(std::string_view) n
 template <> std::optional<FramePanelKind> fromString<FramePanelKind>(std::string_view) noexcept;
 template <> std::optional<GlassBeads> fromString<GlassBeads>(std::string_view) noexcept;
 template <> std::optional<GapPanels> fromString<GapPanels>(std::string_view) noexcept;
+template <> std::optional<InnerDrawerFront> fromString<InnerDrawerFront>(std::string_view) noexcept;
+template <> std::optional<InnerFaciaHandle> fromString<InnerFaciaHandle>(std::string_view) noexcept;
 
 } // namespace fos::furniture

@@ -12,7 +12,44 @@ core::Error invalid(const std::string& message, const Gen& g) {
 }
 
 /// Structural checks that do not depend on dimensions.
-core::Result<void> checkTree(const Gen& g, const Section& s, const std::string& path, bool coveredByFront) {
+/// Inner-drawer checks of a section (`cover` = the front covering it, or nullptr).
+core::Result<void> checkInnerDrawers(const Gen& g, const Section& s, const std::string& label, const FrontSpec* cover) {
+    const InnerDrawerSpec& d = *s.innerDrawers;
+    if (s.split != SplitDirection::None)
+        return invalid(label + " is split into child sections and cannot hold inner drawers itself; put them into a "
+                               "leaf section.", g);
+    if (s.shelfCount != 0 || s.hangingRail)
+        return invalid(label + " has inner drawers and " +
+                           (s.hangingRail ? std::string("a hanging rail")
+                                          : std::to_string(s.shelfCount) + " adjustable shelves") +
+                           "; a section with inner drawers holds nothing else. Split it horizontally to combine both.",
+                       g);
+    if (d.heights.empty())
+        return invalid(label + " has inner drawers without any drawer; add at least one height entry.", g);
+    if (!cover)
+        return invalid(label + " has inner drawers but no door in front of it; inner drawers stand behind a Door or "
+                               "DoorPair (or SlidingDoors). For drawers without a door use a DrawerStack front.", g);
+    switch (cover->kind) {
+    case FrontKind::Door:
+    case FrontKind::DoorPair:
+    case FrontKind::SlidingDoors: return {};
+    case FrontKind::Flap:
+        return invalid(label + " has inner drawers behind a flap; a lift-up flap and its lift mechanisms leave no room "
+                               "to pull drawers out. Use a Door or DoorPair.", g);
+    case FrontKind::DrawerStack:
+        return invalid(label + " has inner drawers behind a drawer stack; a drawer stack already has its own boxes "
+                               "(FrontSpec::drawerBox). Use a Door or DoorPair in front of inner drawers.", g);
+    case FrontKind::ApplianceNiche:
+    case FrontKind::ApplianceFront:
+        return invalid(label + " has inner drawers in an appliance housing (front kind " +
+                           std::string(toString(cover->kind)) + "); inner drawers need a Door or DoorPair.", g);
+    }
+    return {};
+}
+
+/// Structural checks that do not depend on dimensions. `cover` = the front of an enclosing section.
+core::Result<void> checkTree(const Gen& g, const Section& s, const std::string& path, const FrontSpec* cover) {
+    const bool coveredByFront = cover != nullptr;
     const std::string label = "Section '" + sectionLabel(path) + "' of cabinet '" + g.def.id.str() + "'";
     if (s.shelfCount < 0)
         return invalid(label + " has shelf count " + std::to_string(s.shelfCount) + "; it must be 0 or more.", g);
@@ -62,6 +99,8 @@ core::Result<void> checkTree(const Gen& g, const Section& s, const std::string& 
             return invalid(label + " has a hanging rail " + num(s.hangingRail->heightFromTop) +
                                " mm below the section top; the height must be a positive length.", g);
     }
+    if (s.innerDrawers)
+        if (auto r = checkInnerDrawers(g, s, label, s.front ? &*s.front : cover); !r) return r;
     if (s.split == SplitDirection::None) {
         if (!s.children.empty())
             return invalid(label + " is a leaf (split 'None') but has " + std::to_string(s.children.size()) +
@@ -75,7 +114,7 @@ core::Result<void> checkTree(const Gen& g, const Section& s, const std::string& 
         return invalid(label + " is split and cannot hold adjustable shelves itself (shelf count " +
                            std::to_string(s.shelfCount) + "); put the shelves into its child sections.", g);
     for (std::size_t i = 0; i < s.children.size(); ++i)
-        if (auto r = checkTree(g, s.children[i], joinSlot({path, std::to_string(i + 1)}), coveredByFront || s.front); !r)
+        if (auto r = checkTree(g, s.children[i], joinSlot({path, std::to_string(i + 1)}), s.front ? &*s.front : cover); !r)
             return r;
     return {};
 }
@@ -147,7 +186,8 @@ core::Result<void> buildShelves(Gen& g, const Section& s, const std::string& pat
     return {};
 }
 
-core::Result<void> buildSection(Gen& g, const Section& s, const std::string& path, const Box& outer, const Bounds& b) {
+core::Result<void> buildSection(Gen& g, const Section& s, const std::string& path, const Box& outer, const Bounds& b,
+                                const Cover& enclosing) {
     namespace p = param;
     Box box = outer;
     if (s.front && s.front->kind == FrontKind::SlidingDoors) {
@@ -159,11 +199,14 @@ core::Result<void> buildSection(Gen& g, const Section& s, const std::string& pat
     } else if (s.front) {
         if (auto r = buildFront(g, *s.front, path, outer, b); !r) return r;
     }
+    const Cover cover = s.front ? Cover{&*s.front, outer, b, box.y0} : enclosing;
     // Dividers span the usable interior: from box.y0 (0, or behind sliding-door tracks) to the back.
     const double T = g.v(p::kThickness), depth = g.v(p::kInteriorDepth) - box.y0;
     if (s.split == SplitDirection::None) {
         if (s.hangingRail)
             if (auto r = buildHangingRail(g, *s.hangingRail, path, box, b); !r) return r;
+        if (s.innerDrawers)
+            if (auto r = buildInnerDrawers(g, *s.innerDrawers, path, box, b, cover); !r) return r;
         return buildShelves(g, s, path, box, b);
     }
 
@@ -231,7 +274,8 @@ core::Result<void> buildSection(Gen& g, const Section& s, const std::string& pat
             if (i > 0) { cbnd.bottom = {dividers[i - 1]}; cbnd.bottomOuter = false; }
             if (i + 1 < n) { cbnd.top = {dividers[i]}; cbnd.topOuter = false; }
         }
-        if (auto r = buildSection(g, s.children[i], joinSlot({path, std::to_string(i + 1)}), cb, cbnd); !r) return r;
+        if (auto r = buildSection(g, s.children[i], joinSlot({path, std::to_string(i + 1)}), cb, cbnd, cover); !r)
+            return r;
     }
     return {};
 }
@@ -240,10 +284,10 @@ core::Result<void> buildSection(Gen& g, const Section& s, const std::string& pat
 
 core::Result<void> buildInterior(Gen& g, const Bounds& rootBounds) {
     namespace p = param;
-    if (auto r = checkTree(g, g.def.interior, "", false); !r) return r;
+    if (auto r = checkTree(g, g.def.interior, "", nullptr); !r) return r;
     const double T = g.v(p::kThickness);
     const Box box{T, T + g.v(p::kInnerWidth), g.v(p::kInteriorBottom), g.v(p::kInteriorTop)};
-    return buildSection(g, g.def.interior, "", box, rootBounds);
+    return buildSection(g, g.def.interior, "", box, rootBounds, Cover{});
 }
 
 } // namespace fos::furniture::detail

@@ -40,6 +40,9 @@ inline constexpr std::size_t kMaxPartsPerAssembly = 2000;
 inline constexpr std::size_t kMaxCarcassParts = 8;
 } // namespace limits
 
+/// Upper bound of the parts of one inner drawer: 5 box parts, a facia and up to 3 packers per side.
+inline constexpr std::size_t kPartsPerInnerDrawer = 12;
+
 /// Counts of an interior tree, as used by the limit checks.
 struct SectionTreeStats {
     std::size_t sections = 0;   ///< Nodes, the root included.
@@ -47,13 +50,15 @@ struct SectionTreeStats {
     std::size_t shelves = 0;    ///< Adjustable shelves (negative shelf counts count as 0).
     std::size_t dividers = 0;   ///< Partitions + fixed shelves: (children - 1) per split node.
     std::size_t fronts = 0;     ///< Door 1, door pair 2, drawer stack = number of drawer heights.
+    /// Inner drawers: kPartsPerInnerDrawer per drawer (upper bound).
+    std::size_t innerDrawerParts = 0;
 };
 
 /// Walks the tree (iteratively; it never recurses, so any depth is safe).
 SectionTreeStats sectionTreeStats(const Section& root);
 
 /// Upper bound of the number of parts generate() makes: kMaxCarcassParts + dividers +
-/// shelves + fronts (a drawer with a box counts 6: front + 5 box parts).
+/// shelves + fronts (a drawer with a box counts 6: front + 5 box parts) + inner-drawer parts.
 std::size_t estimatePartCount(const Section& root);
 
 /// Checks the STRUCTURAL limits of the interior tree: shelves per section and per cabinet,

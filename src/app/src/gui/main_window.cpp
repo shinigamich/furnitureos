@@ -22,6 +22,9 @@
 #include "quote_workspace.hpp"
 
 #include <QAction>
+#include <QCheckBox>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
 #include <QCloseEvent>
 #include <QDir>
 #include <QDockWidget>
@@ -148,7 +151,37 @@ void MainWindow::buildDocks() {
     diagnostics_ = new DiagnosticsPanel(session_, this);
     dock(tr("Project browser"), QStringLiteral("browserDock"), browser_, Qt::LeftDockWidgetArea);
     auto* insp = dock(tr("Properties"), QStringLiteral("inspectorDock"), inspector_, Qt::RightDockWidgetArea);
-    auto* diag = dock(tr("Diagnostics"), QStringLiteral("diagnosticsDock"), diagnostics_, Qt::BottomDockWidgetArea);
+    auto* diagBox = new QWidget(this);
+    auto* engineering = new QCheckBox(tr("Engineering checks"), diagBox);
+    engineering->setObjectName(QStringLiteral("engineeringChecks"));
+    engineering->setToolTip(tr("Also run the engineering rule checks: shelf sag, hinge count, drawer depth and "
+                               "tipping risk. They are heuristics with generic assumptions, not structural "
+                               "calculations; findings are warnings or notes, never errors."));
+    auto* engineeringInfo = new QLabel(diagBox);
+    engineeringInfo->setObjectName(QStringLiteral("engineeringSummary"));
+    auto* diagBar = new QHBoxLayout;
+    diagBar->setContentsMargins(4, 2, 4, 0);
+    diagBar->addWidget(engineering);
+    diagBar->addWidget(engineeringInfo, 1);
+    auto* diagLayout = new QVBoxLayout(diagBox);
+    diagLayout->setContentsMargins(0, 0, 0, 0);
+    diagLayout->setSpacing(2);
+    diagLayout->addLayout(diagBar);
+    diagLayout->addWidget(diagnostics_, 1);
+    auto updateEngineeringInfo = [this, engineeringInfo] {
+        engineeringInfo->setText(session_.engineeringChecks()
+                                     ? tr("%n engineering finding(s) (heuristics)", nullptr,
+                                          static_cast<int>(diagnostics_->summary().engineering))
+                                     : QString());
+    };
+    connect(diagnostics_, &DiagnosticsPanel::summaryChanged, engineeringInfo, updateEngineeringInfo);
+    connect(engineering, &QCheckBox::toggled, this, [this](bool on) {
+        session_.setEngineeringChecks(on);
+        QSettings().setValue(QStringLiteral("validation/engineeringChecks"), on);
+    });
+    engineering->setChecked(QSettings().value(QStringLiteral("validation/engineeringChecks"), false).toBool());
+    updateEngineeringInfo();
+    auto* diag = dock(tr("Diagnostics"), QStringLiteral("diagnosticsDock"), diagBox, Qt::BottomDockWidgetArea);
     components_ = new ComponentBrowser(session_, this);
     auto* comps = dock(tr("Components"), QStringLiteral("componentsDock"), components_, Qt::LeftDockWidgetArea);
     tabifyDockWidget(findChild<QDockWidget*>(QStringLiteral("browserDock")), comps);

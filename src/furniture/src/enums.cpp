@@ -66,6 +66,9 @@ constexpr Table<FrontStyle, 2> kFrontStyle{{{FrontStyle::Slab, "Slab"}, {FrontSt
 constexpr Table<FrameJoint, 2> kFrameJoint{{{FrameJoint::StubTenon, "StubTenon"}, {FrameJoint::Dowel, "Dowel"}}};
 constexpr Table<FramePanelKind, 2> kFramePanelKind{{{FramePanelKind::Grooved, "Grooved"}, {FramePanelKind::Glass, "Glass"}}};
 constexpr Table<GlassBeads, 2> kGlassBeads{{{GlassBeads::None, "None"}, {GlassBeads::Strip, "Strip"}}};
+constexpr Table<InnerDrawerFront, 2> kInnerDrawerFront{{{InnerDrawerFront::Box, "Box"}, {InnerDrawerFront::Facia, "Facia"}}};
+constexpr Table<InnerFaciaHandle, 2> kInnerFaciaHandle{{{InnerFaciaHandle::None, "None"},
+                                                       {InnerFaciaHandle::CutOut, "CutOut"}}};
 } // namespace
 
 #define FOS_FURNITURE_ENUM(E, table)                                                                \
@@ -97,6 +100,8 @@ FOS_FURNITURE_ENUM(FrontStyle, kFrontStyle)
 FOS_FURNITURE_ENUM(FrameJoint, kFrameJoint)
 FOS_FURNITURE_ENUM(FramePanelKind, kFramePanelKind)
 FOS_FURNITURE_ENUM(GlassBeads, kGlassBeads)
+FOS_FURNITURE_ENUM(InnerDrawerFront, kInnerDrawerFront)
+FOS_FURNITURE_ENUM(InnerFaciaHandle, kInnerFaciaHandle)
 #undef FOS_FURNITURE_ENUM
 
 } // namespace fos::furniture

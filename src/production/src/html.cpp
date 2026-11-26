@@ -2,6 +2,7 @@
 #include "fos/production/html.hpp"
 
 #include "fos/core/units.hpp"
+#include "fos/production/bought_in.hpp"
 
 namespace fos::production {
 namespace {
@@ -51,6 +52,7 @@ core::Result<std::string> productionSheetHtml(const domain::Model& model, const 
     const auto cuts = cutList(model, o.cutList, scope);
     const auto bands = edgeBandingReport(model, o.edgeBanding, scope);
     const auto hw = hardwareReport(model, scope);
+    const auto boughtIn = boughtInList(model, scope);
     const auto summary = projectSummary(model, scope);
     const auto& t = o.text;
 
@@ -72,6 +74,7 @@ core::Result<std::string> productionSheetHtml(const domain::Model& model, const 
 
     section(out, t.partList, partListTable(parts, o.localisation, o.numbers), t.none);
     section(out, t.cutList, cutListTable(cuts, o.localisation, o.numbers), t.none);
+    if (!boughtIn.rows.empty()) section(out, t.boughtIn, boughtInTable(boughtIn), t.none);
     section(out, t.edgeBanding, edgeBandingTable(bands, o.localisation, o.numbers), t.none);
     section(out, t.hardware, hardwareTable(hw, o.localisation, o.numbers), t.none);
 

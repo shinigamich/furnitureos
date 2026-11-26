@@ -23,6 +23,7 @@ fos_add_module(cli_core
         src/cmd_merge.cpp
         src/cmd_edgeband.cpp
         src/cmd_diff.cpp
+        src/cmd_jobpack.cpp
     DEPS fos::core fos::geometry fos::domain fos::machining fos::furniture fos::validation fos::production
          fos::cutting fos::cutting_model fos::nesting fos::nesting_model fos::linear fos::drawings fos::cam fos::formats fos::project)
 target_compile_definitions(fos_cli_core PRIVATE FOS_CLI_VERSION="${PROJECT_VERSION}")
@@ -41,6 +42,7 @@ fos_add_tests(cli
         tests/cli_merge_tests.cpp
         tests/cli_edgeband_tests.cpp
         tests/cli_diff_tests.cpp
+        tests/cli_jobpack_tests.cpp
     DEPS fos::cli_core)
 if(FOS_BUILD_TESTS)
     add_dependencies(fos_cli_tests fos)

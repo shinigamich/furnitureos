@@ -8,6 +8,7 @@
 #include "fos/production/csv.hpp"
 #include "fos/production/cut_list.hpp"
 #include "fos/production/html.hpp"
+#include "fos/production/job_pack.hpp"
 #include "fos/production/labels.hpp"
 #include "fos/production/packing.hpp"
 #include "fos/production/part_list.hpp"

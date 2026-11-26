@@ -23,6 +23,7 @@ struct HtmlSheetText {
     std::string envelope = "Envelope (W x D x H, mm)";
     std::string partList = "Part list";
     std::string cutList = "Cut list";
+    std::string boughtIn = "Bought-in items"; ///< Glass panes etc. ordered cut to size (bought_in.hpp).
     std::string edgeBanding = "Edge banding";
     std::string hardware = "Hardware";
     std::string warnings = "Warnings";
@@ -39,7 +40,8 @@ struct HtmlSheetOptions {
 };
 
 /// Self-contained, printable (A4, print CSS, no external resources or scripts) UTF-8
-/// HTML document for ONE assembly: part list, cut list, edge banding and hardware,
+/// HTML document for ONE assembly: part list, cut list, bought-in items (the bought_in.hpp
+/// table; left out when the assembly has none), edge banding and hardware,
 /// followed by the diagnostics of those reports (English messages from the core).
 /// NotFound when the assembly id is not in the model.
 core::Result<std::string> productionSheetHtml(const domain::Model& model, const domain::AssemblyId& assembly,

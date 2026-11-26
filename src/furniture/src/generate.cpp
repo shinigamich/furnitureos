@@ -202,6 +202,12 @@ bool containsHangingRail(const Section& s) {
         if (containsHangingRail(c)) return true;
     return false;
 }
+bool containsInnerDrawers(const Section& s) {
+    if (s.innerDrawers) return true;
+    for (const auto& c : s.children)
+        if (containsInnerDrawers(c)) return true;
+    return false;
+}
 struct Sync {
     const char* parameter;
     MaterialRole role;
@@ -279,7 +285,7 @@ core::Result<GenerationResult> generate(const CabinetDefinition& definition, con
 
     if (auto r = checkDefinitionLimits(def); !r) return r.error();
 
-    detail::Gen g{def, libraries, {}, {}, std::move(diags), {}, {}, {}, {}};
+    detail::Gen g{def, libraries, {}, {}, std::move(diags), {}, {}, {}, {}, {}};
     for (const auto& name : def.parameters.names()) g.values[name] = def.parameters.value(name).valueOr(0.0);
     g.assembly.id = def.id;
     g.assembly.name = def.name;
@@ -300,6 +306,13 @@ core::Result<GenerationResult> generate(const CabinetDefinition& definition, con
                                    (lShape ? "an L-shaped corner cabinet" : "an appliance gap") +
                                    "). Remove the hanging rail.",
                                def.id.str());
+    if ((lShape || def.applianceGap) && containsInnerDrawers(def.interior))
+        return core::makeError(core::ErrorCode::Unsupported,
+                               "Cabinet '" + def.id.str() + "' has inner drawers, but inner drawers are supported only "
+                               "in rectangular cabinets (not in " +
+                                   (lShape ? "an L-shaped corner cabinet" : "an appliance gap") +
+                                   "). Remove the inner drawers.",
+                               def.id.str());
     if (def.applianceGap) { // refuses a corner kind itself
         if (auto r = detail::buildApplianceGap(g); !r) return r.error();
     } else if (auto c = detail::checkCorner(g); !c) {
@@ -316,6 +329,7 @@ core::Result<GenerationResult> generate(const CabinetDefinition& definition, con
     if (auto r = detail::checkPartSizes(g); !r) return r.error();
     detail::runHardware(g);
     detail::checkFrameHoles(g);
+    detail::checkInnerDrawerHinges(g);
     if (lShape) detail::placeLCornerShelfPins(g);
     // Box based, except for parts with a rectilinear shape (the L-shaped corner panels), which
     // are compared by their rectangles; override contours are applied afterwards and only

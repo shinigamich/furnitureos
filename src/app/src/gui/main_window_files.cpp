@@ -2,7 +2,9 @@
 // File lifecycle (new / open / save / autosave / recovery), exports and small dialogs.
 #include "batch_window.hpp"
 #include "library_window.hpp"
+#include "compare_dialog.hpp"
 #include "component_browser.hpp"
+#include "fos/app/project_compare.hpp"
 #include "dialogs.hpp"
 #include "fos/app/autosave.hpp"
 #include "fos/app/production_text.hpp"
@@ -441,6 +443,20 @@ void MainWindow::showBatchWindow() {
     batch_->show();
     batch_->raise();
     batch_->activateWindow();
+}
+
+void MainWindow::compareWithDialog() {
+    const QString file = QFileDialog::getOpenFileName(this, tr("Compare with project"), QString(), projectFilter());
+    if (file.isEmpty()) return;
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    auto diff = compareWithFile(session_.project(), toPath(file));
+    QApplication::restoreOverrideCursor();
+    if (!diff) {
+        showError(tr("Compare with"), diff.error());
+        return;
+    }
+    CompareDialog dialog(std::move(diff).value(), file, this);
+    dialog.exec();
 }
 
 } // namespace fos::app::gui

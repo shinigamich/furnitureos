@@ -254,8 +254,22 @@ const project::CuttingPlans& Session::cuttingPlans() {
 }
 
 const validation::ValidationReport& Session::validationReport() {
-    if (!validation_) validation_ = resolved_ ? validation::validateModel(resolved_->model) : validation::ValidationReport{};
+    if (!validation_)
+        validation_ = resolved_ ? validation::validateModel(resolved_->model, validationOptions()) : validation::ValidationReport{};
     return *validation_;
+}
+
+validation::ValidationOptions Session::validationOptions() const {
+    validation::ValidationOptions options;
+    options.checkEngineering = engineeringChecks_;
+    return options;
+}
+
+void Session::setEngineeringChecks(bool on) {
+    if (on == engineeringChecks_) return;
+    engineeringChecks_ = on;
+    validation_.reset();
+    emit validationChanged();
 }
 
 std::string Session::itemOfPart(const std::string& partId) const {

@@ -143,6 +143,7 @@ int cmdPacking(const std::vector<std::string>& args, Io& io);
 int cmdMerge(const std::vector<std::string>& args, Io& io);
 int cmdDiff(const std::vector<std::string>& args, Io& io);
 int cmdAssembly(const std::vector<std::string>& args, Io& io);
+int cmdJobpack(const std::vector<std::string>& args, Io& io);
 int cmdTools(const std::vector<std::string>& args, Io& io);
 
 } // namespace fos::cli::detail

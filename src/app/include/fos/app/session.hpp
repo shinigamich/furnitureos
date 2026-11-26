@@ -103,6 +103,13 @@ public:
     const project::ProductionReports& productionReports();
     const project::CuttingPlans& cuttingPlans();
     const validation::ValidationReport& validationReport();
+    /// Options validationReport() runs with: the defaults, plus
+    /// ValidationOptions::checkEngineering when engineeringChecks() is on.
+    validation::ValidationOptions validationOptions() const;
+    /// Engineering rule checks (heuristics, Warning/Info only) in validationReport(); off by
+    /// default. Changing it drops the cached report and emits validationChanged().
+    bool engineeringChecks() const noexcept { return engineeringChecks_; }
+    void setEngineeringChecks(bool on);
 
     // --- selection -------------------------------------------------------------------
     const Selection& selection() const noexcept { return selection_; }
@@ -127,6 +134,8 @@ signals:
     void selectionChanged();
     /// Saved, or the dirty flag / file path changed.
     void savedStateChanged();
+    /// The validation options changed (validationReport() is recomputed on next access).
+    void validationChanged();
 
 private:
     void replaceDocument(project::Project project, std::filesystem::path path);
@@ -145,6 +154,7 @@ private:
     std::optional<project::ProductionReports> production_;
     std::optional<project::CuttingPlans> cutting_;
     std::optional<validation::ValidationReport> validation_;
+    bool engineeringChecks_ = false;
     Selection selection_;
 };
 

@@ -31,6 +31,7 @@ DiagnosticsPanel::DiagnosticsPanel(Session& session, QWidget* parent) : QTreeWid
     setWordWrap(true);
     setToolTip(tr("Messages from the engineering core are in English."));
     connect(&session_, &Session::projectChanged, this, &DiagnosticsPanel::rebuild);
+    connect(&session_, &Session::validationChanged, this, &DiagnosticsPanel::rebuild);
     connect(this, &QTreeWidget::itemClicked, this, [this](QTreeWidgetItem* item) {
         const std::string part = item->data(0, kPartRole).toString().toStdString();
         const std::string owner = item->data(0, kItemRole).toString().toStdString();
@@ -53,7 +54,9 @@ void DiagnosticsPanel::rebuild() {
         auto* item = new QTreeWidgetItem(this);
         item->setText(0, severityText(row.severity));
         item->setForeground(0, severityColor(row.severity));
-        item->setText(1, row.source == DiagnosticSource::Generation ? tr("Generation") : tr("Validation"));
+        item->setText(1, row.source == DiagnosticSource::Generation ? tr("Generation")
+                         : isEngineeringFinding(row)                ? tr("Engineering (heuristic)")
+                                                                    : tr("Validation"));
         item->setText(2, QString::fromStdString(row.message));
         item->setToolTip(2, QString::fromStdString(row.message));
         item->setText(3, QString::fromStdString(row.partId.empty() ? row.entityId : row.partId));

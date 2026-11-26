@@ -50,7 +50,25 @@ double fastenerRadius(const Gen& g, JointFastener kind) {
 
 core::Result<void> buildDrawerBox(Gen& g, const FrontSpec& spec, const DrawerBoxSpec& ds, const std::string& frontSlot,
                                   double fz0, double fz1, const Box& box, const Bounds& b) {
+    // Depth: the box starts behind the front plane of the opening (inset fronts occupy y in
+    // [0, front_thickness]) plus drawer_box_front_setback (validated in addDrawerBoxParts).
+    const bool inset = spec.overlay == OverlayKind::Inset;
+    DrawerBoxSite site;
+    site.y0 = (inset ? g.v(param::kFrontThickness) : 0.0) + std::max(0.0, g.opt(kFrontSetback.name, kFrontSetback.fallback));
+    site.x0 = box.x0;
+    site.x1 = box.x1;
+    site.zMin = box.z0;
+    site.zMax = box.z1;
+    auto parts = addDrawerBoxParts(g, ds, frontSlot, site, fz0, fz1);
+    if (!parts) return parts.error();
+    addSlideJobs(g, ds, frontSlot, parts.value(), b.left, !b.leftOuter, b.right, !b.rightOuter);
+    return {};
+}
+
+core::Result<DrawerBoxParts> addDrawerBoxParts(Gen& g, const DrawerBoxSpec& ds, const std::string& frontSlot,
+                                               const DrawerBoxSite& site, double fz0, double fz1) {
     namespace p = param;
+    const Box box{site.x0, site.x1, site.zMin, site.zMax};
     const std::string owner = g.partId(frontSlot);
     const std::string label = "Drawer box behind '" + frontSlot + "' of cabinet '" + g.def.id.str() + "'";
     const auto fail = [&](const std::string& why) {
@@ -91,10 +109,8 @@ core::Result<void> buildDrawerBox(Gen& g, const FrontSpec& spec, const DrawerBox
         return fail("a bottom groove of " + num(gDepth) + " mm (bottom play " + num(play) +
                     " mm) needs 0 < play < groove depth < the " + num(t) + " mm box sides.");
 
-    // Depth: the box starts behind the front plane of the opening (inset fronts occupy y in
-    // [0, front_thickness]); the slide is the longest one that fits in front of the back.
-    const bool inset = spec.overlay == OverlayKind::Inset;
-    const double y0 = (inset ? g.v(p::kFrontThickness) : 0.0) + o[kFrontSetback.name];
+    // Depth: the box front is at site.y0; the slide is the longest one that fits in front of the back.
+    const double y0 = site.y0;
     const double available = g.v(p::kInteriorDepth) - y0 - o[kRearClearance.name];
     auto slideLength = hardware::selectSlideLength(*slide, available);
     if (!slideLength)
@@ -196,21 +212,25 @@ core::Result<void> buildDrawerBox(Gen& g, const FrontSpec& spec, const DrawerBox
         jointJob(right, back, slot("box_back.right"));
     }
 
-    const auto slideJob = [&](std::size_t side, std::size_t panel, bool outer, const char* which) {
+    return DrawerBoxParts{left, right, slideLength.value(), x0, x1, y0, len, zLow, H};
+}
+
+void addSlideJobs(Gen& g, const DrawerBoxSpec& ds, const std::string& frontSlot, const DrawerBoxParts& box,
+                  std::size_t leftPanel, bool leftShared, std::size_t rightPanel, bool rightShared) {
+    const auto slideJob = [&](std::size_t side, std::size_t panel, bool shared, const char* which) {
         Job j;
         j.kind = JobKind::Slide;
         j.instance = "hw.slide." + frontSlot + "." + which;
         j.a = side;
         j.b = panel;
-        j.sharedPanel = !outer;
+        j.sharedPanel = shared;
         j.slide = ds.slide;
-        j.slideLength = slideLength.value();
+        j.slideLength = box.slideLength;
         j.refuseCollisions = true;
         g.jobs.push_back(std::move(j));
     };
-    slideJob(left, b.left, b.leftOuter, "left");
-    slideJob(right, b.right, b.rightOuter, "right");
-    return {};
+    slideJob(box.left, leftPanel, leftShared, "left");
+    slideJob(box.right, rightPanel, rightShared, "right");
 }
 
 } // namespace fos::furniture::detail
