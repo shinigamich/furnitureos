@@ -110,6 +110,11 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 | T-062 | Merge furniture items between projects (`fos merge`, `commands::mergeItems`) | Done | 5 project + 1 cli tests |
 | T-063 | CAM tool library files (`.fostools`), `fos tools`, `fos cam --tools` | Done (no machine claims) | 7 formats + 3 cli tests |
 | T-064 | Desktop autosave to a recovery store, startup recovery dialog, recent files skip missing | Done | app core tests |
+| T-065 | Engineering rule checks (shelf sag, hinge count, drawer depth, tipping); `fos validate --engineering`, off by default | Done (heuristics, labelled) | 8 validation tests |
+| T-066 | Glass-panel frame fronts (rebates, optional glazing beads), MaterialKind Glass | Done (generic limits) | 4 furniture + 1 project tests |
+| T-067 | Desktop: clothes rails in the interior editor, barcode options for label export | Done | app core tests |
+| T-068 | Compare projects (`fos diff`, optional model-level diff) | Done | 8 project + cli tests |
+| T-069 | Edge-banding job list per band (`fos edgeband-jobs`) | Done (generic banding order) | production + 3 cli tests |
 
 ## Independent review 2026-11-12 (calculation-critical modules)
 
