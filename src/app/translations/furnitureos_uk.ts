@@ -271,6 +271,53 @@
         <source>%1 (not in the library)</source>
         <translation>%1 (немає в бібліотеці)</translation>
     </message>
+    <message>
+        <source>clothes rail</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Section “%1” is split: a clothes rail goes into a section that is not split.</source>
+        <translation>Секцію «%1» поділено: штанга для одягу встановлюється лише в неподілену секцію.</translation>
+    </message>
+    <message>
+        <source>whole interior</source>
+        <translation>весь внутрішній простір</translation>
+    </message>
+</context>
+<context>
+    <name>LabelExportText</name>
+    <message>
+        <source>No barcode</source>
+        <translation>Без штрихкоду</translation>
+    </message>
+    <message>
+        <source>Code 128</source>
+        <translation>Code 128</translation>
+    </message>
+    <message>
+        <source>Part id</source>
+        <translation>Ідентифікатор деталі</translation>
+    </message>
+    <message>
+        <source>Project name and part id</source>
+        <translation>Назва проєкту та ідентифікатор деталі</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n label warning(s):</source>
+        <translation>
+            <numerusform>%n попередження щодо етикеток:</numerusform>
+            <numerusform>%n попередження щодо етикеток:</numerusform>
+            <numerusform>%n попереджень щодо етикеток:</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>… and %n more.</source>
+        <translation>
+            <numerusform>… і ще %n.</numerusform>
+            <numerusform>… і ще %n.</numerusform>
+            <numerusform>… і ще %n.</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>LibraryText</name>
@@ -461,6 +508,10 @@
     <message>
         <source>Density must be 0 (unknown) or more kg/m³, got %1.</source>
         <translation>Щільність має бути 0 (невідома) або більше кг/м³, отримано %1.</translation>
+    </message>
+    <message>
+        <source>Glass</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2132,6 +2183,10 @@
         <source>Folder for the cutting plan SVGs</source>
         <translation>Тека для SVG карт розкрою</translation>
     </message>
+    <message>
+        <source>Batch labels</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::ComponentBrowser</name>
@@ -3552,6 +3607,53 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     <message>
         <source>Panel material:</source>
         <translation>Матеріал філенки:</translation>
+    </message>
+    <message>
+        <source>Clothes rail</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A wardrobe rail across the section, cut to its clear width, on two screw-fixed supports (sections that are not split, without adjustable shelves; open or behind doors or sliding doors).</source>
+        <translation>Штанга для одягу на всю ширину секції, обрізана за її чистою шириною, на двох тримачах на шурупах (лише неподілені секції без переставних полиць; відкриті або за дверцятами чи розсувними дверима).</translation>
+    </message>
+    <message>
+        <source>Distance of the rail axis below the underside of the panel above the section.</source>
+        <translation>Відстань від осі штанги до нижньої поверхні панелі над секцією.</translation>
+    </message>
+    <message>
+        <source>Apply clothes rail</source>
+        <translation>Застосувати штангу</translation>
+    </message>
+    <message>
+        <source>Height from top:</source>
+        <translation>Висота від верху:</translation>
+    </message>
+    <message>
+        <source>Rail:</source>
+        <translation>Штанга:</translation>
+    </message>
+    <message>
+        <source>Supports:</source>
+        <translation>Тримачі:</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::LabelBarcodeDialog</name>
+    <message>
+        <source>Part labels</source>
+        <translation>Етикетки деталей</translation>
+    </message>
+    <message>
+        <source>Barcode:</source>
+        <translation>Штрихкод:</translation>
+    </message>
+    <message>
+        <source>Barcode content:</source>
+        <translation>Вміст штрихкоду:</translation>
+    </message>
+    <message>
+        <source>The barcode replaces the part-id line of each label. A label too narrow for a readable barcode keeps the text instead, and you are told which ones.</source>
+        <translation>Штрихкод замінює рядок з ідентифікатором деталі на кожній етикетці. Якщо етикетка завузька для читабельного штрихкоду, на ній залишається текст, і ви отримаєте перелік таких етикеток.</translation>
     </message>
 </context>
 <context>

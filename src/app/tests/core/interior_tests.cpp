@@ -404,8 +404,9 @@ TEST(ClothesRail, WardrobeSectionRailSupportsRefusalsAndUndo) {
     EXPECT_EQ(railCount(hardware::ids::kClothesRailGeneric), 1);
     EXPECT_EQ(railCount(hardware::ids::kRailSupportGeneric), 2);
     for (const auto& h : s.resolved()->model.assemblies.at(0).hardware)
-        if (h.definition.str() == hardware::ids::kClothesRailGeneric)
+        if (h.definition.str() == hardware::ids::kClothesRailGeneric) {
             EXPECT_NEAR(h.length, 473.0, 1e-6);
+        }
     // Editor state and tree text.
     const auto input = hangingRailInput(cabinet(s).interior.children.at(1).hangingRail);
     EXPECT_TRUE(input.enabled);

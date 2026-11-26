@@ -271,6 +271,51 @@
         <source>%1 (not in the library)</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>clothes rail</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Section “%1” is split: a clothes rail goes into a section that is not split.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>whole interior</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>LabelExportText</name>
+    <message>
+        <source>No barcode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Code 128</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Part id</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Project name and part id</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n label warning(s):</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>… and %n more.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>LibraryText</name>
@@ -459,6 +504,10 @@
     </message>
     <message>
         <source>Density must be 0 (unknown) or more kg/m³, got %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Glass</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2127,6 +2176,10 @@
         <source>Folder for the cutting plan SVGs</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Batch labels</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::ComponentBrowser</name>
@@ -3539,6 +3592,53 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
     <message>
         <source>Panel material:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Clothes rail</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A wardrobe rail across the section, cut to its clear width, on two screw-fixed supports (sections that are not split, without adjustable shelves; open or behind doors or sliding doors).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Distance of the rail axis below the underside of the panel above the section.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Apply clothes rail</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Height from top:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rail:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Supports:</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::LabelBarcodeDialog</name>
+    <message>
+        <source>Part labels</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Barcode:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Barcode content:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The barcode replaces the part-id line of each label. A label too narrow for a readable barcode keeps the text instead, and you are told which ones.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -12,6 +12,7 @@ QString LibraryText::materialKind(domain::MaterialKind kind) {
     case domain::MaterialKind::Plywood: return tr("Plywood");
     case domain::MaterialKind::SolidWood: return tr("Solid wood");
     case domain::MaterialKind::Other: return tr("Other");
+    case domain::MaterialKind::Glass: return tr("Glass");
     }
     return QString::fromLatin1(domain::toString(kind));
 }

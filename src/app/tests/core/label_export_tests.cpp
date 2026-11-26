@@ -56,14 +56,16 @@ TEST(LabelExport, NarrowLabelsWarnAndNoBarcodeDoesNot) {
     ASSERT_EQ(exported.value().files.size(), pages);
     for (const auto& f : exported.value().files)
         EXPECT_TRUE(std::filesystem::exists(f));
-    if (pages == 1)
+    if (pages == 1) {
         EXPECT_EQ(exported.value().files[0].filename(), "labels.svg");
+    }
 
     // Summary text: heading with the count, at most 2 messages, then "and N more".
     const QString text = labelWarningsText(exported.value().warnings, 2);
     EXPECT_TRUE(text.contains(QString::number(labels.size())));
-    if (labels.size() > 2)
+    if (labels.size() > 2) {
         EXPECT_TRUE(text.contains(QString::number(labels.size() - 2) + QStringLiteral(" more")));
+    }
     EXPECT_TRUE(labelWarningsText({}).isEmpty());
 
     // Without a barcode there is nothing to warn about.

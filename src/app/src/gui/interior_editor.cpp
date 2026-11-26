@@ -128,7 +128,8 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
     railEnabled_ = new QCheckBox(tr("Clothes rail"), railBox);
     railEnabled_->setObjectName(QStringLiteral("clothesRail"));
     railEnabled_->setToolTip(tr("A wardrobe rail across the section, cut to its clear width, on two screw-fixed "
-                                "supports (sections that are not split; no adjustable shelves; no front or doors)."));
+                                "supports (sections that are not split, without adjustable shelves; open or behind doors or sliding "
+                                "doors)."));
     railHeight_ = ventSpin("clothesRailHeight", railBox);
     railHeight_->setToolTip(tr("Distance of the rail axis below the underside of the panel above the section."));
     railHardware_ = narrowCombo(railBox);

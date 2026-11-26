@@ -29,7 +29,8 @@ TEST(CliEdgebandJobs, TextCsvJsonAndSvg) {
         << r.out;
     EXPECT_TRUE(contains(r.out, ",cab1/shelf.1,")) << r.out;
     EXPECT_TRUE(contains(r.out, ",762,538,L1,")) << r.out;
-    EXPECT_TRUE(contains(r.out, ",762,762,812\n")) << r.out;
+    EXPECT_TRUE(contains(r.out, ",762,762,812\r\n")) << r.out; // toCsv: CRLF rows
+    EXPECT_TRUE(contains(r.out, ",L1,1/1,")) << r.out;
 
     r = fos({"edgeband-jobs", project, "--format", "json", "--svg", dir.file("svg")});
     ASSERT_EQ(r.code, kExitOk) << r.err;
