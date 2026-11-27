@@ -73,7 +73,13 @@ TEST(NestLarge, MixedSixtyPartJob) {
     for (std::size_t i = 0; i + 1 < r.sheets.size(); ++i) EXPECT_GE(r.sheets[i].utilisation, 0.60) << i;
     std::printf("mixed job: %zu sheets, utilisation %.3f, first sheet %.3f, last used length %.1f mm, %.2f s, %d iterations\n",
                 r.sheets.size(), r.utilisation, r.sheets[0].utilisation, r.sheets.back().usedLength, secs, r.iterationsRun);
+    // The 5 s budget applies to optimised builds (CI builds Release/RelWithDebInfo). Unoptimised
+    // builds without NDEBUG run the same restarts several times slower, so they get a wider limit.
+#ifdef NDEBUG
     EXPECT_LT(secs, 5.0);
+#else
+    EXPECT_LT(secs, 20.0);
+#endif
 }
 
 TEST(NestLarge, DeterministicForFixedSeedAndIterations) {

@@ -122,6 +122,11 @@ plugins 35 · project 33 · viewport 16 + 2 (OpenGL) · app 27 + GUI smoke · cl
 | T-074 | Inner drawers behind doors with hinge packers | Done (generic clearances) | 9 furniture + 1 project tests |
 | T-075 | Job pack: single printable HTML for the workshop (`fos jobpack`) | Done | 9 production + 4 cli tests |
 | T-076 | Pocket corner radius in the model; sliding-door grips machined end to end | Done | domain/formats/furniture/cam tests |
+| T-077 | Desks and tables (panel ends or generic legs, modesty panel, cable slot, drawer pedestal); desk/table templates | Done (generic legs) | 11 furniture/project tests |
+| T-078 | Nesting: NFP candidate placement, rotation sets, multiple orderings/scores, optional part-in-part | Done (heuristic) | 32 nesting tests, benchmarks not worse |
+| T-079 | Workshop offcut stock (`.fosremnants`, `fos remnants`), usable offcuts from guillotine plans | Done | cutting/project/cli tests |
+| T-080 | SVG outline import for shaped panels (`fos import-svg`), hardened parser | Done (no Béziers) | 13 formats + 2 project + 3 cli tests |
+| T-081 | Desktop: inner drawers editor, isometric/exploded drawing views, Export job pack | Done | app core tests |
 
 ## Independent review 2026-11-12 (calculation-critical modules)
 
