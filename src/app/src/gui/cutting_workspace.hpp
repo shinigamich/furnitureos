@@ -5,11 +5,14 @@
 /// layouts of rectangular parts and router nesting layouts of shaped parts, both heuristics —
 /// drawn from the cutting / nesting modules' SVG; saw and nesting settings as commands.
 #include "fos/app/nesting_rows.hpp"
+#include "fos/project/remnant_use.hpp"
 
 #include <QWidget>
 
+#include <optional>
 #include <vector>
 
+class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
 class QLabel;
@@ -63,6 +66,14 @@ public:
     NestingSettingsForm* nestingSettings() const noexcept { return nesting_; }
     /// Same as pressing "Apply and re-optimise".
     void apply() { applySettings(); }
+    /// Workshop offcut stock (`.fosremnants`): use `path` (remembered in QSettings) and offer
+    /// its remnants when `use`. Returns false with the message shown when the file cannot be read.
+    bool setWorkshopStore(const QString& path, bool use);
+    /// Store remnants of the last run with their status (for tests).
+    QTableWidget* workshopTable() const noexcept { return workshopTable_; }
+    /// The planned stock change "Add offcuts to workshop stock" would save (nullopt + message
+    /// shown when it is refused, e.g. a layout with errors).
+    std::optional<project::StoreCommit> plannedStoreUpdate();
 
 protected:
     void showEvent(QShowEvent* event) override;
@@ -75,6 +86,12 @@ private:
     void applySettings();
     void addRemnant();
     void removeRemnant();
+    /// Plans of the shown run: with the workshop store when offered, else the session's.
+    const project::CuttingPlans& shownPlans();
+    void buildWorkshopBox(class QVBoxLayout* layout);
+    void chooseWorkshopStore();
+    void showWorkshopRun();
+    void addOffcutsToStock();
 
     Session& session_;
     std::vector<CuttingTableRow> rows_;
@@ -97,7 +114,15 @@ private:
     QLabel* error_;
     QLabel* routed_;
     NestingSettingsForm* nesting_;
-    int routedCount_ = 0;
+    QCheckBox* useWorkshop_ = nullptr;
+    QLabel* workshopFile_ = nullptr;
+    QLabel* workshopSummary_ = nullptr;
+    QTableWidget* workshopTable_ = nullptr;
+    QLabel* workshopError_ = nullptr;
+    QString workshopPath_;
+    std::optional<project::RemnantStore> workshopStore_; ///< Loaded when offered.
+    std::optional<project::StoreCuttingRun> workshopRun_;
+        int routedCount_ = 0;
     bool stale_ = true;
 };
 

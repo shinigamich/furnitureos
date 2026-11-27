@@ -461,4 +461,64 @@ TEST(ClothesRail, ShallowSectionRefused) {
 }
 
 } // namespace
+TEST_F(Fixture, GlassFramePanelWarningRefusalAndUndo) {
+    run(frontCommand("cab1", "", [&] {
+        FrontInput in = frontInput(cabinet(s).interior.front);
+        in.choice = FrontInput::Choice::Door;
+        return in;
+    }()));
+    FrontInput in = frontInput(cabinet(s).interior.front);
+    in.style = furniture::FrontStyle::FramePanel;
+    in.frame.panelKind = furniture::FramePanelKind::Glass;
+    // Glass needs the dowel joint: the stub tenon is refused by the engine.
+    in.frame.joint = furniture::FrameJoint::StubTenon;
+    refused(frontCommand("cab1", "", in).value());
+    in.frame.joint = furniture::FrameJoint::Dowel;
+    // Generic glass: 4 mm pane, rebate 10 x 10, bead strips; clearance 2 -> e = 10 - 2 = 8;
+    // pane 596 - 2*70 + 16 = 472 by 716 - 2*70 + 16 = 592, 4 mm thick.
+    run(frontCommand("cab1", "", in));
+    const auto* pane = part(s, "cab1/door.panel");
+    ASSERT_NE(pane, nullptr);
+    EXPECT_DOUBLE_EQ(std::min(pane->length, pane->width), 472);
+    EXPECT_DOUBLE_EQ(std::max(pane->length, pane->width), 592);
+    EXPECT_DOUBLE_EQ(pane->thickness, 4);
+    EXPECT_NE(part(s, "cab1/door.bead.top"), nullptr);
+    EXPECT_EQ(frontInput(cabinet(s).interior.front).frame, in.frame);
+    EXPECT_EQ(contentText(sectionRows(cabinet(s).interior)[0]),
+              QStringLiteral("shelves: 1; door, hinged left, frame with glass"));
+    // The panel uses the front material (a board, not glass): the UI warns.
+    EXPECT_EQ(framePanelMaterialId(cabinet(s), in.frame), cabinet(s).materials.front.str().empty()
+                                                              ? cabinet(s).materials.carcass
+                                                              : cabinet(s).materials.front);
+    EXPECT_FALSE(glassPanelMaterialWarning(cabinet(s), s.project().libraries, in.frame).isEmpty());
+    // A grooved panel never warns.
+    furniture::FramePanelSpec grooved = in.frame;
+    grooved.panelKind = furniture::FramePanelKind::Grooved;
+    EXPECT_TRUE(glassPanelMaterialWarning(cabinet(s), s.project().libraries, grooved).isEmpty());
+    // An unknown panel material is named.
+    furniture::FramePanelSpec unknown = in.frame;
+    unknown.panelMaterial = domain::MaterialId("no.such.glass");
+    EXPECT_TRUE(glassPanelMaterialWarning(cabinet(s), s.project().libraries, unknown).contains("no.such.glass"));
+    // A glass material in the library and chosen as panel material: no warning.
+    domain::Material glass;
+    glass.id = domain::MaterialId("glass.clear4");
+    glass.name = "Clear glass 4 mm";
+    glass.kind = domain::MaterialKind::Glass;
+    glass.thickness = 4;
+    run(project::commands::upsertMaterial(glass));
+    in.frame.panelMaterial = glass.id;
+    EXPECT_TRUE(glassPanelMaterialWarning(cabinet(s), s.project().libraries, in.frame).isEmpty());
+    run(frontCommand("cab1", "", in));
+    EXPECT_EQ(part(s, "cab1/door.panel")->material.str(), "glass.clear4");
+    // Engine refusal: rebate depth below the glass thickness.
+    FrontInput bad = in;
+    bad.frame.glass.rebateDepth = 3;
+    refused(frontCommand("cab1", "", bad).value());
+    // Undo the panel material, the glass library entry and the glass front: the slab door is back.
+    ASSERT_TRUE(s.undo().ok());
+    ASSERT_TRUE(s.undo().ok());
+    ASSERT_TRUE(s.undo().ok());
+    EXPECT_NE(part(s, "cab1/door"), nullptr);
+}
+
 } // namespace fos::app::test

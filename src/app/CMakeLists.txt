@@ -155,6 +155,7 @@ set(FOS_APP_GUI_SOURCES
     src/gui/production_workspace.cpp
     src/gui/cutting_workspace.hpp
     src/gui/cutting_workspace.cpp
+    src/gui/cutting_workshop.cpp
     src/gui/nesting_settings_form.hpp
     src/gui/nesting_settings_form.cpp
     src/gui/dialogs.hpp

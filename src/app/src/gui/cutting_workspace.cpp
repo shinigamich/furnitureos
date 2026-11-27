@@ -5,6 +5,7 @@
 #include "form_widgets.hpp"
 #include "fos/app/cutting_rows.hpp"
 #include "fos/app/session.hpp"
+#include "fos/app/workshop_offcuts.hpp"
 #include "fos/core/units.hpp"
 #include "fos/domain/model.hpp"
 #include "fos/cutting/svg.hpp"
@@ -12,7 +13,12 @@
 #include "inspector_panel.hpp"
 #include "nesting_settings_form.hpp"
 
+#include <QCheckBox>
 #include <QComboBox>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QMessageBox>
+#include <QSettings>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
 #include <QGroupBox>
@@ -164,6 +170,7 @@ CuttingWorkspace::CuttingWorkspace(Session& session, QWidget* parent) : QWidget(
     allSettingsLayout->setContentsMargins(0, 0, 0, 0);
     allSettingsLayout->addWidget(settings);
     allSettingsLayout->addWidget(nesting_);
+    buildWorkshopBox(allSettingsLayout);
     allSettingsLayout->addStretch(1);
 
     // Summary across the full width; below it the saw / nesting settings and the selected sheet.
@@ -222,8 +229,12 @@ int CuttingWorkspace::materialCount() const { return summary_->rowCount(); }
 
 void CuttingWorkspace::refresh() {
     stale_ = false;
+    workshopRun_.reset();
+    if (useWorkshop_->isChecked() && workshopStore_ && session_.resolved())
+        workshopRun_ = workshopCuttingRun(*session_.resolved(), session_.project(), *workshopStore_);
+    showWorkshopRun();
     const int keep = std::max(0, summary_->currentRow());
-    const auto& plans = session_.cuttingPlans();
+    const auto& plans = shownPlans();
     const auto saw = cuttingSummary(plans);
     const auto nest = nestingSummary(plans);
     rows_ = cuttingTableRows(plans);
@@ -310,7 +321,7 @@ void CuttingWorkspace::refresh() {
 void CuttingWorkspace::showPlan() {
     // All sheets of the selected row's material: saw sheets, then nest sheets; the first sheet
     // of the selected row's method is shown.
-    const auto& plans = session_.cuttingPlans();
+    const auto& plans = shownPlans();
     const int row = summary_->currentRow();
     sheet_->blockSignals(true);
     sheet_->clear();
@@ -339,7 +350,7 @@ std::optional<PlanKind> CuttingWorkspace::shownSheetKind() const {
 }
 
 void CuttingWorkspace::showSheet() {
-    const auto& plans = session_.cuttingPlans();
+    const auto& plans = shownPlans();
     const int row = summary_->currentRow();
     const auto kind = shownSheetKind();
     if (row < 0 || row >= static_cast<int>(rows_.size()) || !kind) {
