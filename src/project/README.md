@@ -257,6 +257,16 @@ furniture edits (`furniture::generate`). Counts of arrays are checked before the
 
 The JSON nesting of the whole file is limited to 128 levels by the container (formats §1.2).
 
+### Desks and tables (`desk` key of a cabinet)
+
+Optional object, written only when `CabinetDefinition::desk` is set (furniture README "Desks and
+tables"): `{"support": "Panels"|"Legs", "frontCornerRadius", "modestyPanel", "modestySetback",
+"modestyHeight", "cableCutout": {"length", "width", "rearDistance", "centerOffset"?},
+"pedestal": {"side": "Left"|"Right", "width", "drawers"}, "leg", "legInset"}`. Only `support` is
+always written; scalar fields only when they differ from the DeskSpec defaults; unknown keys are
+rejected. `commands::addItem` appends missing generic fittings the item needs
+(`furniture::requiredGenericHardware()`, e.g. `hw.leg_generic` of a table) to the hardware library.
+
 ## 3. Commands and undo
 
 * A `Command` = `CommandLabel` (English key with `{0}`, `{1}` … placeholders + arguments, so the app can translate

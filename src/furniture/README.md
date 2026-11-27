@@ -530,3 +530,52 @@ compatibility with any particular appliance model.
   `appliance_gap_width`. No plinth strip, worktop or appliance fixing hardware is generated.
 * Templates: `ovenTallHousing()` (drawers 700 / niche 595 / door section) and `dishwasherFront()`
   (600 gap, right end panel, width = `appliance_gap_width + thickness`).
+
+## Desks and tables (`CabinetDefinition::desk`, desk_spec.hpp)
+
+A desk is a construction VARIANT of a `CabinetDefinition`, like the appliance gap: the same
+project `Item` variant, parameter graph (`width`, `height` = floor to top surface, `depth`,
+`thickness`), materials, codec, diff, undo and outputs apply unchanged; `generate()` dispatches to
+`gen_desk.cpp` when `desk` is set. The root section must be an empty leaf (no split, shelves or
+front); corner kinds, hangers, hanging rails and inner drawers are refused.
+
+| Slot | Part | Size / position (18 mm board) |
+|---|---|---|
+| `top` | Desk top (role Top, all edges visible band) | W x D at z = H - T; optional rounded FRONT corners (`frontCornerRadius`, RoundedCorners contour, replaced by a user contour override on `top` with warning `furniture.desk.corner_radius_overridden`) |
+| `end.left` / `end.right` | End panels (Panels) | (H - T) x D, x 0..T and W - T..W |
+| `modesty` | Modesty panel (Panels, role Back) | (W - 2T) x `modestyHeight` under the top, rear face `modestySetback` in front of the rear edge |
+| `pedestal/<slot>` | Drawer pedestal | see below |
+
+* Joints (existing corner-joint placement): top on the ends with `construction.topFastener`
+  (`hw.joint.end.left.top`), modesty into the ends with `construction.dividerFastener`
+  (`hw.joint.modesty.end.left|right`). Confirmat (default) or Dowel.
+* Legs (`DeskSupport::Legs`): four instances `hw.leg.front_left|front_right|rear_left|rear_right`
+  of `DeskSpec::leg` (default `hw.leg_generic`, `genericLegDefinition()`: generic plate 80 mm,
+  4 x 4 x 10 mm pilot holes on a 60 mm square, length 400..1100 mm, unverified) with their axes
+  `legInset` from the edges; 16 pilot holes `top/op.leg.<leg>.<k>` in the underside of the top.
+  Legs not in the library -> NotFound. Leg length H - T outside height_min/max -> warning
+  `furniture.desk.leg_height`. A front corner radius that cuts into a leg plate is refused.
+  The hardware module's built-in catalogue has no leg; `requiredGenericHardware()` lists it and
+  `project::commands::addItem` adds it to the project library.
+* Cable slot (`cableCutout`): a through Rectangle cut-out with corner radius = width / 2 (rounded
+  slot), centred on W / 2 + `centerOffset`, `rearDistance` from the rear edge; it must stay clear of
+  the end panels (x T..W - T) and of the leg plates.
+* Drawer pedestal (`pedestal`, Panels only): REUSES the cabinet generator: a
+  `templates::drawerUnitWithBoxes()` definition (id `<desk>/pedestal`, the desk's materials and
+  hardware selection, `drawers` equal fronts with boxes, on feet) `width` wide, H - T high and as
+  deep as the space in front of the modesty panel (D - setback - T, or D), placed against the inner
+  face of the chosen end panel. It is free-standing (no fitting joins it to the desk); per-part
+  overrides of the desk do not reach pedestal parts.
+* Validation (errors): width 600..3000, depth 400..1200, height 500..1200 mm; modesty height
+  0 < h <= H - T, setback + T <= D; pedestal 250 mm .. W - 2T wide, 1..6 drawers; modesty panel and
+  pedestal need end panels; cable slot and leg geometry as above.
+* Knee clearance RULE OF THUMB (`kDeskKneeClearance` = 600 mm, warning
+  `furniture.desk.knee_clearance`, a heuristic, not an ergonomic standard): clear height under the
+  top H - T and clear width between the supports (W - 2T - pedestal width, or between the leg
+  plates) of at least 600 mm.
+* Templates: `templates::desk()` 1400 x 740 x 700 (modesty 350 / setback 100, slot 300 x 60 at
+  20 mm, 400 mm 3-drawer pedestal on the right; knee space 722 high, 964 wide) and
+  `templates::table()` 1600 x 750 x 800 on four generic legs.
+* Project files: key `desk` only when set (support always; the other fields only when they
+  differ from the DeskSpec defaults; `cableCutout` / `pedestal` only when present), so files of
+  ordinary cabinets are byte-identical.
