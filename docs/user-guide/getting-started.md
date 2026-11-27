@@ -4,6 +4,13 @@
 This guide describes the desktop application as it exists today. Everything mentioned here is implemented;
 features that are not mentioned are not available yet (see `src/app/README.md`, "Limitations").
 
+**User guide.** A step-by-step guide for furniture makers covers every workspace, the kitchen tools, production
+documents, quotes, the experimental CAM and the safety limitations:
+
+* English: [en/README.md](en/README.md)
+* Українською: [uk/README.md](uk/README.md)
+* Installing the Windows build: [installing-windows.md](installing-windows.md)
+
 ## 1. Build and start
 
 Prerequisites (Ubuntu 24.04):
@@ -28,7 +35,8 @@ Messages from the engineering core in the Diagnostics panel are always English.
 ## 2. Your first cabinet
 
 1. **File ▸ New from template** and pick a template: base cabinet, wall cabinet, tall cabinet, drawer unit,
-   wardrobe section or open shelving.
+   drawer unit with boxes, wardrobe section, open shelving, blind corner cabinet, L-shaped corner cabinet, tall oven
+   housing or dishwasher gap with decor front (details: [user guide, chapter 2](en/02-templates.md)).
 2. Enter width, height (including the plinth) and depth in millimetres. All other parameters keep the template
    defaults. An impossible size is refused with the reason.
 3. The cabinet appears in the **3D** workspace and in the **Project browser** (cabinet → assembly → parts with
