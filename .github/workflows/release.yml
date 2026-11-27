@@ -1,0 +1,242 @@
+# Release pipeline: builds, tests and packages FurnitureOS, then publishes a GitHub Release.
+#   * push of a tag v*        -> full build + GitHub Release (prerelease when the version has a suffix)
+#   * workflow_dispatch       -> dry run: same build, files uploaded as a workflow artifact only
+# How to cut a release: docs/development/releasing.md.
+# The Windows steps mirror the `windows` job of ci.yml; keep the two in step.
+name: Release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  version:
+    name: Version and tag check
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      prerelease: ${{ steps.v.outputs.prerelease }}
+      publish: ${{ steps.v.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read version from CMakeLists.txt and compare with the tag
+        id: v
+        shell: bash
+        run: |
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            python3 packaging/release/read_version.py --check-tag "$GITHUB_REF_NAME" --github-output
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            python3 packaging/release/read_version.py --github-output
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Dry run (no tag): files are uploaded as a workflow artifact, nothing is published."
+          fi
+
+  windows:
+    name: Windows (MSVC, Qt 6) ZIP + setup
+    needs: version
+    runs-on: windows-2022
+    env:
+      QT_OPENGL: software
+      FOS_VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.5.3'
+          arch: win64_msvc2019_64
+          cache: true
+      - name: MSVC developer environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      - name: Check the configured version
+        shell: pwsh
+        run: |
+          $configured = (Get-Content build/fos-version.txt -Raw).Trim()
+          if ($configured -ne $env:FOS_VERSION) { Write-Host "CMake configured '$configured', expected '$env:FOS_VERSION'"; exit 1 }
+      - name: Build
+        run: cmake --build build -- -k 0
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Crash diagnostics for the GUI smoke test
+        if: failure()
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Recurse build -Filter fos_app_gui_tests.exe | Select-Object -First 1
+          if (-not $exe) { Write-Host "fos_app_gui_tests.exe was not built"; exit 0 }
+          $env:PATH = "$env:QT_ROOT_DIR\bin;$env:PATH"
+          Write-Host "== direct run"; & $exe.FullName 2>&1 | Select-Object -Last 60
+          Write-Host "== exit code $LASTEXITCODE"
+          $cdb = "${env:ProgramFiles(x86)}\Windows Kits\10\Debuggers\x64\cdb.exe"
+          if (Test-Path $cdb) {
+            Write-Host "== cdb stack"
+            & $cdb -g -G -lines -y "$($exe.DirectoryName)" -c ".ecxr;kp 40;q" $exe.FullName 2>&1 | Select-Object -Last 80
+          } else { Write-Host "cdb not found" }
+      - name: Install portable folder (runs windeployqt)
+        run: cmake --install build --prefix dist/FurnitureOS
+      - name: Check the folder is self-contained
+        shell: pwsh
+        run: ./packaging/windows/check-deployment.ps1 -Folder dist/FurnitureOS
+      - name: Smoke test the packaged command-line tool
+        shell: pwsh
+        run: |
+          $fos = "dist/FurnitureOS/fos.exe"
+          $reported = & $fos --version; if ($LASTEXITCODE -ne 0) { exit 1 }
+          Write-Host $reported
+          if ("$reported" -notmatch [regex]::Escape($env:FOS_VERSION)) { Write-Host "fos --version does not report $env:FOS_VERSION"; exit 1 }
+          & $fos new "$env:RUNNER_TEMP/ci.fosp" --template base --id 00000000-0000-4000-8000-000000000000 --date 2026-01-01T00:00:00Z; if ($LASTEXITCODE -ne 0) { exit 1 }
+          & $fos set "$env:RUNNER_TEMP/ci.fosp" cab1 width 900; if ($LASTEXITCODE -ne 0) { exit 1 }
+          & $fos validate "$env:RUNNER_TEMP/ci.fosp"; if ($LASTEXITCODE -ne 0) { exit 1 }
+          & $fos cut "$env:RUNNER_TEMP/ci.fosp" --out-dir "$env:RUNNER_TEMP/cut"; if ($LASTEXITCODE -ne 0) { exit 1 }
+      - name: Package ZIP (exactly the checked folder)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force packages | Out-Null
+          if (Test-Path dist/FurnitureOS/installed.txt) { Write-Host "installed.txt must not be in the portable folder"; exit 1 }
+          Compress-Archive -Path dist/FurnitureOS -DestinationPath "packages/FurnitureOS-$env:FOS_VERSION-windows-x64.zip"
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          # Inno Setup 6.3+ is needed (x64compatible). choco upgrade installs it when absent.
+          choco upgrade innosetup -y --no-progress
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { Write-Host "ISCC.exe not found at $iscc"; exit 1 }
+          Write-Host "Inno Setup $((Get-Item $iscc).VersionInfo.ProductVersion)"
+          "ISCC=$iscc" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Build the per-user setup
+        shell: pwsh
+        run: |
+          $numeric = $env:FOS_VERSION -replace '-.*$', ''
+          & $env:ISCC "/DAppVersion=$env:FOS_VERSION" "/DAppVersionNumeric=$numeric" `
+              "/DStageDir=$PWD\dist\FurnitureOS" "/DOutputDir=$PWD\packages" `
+              "/DOutputBaseName=FurnitureOS-$env:FOS_VERSION-windows-x64-setup" packaging\windows\furnitureos.iss
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - name: Test silent install, upgrade and uninstall
+        shell: pwsh
+        run: |
+          $setup = Resolve-Path "packages/FurnitureOS-$env:FOS_VERSION-windows-x64-setup.exe"
+          $dir = Join-Path $env:LOCALAPPDATA 'Programs\FurnitureOS'
+          $flags = '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART'
+          foreach ($pass in 'install', 'upgrade') {
+            $p = Start-Process -FilePath $setup -ArgumentList ($flags + "/LOG=$env:RUNNER_TEMP\setup-$pass.log") -Wait -PassThru
+            if ($p.ExitCode -ne 0) { Get-Content "$env:RUNNER_TEMP\setup-$pass.log" -Tail 40; Write-Host "$pass exit code $($p.ExitCode)"; exit 1 }
+            foreach ($f in 'furnitureos.exe', 'fos.exe', 'installed.txt', 'unins000.exe', 'platforms\qwindows.dll') {
+              if (-not (Test-Path (Join-Path $dir $f))) { Write-Host "$pass`: missing $dir\$f"; exit 1 }
+            }
+          }
+          $reported = & (Join-Path $dir 'fos.exe') --version
+          if ("$reported" -notmatch [regex]::Escape($env:FOS_VERSION)) { Write-Host "installed fos reports '$reported'"; exit 1 }
+          $cmd = (Get-ItemProperty 'HKCU:\Software\Classes\FurnitureOS.Project\shell\open\command').'(default)'
+          Write-Host "open command: $cmd"
+          if ($cmd -notlike "*furnitureos.exe*%1*") { Write-Host 'file association missing'; exit 1 }
+          $lnk = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\FurnitureOS\FurnitureOS.lnk'
+          if (-not (Test-Path $lnk)) { Write-Host "missing Start-menu shortcut $lnk"; exit 1 }
+          Start-Process -FilePath (Join-Path $dir 'unins000.exe') -ArgumentList $flags -Wait
+          # The uninstaller continues from a temporary copy; wait for it to finish.
+          for ($i = 0; $i -lt 60 -and (Test-Path (Join-Path $dir 'furnitureos.exe')); $i++) { Start-Sleep -Seconds 1 }
+          if (Test-Path (Join-Path $dir 'furnitureos.exe')) { Write-Host 'uninstall left furnitureos.exe behind'; exit 1 }
+          if (Test-Path (Join-Path $dir 'installed.txt')) { Write-Host 'uninstall left installed.txt behind'; exit 1 }
+          if (Test-Path 'HKCU:\Software\Classes\FurnitureOS.Project') { Write-Host 'uninstall left the file association'; exit 1 }
+          Write-Host 'Silent install, upgrade and uninstall OK.'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: packages/
+          if-no-files-found: error
+
+  linux:
+    name: Linux (GCC, Qt 6) tarball
+    needs: version
+    runs-on: ubuntu-24.04
+    env:
+      FOS_VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build g++ cmake \
+            qt6-base-dev libqt6opengl6-dev libqt6svg6-dev qt6-tools-dev qt6-l10n-tools \
+            libgl1-mesa-dev nlohmann-json3-dev libgtest-dev libgmock-dev xvfb
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DFOS_WERROR=ON
+      - name: Check the configured version
+        run: test "$(cat build/fos-version.txt)" = "$FOS_VERSION"
+      - name: Build
+        run: cmake --build build
+      - name: Test
+        run: xvfb-run -a ctest --test-dir build --output-on-failure
+      - name: Package tarball
+        run: |
+          name="FurnitureOS-$FOS_VERSION-linux-x86_64"
+          stage="$RUNNER_TEMP/$name"
+          cmake --install build --prefix "$stage"
+          cp packaging/linux/README-linux.txt "$stage/README.txt"
+          "$stage/bin/fos" --version | grep -F "$FOS_VERSION"
+          mkdir -p packages
+          tar -C "$RUNNER_TEMP" --owner=0 --group=0 -czf "packages/$name.tar.gz" "$name"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-linux
+          path: packages/
+          if-no-files-found: error
+
+  publish:
+    name: Checksums, update.json, GitHub Release
+    needs: [version, windows, linux]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      FOS_VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: release
+          merge-multiple: true
+      - name: Tag message (fallback release notes)
+        if: needs.version.outputs.publish == 'true'
+        run: |
+          git fetch --force origin "refs/tags/$GITHUB_REF_NAME:refs/tags/$GITHUB_REF_NAME"
+          git tag -l --format='%(contents)' "$GITHUB_REF_NAME" > "$RUNNER_TEMP/tag-message.txt"
+      - name: SHA256SUMS.txt and update.json
+        run: |
+          python3 packaging/release/make_release_metadata.py --version "$FOS_VERSION" \
+            --assets-dir release --changelog CHANGELOG.md \
+            --tag-message "$RUNNER_TEMP/tag-message.txt" --notes-out "$RUNNER_TEMP/notes.md"
+          (cd release && sha256sum -c SHA256SUMS.txt)
+          ls -l release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FurnitureOS-${{ needs.version.outputs.version }}-release
+          path: release/
+          if-no-files-found: error
+      - name: Create the GitHub Release
+        if: needs.version.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PRERELEASE: ${{ needs.version.outputs.prerelease }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME exists (re-run): replacing its files."
+            gh release upload "$GITHUB_REF_NAME" release/* --clobber
+          else
+            flags=()
+            if [ "$PRERELEASE" = "true" ]; then flags+=(--prerelease); else flags+=(--latest); fi
+            gh release create "$GITHUB_REF_NAME" release/* --verify-tag \
+              --title "FurnitureOS $FOS_VERSION" --notes-file "$RUNNER_TEMP/notes.md" "${flags[@]}"
+          fi

@@ -22,7 +22,7 @@ BEGIN
             VALUE "LegalCopyright",   "Licensed under the GNU AGPL-3.0-only"
             VALUE "OriginalFilename", "@FOS_RC_NAME@.exe"
             VALUE "ProductName",      "FurnitureOS"
-            VALUE "ProductVersion",   "@PROJECT_VERSION@"
+            VALUE "ProductVersion",   "@FOS_VERSION_STRING@"
         END
     END
     BLOCK "VarFileInfo"

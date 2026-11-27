@@ -4,6 +4,17 @@ cmake_minimum_required(VERSION 3.24)
 project(FurnitureOS VERSION 0.1.0 LANGUAGES CXX
         DESCRIPTION "Open-source parametric furniture CAD/CAM")
 
+# Version: project(VERSION) above is the single source of truth for X.Y.Z. An optional
+# pre-release suffix (semantic versioning, e.g. "-beta.1") is appended for test builds; the
+# release workflow requires the git tag to be exactly "v${FOS_VERSION_STRING}".
+# See docs/development/releasing.md.
+set(FOS_VERSION_SUFFIX "" CACHE STRING "Pre-release suffix appended to PROJECT_VERSION, e.g. -beta.1 (empty = final)")
+if(NOT FOS_VERSION_SUFFIX MATCHES "^(-[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$")
+    message(FATAL_ERROR "FOS_VERSION_SUFFIX '${FOS_VERSION_SUFFIX}' is not a semantic-versioning "
+                        "pre-release suffix such as -beta.1 or -rc.2.")
+endif()
+set(FOS_VERSION_STRING "${PROJECT_VERSION}${FOS_VERSION_SUFFIX}")
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
