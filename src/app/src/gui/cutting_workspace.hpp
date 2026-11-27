@@ -20,6 +20,7 @@ class QListWidget;
 class QPushButton;
 class QSvgRenderer;
 class QTableWidget;
+class QVBoxLayout;
 
 namespace fos::app {
 class Session;
@@ -88,7 +89,7 @@ private:
     void removeRemnant();
     /// Plans of the shown run: with the workshop store when offered, else the session's.
     const project::CuttingPlans& shownPlans();
-    void buildWorkshopBox(class QVBoxLayout* layout);
+    void buildWorkshopBox(QVBoxLayout* layout);
     void chooseWorkshopStore();
     void showWorkshopRun();
     void addOffcutsToStock();

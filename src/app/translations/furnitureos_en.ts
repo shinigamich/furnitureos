@@ -681,6 +681,18 @@
         <source>whole interior</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>, frame with glass</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The glass panel material “%1” is not in the library.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The glass panel uses “%1”, which is not a glass material; add a glass material in the Libraries window and choose it as panel material.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>JobPackText</name>
@@ -1546,6 +1558,13 @@
     </message>
 </context>
 <context>
+    <name>QObject</name>
+    <message>
+        <source> mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>QuoteText</name>
     <message>
         <source>Material</source>
@@ -1830,6 +1849,122 @@
         <comment>plan: a gap or length</comment>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Table on 4 legs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Desk on end panels</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>modesty panel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>corner radius %1 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>cable slot</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1-drawer pedestal left</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1-drawer pedestal right</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Material</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edge band</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hardware</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cabinet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Panel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Keep this project&apos;s entry</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Replace this project&apos;s entry</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add the imported entry under a new id</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 “%2” → %3 (id already used)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 “%2”</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 “%2” (%3)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>added</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>differs: this project&apos;s entry is kept</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>identical entry already in this project</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>replaces this project&apos;s entry (its other users change too)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>differs: added as %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 × %2 × %3 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>used for %1 pieces (sheet %2)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>offered, not needed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 offcuts offered, %2 used, %3 skipped</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove (used): %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::CommandText</name>
@@ -2073,6 +2208,14 @@
         <source>Paste {0} items</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Change desk of {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Merge items from {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::PanelTools</name>
@@ -2219,11 +2362,146 @@
         <source>Dishwasher gap with decor front</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Desk</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Table</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::WindowTitle</name>
     <message>
         <source>Untitled</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::AddPanelDialog</name>
+    <message>
+        <source> mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add panel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Panel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Length</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Width</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Horizontal (length along X, width along Y)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Vertical, side (thickness along X, length up)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Vertical, front (thickness along Y, width up)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Orientation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 (%2 mm)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Material</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edge bands</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>L1 (front, along the length)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>L2 (back, along the length)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>W1 (start, along the width)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>W2 (end, along the width)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>none</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>At the project origin</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>At the selection&apos;s corner</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>On top of the selection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Below the selection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>To the left of the selection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>To the right of the selection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>In front of the selection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Behind the selection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fill the gap between two selected items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Placement</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fill gap: position of the panel along its thickness inside the gap, from the gap&apos;s start (for a shelf between two sides: its height above their bottom).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Offset in the gap</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Panel %1 × %2 × %3 mm, minimum corner at (%4, %5, %6) mm.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2343,6 +2621,25 @@
     </message>
     <message>
         <source>Vertical dimension, measures %1 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::ArrayDialog</name>
+    <message>
+        <source>Linear array</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copies</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Step %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copy k is moved by k × step from the original (k = 1 … copies).</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -3069,6 +3366,75 @@
         <source>problems: %1</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Workshop offcut stock (*.fosremnants)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Workshop offcuts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use workshop offcuts from:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Offcuts of the same material and thickness from the stock file are offered before full sheets (free ones and those reserved by this project&apos;s name).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Choose…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Offcut</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Status</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add offcuts to workshop stock…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>After cutting: removes the used offcuts from the stock file and adds the usable offcuts of these layouts (you confirm the list first).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No stock file chosen.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Workshop offcut stock</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only the project&apos;s sheets and remnants are used.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Choose the workshop stock file first.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The project cannot be generated; there are no layouts to take offcuts from.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>These layouts leave no usable offcuts and use no stock offcuts; the stock file is unchanged.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Change the workshop stock %1?
+%2 offcuts removed (used), %3 added.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::DiagnosticsPanel</name>
@@ -3381,6 +3747,173 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
             <numerusform></numerusform>
             <numerusform></numerusform>
         </translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::EditToolsController</name>
+    <message>
+        <source>Add &amp;panel…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add a free panel at the origin, next to the selection or filling the gap between two selected items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cu&amp;t</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Paste</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Move / rotate…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Rotate 90°</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rotate the selection 90° counter-clockwise about the vertical axis</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Array…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mirror across X (left ↔ right)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mirror across Y (front ↔ back)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mirror across Z (top ↔ bottom)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Left edges</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Right edges</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Front faces</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Back faces</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Bottoms</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tops</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Along X</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Along Y</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Along Z</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>M&amp;irror copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A&amp;lign to first selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Distribute &amp;evenly</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add panel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n item(s) copied.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Cut</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n item(s) cut.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Paste</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n item(s) pasted.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Move / rotate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rotate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mirror copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n copy(ies) placed mirrored but not reflected (cabinets and shaped panels keep their own hand).</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Array</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Align</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Distribute</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -4102,6 +4635,126 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Width and depth are those of leg A (rear wall); leg B runs along the left wall.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>%1 items selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ctrl+click an item to add it to or remove it from the selection. Align uses the first selected item as reference.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Desk</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>End panels</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Four legs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>End panels under the top, or four screw-on legs (generic leg, added to the library).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Radius of the two front corners of the top; 0 = sharp corners.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Modesty panel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rear edge of the top to the rear face of the modesty panel.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Height of the modesty panel down from the underside of the top.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cable slot</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rear edge of the top to the slot.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Slot centre right of the desk centre (negative = left).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Drawer pedestal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Left</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Right</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Apply desk settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Support:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Front corner radius:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Setback:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Panel height:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Slot length:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Slot width:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>From rear edge:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Centre offset:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pedestal side:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pedestal width:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Drawers:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Height is from the floor to the top surface. Modesty panel and pedestal need end panels. Knee space below 600 mm is a rule-of-thumb warning, not a standard.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::InteriorEditor</name>
@@ -4371,6 +5024,58 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
     <message>
         <source>Supports:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Board in a groove</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Glass in a rebate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Glass: a pane in a rebate on the back of the frame instead of a board in a groove; needs the dowel joint and a glass panel material.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Thickness of the glass pane.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Width of the rebate into the inner frame edge.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Depth of the rebate from the back face of the frame.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Glazing-bead strips</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>None (clips or silicone, not modelled)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Panel:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Glass thickness:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rebate width:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rebate depth:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Glass retention:</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -5355,6 +6060,57 @@ Replace it?</source>
         <source>FurnitureOS could not be started again (%1). Your settings are saved; close the application and start it again to use them.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>%1 items selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Import &amp;items from project…</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::MergeDialog</name>
+    <message>
+        <source>Import items from %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 — %2 (%3)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>What happens to a material, edge band or hardware entry whose id exists in this project with a different content. Identical entries are never duplicated.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Import</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Items to import (they keep their position from the other project):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Differing library entries:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Preview:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Check at least one item to import.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Import items from project</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>FurnitureOS projects (*.fosp)</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::NestingSettingsForm</name>
@@ -5724,10 +6480,6 @@ Replace it?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Drag an item to move it (snaps to item edges and walls); wheel zooms, middle or right button pans. Each move or rotation is one undo step.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Move refused: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5797,6 +6549,10 @@ Replace it?</source>
     </message>
     <message>
         <source>H</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Drag an item to move it (snaps to item edges and walls); wheel zooms, middle or right button pans. Ctrl+click selects several items; arrow keys move the selection by 1 mm (Shift: 10 mm). Each move or rotation is one undo step.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -6494,6 +7250,64 @@ Circle: X, Y = centre, Radius.</source>
     </message>
     <message>
         <source>The niche height (generic 595 mm) is the parameter niche_height in the inspector; check the appliance&apos;s installation sheet for the niche and ventilation sizes.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::TransformDialog</name>
+    <message numerus="yes">
+        <source>Move / rotate %n item(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Position of the minimum (left, front, bottom) corner of the selection&apos;s box in the project frame.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Position</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Distance to move the selection by (front = −Y, up = +Z).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Offset</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Z (vertical)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>X (left–right)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Y (front–back)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Axis</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Angle (°)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Counter-clockwise looking against the axis, about the centre of the selection&apos;s box.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Counter-clockwise seen from above, about the centre of the selection&apos;s box. Cabinets can only be rotated about the vertical axis.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rotate</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

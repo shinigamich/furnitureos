@@ -687,6 +687,18 @@
         <source>whole interior</source>
         <translation>весь внутрішній простір</translation>
     </message>
+    <message>
+        <source>, frame with glass</source>
+        <translation>, рамка зі склом</translation>
+    </message>
+    <message>
+        <source>The glass panel material “%1” is not in the library.</source>
+        <translation>Матеріалу скляної панелі «%1» немає в бібліотеці.</translation>
+    </message>
+    <message>
+        <source>The glass panel uses “%1”, which is not a glass material; add a glass material in the Libraries window and choose it as panel material.</source>
+        <translation>Скляна панель використовує «%1», а це не скляний матеріал; додайте скляний матеріал у вікні «Бібліотеки» і виберіть його як матеріал панелі.</translation>
+    </message>
 </context>
 <context>
     <name>JobPackText</name>
@@ -1556,6 +1568,13 @@
     </message>
 </context>
 <context>
+    <name>QObject</name>
+    <message>
+        <source> mm</source>
+        <translation> мм</translation>
+    </message>
+</context>
+<context>
     <name>QuoteText</name>
     <message>
         <source>Material</source>
@@ -1842,6 +1861,122 @@
         <comment>plan: a gap or length</comment>
         <translation>%1 мм</translation>
     </message>
+    <message>
+        <source>Table on 4 legs</source>
+        <translation>Стіл на 4 ніжках</translation>
+    </message>
+    <message>
+        <source>Desk on end panels</source>
+        <translation>Письмовий стіл на бокових панелях</translation>
+    </message>
+    <message>
+        <source>modesty panel</source>
+        <translation>царга</translation>
+    </message>
+    <message>
+        <source>corner radius %1 mm</source>
+        <translation>радіус кутів %1 мм</translation>
+    </message>
+    <message>
+        <source>cable slot</source>
+        <translation>кабельний проріз</translation>
+    </message>
+    <message>
+        <source>%1-drawer pedestal left</source>
+        <translation>тумба з %1 шухлядами ліворуч</translation>
+    </message>
+    <message>
+        <source>%1-drawer pedestal right</source>
+        <translation>тумба з %1 шухлядами праворуч</translation>
+    </message>
+    <message>
+        <source>Material</source>
+        <translation>Матеріал</translation>
+    </message>
+    <message>
+        <source>Edge band</source>
+        <translation>Крайка</translation>
+    </message>
+    <message>
+        <source>Hardware</source>
+        <translation>Фурнітура</translation>
+    </message>
+    <message>
+        <source>Cabinet</source>
+        <translation>Корпус</translation>
+    </message>
+    <message>
+        <source>Panel</source>
+        <translation>Панель</translation>
+    </message>
+    <message>
+        <source>Keep this project&apos;s entry</source>
+        <translation>Залишити запис цього проєкту</translation>
+    </message>
+    <message>
+        <source>Replace this project&apos;s entry</source>
+        <translation>Замінити запис цього проєкту</translation>
+    </message>
+    <message>
+        <source>Add the imported entry under a new id</source>
+        <translation>Додати імпортований запис під новим ідентифікатором</translation>
+    </message>
+    <message>
+        <source>%1 “%2” → %3 (id already used)</source>
+        <translation>%1 «%2» → %3 (ідентифікатор уже використано)</translation>
+    </message>
+    <message>
+        <source>%1 “%2”</source>
+        <translation>%1 «%2»</translation>
+    </message>
+    <message>
+        <source>%1 “%2” (%3)</source>
+        <translation>%1 «%2» (%3)</translation>
+    </message>
+    <message>
+        <source>added</source>
+        <translation>додано</translation>
+    </message>
+    <message>
+        <source>differs: this project&apos;s entry is kept</source>
+        <translation>відрізняється: залишено запис цього проєкту</translation>
+    </message>
+    <message>
+        <source>identical entry already in this project</source>
+        <translation>ідентичний запис уже є в цьому проєкті</translation>
+    </message>
+    <message>
+        <source>replaces this project&apos;s entry (its other users change too)</source>
+        <translation>замінює запис цього проєкту (змінюються й інші його користувачі)</translation>
+    </message>
+    <message>
+        <source>differs: added as %1</source>
+        <translation>відрізняється: додано як %1</translation>
+    </message>
+    <message>
+        <source>%1 × %2 × %3 mm</source>
+        <translation>%1 × %2 × %3 мм</translation>
+    </message>
+    <message>
+        <source>used for %1 pieces (sheet %2)</source>
+        <translation>використано для %1 деталей (лист %2)</translation>
+    </message>
+    <message>
+        <source>offered, not needed</source>
+        <translation>запропоновано, не знадобився</translation>
+    </message>
+    <message>
+        <source>%1 offcuts offered, %2 used, %3 skipped</source>
+        <translation>запропоновано обрізків: %1, використано: %2, пропущено: %3</translation>
+    </message>
+    <message>
+        <source>Remove (used): %1</source>
+        <translation>Вилучити (використано): %1</translation>
+    </message>
+    <message>
+        <source>Add: %1</source>
+        <translation>Додати: %1</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::CommandText</name>
@@ -2085,6 +2220,14 @@
         <source>Paste {0} items</source>
         <translation>Вставити {0} елементів</translation>
     </message>
+    <message>
+        <source>Change desk of {0}</source>
+        <translation>Змінити письмовий стіл {0}</translation>
+    </message>
+    <message>
+        <source>Merge items from {0}</source>
+        <translation>Об’єднати елементи з {0}</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::PanelTools</name>
@@ -2231,12 +2374,147 @@
         <source>Dishwasher gap with decor front</source>
         <translation>Проміжок для посудомийної машини з декоративним фасадом</translation>
     </message>
+    <message>
+        <source>Desk</source>
+        <translation>Письмовий стіл</translation>
+    </message>
+    <message>
+        <source>Table</source>
+        <translation>Стіл</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::WindowTitle</name>
     <message>
         <source>Untitled</source>
         <translation>Без назви</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::AddPanelDialog</name>
+    <message>
+        <source> mm</source>
+        <translation> мм</translation>
+    </message>
+    <message>
+        <source>Add panel</source>
+        <translation>Додати панель</translation>
+    </message>
+    <message>
+        <source>Panel</source>
+        <translation>Панель</translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation>Назва</translation>
+    </message>
+    <message>
+        <source>Length</source>
+        <translation>Довжина</translation>
+    </message>
+    <message>
+        <source>Width</source>
+        <translation>Ширина</translation>
+    </message>
+    <message>
+        <source>Horizontal (length along X, width along Y)</source>
+        <translation>Горизонтальна (довжина вздовж X, ширина вздовж Y)</translation>
+    </message>
+    <message>
+        <source>Vertical, side (thickness along X, length up)</source>
+        <translation>Вертикальна, бокова (товщина вздовж X, довжина вгору)</translation>
+    </message>
+    <message>
+        <source>Vertical, front (thickness along Y, width up)</source>
+        <translation>Вертикальна, фронтальна (товщина вздовж Y, ширина вгору)</translation>
+    </message>
+    <message>
+        <source>Orientation</source>
+        <translation>Орієнтація</translation>
+    </message>
+    <message>
+        <source>%1 (%2 mm)</source>
+        <translation>%1 (%2 мм)</translation>
+    </message>
+    <message>
+        <source>Material</source>
+        <translation>Матеріал</translation>
+    </message>
+    <message>
+        <source>Edge bands</source>
+        <translation>Крайки</translation>
+    </message>
+    <message>
+        <source>L1 (front, along the length)</source>
+        <translation>L1 (передня, вздовж довжини)</translation>
+    </message>
+    <message>
+        <source>L2 (back, along the length)</source>
+        <translation>L2 (задня, вздовж довжини)</translation>
+    </message>
+    <message>
+        <source>W1 (start, along the width)</source>
+        <translation>W1 (початок, вздовж ширини)</translation>
+    </message>
+    <message>
+        <source>W2 (end, along the width)</source>
+        <translation>W2 (кінець, вздовж ширини)</translation>
+    </message>
+    <message>
+        <source>none</source>
+        <translation>немає</translation>
+    </message>
+    <message>
+        <source>At the project origin</source>
+        <translation>У початку координат проєкту</translation>
+    </message>
+    <message>
+        <source>At the selection&apos;s corner</source>
+        <translation>У куті виділення</translation>
+    </message>
+    <message>
+        <source>On top of the selection</source>
+        <translation>Зверху на виділенні</translation>
+    </message>
+    <message>
+        <source>Below the selection</source>
+        <translation>Під виділенням</translation>
+    </message>
+    <message>
+        <source>To the left of the selection</source>
+        <translation>Ліворуч від виділення</translation>
+    </message>
+    <message>
+        <source>To the right of the selection</source>
+        <translation>Праворуч від виділення</translation>
+    </message>
+    <message>
+        <source>In front of the selection</source>
+        <translation>Перед виділенням</translation>
+    </message>
+    <message>
+        <source>Behind the selection</source>
+        <translation>За виділенням</translation>
+    </message>
+    <message>
+        <source>Fill the gap between two selected items</source>
+        <translation>Заповнити проміжок між двома виділеними елементами</translation>
+    </message>
+    <message>
+        <source>Placement</source>
+        <translation>Розташування</translation>
+    </message>
+    <message>
+        <source>Fill gap: position of the panel along its thickness inside the gap, from the gap&apos;s start (for a shelf between two sides: its height above their bottom).</source>
+        <translation>Заповнення проміжку: положення панелі по її товщині всередині проміжку від його початку (для полиці між двома боковинами — її висота над їхнім низом).</translation>
+    </message>
+    <message>
+        <source>Offset in the gap</source>
+        <translation>Зсув у проміжку</translation>
+    </message>
+    <message>
+        <source>Panel %1 × %2 × %3 mm, minimum corner at (%4, %5, %6) mm.</source>
+        <translation>Панель %1 × %2 × %3 мм, мінімальний кут у (%4, %5, %6) мм.</translation>
     </message>
 </context>
 <context>
@@ -2356,6 +2634,25 @@
     <message>
         <source>Vertical dimension, measures %1 mm</source>
         <translation>Вертикальний розмір, виміряно %1 мм</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::ArrayDialog</name>
+    <message>
+        <source>Linear array</source>
+        <translation>Лінійний масив</translation>
+    </message>
+    <message>
+        <source>Copies</source>
+        <translation>Копії</translation>
+    </message>
+    <message>
+        <source>Step %1</source>
+        <translation>Крок %1</translation>
+    </message>
+    <message>
+        <source>Copy k is moved by k × step from the original (k = 1 … copies).</source>
+        <translation>Копію k зсунуто на k × крок від оригіналу (k = 1 … копії).</translation>
     </message>
 </context>
 <context>
@@ -3084,6 +3381,76 @@
         <source>problems: %1</source>
         <translation>проблем: %1</translation>
     </message>
+    <message>
+        <source>Workshop offcut stock (*.fosremnants)</source>
+        <translation>Склад обрізків майстерні (*.fosremnants)</translation>
+    </message>
+    <message>
+        <source>Workshop offcuts</source>
+        <translation>Обрізки майстерні</translation>
+    </message>
+    <message>
+        <source>Use workshop offcuts from:</source>
+        <translation>Використовувати обрізки майстерні з:</translation>
+    </message>
+    <message>
+        <source>Offcuts of the same material and thickness from the stock file are offered before full sheets (free ones and those reserved by this project&apos;s name).</source>
+        <translation>Обрізки того самого матеріалу й товщини з файлу складу пропонуються перед цілими листами (вільні та зарезервовані під назву цього проєкту).</translation>
+    </message>
+    <message>
+        <source>Choose…</source>
+        <translation>Вибрати…</translation>
+    </message>
+    <message>
+        <source>Offcut</source>
+        <translation>Обрізок</translation>
+    </message>
+    <message>
+        <source>Size</source>
+        <translation>Розмір</translation>
+    </message>
+    <message>
+        <source>Status</source>
+        <translation>Стан</translation>
+    </message>
+    <message>
+        <source>Add offcuts to workshop stock…</source>
+        <translation>Додати обрізки до складу майстерні…</translation>
+    </message>
+    <message>
+        <source>After cutting: removes the used offcuts from the stock file and adds the usable offcuts of these layouts (you confirm the list first).</source>
+        <translation>Після розкрою: вилучає використані обрізки з файлу складу та додає придатні обрізки цих карт (спершу ви підтверджуєте список).</translation>
+    </message>
+    <message>
+        <source>No stock file chosen.</source>
+        <translation>Файл складу не вибрано.</translation>
+    </message>
+    <message>
+        <source>Workshop offcut stock</source>
+        <translation>Склад обрізків майстерні</translation>
+    </message>
+    <message>
+        <source>Only the project&apos;s sheets and remnants are used.</source>
+        <translation>Використовуються лише листи й залишки проєкту.</translation>
+    </message>
+    <message>
+        <source>Choose the workshop stock file first.</source>
+        <translation>Спершу виберіть файл складу майстерні.</translation>
+    </message>
+    <message>
+        <source>The project cannot be generated; there are no layouts to take offcuts from.</source>
+        <translation>Проєкт не вдається згенерувати; немає карт розкрою, з яких брати обрізки.</translation>
+    </message>
+    <message>
+        <source>These layouts leave no usable offcuts and use no stock offcuts; the stock file is unchanged.</source>
+        <translation>Ці карти не залишають придатних обрізків і не використовують обрізків зі складу; файл складу не змінено.</translation>
+    </message>
+    <message>
+        <source>Change the workshop stock %1?
+%2 offcuts removed (used), %3 added.</source>
+        <translation>Змінити склад майстерні %1?
+%2 обрізків вилучено (використано), %3 додано.</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::DiagnosticsPanel</name>
@@ -3402,6 +3769,177 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
             <numerusform>Записано %n файли.</numerusform>
             <numerusform>Записано %n файлів.</numerusform>
         </translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::EditToolsController</name>
+    <message>
+        <source>Add &amp;panel…</source>
+        <translation>Додати &amp;панель…</translation>
+    </message>
+    <message>
+        <source>Add a free panel at the origin, next to the selection or filling the gap between two selected items</source>
+        <translation>Додати вільну панель у початку координат, поруч із виділенням або в проміжку між двома виділеними елементами</translation>
+    </message>
+    <message>
+        <source>&amp;Copy</source>
+        <translation>&amp;Копіювати</translation>
+    </message>
+    <message>
+        <source>Cu&amp;t</source>
+        <translation>Ви&amp;різати</translation>
+    </message>
+    <message>
+        <source>&amp;Paste</source>
+        <translation>Вст&amp;авити</translation>
+    </message>
+    <message>
+        <source>&amp;Move / rotate…</source>
+        <translation>&amp;Перемістити / повернути…</translation>
+    </message>
+    <message>
+        <source>&amp;Rotate 90°</source>
+        <translation>По&amp;вернути на 90°</translation>
+    </message>
+    <message>
+        <source>Rotate the selection 90° counter-clockwise about the vertical axis</source>
+        <translation>Повернути виділення на 90° проти годинникової стрілки навколо вертикальної осі</translation>
+    </message>
+    <message>
+        <source>&amp;Array…</source>
+        <translation>&amp;Масив…</translation>
+    </message>
+    <message>
+        <source>Mirror across X (left ↔ right)</source>
+        <translation>Дзеркально відносно X (ліво ↔ право)</translation>
+    </message>
+    <message>
+        <source>Mirror across Y (front ↔ back)</source>
+        <translation>Дзеркально відносно Y (перед ↔ зад)</translation>
+    </message>
+    <message>
+        <source>Mirror across Z (top ↔ bottom)</source>
+        <translation>Дзеркально відносно Z (верх ↔ низ)</translation>
+    </message>
+    <message>
+        <source>Left edges</source>
+        <translation>Ліві краї</translation>
+    </message>
+    <message>
+        <source>Right edges</source>
+        <translation>Праві краї</translation>
+    </message>
+    <message>
+        <source>Front faces</source>
+        <translation>Передні грані</translation>
+    </message>
+    <message>
+        <source>Back faces</source>
+        <translation>Задні грані</translation>
+    </message>
+    <message>
+        <source>Bottoms</source>
+        <translation>Низи</translation>
+    </message>
+    <message>
+        <source>Tops</source>
+        <translation>Верхи</translation>
+    </message>
+    <message>
+        <source>Along X</source>
+        <translation>Вздовж X</translation>
+    </message>
+    <message>
+        <source>Along Y</source>
+        <translation>Вздовж Y</translation>
+    </message>
+    <message>
+        <source>Along Z</source>
+        <translation>Вздовж Z</translation>
+    </message>
+    <message>
+        <source>M&amp;irror copy</source>
+        <translation>Дз&amp;еркальна копія</translation>
+    </message>
+    <message>
+        <source>A&amp;lign to first selected</source>
+        <translation>&amp;Вирівняти за першим виділеним</translation>
+    </message>
+    <message>
+        <source>Distribute &amp;evenly</source>
+        <translation>Розподілити &amp;рівномірно</translation>
+    </message>
+    <message>
+        <source>Add panel</source>
+        <translation>Додати панель</translation>
+    </message>
+    <message>
+        <source>Copy</source>
+        <translation>Копіювати</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n item(s) copied.</source>
+        <translation>
+            <numerusform>Скопійовано %n елемент.</numerusform>
+            <numerusform>Скопійовано %n елементи.</numerusform>
+            <numerusform>Скопійовано %n елементів.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Cut</source>
+        <translation>Вирізати</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n item(s) cut.</source>
+        <translation>
+            <numerusform>Вирізано %n елемент.</numerusform>
+            <numerusform>Вирізано %n елементи.</numerusform>
+            <numerusform>Вирізано %n елементів.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Paste</source>
+        <translation>Вставити</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n item(s) pasted.</source>
+        <translation>
+            <numerusform>Вставлено %n елемент.</numerusform>
+            <numerusform>Вставлено %n елементи.</numerusform>
+            <numerusform>Вставлено %n елементів.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Move / rotate</source>
+        <translation>Перемістити / повернути</translation>
+    </message>
+    <message>
+        <source>Rotate</source>
+        <translation>Повернути</translation>
+    </message>
+    <message>
+        <source>Mirror copy</source>
+        <translation>Дзеркальна копія</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n copy(ies) placed mirrored but not reflected (cabinets and shaped panels keep their own hand).</source>
+        <translation>
+            <numerusform>%n копію розміщено дзеркально, але не віддзеркалено (корпуси та фігурні панелі зберігають своє виконання).</numerusform>
+            <numerusform>%n копії розміщено дзеркально, але не віддзеркалено (корпуси та фігурні панелі зберігають своє виконання).</numerusform>
+            <numerusform>%n копій розміщено дзеркально, але не віддзеркалено (корпуси та фігурні панелі зберігають своє виконання).</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Array</source>
+        <translation>Масив</translation>
+    </message>
+    <message>
+        <source>Align</source>
+        <translation>Вирівняти</translation>
+    </message>
+    <message>
+        <source>Distribute</source>
+        <translation>Розподілити</translation>
     </message>
 </context>
 <context>
@@ -4123,6 +4661,126 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Width and depth are those of leg A (rear wall); leg B runs along the left wall.</source>
         <translation>Ширина й глибина — це розміри крила A (вздовж задньої стіни); крило B іде вздовж лівої стіни.</translation>
     </message>
+    <message>
+        <source>%1 items selected</source>
+        <translation>Виділено елементів: %1</translation>
+    </message>
+    <message>
+        <source>Ctrl+click an item to add it to or remove it from the selection. Align uses the first selected item as reference.</source>
+        <translation>Ctrl+клік додає елемент до виділення або вилучає з нього. Вирівнювання бере за еталон перший виділений елемент.</translation>
+    </message>
+    <message>
+        <source> mm</source>
+        <translation> мм</translation>
+    </message>
+    <message>
+        <source>Desk</source>
+        <translation>Письмовий стіл</translation>
+    </message>
+    <message>
+        <source>End panels</source>
+        <translation>Бокові панелі</translation>
+    </message>
+    <message>
+        <source>Four legs</source>
+        <translation>Чотири ніжки</translation>
+    </message>
+    <message>
+        <source>End panels under the top, or four screw-on legs (generic leg, added to the library).</source>
+        <translation>Бокові панелі під стільницею або чотири прикручувані ніжки (типова ніжка, додається до бібліотеки).</translation>
+    </message>
+    <message>
+        <source>Radius of the two front corners of the top; 0 = sharp corners.</source>
+        <translation>Радіус двох передніх кутів стільниці; 0 = гострі кути.</translation>
+    </message>
+    <message>
+        <source>Modesty panel</source>
+        <translation>Царга</translation>
+    </message>
+    <message>
+        <source>Rear edge of the top to the rear face of the modesty panel.</source>
+        <translation>Від заднього краю стільниці до задньої грані царги.</translation>
+    </message>
+    <message>
+        <source>Height of the modesty panel down from the underside of the top.</source>
+        <translation>Висота царги вниз від нижньої поверхні стільниці.</translation>
+    </message>
+    <message>
+        <source>Cable slot</source>
+        <translation>Кабельний проріз</translation>
+    </message>
+    <message>
+        <source>Rear edge of the top to the slot.</source>
+        <translation>Від заднього краю стільниці до прорізу.</translation>
+    </message>
+    <message>
+        <source>Slot centre right of the desk centre (negative = left).</source>
+        <translation>Центр прорізу праворуч від центру стола (від’ємне = ліворуч).</translation>
+    </message>
+    <message>
+        <source>Drawer pedestal</source>
+        <translation>Тумба з шухлядами</translation>
+    </message>
+    <message>
+        <source>Left</source>
+        <translation>Ліворуч</translation>
+    </message>
+    <message>
+        <source>Right</source>
+        <translation>Праворуч</translation>
+    </message>
+    <message>
+        <source>Apply desk settings</source>
+        <translation>Застосувати параметри стола</translation>
+    </message>
+    <message>
+        <source>Support:</source>
+        <translation>Опора:</translation>
+    </message>
+    <message>
+        <source>Front corner radius:</source>
+        <translation>Радіус передніх кутів:</translation>
+    </message>
+    <message>
+        <source>Setback:</source>
+        <translation>Відступ:</translation>
+    </message>
+    <message>
+        <source>Panel height:</source>
+        <translation>Висота панелі:</translation>
+    </message>
+    <message>
+        <source>Slot length:</source>
+        <translation>Довжина прорізу:</translation>
+    </message>
+    <message>
+        <source>Slot width:</source>
+        <translation>Ширина прорізу:</translation>
+    </message>
+    <message>
+        <source>From rear edge:</source>
+        <translation>Від заднього краю:</translation>
+    </message>
+    <message>
+        <source>Centre offset:</source>
+        <translation>Зсув центру:</translation>
+    </message>
+    <message>
+        <source>Pedestal side:</source>
+        <translation>Бік тумби:</translation>
+    </message>
+    <message>
+        <source>Pedestal width:</source>
+        <translation>Ширина тумби:</translation>
+    </message>
+    <message>
+        <source>Drawers:</source>
+        <translation>Шухляди:</translation>
+    </message>
+    <message>
+        <source>Height is from the floor to the top surface. Modesty panel and pedestal need end panels. Knee space below 600 mm is a rule-of-thumb warning, not a standard.</source>
+        <translation>Висота — від підлоги до верхньої поверхні. Царга й тумба потребують бокових панелей. Простір для колін менше 600 мм — попередження за практичним правилом, а не стандарт.</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::InteriorEditor</name>
@@ -4393,6 +5051,58 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     <message>
         <source>Supports:</source>
         <translation>Тримачі:</translation>
+    </message>
+    <message>
+        <source>Board in a groove</source>
+        <translation>Плита в пазу</translation>
+    </message>
+    <message>
+        <source>Glass in a rebate</source>
+        <translation>Скло в чверті</translation>
+    </message>
+    <message>
+        <source>Glass: a pane in a rebate on the back of the frame instead of a board in a groove; needs the dowel joint and a glass panel material.</source>
+        <translation>Скло: склопакет у чверті з тильного боку рамки замість плити в пазу; потрібні шкантове з’єднання та скляний матеріал панелі.</translation>
+    </message>
+    <message>
+        <source>Thickness of the glass pane.</source>
+        <translation>Товщина скла.</translation>
+    </message>
+    <message>
+        <source>Width of the rebate into the inner frame edge.</source>
+        <translation>Ширина чверті у внутрішньому краї рамки.</translation>
+    </message>
+    <message>
+        <source>Depth of the rebate from the back face of the frame.</source>
+        <translation>Глибина чверті від тильної грані рамки.</translation>
+    </message>
+    <message>
+        <source>Glazing-bead strips</source>
+        <translation>Штапики</translation>
+    </message>
+    <message>
+        <source>None (clips or silicone, not modelled)</source>
+        <translation>Немає (кліпси або силікон, не моделюються)</translation>
+    </message>
+    <message>
+        <source>Panel:</source>
+        <translation>Панель:</translation>
+    </message>
+    <message>
+        <source>Glass thickness:</source>
+        <translation>Товщина скла:</translation>
+    </message>
+    <message>
+        <source>Rebate width:</source>
+        <translation>Ширина чверті:</translation>
+    </message>
+    <message>
+        <source>Rebate depth:</source>
+        <translation>Глибина чверті:</translation>
+    </message>
+    <message>
+        <source>Glass retention:</source>
+        <translation>Кріплення скла:</translation>
     </message>
 </context>
 <context>
@@ -5383,6 +6093,57 @@ Replace it?</source>
         <source>FurnitureOS could not be started again (%1). Your settings are saved; close the application and start it again to use them.</source>
         <translation>Не вдалося знову запустити FurnitureOS (%1). Налаштування збережено; закрийте програму та запустіть її знову, щоб їх застосувати.</translation>
     </message>
+    <message>
+        <source>%1 items selected</source>
+        <translation>Виділено елементів: %1</translation>
+    </message>
+    <message>
+        <source>Import &amp;items from project…</source>
+        <translation>Імпортувати &amp;елементи з проєкту…</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::MergeDialog</name>
+    <message>
+        <source>Import items from %1</source>
+        <translation>Імпорт елементів з %1</translation>
+    </message>
+    <message>
+        <source>%1 — %2 (%3)</source>
+        <translation>%1 — %2 (%3)</translation>
+    </message>
+    <message>
+        <source>What happens to a material, edge band or hardware entry whose id exists in this project with a different content. Identical entries are never duplicated.</source>
+        <translation>Що відбувається із записом матеріалу, крайки чи фурнітури, ідентифікатор якого вже є в цьому проєкті з іншим вмістом. Ідентичні записи ніколи не дублюються.</translation>
+    </message>
+    <message>
+        <source>Import</source>
+        <translation>Імпортувати</translation>
+    </message>
+    <message>
+        <source>Items to import (they keep their position from the other project):</source>
+        <translation>Елементи для імпорту (зберігають своє положення з іншого проєкту):</translation>
+    </message>
+    <message>
+        <source>Differing library entries:</source>
+        <translation>Відмінні записи бібліотеки:</translation>
+    </message>
+    <message>
+        <source>Preview:</source>
+        <translation>Попередній перегляд:</translation>
+    </message>
+    <message>
+        <source>Check at least one item to import.</source>
+        <translation>Позначте принаймні один елемент для імпорту.</translation>
+    </message>
+    <message>
+        <source>Import items from project</source>
+        <translation>Імпорт елементів з проєкту</translation>
+    </message>
+    <message>
+        <source>FurnitureOS projects (*.fosp)</source>
+        <translation>Проєкти FurnitureOS (*.fosp)</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::NestingSettingsForm</name>
@@ -5752,10 +6513,6 @@ Replace it?</source>
         <translation>Y</translation>
     </message>
     <message>
-        <source>Drag an item to move it (snaps to item edges and walls); wheel zooms, middle or right button pans. Each move or rotation is one undo step.</source>
-        <translation>Перетягніть виріб, щоб перемістити його (прилипає до країв виробів і стін); коліщатко змінює масштаб, середня або права кнопка зсуває вигляд. Кожне переміщення чи поворот — один крок скасування.</translation>
-    </message>
-    <message>
         <source>Move refused: %1</source>
         <translation>Переміщення відхилено: %1</translation>
     </message>
@@ -5826,6 +6583,10 @@ Replace it?</source>
     <message>
         <source>H</source>
         <translation>В</translation>
+    </message>
+    <message>
+        <source>Drag an item to move it (snaps to item edges and walls); wheel zooms, middle or right button pans. Ctrl+click selects several items; arrow keys move the selection by 1 mm (Shift: 10 mm). Each move or rotation is one undo step.</source>
+        <translation>Перетягніть елемент, щоб перемістити його (прив’язка до країв елементів і стін); коліщатко масштабує, середня або права кнопка зсуває вид. Ctrl+клік виділяє кілька елементів; клавіші зі стрілками зсувають виділення на 1 мм (Shift: 10 мм). Кожне переміщення чи поворот — один крок скасування.</translation>
     </message>
 </context>
 <context>
@@ -6526,6 +7287,65 @@ Circle: X, Y = centre, Radius.</source>
     <message>
         <source>The niche height (generic 595 mm) is the parameter niche_height in the inspector; check the appliance&apos;s installation sheet for the niche and ventilation sizes.</source>
         <translation>Висота ніші (типово 595 мм) — це параметр niche_height в інспекторі; розміри ніші та вентиляції перевірте в інструкції з монтажу техніки.</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::TransformDialog</name>
+    <message numerus="yes">
+        <source>Move / rotate %n item(s)</source>
+        <translation>
+            <numerusform>Перемістити / повернути %n елемент</numerusform>
+            <numerusform>Перемістити / повернути %n елементи</numerusform>
+            <numerusform>Перемістити / повернути %n елементів</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Position of the minimum (left, front, bottom) corner of the selection&apos;s box in the project frame.</source>
+        <translation>Положення мінімального (лівого, переднього, нижнього) кута габариту виділення в системі координат проєкту.</translation>
+    </message>
+    <message>
+        <source>Position</source>
+        <translation>Положення</translation>
+    </message>
+    <message>
+        <source>Distance to move the selection by (front = −Y, up = +Z).</source>
+        <translation>Відстань переміщення виділення (вперед = −Y, вгору = +Z).</translation>
+    </message>
+    <message>
+        <source>Offset</source>
+        <translation>Зсув</translation>
+    </message>
+    <message>
+        <source>Z (vertical)</source>
+        <translation>Z (вертикальна)</translation>
+    </message>
+    <message>
+        <source>X (left–right)</source>
+        <translation>X (ліво–право)</translation>
+    </message>
+    <message>
+        <source>Y (front–back)</source>
+        <translation>Y (перед–зад)</translation>
+    </message>
+    <message>
+        <source>Axis</source>
+        <translation>Вісь</translation>
+    </message>
+    <message>
+        <source>Angle (°)</source>
+        <translation>Кут (°)</translation>
+    </message>
+    <message>
+        <source>Counter-clockwise looking against the axis, about the centre of the selection&apos;s box.</source>
+        <translation>Проти годинникової стрілки, якщо дивитися назустріч осі, навколо центру габариту виділення.</translation>
+    </message>
+    <message>
+        <source>Counter-clockwise seen from above, about the centre of the selection&apos;s box. Cabinets can only be rotated about the vertical axis.</source>
+        <translation>Проти годинникової стрілки, якщо дивитися згори, навколо центру габариту виділення. Корпуси можна повертати лише навколо вертикальної осі.</translation>
+    </message>
+    <message>
+        <source>Rotate</source>
+        <translation>Повернути</translation>
     </message>
 </context>
 <context>

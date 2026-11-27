@@ -43,6 +43,9 @@ existing items' bounding boxes).
 | `panel_tools.hpp` | Edit > Add panel…: `AddPanelRequest` (size, orientation, material, edge bands, `PanelPlacement`: origin, at / on top of / below / left / right / in front of / behind the selection, `FillGap` between two items), `planAddPanel` (gap = clearance along the separating axis × overlap along the others; thickness from the material, must fit), `makePanelItem`, `applyAddPanel` (one undo step). |
 | `item_clipboard.hpp` | Copy / cut / paste of items as clipboard JSON (`{"format":"furnitureos-items","version":1,"project":…}`), pasted with `project::commands::mergeItems` (library entries merged, `RenameWithNewId` on conflicts, clashing item ids renamed); `pasteOffset` pastes in place unless the boxes overlap target items (then right of all items). |
 | `update_version.hpp`, `update_release.hpp`, `update_zip.hpp`, `update_plan.hpp` | In-app updater logic (see "Updates"): `SemVer` / `parseSemVer` / `compareSemVer` (semver 2.0 precedence incl. pre-releases); `releasesApiUrl`, `parseGitHubReleases` (object or array), `selectUpdate`, `parseUpdateManifest` (update.json cross-checked against the release), `parseSha256Sums`, `checkChecksumsAgree`, `verifyDownload` / `verifyDownloadedFile`; `crc32`, `inflateRaw`, `extractZip` (stored + deflate, CRC-checked, no path traversal), `safeZipEntryPath`; `detectInstallKind`, `chooseUpdate`, `planPortableSwap`, `locateStagedRoot`, `portableSwapScript` / `installerScript` (.cmd text), `parseUpdateOutcome`, `UpdateConsent` |
+| `desk_rows.hpp` | Desks / tables (furniture `DeskSpec`): `isDesk`, `DeskInput` + `deskInput` / `deskSpec` (Legs drops modesty panel and pedestal; leg id / inset kept), `deskCommand` (`furniture::applyEdit`, adds the generic leg to the library in the same undo step, label "Change desk of {0}"), `deskDescription` (browser text) |
+| `merge_rows.hpp` | File ▸ Import items from project…: `loadMergeSource`, `mergeSourceRows`, `conflictPolicyChoices`, `mergeRequest` / `mergeAllowed`, `mergePreviewLines` (renamed ids and library actions of `project::planMerge`); the merge is `project::commands::mergeItems` (one undo step) |
+| `workshop_offcuts.hpp` | Workshop offcut stock (`.fosremnants`): QSettings keys, `loadWorkshopStore` (missing file = empty store when allowed), `workshopCuttingRun` (`cuttingPlansWithStore`, job name = project name), `plainCuttingRun`, `workshopRemnantRows` / `workshopRunSummary` (offered / used / skipped with reasons), `offcutImportOptions` (today, "offcut of '<name>' (<file>)"), `storeChangeLines` (listing of `commitStoreUse`) |
 | `recent_files.hpp`, `autosave.hpp`, `window_title.hpp`, `command_text.hpp`, `version.hpp` | MRU list in QSettings; `autosaveDue`, `recoveryOffer`, untitled autosave location; "name* — FurnitureOS"; translated undo labels with item names |
 
 ## Behaviour
@@ -74,7 +77,15 @@ existing items' bounding boxes).
     position (`setFront`). For a drawer stack, **Drawer boxes** none / box on slides, **Slides** (library
     entries of kind DrawerSlide: `hw.slide_ball_bearing`, `hw.slide_undermount`) and **Drawer bottom**
     (grooved / nailed under) → `FrontSpec::drawerBox`; the furniture module sizes the boxes and refuses
-    impossible combinations (message shown inline).
+    impossible combinations (message shown inline). Door / pair / flap / drawer fronts may be **frame and
+    panel** with a **Panel** kind: board in a groove (panel thickness, groove depth) or **glass in a rebate**
+    (`FramePanelKind::Glass`: glass thickness, rebate width / depth, glazing-bead strips or none); a warning
+    shows when the glass panel material is not a `MaterialKind::Glass` library material
+    (`glassPanelMaterialWarning`); engine refusals (stub tenon with glass, rebate too shallow, …) are shown.
+  * *Desk* group (desks and tables, Parameters tab): support end panels / four legs, front corner radius,
+    modesty panel (setback, height), cable slot (length, width, distance from the rear edge, centre offset),
+    drawer pedestal (side, width, drawers); **Apply desk settings** = `deskCommand` (one undo step); templates
+    **Desk** and **Table** in New from template / Add cabinet (a table brings the generic leg).
   A refused edit shows the engine's message (under the field or under the action buttons) and changes nothing.
   Panel item: name + parameters. Part: read-only finished size, cut size (`domain::cutSize`), material, grain,
   edges, operation count; for a cabinet part an **override** editor (material, and each edge L1/L2/W1/W2 as
@@ -95,7 +106,14 @@ existing items' bounding boxes).
   Cutting (per material summary, sheet layouts from `cutting::renderSheetSvg`, labelled as heuristic; kerf,
   trim, **objective** (fewest sheets / least waste / remnants first / fewest cuts) and — per material — the
   **remnant list** (label, length, width, quantity) through `commands::setCuttingSettings`; "Use project
-  defaults for this material" removes the material's own entry). The summary has one row per material **and
+  defaults for this material" removes the material's own entry). **Workshop offcuts**: "Use workshop offcuts
+  from:" + Choose… (a `.fosremnants` file, remembered in QSettings) re-optimises with the stock's remnants of
+  the same material and thickness offered first and lists each as used (pieces, sheet), offered but not needed,
+  or skipped (reason); **Add offcuts to workshop stock…** plans `commitStoreUse` (used offcuts removed, usable
+  offcuts of the layouts added with today's date), lists the changes for confirmation and saves the file
+  atomically (a new file name creates the stock). File ▸ **Import items from project…** picks a `.fosp`, shows
+  its items as a checklist, the conflict policy for differing library entries and the `planMerge` preview, and
+  imports with one undo step. The summary has one row per material **and
   method** (`cuttingTableRows`: `CuttingPlans::materials` order, saw plan first): "Saw (guillotine)" rows from
   `CuttingPlans::plans`, "Router nesting (heuristic)" rows from `CuttingPlans::nestingPlans` (part instances, sheet
   count, utilisation = `NestResult::utilisation`, unplaced, layout check = `validateNest` "valid" / "problems: N";
@@ -268,7 +286,7 @@ means Ukrainian for a Ukrainian system locale, English otherwise.
 * Components: no thumbnails, no plugin components (no plugin loading in the app), a component saved to an
   "other" folder is not added to the Preferences list, and inserted items are not linked to their component file.
 * Not editable in the UI yet (although the project commands exist): panel items' material / orientation,
-  custom parameters (add / remove), library entries, the remaining cutting options (minimum remnant size,
+  custom parameters (add / remove), the remaining cutting options (minimum remnant size,
   stages, first cut), project metadata. Drawing edits other than dimension offset / text / hide and user
   dimensions (text shifts, user texts, leaders, detail markers) are listed and removable but cannot be created
   or changed in the UI. Splits always create equal shares (sizes are then set per section).
@@ -280,7 +298,12 @@ means Ukrainian for a Ukrainian system locale, English otherwise.
   when fronts overlap the carcass; click just outside the corner you mean.
 * The drawing edit list shows element ids (e.g. `cab1/view.front/dim.overall.width`); hardware and material
   combos show the library names (English data).
-* No item placement editing (move / rotate) other than the automatic placement of added / duplicated cabinets.
+* Library entries are edited in the Libraries window (Project ▸ Libraries…) and item placement in the Plan
+  workspace (move / rotate by 90°, each one undo step); there is no free 3D rotation or numeric placement editor.
+* Import items from project keeps the source placements (`MergeRequest::offset` is identity); imported items
+  may overlap existing ones until moved in the Plan workspace. Stored drawing edits are not imported.
+* Workshop offcuts: the stock file is chosen per computer (QSettings), remnants reserved by the project name
+  may be used; minimum offcut sizes are the core defaults (300 × 100 mm) and cannot be changed in the UI.
 * DXF export writes one file per view (R12 has no paper space here); see `src/drawings/include/fos/drawings/dxf.hpp`.
 * The Help ▸ About source link is the CMake cache value `FOS_APP_SOURCE_URL`; set it for distributed builds.
 * Nesting: no "back to default nesting settings" button and no editor for the nesting minimum remnant length
