@@ -57,4 +57,5 @@ fos_add_tests(project
         tests/room_tests.cpp
         tests/merge_tests.cpp
         tests/diff_tests.cpp
-        tests/remnant_store_tests.cpp)
+        tests/remnant_store_tests.cpp
+        tests/desk_tests.cpp)

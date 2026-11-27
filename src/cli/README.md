@@ -575,6 +575,25 @@ Saved kitchen.fosp
 Exit codes: 0 imported; 1 refused (no closed outline, unsupported cut-out, panel invalid) or saved with model
 errors; 2 usage error, unreadable / malformed DXF (message names the DXF line), unreadable / unwritable project.
 
+### `fos import-svg`
+
+`fos import-svg <file.fosp> <outline.svg> (--material ID | --thickness T) [--name NAME] [--id ID] [--scale MM]
+[--tolerance MM] [--skip-unsupported-cutouts] [-o OUT.fosp]` — the SVG counterpart of `fos import-dxf` (reader rules:
+`src/formats/README.md` §5.3a; same panel conversion, `project::buildOutlinePanelItem`). Paths with `M L H V A Z`,
+rect (rounded), circle, circular ellipse, polygon, polyline, line; Bézier curves, elliptical arcs and skew refuse the
+import (exit 2). Units come from the root width/height over the viewBox (px = 1/96 in) unless `--scale` gives mm per
+user unit. `--name` defaults to the file name; `-o` saves to another file (default: in place).
+
+```text
+$ fos import-svg kitchen.fosp top.svg --name "Work top" --thickness 18
+Imported 'Work top' as item work-top (part work-top/panel), material mat.generic.mdf18 (18 mm).
+Outline: 1200 x 600 mm, 4 segments (0 arcs); cut-outs: 2 (1 circle, 1 rectangle).
+SVG: 3 shape(s), units width/height 1200 x 600 mm over viewBox 1200 x 600, 3 closed outline(s).
+Saved kitchen.fosp
+```
+
+Exit codes as `fos import-dxf` (cut-out refusals use `project.import_svg.cutout_unsupported`).
+
 ### `fos worktop`
 
 ```

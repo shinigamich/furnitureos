@@ -309,7 +309,15 @@ Command addItem(Item item, std::optional<std::size_t> position) {
             return core::makeError(core::ErrorCode::InvalidArgument, "Panel item \"" + id + "\" needs a non-empty part id.", id);
         const std::size_t at = std::min(position.value_or(p.items.size()), p.items.size());
         p.items.insert(p.items.begin() + static_cast<std::ptrdiff_t>(at), item);
-        return items({id});
+        Affected a = items({id});
+        // Generic fittings the item needs that the built-in catalogue lacks (desk legs).
+        if (const auto* cab = item.cabinet())
+            for (auto& hw : furniture::requiredGenericHardware(*cab))
+                if (p.libraries.findHardware(hw.id) == nullptr) {
+                    p.libraries.hardware.push_back(std::move(hw));
+                    a.libraries = true;
+                }
+        return a;
     };
     return c;
 }

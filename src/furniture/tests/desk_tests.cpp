@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Panel desks and tables (DeskSpec, README "Desks and tables").
 #include "fos/geometry/contour.hpp"
+#include "fos/machining/face.hpp"
 #include "test_support.hpp"
 
 #include <algorithm>
@@ -16,7 +17,7 @@ Libraries deskLibs() {
 }
 CabinetDefinition desk() { return templates::desk(domain::AssemblyId("dk"), templateMaterials()); }
 CabinetDefinition table() { return templates::table(domain::AssemblyId("tb"), templateMaterials()); }
-GenerationResult gen(const CabinetDefinition& d) {
+GenerationResult deskGen(const CabinetDefinition& d) {
     auto r = generate(d, deskLibs());
     EXPECT_TRUE(r.ok()) << (r.ok() ? "" : r.error().message);
     return r.ok() ? std::move(r.value()) : GenerationResult{};
@@ -25,7 +26,7 @@ std::string errorOf(const CabinetDefinition& d) {
     auto r = generate(d, deskLibs());
     return r.ok() ? std::string("(generated)") : r.error().message;
 }
-const domain::Part* part(const domain::Assembly& a, const std::string& id) {
+const domain::Part* deskPart(const domain::Assembly& a, const std::string& id) {
     for (const auto& p : a.parts)
         if (p.id.str() == id) return &p;
     ADD_FAILURE() << "no part " << id;
@@ -49,23 +50,23 @@ void expectNoErrors(const GenerationResult& r) {
 // modesty 1364 x 350, rear face at y 700 - 100 = 600 (y 582..600), z 372..722.
 // Pedestal: x 1382 - 400 = 982 .. 1382, depth 700 - 100 - 18 = 582, height 722.
 TEST(Desk, TemplateGeometry) {
-    const GenerationResult r = gen(desk());
+    const GenerationResult r = deskGen(desk());
     expectNoErrors(r);
     EXPECT_FALSE(hasDiag(r, "furniture.desk.knee_clearance"));
     const auto& a = r.assembly;
-    const domain::Part* top = part(a, "dk/top");
+    const domain::Part* top = deskPart(a, "dk/top");
     ASSERT_NE(top, nullptr);
     EXPECT_DOUBLE_EQ(top->length, 1400);
     EXPECT_DOUBLE_EQ(top->width, 700);
     const auto tb = top->bounds();
     EXPECT_NEAR(tb.min.z, 722, 1e-9);
     EXPECT_NEAR(tb.max.z, 740, 1e-9);
-    const domain::Part* right = part(a, "dk/end.right");
+    const domain::Part* right = deskPart(a, "dk/end.right");
     ASSERT_NE(right, nullptr);
     const auto rb = right->bounds();
     EXPECT_NEAR(rb.min.x, 1382, 1e-9);
     EXPECT_NEAR(rb.max.z, 722, 1e-9);
-    const domain::Part* modesty = part(a, "dk/modesty");
+    const domain::Part* modesty = deskPart(a, "dk/modesty");
     ASSERT_NE(modesty, nullptr);
     const auto mb = modesty->bounds();
     EXPECT_NEAR(mb.min.x, 18, 1e-9);
@@ -74,7 +75,7 @@ TEST(Desk, TemplateGeometry) {
     EXPECT_NEAR(mb.max.y, 600, 1e-9);
     EXPECT_NEAR(mb.min.z, 372, 1e-9);
     // Pedestal side.left at x 982..1000.
-    const domain::Part* ps = part(a, "dk/pedestal/side.left");
+    const domain::Part* ps = deskPart(a, "dk/pedestal/side.left");
     ASSERT_NE(ps, nullptr);
     EXPECT_EQ(ps->custom.at("furniture.slot"), "pedestal/side.left");
     const auto pb = ps->bounds();
@@ -86,7 +87,7 @@ TEST(Desk, TemplateGeometry) {
 
 // Joints: confirmats from the top into both ends and from the ends into the modesty panel.
 TEST(Desk, JointsUseConnectorPlacement) {
-    const GenerationResult r = gen(desk());
+    const GenerationResult r = deskGen(desk());
     std::set<std::string> ids;
     for (const auto& h : r.assembly.hardware) ids.insert(h.id.str());
     for (const char* id : {"dk/hw.joint.end.left.top", "dk/hw.joint.end.right.top", "dk/hw.joint.modesty.end.left",
@@ -94,18 +95,21 @@ TEST(Desk, JointsUseConnectorPlacement) {
         EXPECT_TRUE(ids.count(id)) << id;
     CabinetDefinition d = desk();
     d.construction.dividerFastener = JointFastener::Dowel;
-    const GenerationResult rd = gen(d);
-    for (const auto& h : rd.assembly.hardware)
-        if (h.id.str() == "dk/hw.joint.modesty.end.left") EXPECT_EQ(h.definition.str(), hardware::ids::kDowel8x30);
+    const GenerationResult rd = deskGen(d);
+    for (const auto& h : rd.assembly.hardware) {
+        if (h.id.str() == "dk/hw.joint.modesty.end.left") {
+            EXPECT_EQ(h.definition.str(), hardware::ids::kDowel8x30);
+        }
+    }
 }
 
 // Cable slot 300 x 60, 20 from the rear: x 550..850, y 620..680 in the top's frame, radius 30.
 TEST(Desk, CableSlotAndRoundedCorners) {
     CabinetDefinition d = desk();
     d.desk->frontCornerRadius = 40;
-    const GenerationResult r = gen(d);
+    const GenerationResult r = deskGen(d);
     expectNoErrors(r);
-    const domain::Part* top = part(r.assembly, "dk/top");
+    const domain::Part* top = deskPart(r.assembly, "dk/top");
     ASSERT_NE(top, nullptr);
     ASSERT_TRUE(top->shape.has_value());
     ASSERT_EQ(top->shape->cutouts.size(), 1u);
@@ -125,10 +129,10 @@ TEST(Desk, CableSlotAndRoundedCorners) {
 
 // Table 1600 x 750 x 800 on legs: axes 70 from the edges, plate holes +-30 -> 16 holes, 4 legs.
 TEST(Desk, TableLegsDrillPlateHoles) {
-    const GenerationResult r = gen(table());
+    const GenerationResult r = deskGen(table());
     expectNoErrors(r);
     EXPECT_EQ(r.assembly.parts.size(), 1u);
-    const domain::Part* top = part(r.assembly, "tb/top");
+    const domain::Part* top = deskPart(r.assembly, "tb/top");
     ASSERT_NE(top, nullptr);
     EXPECT_EQ(top->operations.size(), 16u);
     std::size_t legs = 0;
@@ -142,10 +146,10 @@ TEST(Desk, TableLegsDrillPlateHoles) {
         EXPECT_DOUBLE_EQ(h.depth, 10);
         const auto p = machining::faceToAssembly(*top, h.face, h.u, h.v);
         EXPECT_NEAR(p.z, 732, 1e-9);
-        uv.insert({std::lround(p.x), std::lround(p.y)});
+        uv.insert(std::pair<long, long>{std::lround(p.x), std::lround(p.y)});
     }
-    EXPECT_TRUE(uv.count({40, 40}));
-    EXPECT_TRUE(uv.count({1560, 760}));
+    EXPECT_TRUE(uv.count(std::pair<long, long>{40, 40}));
+    EXPECT_TRUE(uv.count(std::pair<long, long>{1560, 760}));
 }
 
 TEST(Desk, MissingLegDefinitionIsAnError) {
@@ -159,11 +163,11 @@ TEST(Desk, MissingLegDefinitionIsAnError) {
 TEST(Desk, KneeClearanceWarning) {
     CabinetDefinition d = desk();
     ASSERT_TRUE(d.parameters.setValue("height", 600).ok()); // 582 clear < 600
-    const GenerationResult r = gen(d);
+    const GenerationResult r = deskGen(d);
     EXPECT_TRUE(hasDiag(r, "furniture.desk.knee_clearance"));
     CabinetDefinition w = desk();
     w.desk->pedestal->width = 800; // 1364 - 800 = 564 clear width
-    EXPECT_TRUE(hasDiag(gen(w), "furniture.desk.knee_clearance"));
+    EXPECT_TRUE(hasDiag(deskGen(w), "furniture.desk.knee_clearance"));
 }
 
 TEST(Desk, ValidationErrors) {
@@ -197,9 +201,9 @@ TEST(Desk, LeftPedestalWithoutModestyIsFullDepth) {
     CabinetDefinition d = desk();
     d.desk->modestyPanel = false;
     d.desk->pedestal->side = DeskPedestalSide::Left;
-    const GenerationResult r = gen(d);
+    const GenerationResult r = deskGen(d);
     expectNoErrors(r);
-    const domain::Part* ps = part(r.assembly, "dk/pedestal/side.left");
+    const domain::Part* ps = deskPart(r.assembly, "dk/pedestal/side.left");
     ASSERT_NE(ps, nullptr);
     const auto pb = ps->bounds();
     EXPECT_NEAR(pb.min.x, 18, 1e-9);

@@ -61,7 +61,8 @@ INSTANTIATE_TEST_SUITE_P(All, Templates,
                                            Case{"corner_blind", &templates::blindCornerCabinet},
                                            Case{"corner_l", &templates::lCornerCabinet},
                                            Case{"oven_tall", &templates::ovenTallHousing},
-                                           Case{"dishwasher", &templates::dishwasherFront}),
+                                           Case{"dishwasher", &templates::dishwasherFront},
+                                           Case{"desk", &templates::desk}),
                          [](const ::testing::TestParamInfo<Case>& tp) { return std::string(tp.param.name); });
 
 TEST(GeneratedCabinet, GroovedBackIsRecognised) {

@@ -79,6 +79,8 @@ Command setPanelContour(std::string itemId, std::optional<furniture::ContourSpec
 
 // --- items ---
 /// Appends (or inserts before `position`, clamped) a new item; its id must be non-empty and unused.
+/// Generic hardware the cabinet needs but the library lacks (furniture::requiredGenericHardware(),
+/// e.g. hw.leg_generic of a table) is appended to the hardware library (Affected::libraries).
 Command addItem(Item item, std::optional<std::size_t> position = std::nullopt);
 /// Removes the item and the stored edits of its assembly drawing.
 Command removeItem(std::string itemId);

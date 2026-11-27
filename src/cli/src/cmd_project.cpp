@@ -17,7 +17,7 @@ namespace {
 const char* kNewHelp =
     "Usage: fos new <file.fosp> [--name N] [--author A]\n"
     "               [--template base|wall|tall|drawers|drawers-boxed|wardrobe|shelving|\n"
-    "                           corner-blind|corner-l|oven-tall|dishwasher\n"
+    "                           corner-blind|corner-l|oven-tall|dishwasher|desk|table\n"
     "                [--item-id ID]\n"
     "                [--width W] [--height H] [--depth D]]\n"
     "               [--id UUID] [--date YYYY-MM-DDTHH:MM:SSZ] [--force]\n\n"
@@ -31,7 +31,8 @@ const char* kNewHelp =
     "(L-shaped corner base cabinet; --width / --depth set leg A), oven-tall 600x2100x560 (drawers,\n"
     "open oven niche 595 high, door above), dishwasher 618x820x560 (600 gap, end panel on the right,\n"
     "decor front fixed to the appliance door). Appliance sizes are generic: check the appliance's\n"
-    "installation sheet.\n"
+    "installation sheet. desk 1400x740x700 (end panels, modesty panel, cable slot, 3-drawer\n"
+    "pedestal on the right), table 1600x750x800 (top on four generic legs).\n"
     "--id / --date make the file reproducible (default: random UUID v4, current UTC time).\n"
     "An existing file is not overwritten unless --force is given.\n";
 
@@ -73,6 +74,8 @@ std::optional<TemplateFn> templateByName(const std::string& name) {
     if (name == "corner-l") return &t::lCornerCabinet;
     if (name == "oven-tall") return &t::ovenTallHousing;
     if (name == "dishwasher") return &t::dishwasherFront;
+    if (name == "desk") return &t::desk;
+    if (name == "table") return &t::table;
     return std::nullopt;
 }
 
@@ -165,7 +168,7 @@ int cmdNew(const std::vector<std::string>& args, Io& io) {
         if (!fn)
             return usageError(io, "new", "unknown template '" + *tname +
                                              "' (choose base, wall, tall, drawers, drawers-boxed, wardrobe, shelving, corner-blind, corner-l, "
-                                             "oven-tall or dishwasher).");
+                                             "oven-tall, dishwasher, desk or table).");
         itemId = a.value("item-id").value_or("cab1");
         if (itemId.empty()) return usageError(io, "new", "--item-id must not be empty.");
         project::Item item;

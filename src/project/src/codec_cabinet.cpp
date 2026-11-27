@@ -334,6 +334,82 @@ core::Result<furniture::ApplianceGapSpec> applianceGapFromJson(const Json& json,
     return a;
 }
 
+/// Desk / table: written only when set; inside it, optional parts only when used and values
+/// only when they differ from the DeskSpec defaults.
+Json deskJson(const furniture::DeskSpec& d) {
+    using namespace furniture;
+    const DeskSpec def;
+    Json j = Json::object();
+    j["support"] = toString(d.support);
+    if (d.frontCornerRadius != def.frontCornerRadius) j["frontCornerRadius"] = d.frontCornerRadius;
+    if (d.modestyPanel != def.modestyPanel) j["modestyPanel"] = d.modestyPanel;
+    if (d.modestySetback != def.modestySetback) j["modestySetback"] = d.modestySetback;
+    if (d.modestyHeight != def.modestyHeight) j["modestyHeight"] = d.modestyHeight;
+    if (d.cableCutout) {
+        Json c = Json::object();
+        c["length"] = d.cableCutout->length;
+        c["width"] = d.cableCutout->width;
+        c["rearDistance"] = d.cableCutout->rearDistance;
+        if (d.cableCutout->centerOffset != 0.0) c["centerOffset"] = d.cableCutout->centerOffset;
+        j["cableCutout"] = std::move(c);
+    }
+    if (d.pedestal) {
+        Json p = Json::object();
+        p["side"] = toString(d.pedestal->side);
+        p["width"] = d.pedestal->width;
+        p["drawers"] = d.pedestal->drawers;
+        j["pedestal"] = std::move(p);
+    }
+    if (d.leg != def.leg) j["leg"] = d.leg.str();
+    if (d.legInset != def.legInset) j["legInset"] = d.legInset;
+    return j;
+}
+
+core::Result<furniture::DeskCableCutout> deskCableFromJson(const Json& json, std::string_view path) {
+    Reader r(json, path, "a desk cable slot");
+    furniture::DeskCableCutout c;
+    r.number("length", c.length, Num::Positive, true);
+    r.number("width", c.width, Num::Positive, true);
+    r.number("rearDistance", c.rearDistance, Num::Positive, true);
+    r.number("centerOffset", c.centerOffset, Num::Any);
+    r.rejectUnknown();
+    if (!r.ok()) return r.error();
+    return c;
+}
+
+core::Result<furniture::DeskPedestal> deskPedestalFromJson(const Json& json, std::string_view path) {
+    using namespace furniture;
+    Reader r(json, path, "a desk drawer pedestal");
+    DeskPedestal p;
+    r.token("side", p.side, [](std::string_view s) { return deskPedestalSideFromString(s); }, "\"Left\", \"Right\"", true);
+    r.number("width", p.width, Num::Positive, true);
+    r.integerInRange("drawers", p.drawers, 1, kDeskMaxPedestalDrawers, true);
+    r.rejectUnknown();
+    if (!r.ok()) return r.error();
+    return p;
+}
+
+core::Result<furniture::DeskSpec> deskFromJson(const Json& json, std::string_view path) {
+    using namespace furniture;
+    Reader r(json, path, "a desk");
+    DeskSpec d;
+    r.token("support", d.support, [](std::string_view s) { return deskSupportFromString(s); }, "\"Panels\", \"Legs\"",
+            true);
+    r.number("frontCornerRadius", d.frontCornerRadius, Num::NonNegative);
+    r.boolean("modestyPanel", d.modestyPanel);
+    r.number("modestySetback", d.modestySetback, Num::NonNegative);
+    r.number("modestyHeight", d.modestyHeight, Num::Positive);
+    r.nested("cableCutout", d.cableCutout, deskCableFromJson);
+    r.nested("pedestal", d.pedestal, deskPedestalFromJson);
+    std::string leg = d.leg.str();
+    r.text("leg", leg, false, true);
+    d.leg = domain::HardwareId(leg);
+    r.number("legInset", d.legInset, Num::Positive);
+    r.rejectUnknown();
+    if (!r.ok()) return r.error();
+    return d;
+}
+
 } // namespace
 
 Json toJson(const furniture::CabinetDefinition& c) {
@@ -349,6 +425,7 @@ Json toJson(const furniture::CabinetDefinition& c) {
     j["interior"] = toJson(c.interior);
     if (c.corner != furniture::CornerSpec{}) j["corner"] = cornerJson(c.corner);
     if (c.applianceGap) j["applianceGap"] = applianceGapJson(*c.applianceGap);
+    if (c.desk) j["desk"] = deskJson(*c.desk);
     return j;
 }
 
@@ -374,6 +451,7 @@ void readCabinetFields(Reader& r, furniture::CabinetDefinition& c) {
     r.nested("interior", c.interior, sectionFromJson, true);
     r.nested("corner", c.corner, cornerFromJson);
     r.nested("applianceGap", c.applianceGap, applianceGapFromJson);
+    r.nested("desk", c.desk, deskFromJson);
     // Hard limits (furniture/limits.hpp): a file the generator would refuse, or that would make
     // it run for minutes, is rejected on load with the generator's own message.
     if (r.ok())

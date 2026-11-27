@@ -310,6 +310,9 @@ The JSON nesting of the whole file is limited to 128 levels by the container (fo
   becomes a free `PanelItem` (Custom `ContourSpec`, circle / rectangle cut-outs), `pickDxfPanelMaterial`,
   `dxfPanelItemId` (slug, made unique). One rule set for `fos import-dxf` and the app; unsupported cut-outs →
   `project.import_dxf.cutout_unsupported` (Error, or Warning with `skipUnsupportedCutouts`).
+  `buildOutlinePanelItem(project, loops, readerDiagnostics, request, itemId, placement, &diags)` is the
+  format-neutral form (DXF delegates to it; `fos import-svg` uses it with `request.diagnosticPrefix =
+  "project.import_svg"`); `OutlinePanelRequest` / `OutlinePanelImport` alias the DXF-named types.
 
 ## 4a. Component library (`fos/project/components.hpp`)
 

@@ -528,6 +528,40 @@ current; the publicly documented group-code format), `importPanelShape(loops)` t
   hatches as cut-outs, paper space selection, text/dimensions, binary DXF, DXF with `$INSUNITS` other than the five
   listed units (use `options.units`).
 
+### 5.3a SVG outline import — import only (`svg_import.hpp`)
+
+`importSvg(text, options)` / `importSvgFile(path, options)` read closed outlines from SVG with a small,
+dependency-free reader; `contoursOf(import)` feeds `importPanelShape` (§5.3) exactly like DXF loops.
+
+* **Shapes**: `<path d>` with `M L H V A Z` (absolute and relative, implicit repeats, compact arc flags), `<rect>`
+  (`rx`/`ry` corners → 90° arcs, spec clamping), `<circle>`, `<ellipse>` (only when circular after its transform),
+  `<line>`, `<polyline>`, `<polygon>`. Closed subpaths / rect / circle / polygon are loops; open pieces are chained
+  within `chainTolerance` (default 0.01 mm) by the DXF chaining code (diagnostics renamed `formats.svg.*`, "element").
+  Arcs become bulges (arcs over 180° are split); an arc's radius is enlarged as the SVG spec requires.
+* **Transforms**: `transform` on any element (root included): `translate`, `scale`, `rotate(a [cx cy])`, `matrix`.
+  `skewX`/`skewY` are refused. Arcs, circles and rounded corners must stay circular under the accumulated
+  transform (checked: the mapped radius vectors are orthogonal and equal within 1e-6), else `Unsupported`.
+* **Refused (`Unsupported`, nothing imported)**: Bézier commands `C S Q T` (no approximation; flatten curves first),
+  elliptical arcs / ellipses / elliptical corners, skew, units on shape attributes other than `px`.
+* **Not imported (warnings `formats.svg.element_ignored` / `shape_skipped`, info `formats.svg.hidden`)**: `<text>`,
+  `<image>`, `<use>` (never followed), `<foreignObject>`, nested `<svg>`, unknown unprefixed elements, zero-size
+  shapes; `display:none` subtrees. `<defs>`, `<symbol>`, `<clipPath>`, `<mask>`, `<pattern>`, `<marker>`, `<style>`,
+  `<script>` (never run) and prefixed editor elements (`sodipodi:*`, `inkscape:*`) are skipped silently.
+* **Units**: `options.scale` mm per user unit if given; else root `width`/`height` (mm, cm, in, pt, pc, px; px and
+  unitless = 1/96 in = 0.264583 mm) over the `viewBox` (`preserveAspectRatio="none"`: separate x/y scales; otherwise
+  the uniform meet (min) or slice (max) scale; the alignment offset is irrelevant because the panel frame starts at
+  the outline's bounding box); only one of width/height: that one over the viewBox; viewBox only, or no viewBox:
+  px (warning `formats.svg.unitless` when neither size nor viewBox tells). `%`/`em` sizes need `scale`.
+* **Frame**: SVG y points down; the output is mirrored (y → −y) so the drawing reads as seen (top = +y).
+* **Safety**: text cap `maxBytes` (16 MiB), `maxElements` (100 000), `maxDepth` (64), 256 attributes per element,
+  `maxPieces` (500 000), `maxLoopVertices` (10 000), coordinates and radii ≤ 1e8 mm after scaling; numbers that
+  overflow (`1e400`) and singular/overflowing transforms are errors. No entity expansion: only the five predefined
+  entities and numeric references; any other `&name;` is a `ParseError`; a DOCTYPE with an internal subset
+  (billion-laughs / XXE vector) is refused; an external DTD identifier is ignored and never fetched; UTF-16 is
+  refused. Errors name the line: `SVG line 3: <path id="a">: Bezier curve command 'C' at offset 5 ...`.
+* **Not supported**: Béziers, ellipses, `<use>`, CSS styling other than `display:none`, `<switch>` conditionals
+  (all children are read), nested viewports, text.
+
 ### 5.4 DXF part outline export — export only (`dxf_export.hpp`)
 
 `exportPartOutlinesDxf(model, options)` writes the parts of a resolved model for CNC, nesting and cutting software.
