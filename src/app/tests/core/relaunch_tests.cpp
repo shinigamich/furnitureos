@@ -68,7 +68,7 @@ TEST(Relaunch, ProgramPrefersAnExistingAppImage) {
 TEST(Samples, EveryBundledSampleOpensUntitledAndValidatesWithoutErrors) {
     const auto samples = sampleProjects();
     ASSERT_EQ(samples.size(), 3u);
-    // Item counts from the generation commands (README "Sample projects"): kitchen 4 cabinets
+    // Item counts from the generation commands (resources/samples.qrc): kitchen 4 cabinets
     // + worktop, wardrobe 1, desk 1.
     const std::size_t expectedItems[] = {5, 1, 1};
     for (std::size_t i = 0; i < samples.size(); ++i) {
