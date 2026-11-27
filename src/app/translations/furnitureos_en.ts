@@ -541,6 +541,25 @@
     </message>
 </context>
 <context>
+    <name>InnerDrawerText</name>
+    <message>
+        <source>Section “%1” is split: inner drawers go into a section that is not split.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>whole interior</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>inner drawers: %1 with facias</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>inner drawers: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>InteriorText</name>
     <message>
         <source>Whole interior</source>
@@ -660,6 +679,49 @@
     </message>
     <message>
         <source>whole interior</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>JobPackText</name>
+    <message>
+        <source>Cover page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Part list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cut list per material</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Bought-in items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edge banding</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hardware</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Packing list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Assembly sheets</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cutting plans</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Warnings</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -3132,6 +3194,46 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Fit width</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>From front left</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>From front right</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>1 = not exploded; 1.5 = moving parts travel half the assembly size along their axis.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Balloons</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Part numbers as in the part list, in circles with leaders.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>View from:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Explode:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 — isometric view</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 — exploded view</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pictorial views are exported as SVG or PDF.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::EdgeBandingView</name>
@@ -3473,6 +3575,18 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Stub tenon</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Box front (no separate front)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Facia in front of the box</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Grip cut-out</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::ImportDxfDialog</name>
@@ -3534,6 +3648,61 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
     <message>
         <source>Import</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::InnerDrawersBox</name>
+    <message>
+        <source>Inner drawers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Drawers behind the door</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Drawer boxes on slides inside a section that is not split, behind a door, a door pair or sliding doors (no adjustable shelves, no clothes rail).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>One compartment per drawer, bottom to top, separated by “;” (e.g. 200; 1*; 1*).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Apply inner drawers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Heights:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Slides:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Drawer bottom:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Box joints:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Front:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Facia handle:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 (not in the library)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inner drawers go into a section that is not split, behind a door, a door pair or sliding doors.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -4112,6 +4281,49 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     </message>
     <message>
         <source>Supports:</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::JobPackDialog</name>
+    <message>
+        <source>Export job pack</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>One printable HTML document for the workshop (A4 landscape, every section on a new page). The content is in English.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sections</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cutting plans are HEURISTIC layouts (as in the Cutting workspace).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open in the browser after export</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>There is no generated item to document.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>HTML files (*.html)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The job pack was written to %1 but no browser could be opened.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -5007,6 +5219,14 @@ Replace it?</source>
     </message>
     <message>
         <source>Show what differs between the open project and another project file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export &amp;job pack…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>One printable HTML document for the workshop: part and cut lists, hardware, packing, assembly sheets and cutting plans</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

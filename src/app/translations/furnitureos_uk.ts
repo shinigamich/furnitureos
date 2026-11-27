@@ -547,6 +547,25 @@
     </message>
 </context>
 <context>
+    <name>InnerDrawerText</name>
+    <message>
+        <source>Section “%1” is split: inner drawers go into a section that is not split.</source>
+        <translation>Секцію «%1» поділено: внутрішні шухляди розміщують у неподіленій секції.</translation>
+    </message>
+    <message>
+        <source>whole interior</source>
+        <translation>весь внутрішній простір</translation>
+    </message>
+    <message>
+        <source>inner drawers: %1 with facias</source>
+        <translation>внутрішні шухляди: %1 з накладними фасадами</translation>
+    </message>
+    <message>
+        <source>inner drawers: %1</source>
+        <translation>внутрішні шухляди: %1</translation>
+    </message>
+</context>
+<context>
     <name>InteriorText</name>
     <message>
         <source>Whole interior</source>
@@ -667,6 +686,49 @@
     <message>
         <source>whole interior</source>
         <translation>весь внутрішній простір</translation>
+    </message>
+</context>
+<context>
+    <name>JobPackText</name>
+    <message>
+        <source>Cover page</source>
+        <translation>Титульна сторінка</translation>
+    </message>
+    <message>
+        <source>Part list</source>
+        <translation>Перелік деталей</translation>
+    </message>
+    <message>
+        <source>Cut list per material</source>
+        <translation>Карта розкрою за матеріалами</translation>
+    </message>
+    <message>
+        <source>Bought-in items</source>
+        <translation>Покупні вироби</translation>
+    </message>
+    <message>
+        <source>Edge banding</source>
+        <translation>Кромкування</translation>
+    </message>
+    <message>
+        <source>Hardware</source>
+        <translation>Фурнітура</translation>
+    </message>
+    <message>
+        <source>Packing list</source>
+        <translation>Пакувальний лист</translation>
+    </message>
+    <message>
+        <source>Assembly sheets</source>
+        <translation>Листи складання</translation>
+    </message>
+    <message>
+        <source>Cutting plans</source>
+        <translation>Плани розкрою</translation>
+    </message>
+    <message>
+        <source>Warnings</source>
+        <translation>Попередження</translation>
     </message>
 </context>
 <context>
@@ -3152,6 +3214,46 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Fit width</source>
         <translation>За шириною</translation>
     </message>
+    <message>
+        <source>From front left</source>
+        <translation>Спереду зліва</translation>
+    </message>
+    <message>
+        <source>From front right</source>
+        <translation>Спереду справа</translation>
+    </message>
+    <message>
+        <source>1 = not exploded; 1.5 = moving parts travel half the assembly size along their axis.</source>
+        <translation>1 = без рознесення; 1,5 = рухомі деталі зміщуються на половину розміру виробу вздовж своєї осі.</translation>
+    </message>
+    <message>
+        <source>Balloons</source>
+        <translation>Позиційні виноски</translation>
+    </message>
+    <message>
+        <source>Part numbers as in the part list, in circles with leaders.</source>
+        <translation>Номери деталей як у переліку деталей, у колах із лініями-виносками.</translation>
+    </message>
+    <message>
+        <source>View from:</source>
+        <translation>Вигляд:</translation>
+    </message>
+    <message>
+        <source>Explode:</source>
+        <translation>Рознесення:</translation>
+    </message>
+    <message>
+        <source>%1 — isometric view</source>
+        <translation>%1 — ізометричний вигляд</translation>
+    </message>
+    <message>
+        <source>%1 — exploded view</source>
+        <translation>%1 — рознесений вигляд</translation>
+    </message>
+    <message>
+        <source>Pictorial views are exported as SVG or PDF.</source>
+        <translation>Наочні вигляди експортуються у SVG або PDF.</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::EdgeBandingView</name>
@@ -3494,6 +3596,18 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Stub tenon</source>
         <translation>Короткий шип</translation>
     </message>
+    <message>
+        <source>Box front (no separate front)</source>
+        <translation>Передня стінка ящика (без окремого фасаду)</translation>
+    </message>
+    <message>
+        <source>Facia in front of the box</source>
+        <translation>Внутрішній фасад перед ящиком</translation>
+    </message>
+    <message>
+        <source>Grip cut-out</source>
+        <translation>Виріз-ручка</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::ImportDxfDialog</name>
@@ -3556,6 +3670,61 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     <message>
         <source>Import</source>
         <translation>Імпортувати</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::InnerDrawersBox</name>
+    <message>
+        <source>Inner drawers</source>
+        <translation>Внутрішні шухляди</translation>
+    </message>
+    <message>
+        <source>Drawers behind the door</source>
+        <translation>Шухляди за дверцятами</translation>
+    </message>
+    <message>
+        <source>Drawer boxes on slides inside a section that is not split, behind a door, a door pair or sliding doors (no adjustable shelves, no clothes rail).</source>
+        <translation>Ящики шухляд на напрямних у неподіленій секції за дверцятами, парою дверцят або розсувними дверима (без переставних полиць і штанги для одягу).</translation>
+    </message>
+    <message>
+        <source>One compartment per drawer, bottom to top, separated by “;” (e.g. 200; 1*; 1*).</source>
+        <translation>Одне відділення на шухляду, знизу вгору, через «;» (напр. 200; 1*; 1*).</translation>
+    </message>
+    <message>
+        <source>Apply inner drawers</source>
+        <translation>Застосувати внутрішні шухляди</translation>
+    </message>
+    <message>
+        <source>Heights:</source>
+        <translation>Висоти:</translation>
+    </message>
+    <message>
+        <source>Slides:</source>
+        <translation>Напрямні:</translation>
+    </message>
+    <message>
+        <source>Drawer bottom:</source>
+        <translation>Дно ящика:</translation>
+    </message>
+    <message>
+        <source>Box joints:</source>
+        <translation>З’єднання ящика:</translation>
+    </message>
+    <message>
+        <source>Front:</source>
+        <translation>Фасад:</translation>
+    </message>
+    <message>
+        <source>Facia handle:</source>
+        <translation>Ручка фасаду:</translation>
+    </message>
+    <message>
+        <source>%1 (not in the library)</source>
+        <translation>%1 (немає в бібліотеці)</translation>
+    </message>
+    <message>
+        <source>Inner drawers go into a section that is not split, behind a door, a door pair or sliding doors.</source>
+        <translation>Внутрішні шухляди розміщують у неподіленій секції за дверцятами, парою дверцят або розсувними дверима.</translation>
     </message>
 </context>
 <context>
@@ -4134,6 +4303,49 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
     <message>
         <source>Supports:</source>
         <translation>Тримачі:</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::JobPackDialog</name>
+    <message>
+        <source>Export job pack</source>
+        <translation>Експорт виробничого пакета</translation>
+    </message>
+    <message>
+        <source>One printable HTML document for the workshop (A4 landscape, every section on a new page). The content is in English.</source>
+        <translation>Один HTML-документ для друку для цеху (A4 альбомна, кожен розділ з нової сторінки). Вміст англійською мовою.</translation>
+    </message>
+    <message>
+        <source>Sections</source>
+        <translation>Розділи</translation>
+    </message>
+    <message>
+        <source>Cutting plans are HEURISTIC layouts (as in the Cutting workspace).</source>
+        <translation>Плани розкрою — ЕВРИСТИЧНІ розкладки (як у робочій області «Розкрій»).</translation>
+    </message>
+    <message>
+        <source>Open in the browser after export</source>
+        <translation>Відкрити в браузері після експорту</translation>
+    </message>
+    <message>
+        <source>Export…</source>
+        <translation>Експортувати…</translation>
+    </message>
+    <message>
+        <source>There is no generated item to document.</source>
+        <translation>Немає згенерованого виробу для документування.</translation>
+    </message>
+    <message>
+        <source>HTML files (*.html)</source>
+        <translation>Файли HTML (*.html)</translation>
+    </message>
+    <message>
+        <source>Export failed</source>
+        <translation>Помилка експорту</translation>
+    </message>
+    <message>
+        <source>The job pack was written to %1 but no browser could be opened.</source>
+        <translation>Виробничий пакет записано у %1, але браузер відкрити не вдалося.</translation>
     </message>
 </context>
 <context>
@@ -5036,6 +5248,14 @@ Replace it?</source>
     <message>
         <source>Show what differs between the open project and another project file</source>
         <translation>Показати відмінності між відкритим проєктом та іншим файлом проєкту</translation>
+    </message>
+    <message>
+        <source>Export &amp;job pack…</source>
+        <translation>Експорт &amp;виробничого пакета…</translation>
+    </message>
+    <message>
+        <source>One printable HTML document for the workshop: part and cut lists, hardware, packing, assembly sheets and cutting plans</source>
+        <translation>Один HTML-документ для друку для цеху: перелік деталей і карта розкрою, фурнітура, пакування, складальні листи та плани розкрою</translation>
     </message>
 </context>
 <context>
