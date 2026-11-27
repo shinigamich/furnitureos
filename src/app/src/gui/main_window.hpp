@@ -6,6 +6,7 @@
 #include "fos/app/recent_files.hpp"
 #include "fos/app/session.hpp"
 #include "settings.hpp"
+#include "welcome_dialog.hpp"
 
 #include <QMainWindow>
 
@@ -69,6 +70,19 @@ public:
     void offerStartupRecovery();
     /// Opens a recovery copy as the modified document (asks to save the current one first).
     bool restoreRecovery(const RecoveryEntry& entry);
+    // main_window_start.cpp
+    /// Help > Welcome: the Welcome dialog over the window, then its chosen action.
+    void showWelcome();
+    /// Carries out a Welcome choice (asks to save the current project first).
+    void runWelcomeAction(const WelcomeChoice& choice);
+    /// Opens the bundled sample `key` (SampleProject::key) as an untitled copy.
+    bool openSample(const QString& key);
+    /// Restarts the application (e.g. for a new language): the normal close flow first
+    /// (unsaved changes: Save / Discard / Cancel; Cancel aborts), then the same executable is
+    /// started again with the same options and the saved document, and this process exits.
+    /// When the new process cannot be started, the window stays open and a message explains
+    /// it. Returns false when cancelled or failed.
+    bool restartApplication();
 
 protected:
     void closeEvent(QCloseEvent* event) override;
@@ -108,6 +122,8 @@ private:
     void autosaveTick();
     void applyPreferences();
     void showPreferences();
+    /// After a change of the effective language: offers to restart now (restartApplication).
+    void offerRestartForLanguage(); // main_window_start.cpp
     void showAbout();
     void deleteSelectedItem();
     void duplicateSelectedItem();

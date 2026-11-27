@@ -1,0 +1,1032 @@
+{
+  "format": "furnitureos-project",
+  "formatVersion": 1,
+  "app": {
+    "name": "FurnitureOS",
+    "version": "0.1.0"
+  },
+  "savedAt": "2026-11-27T14:53:20Z",
+  "checksum": {
+    "algorithm": "sha256",
+    "value": "2eb986602e19a808ff67c9e9e4975a209fc0a9986988253e00cc05211362e03d"
+  },
+  "payload": {
+    "project": {
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "Desk",
+      "description": "",
+      "author": "",
+      "currency": "EUR",
+      "units": "mm",
+      "createdAt": "2026-01-01T00:00:00Z",
+      "modifiedAt": "2026-01-01T00:00:00Z"
+    },
+    "libraries": {
+      "materials": [
+        {
+          "id": "mat.generic.pb18",
+          "name": "Particleboard 18 mm (generic)",
+          "manufacturer": "",
+          "code": "",
+          "supplier": "",
+          "kind": "particleboard",
+          "thickness": 18.0,
+          "sheetLength": 2800.0,
+          "sheetWidth": 2070.0,
+          "hasGrain": false,
+          "color": "#EBEBE6",
+          "texture": "",
+          "costPerSheet": 0.0,
+          "available": true
+        },
+        {
+          "id": "mat.generic.mdf18",
+          "name": "MDF 18 mm (generic)",
+          "manufacturer": "",
+          "code": "",
+          "supplier": "",
+          "kind": "mdf",
+          "thickness": 18.0,
+          "sheetLength": 2800.0,
+          "sheetWidth": 2070.0,
+          "hasGrain": false,
+          "color": "#D2BEA0",
+          "texture": "",
+          "costPerSheet": 0.0,
+          "available": true
+        },
+        {
+          "id": "mat.generic.hdf3",
+          "name": "HDF 3 mm (generic)",
+          "manufacturer": "",
+          "code": "",
+          "supplier": "",
+          "kind": "hdf",
+          "thickness": 3.0,
+          "sheetLength": 2800.0,
+          "sheetWidth": 2070.0,
+          "hasGrain": false,
+          "color": "#AA8C6E",
+          "texture": "",
+          "costPerSheet": 0.0,
+          "available": true
+        }
+      ],
+      "edgeBands": [
+        {
+          "id": "eb.generic.abs2",
+          "name": "ABS 2 x 22 mm (generic)",
+          "manufacturer": "",
+          "code": "",
+          "kind": "abs",
+          "thickness": 2.0,
+          "width": 22.0,
+          "color": "#C8C8C8",
+          "costPerMeter": 0.0
+        },
+        {
+          "id": "eb.generic.abs04",
+          "name": "ABS 0.4 x 22 mm (generic)",
+          "manufacturer": "",
+          "code": "",
+          "kind": "abs",
+          "thickness": 0.4,
+          "width": 22.0,
+          "color": "#C8C8C8",
+          "costPerMeter": 0.0
+        }
+      ],
+      "hardware": [
+        {
+          "id": "hw.hinge_cup_35",
+          "kind": "hinge",
+          "name": "Cup hinge 35 mm with mounting plate (generic)",
+          "manufacturer": "",
+          "article": "",
+          "dimensionsVerified": false,
+          "unitCost": 0.0,
+          "params": {
+            "cup_center_from_door_edge": 21.5,
+            "cup_depth": 13.0,
+            "cup_diameter": 35.0,
+            "plate_hole_depth": 13.0,
+            "plate_hole_diameter": 5.0,
+            "plate_hole_spacing": 32.0,
+            "plate_line_from_front_edge": 37.0
+          },
+          "custom": {
+            "origin": "FurnitureOS generic catalogue; typical dimensions, not from a manufacturer data sheet"
+          }
+        },
+        {
+          "id": "hw.confirmat_7x50",
+          "kind": "confirmat",
+          "name": "Confirmat screw 7x50 (generic)",
+          "manufacturer": "",
+          "article": "",
+          "dimensionsVerified": false,
+          "unitCost": 0.0,
+          "params": {
+            "length": 50.0,
+            "pilot_diameter": 5.0,
+            "pilot_extra_depth": 5.0,
+            "through_diameter": 7.0
+          },
+          "custom": {
+            "origin": "FurnitureOS generic catalogue; typical dimensions, not from a manufacturer data sheet"
+          }
+        },
+        {
+          "id": "hw.dowel_8x30",
+          "kind": "dowel",
+          "name": "Wooden dowel 8x30 (generic)",
+          "manufacturer": "",
+          "article": "",
+          "dimensionsVerified": false,
+          "unitCost": 0.0,
+          "params": {
+            "diameter": 8.0,
+            "edge_depth": 20.0,
+            "face_depth": 12.0,
+            "length": 30.0
+          },
+          "custom": {
+            "origin": "FurnitureOS generic catalogue; typical dimensions, not from a manufacturer data sheet"
+          }
+        },
+        {
+          "id": "hw.shelf_pin_5",
+          "kind": "shelf_support",
+          "name": "Shelf support pin 5 mm (generic)",
+          "manufacturer": "",
+          "article": "",
+          "dimensionsVerified": false,
+          "unitCost": 0.0,
+          "params": {
+            "hole_depth": 13.0,
+            "hole_diameter": 5.0
+          },
+          "custom": {
+            "origin": "FurnitureOS generic catalogue; typical dimensions, not from a manufacturer data sheet"
+          }
+        },
+        {
+          "id": "hw.cam_15",
+          "kind": "cam_connector",
+          "name": "Cam connector 15 mm with 8 mm bolt hole (generic)",
+          "manufacturer": "",
+          "article": "",
+          "dimensionsVerified": false,
+          "unitCost": 0.0,
+          "params": {
+            "bolt_anchor_depth": 11.5,
+            "bolt_anchor_diameter": 5.0,
+            "bolt_hole_depth": 34.0,
+            "bolt_hole_diameter": 8.0,
+            "cam_center_from_edge": 34.0,
+            "cam_depth": 12.5,
+            "cam_diameter": 15.0
+          },
+          "custom": {
+            "origin": "FurnitureOS generic catalogue; typical dimensions, not from a manufacturer data sheet"
+          }
+        },
+        {
+          "id": "hw.handle_bar_128",
+          "kind": "handle",
+          "name": "Bar handle, 128 mm hole spacing (generic)",
+          "manufacturer": "",
+          "article": "",
+          "dimensionsVerified": false,
+          "unitCost": 0.0,
+          "params": {
+            "hole_diameter": 5.0,
+            "hole_spacing": 128.0
+          },
+          "custom": {
+            "origin": "FurnitureOS generic catalogue; typical dimensions, not from a manufacturer data sheet"
+          }
+        },
+        {
+          "id": "hw.foot_adjustable",
+          "kind": "foot",
+          "name": "Adjustable cabinet foot 100 mm (generic)",
+          "manufacturer": "",
+          "article": "",
+          "dimensionsVerified": false,
+          "unitCost": 0.0,
+          "params": {
+            "height_max": 120.0,
+            "height_min": 95.0,
+            "height_nominal": 100.0
+          },
+          "custom": {
+            "origin": "FurnitureOS generic catalogue; typical dimensions, not from a manufacturer data sheet"
+          }
+        },
+        {
+          "id": "hw.slide_ball_bearing",
+          "kind": "drawer_slide",
+          "name": "Ball-bearing drawer slide, side-mounted (generic)",
+          "manufacturer": "",
+          "article": "",
+          "dimensionsVerified": false,
+          "unitCost": 0.0,
+          "params": {
+            "bottom_recess": 0.0,
+            "box_length_deduction": 0.0,
+            "cabinet_hole_depth": 12.0,
+            "cabinet_hole_diameter": 5.0,
+            "cabinet_hole_first": 37.0,
+            "cabinet_hole_pitch": 128.0,
+            "depth_allowance": 0.0,
+            "drawer_hole_depth": 8.0,
+            "drawer_hole_diameter": 2.5,
+            "drawer_hole_first": 32.0,
+            "drawer_hole_pitch": 128.0,
+            "hole_end_margin": 20.0,
+            "hole_line_height": 22.5,
+            "length_max": 650.0,
+            "length_min": 250.0,
+            "length_step": 50.0,
+            "min_box_height": 50.0,
+            "side_clearance": 12.7,
+            "undermount": 0.0
+          },
+          "custom": {
+            "origin": "FurnitureOS generic catalogue; typical dimensions, not from a manufacturer data sheet"
+          }
+        },
+        {
+          "id": "hw.slide_undermount",
+          "kind": "drawer_slide",
+          "name": "Concealed undermount runner (generic)",
+          "manufacturer": "",
+          "article": "",
+          "dimensionsVerified": false,
+          "unitCost": 0.0,
+          "params": {
+            "bottom_recess": 13.0,
+            "box_length_deduction": 10.0,
+            "cabinet_hole_depth": 12.0,
+            "cabinet_hole_diameter": 5.0,
+            "cabinet_hole_first": 37.0,
+            "cabinet_hole_pitch": 128.0,
+            "depth_allowance": 3.0,
+            "drawer_hole_depth": 10.0,
+            "drawer_hole_diameter": 2.5,
+            "drawer_hole_first": 20.0,
+            "drawer_hole_pitch": 224.0,
+            "hole_end_margin": 20.0,
+            "hole_line_height": 7.0,
+            "inner_width_deduction": 42.0,
+            "length_max": 600.0,
+            "length_min": 250.0,
+            "length_step": 50.0,
+            "max_side_thickness": 16.0,
+            "min_box_height": 70.0,
+            "undermount": 1.0
+          },
+          "custom": {
+            "origin": "FurnitureOS generic catalogue; typical dimensions, not from a manufacturer data sheet"
+          }
+        },
+        {
+          "id": "hw.hinge_cup_35_half",
+          "kind": "hinge",
+          "name": "Cup hinge 35 mm, half overlay, 9.5 mm crank (generic)",
+          "manufacturer": "",
+          "article": "",
+          "dimensionsVerified": false,
+          "unitCost": 0.0,
+          "params": {
+            "crank": 9.5,
+            "cup_center_from_door_edge": 21.5,
+            "cup_depth": 13.0,
+            "cup_diameter": 35.0,
+            "overlay_max": 10.0,
+            "overlay_min": 4.0,
+            "plate_hole_depth": 13.0,
+            "plate_hole_diameter": 5.0,
+            "plate_hole_spacing": 32.0,
+            "plate_line_from_front_edge": 37.0
+          },
+          "custom": {
+            "origin": "FurnitureOS generic catalogue; typical dimensions, not from a manufacturer data sheet"
+          }
+        },
+        {
+          "id": "hw.hinge_cup_35_inset",
+          "kind": "hinge",
+          "name": "Cup hinge 35 mm, inset, 16 mm crank (generic)",
+          "manufacturer": "",
+          "article": "",
+          "dimensionsVerified": false,
+          "unitCost": 0.0,
+          "params": {
+            "crank": 16.0,
+            "cup_center_from_door_edge": 21.5,
+            "cup_depth": 13.0,
+            "cup_diameter": 35.0,
+            "overlay_max": 0.0,
+            "overlay_min": -4.0,
+            "plate_hole_depth": 13.0,
+            "plate_hole_diameter": 5.0,
+            "plate_hole_spacing": 32.0,
+            "plate_line_from_front_edge": 37.0
+          },
+          "custom": {
+            "origin": "FurnitureOS generic catalogue; typical dimensions, not from a manufacturer data sheet"
+          }
+        },
+        {
+          "id": "hw.lift_generic",
+          "kind": "lift_mechanism",
+          "name": "Lift mechanism for top-hinged flaps (generic)",
+          "manufacturer": "",
+          "article": "",
+          "dimensionsVerified": false,
+          "unitCost": 0.0,
+          "params": {
+            "cabinet_depth_min": 250.0,
+            "cabinet_height_max": 600.0,
+            "cabinet_height_min": 240.0,
+            "flap_hole_depth": 10.0,
+            "flap_hole_diameter": 4.0,
+            "flap_hole_from_side_edge": 50.0,
+            "flap_hole_from_top_edge": 100.0,
+            "flap_hole_spacing": 32.0,
+            "power_factor_max": 1800.0,
+            "power_factor_min": 400.0,
+            "side_hole_below_top": 40.0,
+            "side_hole_depth": 12.0,
+            "side_hole_diameter": 5.0,
+            "side_hole_from_front": 37.0,
+            "side_hole_spacing": 32.0
+          },
+          "custom": {
+            "origin": "FurnitureOS generic catalogue; typical dimensions, not from a manufacturer data sheet"
+          }
+        },
+        {
+          "id": "hw.sliding_generic",
+          "kind": "sliding_system",
+          "name": "Sliding door system, two-lane top and bottom track (generic)",
+          "manufacturer": "",
+          "article": "",
+          "dimensionsVerified": false,
+          "unitCost": 0.0,
+          "params": {
+            "bottom_track_height": 10.0,
+            "door_bottom_clearance": 15.0,
+            "door_height_deduction": 40.0,
+            "door_overlap": 30.0,
+            "door_width_max": 1200.0,
+            "door_width_min": 400.0,
+            "guide_hole_from_top_edge": 30.0,
+            "interior_clearance": 5.0,
+            "interior_depth_min": 250.0,
+            "plane_front_offset": 10.0,
+            "plane_pitch": 35.0,
+            "roller_hole_depth": 10.0,
+            "roller_hole_diameter": 4.0,
+            "roller_hole_from_bottom_edge": 30.0,
+            "roller_hole_from_side_edge": 40.0,
+            "top_track_height": 40.0,
+            "track_depth": 80.0,
+            "track_screw_depth": 10.0,
+            "track_screw_diameter": 4.0,
+            "track_screw_end_distance": 50.0,
+            "track_screw_pitch": 300.0,
+            "track_setback": 10.0
+          },
+          "custom": {
+            "origin": "FurnitureOS generic catalogue; typical dimensions, not from a manufacturer data sheet"
+          }
+        },
+        {
+          "id": "hw.hanger_generic",
+          "kind": "suspension",
+          "name": "Concealed cabinet hanger for a wall rail (generic)",
+          "manufacturer": "",
+          "article": "",
+          "dimensionsVerified": false,
+          "unitCost": 0.0,
+          "params": {
+            "back_space_min": 18.0,
+            "body_depth": 16.0,
+            "body_height": 60.0,
+            "body_width": 45.0,
+            "rail_top_below_top": 20.0,
+            "screw_below_top": 15.0,
+            "screw_depth": 10.0,
+            "screw_diameter": 3.0,
+            "screw_from_rear_edge": 8.0,
+            "screw_spacing": 32.0
+          },
+          "custom": {
+            "origin": "FurnitureOS generic catalogue; typical dimensions, not from a manufacturer data sheet"
+          }
+        },
+        {
+          "id": "hw.wall_rail_generic",
+          "kind": "other",
+          "name": "Steel wall rail for cabinet hangers, per metre (generic)",
+          "manufacturer": "",
+          "article": "",
+          "dimensionsVerified": false,
+          "unitCost": 0.0,
+          "params": {
+            "rail_height": 60.0,
+            "rail_thickness": 12.0
+          },
+          "custom": {
+            "origin": "FurnitureOS generic catalogue; typical dimensions, not from a manufacturer data sheet",
+            "unit": "m"
+          }
+        },
+        {
+          "id": "hw.clothes_rail_generic",
+          "kind": "other",
+          "name": "Oval wardrobe rail 30x15, per metre (generic)",
+          "manufacturer": "",
+          "article": "",
+          "dimensionsVerified": false,
+          "unitCost": 0.0,
+          "params": {
+            "hanging_space_min": 800.0,
+            "hook_clearance": 35.0,
+            "rail_height": 30.0,
+            "rail_thickness": 15.0,
+            "section_depth_min": 500.0
+          },
+          "custom": {
+            "origin": "FurnitureOS generic catalogue; typical dimensions, not from a manufacturer data sheet",
+            "unit": "m"
+          }
+        },
+        {
+          "id": "hw.rail_support_generic",
+          "kind": "other",
+          "name": "End support for oval wardrobe rail, screw-fixed (generic)",
+          "manufacturer": "",
+          "article": "",
+          "dimensionsVerified": false,
+          "unitCost": 0.0,
+          "params": {
+            "body_depth": 30.0,
+            "body_height": 50.0,
+            "screw_depth": 10.0,
+            "screw_diameter": 3.0,
+            "screw_spacing": 32.0
+          },
+          "custom": {
+            "origin": "FurnitureOS generic catalogue; typical dimensions, not from a manufacturer data sheet"
+          }
+        }
+      ]
+    },
+    "items": [
+      {
+        "type": "cabinet",
+        "id": "cab1",
+        "name": "Desk",
+        "placement": {
+          "origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "zAxis": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "construction": {
+          "topJoint": "BetweenSides",
+          "bottomJoint": "BetweenSides",
+          "top": "Panel",
+          "back": "None",
+          "plinth": "None",
+          "topFastener": "Confirmat",
+          "bottomFastener": "Confirmat",
+          "dividerFastener": "Confirmat",
+          "shelfSupports": true
+        },
+        "materials": {
+          "carcass": "mat.generic.pb18",
+          "back": "mat.generic.hdf3",
+          "front": "",
+          "visibleEdge": "eb.generic.abs2",
+          "hiddenEdge": "eb.generic.abs04",
+          "frontEdge": null,
+          "overrides": {}
+        },
+        "hardware": {
+          "hinge": "hw.hinge_cup_35",
+          "handle": "hw.handle_bar_128",
+          "shelfPin": "hw.shelf_pin_5",
+          "confirmat": "hw.confirmat_7x50",
+          "dowel": "hw.dowel_8x30",
+          "foot": "hw.foot_adjustable"
+        },
+        "parameters": [
+          {
+            "name": "back_engagement",
+            "kind": "Length",
+            "expression": "groove_depth - groove_clearance",
+            "description": "Depth by which a grooved back enters each groove",
+            "integer": false
+          },
+          {
+            "name": "back_height",
+            "kind": "Length",
+            "expression": "0",
+            "description": "Back panel size along the cabinet height",
+            "integer": false
+          },
+          {
+            "name": "back_inset",
+            "kind": "Length",
+            "value": 2.0,
+            "description": "Overlay back: inset from the outer carcass edges",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "back_rear_y",
+            "kind": "Length",
+            "expression": "depth",
+            "description": "Depth coordinate of the rear face of the back panel",
+            "integer": false
+          },
+          {
+            "name": "back_thickness",
+            "kind": "Length",
+            "value": 3.0,
+            "description": "Back panel thickness (synchronised from the back material)",
+            "lowerBound": 0.1,
+            "integer": false
+          },
+          {
+            "name": "back_width",
+            "kind": "Length",
+            "expression": "0",
+            "description": "Back panel size along the cabinet width",
+            "integer": false
+          },
+          {
+            "name": "back_x",
+            "kind": "Length",
+            "expression": "0",
+            "description": "Left edge of the back panel",
+            "integer": false
+          },
+          {
+            "name": "back_z",
+            "kind": "Length",
+            "expression": "0",
+            "description": "Lower edge of the back panel",
+            "integer": false
+          },
+          {
+            "name": "bottom_length",
+            "kind": "Length",
+            "expression": "inner_width",
+            "description": "Length of the bottom panel",
+            "integer": false
+          },
+          {
+            "name": "bottom_x",
+            "kind": "Length",
+            "expression": "thickness",
+            "description": "Left end of the bottom panel",
+            "integer": false
+          },
+          {
+            "name": "carcass_bottom",
+            "kind": "Length",
+            "expression": "0",
+            "description": "Height of the underside of the bottom panel",
+            "integer": false
+          },
+          {
+            "name": "carcass_height",
+            "kind": "Length",
+            "expression": "height - carcass_bottom",
+            "description": "Height of the carcass box",
+            "integer": false
+          },
+          {
+            "name": "depth",
+            "kind": "Length",
+            "value": 700.0,
+            "description": "Carcass depth (front edge to rear edge of the sides)",
+            "lowerBound": 1.0,
+            "integer": false
+          },
+          {
+            "name": "front_gap",
+            "kind": "Length",
+            "value": 3.0,
+            "description": "Gap between two adjacent fronts",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "front_offset",
+            "kind": "Length",
+            "value": 2.0,
+            "description": "Gap between the carcass front and the inner face of overlay fronts",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "front_reveal",
+            "kind": "Length",
+            "value": 2.0,
+            "description": "Full overlay: front edge inside the outer cabinet envelope",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "front_thickness",
+            "kind": "Length",
+            "value": 18.0,
+            "description": "Front thickness (synchronised from the front material)",
+            "lowerBound": 1.0,
+            "integer": false
+          },
+          {
+            "name": "groove_center",
+            "kind": "Length",
+            "expression": "depth - groove_distance - back_thickness / 2",
+            "description": "Depth coordinate of the back groove centre line",
+            "integer": false
+          },
+          {
+            "name": "groove_clearance",
+            "kind": "Length",
+            "value": 1.0,
+            "description": "Grooved back: clearance between each back edge and the groove bottom",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "groove_depth",
+            "kind": "Length",
+            "value": 8.0,
+            "description": "Grooved back: groove depth",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "groove_distance",
+            "kind": "Length",
+            "value": 10.0,
+            "description": "Grooved back: rear face of the back panel in front of the rear carcass edge",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "groove_fit",
+            "kind": "Length",
+            "value": 0.0,
+            "description": "Grooved back: groove width in excess of the back thickness",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "groove_width",
+            "kind": "Length",
+            "expression": "back_thickness + groove_fit",
+            "description": "Width of the back groove",
+            "integer": false
+          },
+          {
+            "name": "handle_edge_offset",
+            "kind": "Length",
+            "value": 50.0,
+            "description": "Door handle centre from the free door edge",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "handle_end_offset",
+            "kind": "Length",
+            "value": 100.0,
+            "description": "Door handle centre from the door top / bottom (HandlePosition Top / Bottom)",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "height",
+            "kind": "Length",
+            "value": 740.0,
+            "description": "Overall height including the plinth",
+            "lowerBound": 1.0,
+            "integer": false
+          },
+          {
+            "name": "hinge_offset",
+            "kind": "Length",
+            "value": 100.0,
+            "description": "Top / bottom hinge centre from the door end",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "hinge_shelf_clearance",
+            "kind": "Length",
+            "value": 40.0,
+            "description": "Least distance from an intermediate hinge centre to a shelf face on the same side panel (generic rule of thumb keeping the mounting plate and its holes clear of the shelf and its supports)",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "inner_height",
+            "kind": "Length",
+            "expression": "interior_top - interior_bottom",
+            "description": "Clear height between bottom and top",
+            "integer": false
+          },
+          {
+            "name": "inner_width",
+            "kind": "Length",
+            "expression": "width - 2 * thickness",
+            "description": "Clear width between the sides",
+            "integer": false
+          },
+          {
+            "name": "inset_gap",
+            "kind": "Length",
+            "value": 2.0,
+            "description": "Inset fronts: gap to the surrounding panels",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "interior_bottom",
+            "kind": "Length",
+            "expression": "carcass_bottom + thickness",
+            "description": "Height of the upper face of the bottom panel",
+            "integer": false
+          },
+          {
+            "name": "interior_depth",
+            "kind": "Length",
+            "expression": "depth",
+            "description": "Usable depth in front of the back panel",
+            "integer": false
+          },
+          {
+            "name": "interior_top",
+            "kind": "Length",
+            "expression": "height - thickness",
+            "description": "Height of the underside of the top panel / rails",
+            "integer": false
+          },
+          {
+            "name": "joint_end_offset",
+            "kind": "Length",
+            "value": 50.0,
+            "description": "First / last joint fastener from the joint ends (at most a quarter of the joint)",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "joint_max_spacing",
+            "kind": "Length",
+            "value": 250.0,
+            "description": "Largest joint fastener spacing",
+            "lowerBound": 1.0,
+            "integer": false
+          },
+          {
+            "name": "overlay_outer",
+            "kind": "Length",
+            "expression": "thickness - front_reveal",
+            "description": "Full overlay: how far a front covers an outer carcass panel",
+            "integer": false
+          },
+          {
+            "name": "overlay_shared",
+            "kind": "Length",
+            "expression": "thickness / 2 - front_gap / 2",
+            "description": "How far a front covers a panel shared with a neighbouring front",
+            "integer": false
+          },
+          {
+            "name": "plinth_height",
+            "kind": "Length",
+            "value": 100.0,
+            "description": "Height of the plinth / feet space below the carcass",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "plinth_setback",
+            "kind": "Length",
+            "value": 50.0,
+            "description": "Plinth panel front face behind the carcass front",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "rail_width",
+            "kind": "Length",
+            "value": 100.0,
+            "description": "Width of the stretcher rails",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "shelf_clearance",
+            "kind": "Length",
+            "value": 1.0,
+            "description": "Clearance between an adjustable shelf and each supporting panel",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "shelf_depth",
+            "kind": "Length",
+            "expression": "interior_depth - shelf_setback",
+            "description": "Depth (part width) of adjustable shelves",
+            "integer": false
+          },
+          {
+            "name": "shelf_pin_back",
+            "kind": "Length",
+            "value": 50.0,
+            "description": "Rear shelf pin in front of the shelf rear edge",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "shelf_pin_front",
+            "kind": "Length",
+            "value": 50.0,
+            "description": "Front shelf pin behind the shelf front edge",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "shelf_setback",
+            "kind": "Length",
+            "value": 20.0,
+            "description": "Adjustable shelf front edge behind the carcass front",
+            "lowerBound": 0.0,
+            "integer": false
+          },
+          {
+            "name": "side_bottom",
+            "kind": "Length",
+            "expression": "carcass_bottom",
+            "description": "Height of the lower end of the sides",
+            "integer": false
+          },
+          {
+            "name": "side_height",
+            "kind": "Length",
+            "expression": "side_top - side_bottom",
+            "description": "Length of the sides",
+            "integer": false
+          },
+          {
+            "name": "side_top",
+            "kind": "Length",
+            "expression": "height",
+            "description": "Height of the upper end of the sides",
+            "integer": false
+          },
+          {
+            "name": "thickness",
+            "kind": "Length",
+            "value": 18.0,
+            "description": "Carcass board thickness (synchronised from the carcass material)",
+            "lowerBound": 1.0,
+            "integer": false
+          },
+          {
+            "name": "top_length",
+            "kind": "Length",
+            "expression": "inner_width",
+            "description": "Length of the top panel / rails",
+            "integer": false
+          },
+          {
+            "name": "top_x",
+            "kind": "Length",
+            "expression": "thickness",
+            "description": "Left end of the top panel / rails",
+            "integer": false
+          },
+          {
+            "name": "width",
+            "kind": "Length",
+            "value": 1400.0,
+            "description": "Overall width",
+            "lowerBound": 1.0,
+            "integer": false
+          }
+        ],
+        "constraints": [
+          {
+            "name": "std.front_overlay",
+            "expression": "overlay_outer >= 0 && overlay_shared >= 0",
+            "message": "Front reveal {front_reveal} mm and half the front gap {front_gap} mm must not exceed what a {thickness} mm panel can carry",
+            "severity": "error"
+          },
+          {
+            "name": "std.inner_height",
+            "expression": "inner_height > 0",
+            "message": "Inner height must be positive: height {height} mm leaves {inner_height} mm between the bottom and top panels ({thickness} mm each, carcass starting at {carcass_bottom} mm)",
+            "severity": "error"
+          },
+          {
+            "name": "std.inner_width",
+            "expression": "inner_width > 0",
+            "message": "Inner width must be positive: width {width} mm minus two {thickness} mm sides leaves {inner_width} mm",
+            "severity": "error"
+          },
+          {
+            "name": "std.interior_depth",
+            "expression": "interior_depth > 0",
+            "message": "Interior depth must be positive: depth {depth} mm leaves {interior_depth} mm in front of the back panel",
+            "severity": "error"
+          },
+          {
+            "name": "std.shelf_depth",
+            "expression": "shelf_depth > 0",
+            "message": "Shelf setback {shelf_setback} mm must be smaller than the interior depth {interior_depth} mm (shelf depth would be {shelf_depth} mm)",
+            "severity": "error"
+          }
+        ],
+        "pinnedParameters": [],
+        "interior": {
+          "size": {
+            "kind": "Weight",
+            "value": 1.0,
+            "expression": ""
+          },
+          "split": "None",
+          "shelfCount": 0,
+          "children": []
+        },
+        "desk": {
+          "support": "Panels",
+          "cableCutout": {
+            "length": 300.0,
+            "width": 60.0,
+            "rearDistance": 20.0
+          },
+          "pedestal": {
+            "side": "Right",
+            "width": 400.0,
+            "drawers": 3
+          }
+        }
+      }
+    ],
+    "drawingEdits": {},
+    "cutting": {
+      "defaults": {
+        "kerf": 4.0,
+        "trim": {
+          "left": 10.0,
+          "right": 10.0,
+          "top": 10.0,
+          "bottom": 10.0
+        },
+        "minRemnantLength": 300.0,
+        "minRemnantWidth": 100.0,
+        "maxStages": 0,
+        "firstCut": "free",
+        "objective": "minimize_sheets",
+        "remnants": []
+      },
+      "materials": {}
+    },
+    "settings": {
+      "backupCount": 3,
+      "edgeBanding": {
+        "overhangPerEnd": 25.0,
+        "wastePercent": 0.0
+      },
+      "cutListGroupAcrossAssemblies": true
+    },
+    "custom": {}
+  }
+}

@@ -22,10 +22,16 @@
 
 namespace fos::app {
 
-/// What is selected: an item (cabinet or panel) and optionally parts of its assembly.
+/// What is selected: an item (cabinet or panel) and optionally parts of its assembly, plus
+/// further whole items of a multi-selection (Ctrl+click). The inspectors work on `itemId` /
+/// `partIds` only (the "primary" item); the editing tools (edit_tools.hpp) act on all items.
 struct Selection {
     std::string itemId;                ///< Empty = nothing selected.
     std::vector<std::string> partIds;  ///< Part ids (domain::PartId::str()), may be empty.
+    /// Further selected items in selection order (never `itemId`, no duplicates, existing ids).
+    std::vector<std::string> extraItemIds{};
+    /// itemId followed by extraItemIds (empty when nothing is selected).
+    std::vector<std::string> allItems() const;
     bool operator==(const Selection&) const = default;
 };
 
@@ -47,6 +53,10 @@ public:
     /// Loads a `.fosp`; on success it becomes the document (clean) and the load diagnostics
     /// are returned. On error the current document is unchanged.
     core::Result<core::Diagnostics> open(const std::filesystem::path& path, const formats::LoadOptions& options = {});
+    /// Loads project text (e.g. a bundled sample read from a Qt resource) as a new UNTITLED
+    /// document: a fresh project id and creation time, no file path (Save asks for one), clean.
+    /// `sourceName` names the text in error messages. On error the document is unchanged.
+    core::Result<core::Diagnostics> openUntitledCopy(std::string_view text, std::string_view sourceName);
     /// Opens `path` from its newest valid autosave/backup (project::recoverProject). The
     /// document is associated with `path` and marked modified (the recovered state is not
     /// what is on disk); the replacement is one undoable step when `path` itself loads.
@@ -119,6 +129,10 @@ public:
     /// Selects the part (and its item); empty id clears the selection.
     void selectPart(const std::string& partId);
     void selectItem(const std::string& itemId);
+    /// Selects exactly these items (first = primary, no parts); unknown ids are dropped.
+    void selectItems(const std::vector<std::string>& itemIds);
+    /// Ctrl+click on an item: adds it to the multi-selection, or removes it when already selected.
+    void toggleItemSelected(const std::string& itemId);
     /// Largest x (mm, project frame) of the resolved assemblies' bounding boxes, 0 for an empty
     /// project: where a new item is placed (display layout only).
     double rightEdge() const;

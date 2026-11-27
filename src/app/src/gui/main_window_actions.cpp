@@ -250,6 +250,7 @@ void MainWindow::buildMenus() {
     projectMenu->addAction(a_.showPacking);
 
     QMenu* help = menuBar()->addMenu(tr("&Help"));
+    help->addAction(tr("&Welcome…"), this, &MainWindow::showWelcome);
     help->addAction(a_.shortcuts);
     help->addAction(a_.about);
 

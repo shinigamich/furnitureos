@@ -28,7 +28,7 @@ fos_add_module(cli_core
         src/cmd_remnants.cpp
     DEPS fos::core fos::geometry fos::domain fos::machining fos::furniture fos::validation fos::production
          fos::cutting fos::cutting_model fos::nesting fos::nesting_model fos::linear fos::drawings fos::cam fos::formats fos::project)
-target_compile_definitions(fos_cli_core PRIVATE FOS_CLI_VERSION="${PROJECT_VERSION}")
+target_compile_definitions(fos_cli_core PRIVATE FOS_CLI_VERSION="${FOS_VERSION_STRING}")
 
 add_executable(fos src/main.cpp)
 fos_add_windows_version_resource(fos "FurnitureOS command-line tool")

@@ -1,0 +1,10 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <!-- Sample projects of the Welcome dialog, generated with the `fos` CLI from the engine
+         templates (see README.md, "Sample projects"). -->
+    <qresource prefix="/samples">
+        <file alias="kitchen_run.fosp">samples/kitchen_run.fosp</file>
+        <file alias="wardrobe_sliding_doors.fosp">samples/wardrobe_sliding_doors.fosp</file>
+        <file alias="desk.fosp">samples/desk.fosp</file>
+    </qresource>
+</RCC>

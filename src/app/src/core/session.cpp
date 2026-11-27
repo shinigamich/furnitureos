@@ -124,6 +124,20 @@ core::Result<core::Diagnostics> Session::open(const fs::path& path, const format
     return diagnostics;
 }
 
+core::Result<core::Diagnostics> Session::openUntitledCopy(std::string_view text, std::string_view sourceName) {
+    auto loaded = project::parseProject(text, {}, sourceName);
+    if (!loaded) return loaded.error();
+    core::Diagnostics diagnostics = loaded.value().diagnostics;
+    project::Project p = std::move(loaded.value().project);
+    // A copy, not the original: its own id (recovery key) and dates; name and libraries kept.
+    const project::Metadata fresh = freshMetadata();
+    p.metadata.id = fresh.id;
+    p.metadata.createdAt = fresh.createdAt;
+    p.metadata.modifiedAt = fresh.modifiedAt;
+    replaceDocument(std::move(p), {});
+    return diagnostics;
+}
+
 core::Result<core::Diagnostics> Session::openRecovered(const fs::path& path) {
     auto recovered = project::recoverProject(path);
     if (!recovered) return recovered.error();
@@ -295,7 +309,18 @@ void Session::setSelection(Selection s) {
         if (owner == s.itemId && std::find(parts.begin(), parts.end(), id) == parts.end()) parts.push_back(id);
     }
     s.partIds = std::move(parts);
-    if (!s.itemId.empty() && !project().findItem(s.itemId)) s = {};
+    if (!s.itemId.empty() && !project().findItem(s.itemId)) {
+        s.itemId.clear();
+        s.partIds.clear();
+    }
+    std::vector<std::string> extra;
+    for (const auto& id : s.extraItemIds) {
+        if (!project().findItem(id) || id == s.itemId || std::find(extra.begin(), extra.end(), id) != extra.end())
+            continue;
+        if (s.itemId.empty()) s.itemId = id; // the first remaining item becomes the primary one
+        else extra.push_back(id);
+    }
+    s.extraItemIds = std::move(extra);
     if (s == selection_) return;
     selection_ = std::move(s);
     emit selectionChanged();
@@ -307,6 +332,29 @@ void Session::selectPart(const std::string& partId) {
 }
 
 void Session::selectItem(const std::string& itemId) { setSelection({itemId, {}}); }
+
+void Session::selectItems(const std::vector<std::string>& itemIds) {
+    Selection s;
+    s.extraItemIds = itemIds; // normalised: the first existing id becomes the primary item
+    setSelection(std::move(s));
+}
+
+void Session::toggleItemSelected(const std::string& itemId) {
+    if (!project().findItem(itemId)) return;
+    auto items = selection_.allItems();
+    const auto it = std::find(items.begin(), items.end(), itemId);
+    if (it != items.end()) items.erase(it);
+    else items.push_back(itemId);
+    selectItems(items);
+}
+
+std::vector<std::string> Selection::allItems() const {
+    std::vector<std::string> out;
+    if (!itemId.empty()) out.push_back(itemId);
+    for (const auto& id : extraItemIds)
+        if (id != itemId && std::find(out.begin(), out.end(), id) == out.end()) out.push_back(id);
+    return out;
+}
 
 void Session::pruneSelection() { setSelection(selection_); }
 

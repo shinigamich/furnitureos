@@ -32,6 +32,18 @@ void saveLabelBarcodeSettings(const LabelBarcodeSettings& settings);
 /// and "en" for everything else.
 QString effectiveLanguage(const Preferences& preferences);
 
+/// Installs the translators of `language` ("en" or "uk"): the application catalogue
+/// (:/i18n/furnitureos_<language>) and Qt's own (qtbase_<language>), replacing the ones a
+/// previous call installed, and sets the default QLocale (Ukrainian for "uk", the system locale
+/// for "en"). Installing a translator sends QEvent::LanguageChange to every widget, so widgets
+/// that retranslate in changeEvent() (WelcomeDialog) switch at once; most windows build their
+/// texts once, which is why a language change otherwise needs a restart.
+void applyLanguage(const QString& language);
+
+/// Whether the Welcome dialog was already shown at start-up (QSettings "ui/welcomeShown").
+bool welcomeShown();
+void setWelcomeShown();
+
 /// The folders the component browser scans: the stored list, or the default per-user
 /// folder (created on first use) when the list is empty.
 std::vector<std::filesystem::path> effectiveComponentFolders(const Preferences& preferences);

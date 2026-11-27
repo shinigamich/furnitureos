@@ -17,6 +17,10 @@ add_library(fos_app_core STATIC
     src/core/templates.cpp
     src/core/command_text.cpp
     src/core/session.cpp
+    src/core/edit_tools.cpp
+    src/core/edit_layout.cpp
+    src/core/panel_tools.cpp
+    src/core/item_clipboard.cpp
     src/core/parameter_rows.cpp
     src/core/browser_tree.cpp
     src/core/diagnostics_rows.cpp
@@ -45,14 +49,17 @@ add_library(fos_app_core STATIC
     src/core/edge_banding_rows.cpp
     src/core/project_compare.cpp
     src/core/inner_drawer_rows.cpp
-    src/core/job_pack_export.cpp)
+    src/core/job_pack_export.cpp
+    src/core/relaunch.cpp
+    src/core/samples.cpp
+    resources/samples.qrc)
 add_library(fos::app_core ALIAS fos_app_core)
 # moc (Qt 6.4) cannot parse libstdc++ C++20 concepts with the compiler predefines (see viewport).
-set_target_properties(fos_app_core PROPERTIES AUTOMOC ON AUTOMOC_COMPILER_PREDEFINES OFF)
+set_target_properties(fos_app_core PROPERTIES AUTOMOC ON AUTOMOC_COMPILER_PREDEFINES OFF AUTORCC ON)
 target_include_directories(fos_app_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(fos_app_core PUBLIC fos::project fos::validation fos::printing Qt6::Core Qt6::Gui)
 target_compile_definitions(fos_app_core PRIVATE
-    FOS_APP_VERSION="${PROJECT_VERSION}" FOS_APP_SOURCE_URL="${FOS_APP_SOURCE_URL}")
+    FOS_APP_VERSION="${FOS_VERSION_STRING}" FOS_APP_SOURCE_URL="${FOS_APP_SOURCE_URL}")
 fos_set_warnings(fos_app_core PRIVATE)
 
 if(FOS_BUILD_TESTS)
@@ -61,6 +68,8 @@ if(FOS_BUILD_TESTS)
         tests/core/basics_tests.cpp
         tests/core/recovery_tests.cpp
         tests/core/session_tests.cpp
+        tests/core/edit_tools_tests.cpp
+        tests/core/panel_tools_tests.cpp
         tests/core/parameter_tests.cpp
         tests/core/views_tests.cpp
         tests/core/interior_tests.cpp
@@ -84,7 +93,8 @@ if(FOS_BUILD_TESTS)
         tests/core/production_extras_tests.cpp
         tests/core/inner_drawer_tests.cpp
         tests/core/pictorial_tests.cpp
-        tests/core/job_pack_tests.cpp)
+        tests/core/job_pack_tests.cpp
+        tests/core/relaunch_tests.cpp)
     target_link_libraries(fos_app_core_tests PRIVATE fos::app_core Qt6::Test GTest::gtest GTest::gmock)
     fos_set_warnings(fos_app_core_tests PRIVATE)
     gtest_discover_tests(fos_app_core_tests DISCOVERY_TIMEOUT 60
@@ -105,6 +115,9 @@ set(FOS_APP_GUI_SOURCES
     src/gui/main_window.cpp
     src/gui/main_window_files.cpp
     src/gui/main_window_actions.cpp
+    src/gui/main_window_start.cpp
+    src/gui/welcome_dialog.hpp
+    src/gui/welcome_dialog.cpp
     src/gui/project_browser.hpp
     src/gui/project_browser.cpp
     src/gui/inspector_panel.hpp
@@ -193,6 +206,7 @@ set(FOS_APP_TS_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/translations/furnitureos_uk.ts
     ${CMAKE_CURRENT_SOURCE_DIR}/translations/furnitureos_en.ts)
 get_target_property(_fos_core_sources fos_app_core SOURCES)
+list(FILTER _fos_core_sources EXCLUDE REGEX "\\.qrc$")
 list(TRANSFORM _fos_core_sources PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/)
 set(_fos_gui_sources ${FOS_APP_GUI_SOURCES} src/gui/main.cpp)
 list(TRANSFORM _fos_gui_sources PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/)

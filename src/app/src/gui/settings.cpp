@@ -4,8 +4,12 @@
 #include "fos/app/autosave.hpp"
 #include "fos/app/component_browser.hpp"
 
+#include <QCoreApplication>
+#include <QLibraryInfo>
 #include <QLocale>
+#include <QPointer>
 #include <QSettings>
+#include <QTranslator>
 
 #include <algorithm>
 
@@ -46,6 +50,40 @@ QString effectiveLanguage(const Preferences& preferences) {
     if (!preferences.language.isEmpty()) return preferences.language;
     return QLocale::system().language() == QLocale::Ukrainian ? QStringLiteral("uk") : QStringLiteral("en");
 }
+
+void applyLanguage(const QString& language) {
+    // Owned by the application object; replaced on every call.
+    static QPointer<QTranslator> appTranslator, qtTranslator;
+    for (QPointer<QTranslator>* t : {&appTranslator, &qtTranslator}) {
+        if (*t) {
+            QCoreApplication::removeTranslator(*t);
+            delete t->data();
+        }
+    }
+    if (language == QLatin1String("en")) {
+        QLocale::setDefault(QLocale::system());
+        return;
+    }
+    QLocale::setDefault(QLocale(language));
+    auto* app = new QTranslator(QCoreApplication::instance());
+    if (app->load(QStringLiteral(":/i18n/furnitureos_") + language)) {
+        QCoreApplication::installTranslator(app);
+        appTranslator = app;
+    } else {
+        delete app;
+    }
+    auto* qt = new QTranslator(QCoreApplication::instance());
+    if (qt->load(QStringLiteral("qtbase_") + language, QLibraryInfo::path(QLibraryInfo::TranslationsPath))) {
+        QCoreApplication::installTranslator(qt);
+        qtTranslator = qt;
+    } else {
+        delete qt;
+    }
+}
+
+bool welcomeShown() { return QSettings().value(QStringLiteral("ui/welcomeShown"), false).toBool(); }
+
+void setWelcomeShown() { QSettings().setValue(QStringLiteral("ui/welcomeShown"), true); }
 
 std::vector<std::filesystem::path> effectiveComponentFolders(const Preferences& preferences) {
     std::vector<std::filesystem::path> out;

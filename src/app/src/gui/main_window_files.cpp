@@ -259,12 +259,11 @@ void MainWindow::applyPreferences() {
 void MainWindow::showPreferences() {
     PreferencesDialog dialog(preferences_, this);
     if (dialog.exec() != QDialog::Accepted) return;
-    const QString oldLanguage = preferences_.language;
+    const QString oldLanguage = effectiveLanguage(preferences_);
     preferences_ = dialog.preferences();
     preferences_.save();
     applyPreferences();
-    if (preferences_.language != oldLanguage)
-        QMessageBox::information(this, tr("Preferences"), tr("The new language is used after a restart."));
+    if (effectiveLanguage(preferences_) != oldLanguage) offerRestartForLanguage();
 }
 
 void MainWindow::showAbout() {
