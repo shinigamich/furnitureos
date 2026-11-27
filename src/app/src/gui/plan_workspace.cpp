@@ -6,6 +6,7 @@
 #include "fos/app/session.hpp"
 #include "plan_canvas.hpp"
 
+#include <QCoreApplication>
 #include <QDir>
 #include <QDoubleSpinBox>
 #include <QFileDialog>
@@ -28,7 +29,7 @@ QDoubleSpinBox* mmBox(double value, double min, QWidget* parent) {
     box->setRange(min, 100000.0);
     box->setDecimals(1);
     box->setSingleStep(10);
-    box->setSuffix(QStringLiteral(" mm"));
+    box->setSuffix(QCoreApplication::translate("fos::app::gui::PlanWorkspace", " mm"));
     box->setValue(value);
     box->setKeyboardTracking(false); // typed values apply on Enter / focus out: one undo step per edit
     return box;

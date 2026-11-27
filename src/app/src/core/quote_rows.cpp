@@ -4,6 +4,7 @@
 #include "fos/project/outputs.hpp"
 
 #include <set>
+#include <utility>
 
 namespace fos::app {
 namespace {
@@ -16,6 +17,35 @@ std::string quantityText(double v) {
     while (t.contains(QLatin1Char('.')) && (t.endsWith(QLatin1Char('0')) || t.endsWith(QLatin1Char('.')))) t.chop(1);
     if (t == QStringLiteral("-0")) t = QStringLiteral("0");
     return t.toStdString();
+}
+
+/// Display text of the production module's unit codes and fixed notes (other notes, which
+/// carry numbers, stay as the engine wrote them).
+std::string unitText(const std::string& unit) {
+    static const std::pair<const char*, const char*> units[] = {
+        {"sheet", QT_TRANSLATE_NOOP("QuoteText", "sheet")}, {"m2", QT_TRANSLATE_NOOP("QuoteText", "m²")},
+        {"m", QT_TRANSLATE_NOOP("QuoteText", "m")},         {"pc", QT_TRANSLATE_NOOP("QuoteText", "pc")},
+        {"hole", QT_TRANSLATE_NOOP("QuoteText", "hole")},   {"part", QT_TRANSLATE_NOOP("QuoteText", "part")}};
+    for (const auto& [code, text] : units)
+        if (unit == code) return s(QuoteText::tr(text));
+    return unit;
+}
+
+std::string noteText(const std::string& note) {
+    static const char* const notes[] = {
+        QT_TRANSLATE_NOOP("QuoteText", "material is not in the libraries"),
+        QT_TRANSLATE_NOOP("QuoteText", "sheets from the cutting plan"),
+        QT_TRANSLATE_NOOP("QuoteText", "no price per sheet or per m2 in the library"),
+        QT_TRANSLATE_NOOP("QuoteText", "no price per m2 or per sheet in the library"),
+        QT_TRANSLATE_NOOP("QuoteText", "edge band is not in the libraries"),
+        QT_TRANSLATE_NOOP("QuoteText", "no price per metre in the library"),
+        QT_TRANSLATE_NOOP("QuoteText", "hardware definition is not in the catalogue"),
+        QT_TRANSLATE_NOOP("QuoteText", "no price per metre in the catalogue"),
+        QT_TRANSLATE_NOOP("QuoteText", "no unit price in the catalogue"),
+        QT_TRANSLATE_NOOP("QuoteText", "applied length")};
+    for (const char* text : notes)
+        if (note == text) return s(QuoteText::tr(text));
+    return note;
 }
 
 } // namespace
@@ -110,9 +140,9 @@ QuoteRows QuoteText::rows(const production::Quote& q) {
     r.table.header = {s(tr("Category")), s(tr("Item")),   s(tr("Quantity")), s(tr("Unit")),
                       s(tr("Unit price")), s(tr("Amount")), s(tr("Note"))};
     for (const auto& l : q.lines) {
-        r.table.rows.push_back({s(category(l.category)), l.description, quantityText(l.quantity), l.unit,
+        r.table.rows.push_back({s(category(l.category)), l.description, quantityText(l.quantity), unitText(l.unit),
                                 l.priced() ? production::formatMoney(*l.unitPrice) : s(tr("UNPRICED")),
-                                production::formatMoney(l.amount), l.note});
+                                production::formatMoney(l.amount), noteText(l.note)});
         r.unpriced.push_back(!l.priced());
     }
     r.summaryStart = r.table.rows.size();

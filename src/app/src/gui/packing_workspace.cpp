@@ -76,8 +76,8 @@ PackingWorkspace::PackingWorkspace(Session& session, QWidget* parent) : QWidget(
 
 QWidget* PackingWorkspace::buildPackingPage() {
     auto* page = new QWidget(this);
-    const QString mmSuffix = QStringLiteral(" mm");
-    maxWeight_ = limitBox(10000.0, QStringLiteral(" kg"), QString(), page);
+    const QString mmSuffix = tr(" mm");
+    maxWeight_ = limitBox(10000.0, tr(" kg"), QString(), page);
     maxWeight_->setObjectName(QStringLiteral("packingMaxWeight"));
     maxWeight_->setMinimum(0.1); // production::packingList requires a positive weight limit
     maxLength_ = limitBox(100000.0, mmSuffix, tr("no limit"), page);

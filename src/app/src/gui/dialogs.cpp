@@ -88,7 +88,13 @@ TemplateSizeDialog::TemplateSizeDialog(TemplateKind kind, QWidget* parent) : QDi
     depth_ = mmBox(d.depth, this);
     auto* form = new QFormLayout;
     form->addRow(tr("Width:"), width_);
-    form->addRow(tr("Height (including plinth):"), height_);
+    QString heightLabel = tr("Height:");
+    switch (templatePlinth(kind)) {
+    case furniture::PlinthKind::SidesToFloor: heightLabel = tr("Height (including plinth):"); break;
+    case furniture::PlinthKind::Feet: heightLabel = tr("Height (including feet):"); break;
+    case furniture::PlinthKind::None: break;
+    }
+    form->addRow(heightLabel, height_);
     form->addRow(tr("Depth:"), depth_);
     auto* layout = new QVBoxLayout(this);
     layout->addLayout(form);

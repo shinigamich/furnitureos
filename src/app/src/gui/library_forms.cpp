@@ -4,6 +4,7 @@
 #include "form_widgets.hpp"
 #include "library_window.hpp"
 
+#include <QCoreApplication>
 #include <QCheckBox>
 #include <QColorDialog>
 #include <QComboBox>
@@ -20,7 +21,7 @@ QDoubleSpinBox* lengthBox(QWidget* parent) {
     auto* box = new QDoubleSpinBox(parent);
     box->setRange(0.0, 100000.0);
     box->setDecimals(2);
-    box->setSuffix(QStringLiteral(" mm"));
+    box->setSuffix(QCoreApplication::translate("fos::app::gui::LibraryPage", " mm"));
     return box;
 }
 
@@ -99,7 +100,7 @@ public:
         density_->setObjectName(QStringLiteral("libraryDensity"));
         density_->setRange(0.0, 100000.0);
         density_->setDecimals(2);
-        density_->setSuffix(QStringLiteral(" kg/m³"));
+        density_->setSuffix(LibraryPage::tr(" kg/m³"));
         density_->setToolTip(LibraryPage::tr("0 = unknown; used for package weights in packing lists (never estimated)"));
         available_ = new QCheckBox(LibraryPage::tr("Available"), form);
         f->addRow(LibraryPage::tr("Id:"), id_);

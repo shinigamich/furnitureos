@@ -1684,6 +1684,70 @@
         <source>Bought-in items subtotal</source>
         <translation>Разом покупні вироби</translation>
     </message>
+    <message>
+        <source>sheet</source>
+        <translation>лист</translation>
+    </message>
+    <message>
+        <source>m²</source>
+        <translation>м²</translation>
+    </message>
+    <message>
+        <source>m</source>
+        <translation>м</translation>
+    </message>
+    <message>
+        <source>pc</source>
+        <translation>шт</translation>
+    </message>
+    <message>
+        <source>hole</source>
+        <translation>отвір</translation>
+    </message>
+    <message>
+        <source>part</source>
+        <translation>деталь</translation>
+    </message>
+    <message>
+        <source>material is not in the libraries</source>
+        <translation>матеріалу немає в бібліотеках</translation>
+    </message>
+    <message>
+        <source>sheets from the cutting plan</source>
+        <translation>листи з карти розкрою</translation>
+    </message>
+    <message>
+        <source>no price per sheet or per m2 in the library</source>
+        <translation>у бібліотеці немає ціни за лист чи за м²</translation>
+    </message>
+    <message>
+        <source>no price per m2 or per sheet in the library</source>
+        <translation>у бібліотеці немає ціни за м² чи за лист</translation>
+    </message>
+    <message>
+        <source>edge band is not in the libraries</source>
+        <translation>кромки немає в бібліотеках</translation>
+    </message>
+    <message>
+        <source>no price per metre in the library</source>
+        <translation>у бібліотеці немає ціни за метр</translation>
+    </message>
+    <message>
+        <source>hardware definition is not in the catalogue</source>
+        <translation>фурнітури немає в каталозі</translation>
+    </message>
+    <message>
+        <source>no price per metre in the catalogue</source>
+        <translation>у каталозі немає ціни за метр</translation>
+    </message>
+    <message>
+        <source>no unit price in the catalogue</source>
+        <translation>у каталозі немає ціни за одиницю</translation>
+    </message>
+    <message>
+        <source>applied length</source>
+        <translation>наклеєна довжина</translation>
+    </message>
 </context>
 <context>
     <name>fos::app</name>
@@ -5301,6 +5365,14 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Density:</source>
         <translation>Щільність:</translation>
     </message>
+    <message>
+        <source> mm</source>
+        <translation> мм</translation>
+    </message>
+    <message>
+        <source> kg/m³</source>
+        <translation> кг/м³</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::LibraryWindow</name>
@@ -6418,6 +6490,14 @@ Replace it?</source>
         <source>-assembly.svg</source>
         <translation>-skladannia.svg</translation>
     </message>
+    <message>
+        <source> mm</source>
+        <translation> мм</translation>
+    </message>
+    <message>
+        <source> kg</source>
+        <translation> кг</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::PlanCanvas</name>
@@ -6588,6 +6668,10 @@ Replace it?</source>
         <source>Drag an item to move it (snaps to item edges and walls); wheel zooms, middle or right button pans. Ctrl+click selects several items; arrow keys move the selection by 1 mm (Shift: 10 mm). Each move or rotation is one undo step.</source>
         <translation>Перетягніть елемент, щоб перемістити його (прив’язка до країв елементів і стін); коліщатко масштабує, середня або права кнопка зсуває вид. Ctrl+клік виділяє кілька елементів; клавіші зі стрілками зсувають виділення на 1 мм (Shift: 10 мм). Кожне переміщення чи поворот — один крок скасування.</translation>
     </message>
+    <message>
+        <source> mm</source>
+        <translation> мм</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::PlinthDialog</name>
@@ -6650,6 +6734,10 @@ Replace it?</source>
     <message>
         <source>Preview</source>
         <translation>Попередній перегляд</translation>
+    </message>
+    <message>
+        <source> mm</source>
+        <translation> мм</translation>
     </message>
 </context>
 <context>
@@ -7288,6 +7376,14 @@ Circle: X, Y = centre, Radius.</source>
         <source>The niche height (generic 595 mm) is the parameter niche_height in the inspector; check the appliance&apos;s installation sheet for the niche and ventilation sizes.</source>
         <translation>Висота ніші (типово 595 мм) — це параметр niche_height в інспекторі; розміри ніші та вентиляції перевірте в інструкції з монтажу техніки.</translation>
     </message>
+    <message>
+        <source>Height:</source>
+        <translation>Висота:</translation>
+    </message>
+    <message>
+        <source>Height (including feet):</source>
+        <translation>Висота (з ніжками):</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::TransformDialog</name>
@@ -7724,6 +7820,10 @@ Continue?</source>
     <message>
         <source>Centred</source>
         <translation>По центру</translation>
+    </message>
+    <message>
+        <source> mm</source>
+        <translation> мм</translation>
     </message>
 </context>
 <context>

@@ -119,4 +119,16 @@ TEST(ApplianceNicheEdit, VentRoundTripsRefusesAndUndoes) {
     EXPECT_EQ(partsWithCutouts(s), std::vector<std::string>{id + "/fixed_shelf.1"});
 }
 
+TEST(Templates, PlinthKindDecidesWhatTheHeightIncludes) {
+    using furniture::PlinthKind;
+    // furniture/src/templates.cpp: base, tall, wardrobe, corners, oven, dishwasher SidesToFloor;
+    // drawer unit on feet; wall cabinet, open shelving, desk and table without a plinth.
+    EXPECT_EQ(templatePlinth(TemplateKind::BaseCabinet), PlinthKind::SidesToFloor);
+    EXPECT_EQ(templatePlinth(TemplateKind::WardrobeSection), PlinthKind::SidesToFloor);
+    EXPECT_EQ(templatePlinth(TemplateKind::DrawerUnit), PlinthKind::Feet);
+    EXPECT_EQ(templatePlinth(TemplateKind::WallCabinet), PlinthKind::None);
+    EXPECT_EQ(templatePlinth(TemplateKind::Desk), PlinthKind::None);
+    EXPECT_EQ(templatePlinth(TemplateKind::Table), PlinthKind::None);
+}
+
 } // namespace fos::app::test

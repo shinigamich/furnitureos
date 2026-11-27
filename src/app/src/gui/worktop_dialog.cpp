@@ -3,6 +3,7 @@
 
 #include "fos/app/session.hpp"
 
+#include <QCoreApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -27,7 +28,7 @@ QDoubleSpinBox* lengthBox(double min, double max, double value, QWidget* parent)
     auto* box = new QDoubleSpinBox(parent);
     box->setRange(min, max);
     box->setDecimals(1);
-    box->setSuffix(QStringLiteral(" mm"));
+    box->setSuffix(QCoreApplication::translate("fos::app::gui::WorktopDialog", " mm"));
     box->setValue(value);
     box->setKeyboardTracking(false);
     return box;

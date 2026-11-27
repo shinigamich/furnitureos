@@ -85,9 +85,9 @@ core::Result<void> addGrip(Gen& g, std::size_t partIndex, HandlePosition pos) {
     // above; pocket contours must run counter-clockwise in face coordinates (shoelace > 0).
     double twiceArea = 0;
     for (std::size_t i = 0; i < pocket.contour.size(); ++i) {
-        const auto& a = pocket.contour[i];
-        const auto& b = pocket.contour[(i + 1) % pocket.contour.size()];
-        twiceArea += a.x * b.y - b.x * a.y;
+        const auto& p0 = pocket.contour[i];
+        const auto& p1 = pocket.contour[(i + 1) % pocket.contour.size()];
+        twiceArea += p0.x * p1.y - p1.x * p0.y;
     }
     if (twiceArea < 0) std::reverse(pocket.contour.begin(), pocket.contour.end());
     domain::Operation op;

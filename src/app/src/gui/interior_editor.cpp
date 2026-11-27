@@ -365,6 +365,17 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
     connect(drawerBox_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
     connect(nicheVent_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
     connect(frontStyle_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
+    connect(panelKind_, qOverload<int>(&QComboBox::activated), this, [this] {
+        // Choosing a glass panel while the panel material is "Same as front" (a board) picks the
+        // library's first glass material, so the pane does not start with a wrong-material warning.
+        if (valueOf<furniture::FramePanelKind>(panelKind_) != furniture::FramePanelKind::Glass) return;
+        if (!panelMaterial_->currentData().toString().isEmpty()) return;
+        for (const auto& m : session_.project().libraries.materials)
+            if (m.kind == domain::MaterialKind::Glass) {
+                selectData(panelMaterial_, QString::fromStdString(m.id.str()));
+                break;
+            }
+    });
     connect(panelKind_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
     connect(panelMaterial_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
     connect(applyFront_, &QPushButton::clicked, this, [this] {

@@ -8,9 +8,16 @@ namespace fos::project::test {
 TEST(NewProject, DefaultLibraries) {
     const Project p = newProject(meta());
     EXPECT_EQ(p.metadata.name, "Kitchen");
-    ASSERT_EQ(p.libraries.materials.size(), 3u);
+    ASSERT_EQ(p.libraries.materials.size(), 4u); // pb18, mdf18, hdf3, glass4
     EXPECT_EQ(p.libraries.materials[0].id.str(), defaults::kParticleboard18);
     EXPECT_DOUBLE_EQ(p.libraries.materials[2].thickness, 3.0);
+    // Generic clear float glass: kind Glass, 4 mm, textbook density 2500 kg/m3, marked generic.
+    const domain::Material& glass = p.libraries.materials[3];
+    EXPECT_EQ(glass.id.str(), defaults::kGlass4);
+    EXPECT_EQ(glass.kind, domain::MaterialKind::Glass);
+    EXPECT_DOUBLE_EQ(glass.thickness, 4.0);
+    EXPECT_DOUBLE_EQ(glass.density, 2500.0);
+    EXPECT_NE(glass.custom.at("origin").find("generic"), std::string::npos);
     ASSERT_EQ(p.libraries.edgeBands.size(), 2u);
     EXPECT_DOUBLE_EQ(p.libraries.edgeBands[1].thickness, 0.4);
     EXPECT_EQ(p.libraries.hardware.size(), hardware::builtinCatalog().size());
@@ -28,7 +35,7 @@ TEST(Resolve, BaseCabinetTemplatePartSizes) {
     ASSERT_EQ(r.items.size(), 1u);
     EXPECT_TRUE(r.items[0].generated);
     ASSERT_EQ(r.model.assemblies.size(), 1u);
-    EXPECT_EQ(r.model.materials.size(), 3u); // libraries copied in
+    EXPECT_EQ(r.model.materials.size(), 4u); // libraries copied in
     EXPECT_EQ(r.model.assemblies[0].id.str(), "cab1");
     // 600 x 820 x 560, T = 18: inner width 600 - 36 = 564; 10 parts:
     // 2 sides, bottom, 2 rails, plinth, 2 doors, shelf, back.

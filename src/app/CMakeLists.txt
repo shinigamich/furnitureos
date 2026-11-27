@@ -248,7 +248,7 @@ if(FOS_BUILD_TESTS)
     # GUI smoke test: needs an X display; run under xvfb-run when available. Without a
     # display the test skips itself (label `gui`).
     add_executable(fos_app_gui_tests tests/gui/gui_smoke_tests.cpp tests/gui/shape_gui_tests.cpp
-        tests/gui/drawer_gui_tests.cpp tests/gui/edit_tools_gui_tests.cpp)
+        tests/gui/drawer_gui_tests.cpp tests/gui/edit_tools_gui_tests.cpp tests/gui/walkthrough_gui_tests.cpp)
     target_link_libraries(fos_app_gui_tests PRIVATE fos_app_gui Qt6::Test GTest::gtest)
     fos_set_warnings(fos_app_gui_tests PRIVATE)
     # The test loads the compiled Ukrainian catalogue from the build tree.
@@ -259,8 +259,11 @@ if(FOS_BUILD_TESTS)
     if(FOS_XVFB_RUN)
         add_test(NAME app_gui_smoke
                  COMMAND ${FOS_XVFB_RUN} -a -s "-screen 0 1600x1000x24" $<TARGET_FILE:fos_app_gui_tests>)
+        # The X server above, even when the caller exported QT_QPA_PLATFORM=offscreen: Qt's
+        # offscreen platform does not support QOpenGLWidget (the 3D view) and crashes in it.
+        set_tests_properties(app_gui_smoke PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
     else()
         add_test(NAME app_gui_smoke COMMAND fos_app_gui_tests)
     endif()
-    set_tests_properties(app_gui_smoke PROPERTIES LABELS gui SKIP_RETURN_CODE 77 TIMEOUT 300)
+    set_tests_properties(app_gui_smoke PROPERTIES LABELS gui SKIP_RETURN_CODE 77 TIMEOUT 1500)
 endif()

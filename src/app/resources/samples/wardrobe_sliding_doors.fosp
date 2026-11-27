@@ -5,10 +5,10 @@
     "name": "FurnitureOS",
     "version": "0.1.0"
   },
-  "savedAt": "2026-11-27T14:53:20Z",
+  "savedAt": "2026-11-27T20:34:16Z",
   "checksum": {
     "algorithm": "sha256",
-    "value": "123b21e951cdfbc32bbeb2f32a37532656344536ffa6c736166c9f7ef6156bdc"
+    "value": "e94ee9bb8c0f13fbaa0d2d9e4163fd629bf2f5c7ac9c6ae226d1b1e67c004f00"
   },
   "payload": {
     "project": {
@@ -1000,7 +1000,7 @@
             "overlay": "Full",
             "hingeSide": "Left",
             "hinges": false,
-            "handle": "None",
+            "handle": "Center",
             "drawerHeights": [],
             "sliding": {
               "count": 2

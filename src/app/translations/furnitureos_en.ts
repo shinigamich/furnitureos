@@ -1672,6 +1672,70 @@
         <source>Bought-in items subtotal</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>sheet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>m²</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>m</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>pc</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>hole</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>part</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>material is not in the libraries</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>sheets from the cutting plan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>no price per sheet or per m2 in the library</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>no price per m2 or per sheet in the library</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>edge band is not in the libraries</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>no price per metre in the library</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>hardware definition is not in the catalogue</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>no price per metre in the catalogue</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>no unit price in the catalogue</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>applied length</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app</name>
@@ -5275,6 +5339,14 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <source>Density:</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source> mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> kg/m³</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::LibraryWindow</name>
@@ -6385,6 +6457,14 @@ Replace it?</source>
         <source>-assembly.svg</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source> mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> kg</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::PlanCanvas</name>
@@ -6555,6 +6635,10 @@ Replace it?</source>
         <source>Drag an item to move it (snaps to item edges and walls); wheel zooms, middle or right button pans. Ctrl+click selects several items; arrow keys move the selection by 1 mm (Shift: 10 mm). Each move or rotation is one undo step.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source> mm</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::PlinthDialog</name>
@@ -6616,6 +6700,10 @@ Replace it?</source>
     </message>
     <message>
         <source>Preview</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> mm</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -7252,6 +7340,14 @@ Circle: X, Y = centre, Radius.</source>
         <source>The niche height (generic 595 mm) is the parameter niche_height in the inspector; check the appliance&apos;s installation sheet for the niche and ventilation sizes.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Height:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Height (including feet):</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::gui::TransformDialog</name>
@@ -7681,6 +7777,10 @@ Continue?</source>
     </message>
     <message>
         <source>Centred</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> mm</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

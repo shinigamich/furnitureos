@@ -6,7 +6,8 @@
            combined with `fos merge` (offsets 600 / 1198 / 1816 mm), then
            `fos worktop - -items cab1,cab2,cab3,cab4 - -sink 2116:400:450:10`;
          wardrobe_sliding_doors: `fos new - -template wardrobe - -width 1800 - -depth 650`, front set
-           to SlidingDoors (2 doors) and a hanging rail in the right section, saved again by `fos set`;
+           to SlidingDoors (2 doors, handle Center = recessed grip) and a hanging rail in the right
+           section, saved again by `fos set`;
          desk: `fos new - -template desk`. -->
     <qresource prefix="/samples">
         <file alias="kitchen_run.fosp">samples/kitchen_run.fosp</file>

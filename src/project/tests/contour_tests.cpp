@@ -332,7 +332,7 @@ TEST(ProjectFramePanel, GlassPanelFrontRoundTrips) {
     p.items = {item};
     const std::string grooved = serializeProject(p, kSavedAt).value();
     EXPECT_EQ(grooved.find("\"panelKind\""), std::string::npos);
-    EXPECT_EQ(grooved.find("\"glass\""), std::string::npos);
+    EXPECT_EQ(grooved.find("\"glass\":"), std::string::npos); // the glass spec key (not the material kind "glass")
 }
 
 } // namespace fos::project::test

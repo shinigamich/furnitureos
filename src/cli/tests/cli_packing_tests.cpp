@@ -31,7 +31,11 @@ TEST(CliPacking, WithoutDensityWeightsAreUnknownNotInvented) {
     TempDir dir;
     const std::string file = dir.file("k.fosp");
     ASSERT_EQ(newBaseCabinet(file).code, 0);
-    EXPECT_FALSE(contains(readFile(dir.path / "k.fosp"), "\"density\"")); // written only when set
+    // Written only when set: of the default materials only the generic glass has a density.
+    const std::string text = readFile(dir.path / "k.fosp");
+    const auto firstDensity = text.find("\"density\"");
+    ASSERT_NE(firstDensity, std::string::npos);
+    EXPECT_EQ(text.find("\"density\"", firstDensity + 1), std::string::npos);
     const auto r = fos({"packing", file});
     EXPECT_EQ(r.code, 0) << r.out << r.err;
     EXPECT_TRUE(contains(r.out, "weight unknown")) << r.out;

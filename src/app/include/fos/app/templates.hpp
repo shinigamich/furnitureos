@@ -29,6 +29,10 @@ struct TemplateSize {
 /// The template's own default size, read from the parameter graph of the generated
 /// definition (not duplicated here).
 TemplateSize defaultTemplateSize(TemplateKind kind);
+/// How the template stands on the floor (ConstructionOptions::plinth): SidesToFloor = its
+/// overall height includes a plinth, Feet = it includes the feet, None = wall cabinets,
+/// open shelving, desks and tables (the height is the carcass / frame height).
+furniture::PlinthKind templatePlinth(TemplateKind kind);
 
 /// A cabinet item from the template with the generic default materials
 /// (project::defaultTemplateMaterials()); width / height / depth are set through

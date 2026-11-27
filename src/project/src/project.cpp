@@ -99,6 +99,19 @@ domain::Material board(const char* id, const char* name, domain::MaterialKind ki
     return m;
 }
 
+/// Glass panes are bought in cut to size; the stock size is the common float-glass "jumbo"
+/// sheet and the density the textbook value of soda-lime glass, both generic.
+domain::Material glass4() {
+    domain::Material m = board(defaults::kGlass4, "Clear float glass 4 mm (generic)", domain::MaterialKind::Glass, 4.0,
+                               {200, 225, 225});
+    m.sheetLength = 3210.0;
+    m.sheetWidth = 2250.0;
+    m.density = 2500.0;
+    m.custom["origin"] = "FurnitureOS generic material; textbook soda-lime float glass properties, not from a "
+                         "manufacturer data sheet";
+    return m;
+}
+
 domain::EdgeBand band(const char* id, const char* name, double thickness) {
     domain::EdgeBand e;
     e.id = domain::EdgeBandId(id);
@@ -117,6 +130,7 @@ std::vector<domain::Material> defaultMaterials() {
               {235, 235, 230}),
         board(defaults::kMdf18, "MDF 18 mm (generic)", domain::MaterialKind::Mdf, 18.0, {210, 190, 160}),
         board(defaults::kHdf3, "HDF 3 mm (generic)", domain::MaterialKind::Hdf, 3.0, {170, 140, 110}),
+        glass4(),
     };
 }
 

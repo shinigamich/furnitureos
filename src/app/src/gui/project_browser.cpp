@@ -5,6 +5,9 @@
 #include "fos/app/session.hpp"
 
 #include <QHeaderView>
+#include <QTreeWidgetItemIterator>
+
+#include <algorithm>
 
 namespace fos::app::gui {
 namespace {
@@ -21,6 +24,8 @@ void addNode(QTreeWidgetItem* parent, QTreeWidget* tree, const BrowserNode& node
     case BrowserNode::Kind::Item:
         item->setToolTip(0, node.isCabinet ? ProjectBrowser::tr("Cabinet %1").arg(QString::fromStdString(node.id))
                                            : ProjectBrowser::tr("Panel %1").arg(QString::fromStdString(node.id)));
+        // The item's description can be long: shown elided, in full as the tooltip.
+        if (!node.detail.empty()) item->setToolTip(1, QString::fromStdString(node.detail));
         if (!node.generated) {
             item->setText(1, ProjectBrowser::tr("not generated - see Diagnostics"));
             item->setForeground(1, Qt::red);
@@ -44,7 +49,10 @@ ProjectBrowser::ProjectBrowser(Session& session, QWidget* parent) : QTreeWidget(
     setColumnCount(2);
     setHeaderLabels({tr("Name"), tr("Size (mm)")});
     header()->setSectionResizeMode(0, QHeaderView::Stretch);
-    header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    // Sized to the W × D × H / L × W × T texts in rebuild(); a long item description in this
+    // column must not squeeze the names to nothing (it is elided instead).
+    header()->setSectionResizeMode(1, QHeaderView::Interactive);
+    setTextElideMode(Qt::ElideRight);
     header()->setStretchLastSection(false);
     setSelectionMode(QAbstractItemView::ExtendedSelection);
     connect(&session_, &Session::projectChanged, this, &ProjectBrowser::rebuild);
@@ -65,6 +73,11 @@ void ProjectBrowser::rebuild() {
     clear();
     for (const auto& node : buildBrowserTree(session_.project(), session_.resolved())) addNode(nullptr, this, node);
     expandToDepth(1);
+    int sizeWidth = header()->sectionSizeHint(1);
+    for (QTreeWidgetItemIterator it(this); *it; ++it)
+        if ((*it)->data(0, kKindRole).toInt() != static_cast<int>(BrowserNode::Kind::Item))
+            sizeWidth = std::max(sizeWidth, fontMetrics().horizontalAdvance((*it)->text(1)) + 16);
+    header()->resizeSection(1, sizeWidth);
     syncing_ = false;
     syncFromSession();
 }

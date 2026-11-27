@@ -435,8 +435,13 @@ int main(int argc, char** argv) {
 #if !defined(Q_OS_WIN) && !defined(Q_OS_MACOS)
     // X11/Wayland only: without a display server the test cannot run. Windows and macOS
     // always provide the native window system.
-    const bool offscreen = qEnvironmentVariable("QT_QPA_PLATFORM") == QLatin1String("offscreen");
-    if (!offscreen && qEnvironmentVariableIsEmpty("DISPLAY") && qEnvironmentVariableIsEmpty("WAYLAND_DISPLAY")) {
+    // Qt's offscreen platform does not support QOpenGLWidget (the 3D view): it crashes in
+    // QPlatformBackingStore::rhiFlush, so it cannot stand in for a display.
+    if (qEnvironmentVariable("QT_QPA_PLATFORM") == QLatin1String("offscreen")) {
+        std::fprintf(stderr, "QT_QPA_PLATFORM=offscreen cannot show the 3D view: GUI smoke test skipped.\n");
+        return 77;
+    }
+    if (qEnvironmentVariableIsEmpty("DISPLAY") && qEnvironmentVariableIsEmpty("WAYLAND_DISPLAY")) {
         std::fprintf(stderr, "No display: GUI smoke test skipped.\n");
         return 77;
     }

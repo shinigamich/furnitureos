@@ -194,7 +194,7 @@ TEST(Document, ItemCommandsAndNotifications) {
     EXPECT_EQ(seen.back().affected.items, (std::vector<std::string>{"cab1", "cab2"}));
     EXPECT_DOUBLE_EQ(doc.project().libraries.materials[0].costPerSheet, 42.0);
     ASSERT_TRUE(doc.execute(commands::removeMaterial(defaults::kMdf18)).ok()); // unused
-    EXPECT_EQ(doc.project().libraries.materials.size(), 2u);
+    EXPECT_EQ(doc.project().libraries.materials.size(), 3u); // pb18, hdf3, glass4
 }
 
 TEST(Document, CabinetEditsThroughFurnitureApi) {

@@ -97,6 +97,8 @@ TemplateSize defaultTemplateSize(TemplateKind kind) {
             g.value(furniture::param::kDepth).valueOr(0)};
 }
 
+furniture::PlinthKind templatePlinth(TemplateKind kind) { return makeDefinition(kind, "t").construction.plinth; }
+
 core::Result<project::Item> makeTemplateItem(TemplateKind kind, const std::string& id, const std::string& name,
                                              const furniture::Libraries& libraries,
                                              const std::optional<TemplateSize>& size) {

@@ -179,11 +179,14 @@ namespace defaults {
 inline constexpr const char* kParticleboard18 = "mat.generic.pb18";
 inline constexpr const char* kMdf18 = "mat.generic.mdf18";
 inline constexpr const char* kHdf3 = "mat.generic.hdf3";
+inline constexpr const char* kGlass4 = "mat.generic.glass4";
 inline constexpr const char* kAbs2 = "eb.generic.abs2";
 inline constexpr const char* kAbs04 = "eb.generic.abs04";
 } // namespace defaults
 
-/// Generic default materials: particleboard 18, MDF 18, HDF 3 (2800 x 2070 mm, cost 0).
+/// Generic default materials: particleboard 18, MDF 18, HDF 3 (2800 x 2070 mm, cost 0) and
+/// clear float glass 4 mm (MaterialKind::Glass, textbook density 2500 kg/m3, 3210 x 2250 mm
+/// stock; custom["origin"] says the properties are generic).
 std::vector<domain::Material> defaultMaterials();
 /// Generic default edge bands: ABS 2 x 22 and ABS 0.4 x 22 (cost 0).
 std::vector<domain::EdgeBand> defaultEdgeBands();
