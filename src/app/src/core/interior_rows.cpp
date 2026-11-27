@@ -2,6 +2,7 @@
 #include "fos/app/interior_rows.hpp"
 
 #include "fos/app/cabinet_run_form.hpp"
+#include "fos/app/inner_drawer_rows.hpp"
 #include "fos/app/parameter_rows.hpp"
 #include "fos/core/units.hpp"
 #include "fos/hardware/catalog.hpp"
@@ -39,6 +40,7 @@ void collect(const furniture::Section& s, const std::string& path, int depth, in
     row.shelfCount = s.shelfCount;
     row.front = s.front;
     row.hangingRail = s.hangingRail;
+    row.innerDrawers = s.innerDrawers;
     out.push_back(row);
     if (s.split == SplitDirection::None)
         return;
@@ -100,11 +102,14 @@ QString contentText(const SectionRow& row) {
         text = InteriorText::tr("%1 stacked").arg(row.childCount);
     else if (row.shelfCount > 0)
         text = InteriorText::tr("shelves: %1").arg(row.shelfCount);
-    else if (!row.hangingRail)
+    else if (!row.hangingRail && !row.innerDrawers)
         text = InteriorText::tr("empty");
     if (row.isLeaf() && row.hangingRail)
         text = text.isEmpty() ? InteriorText::tr("clothes rail")
                               : text + QStringLiteral(", ") + InteriorText::tr("clothes rail");
+    if (row.isLeaf() && row.innerDrawers)
+        text = text.isEmpty() ? innerDrawersText(*row.innerDrawers)
+                              : text + QStringLiteral(", ") + innerDrawersText(*row.innerDrawers);
     if (row.front) {
         QString front;
         switch (row.front->kind) {

@@ -88,13 +88,15 @@ core::Error refused(const QString& message) {
 } // namespace
 
 std::string drawingIdOf(const DrawingRequest& request) {
+    if (isPictorial(request))
+        return {}; // pictorial views have no stored edits
     return request.kind == DrawingRequest::Kind::Assembly ? project::assemblyDrawingId(request.id)
                                                           : project::partDrawingId(request.id);
 }
 
 drawings::EditModelContext editContext(const project::Resolved& resolved, const DrawingRequest& request) {
     drawings::EditModelContext context;
-    if (request.kind == DrawingRequest::Kind::Assembly) {
+    if (request.kind != DrawingRequest::Kind::Part) {
         context.assembly = resolved.model.findAssembly(domain::AssemblyId(request.id));
     } else {
         for (const auto& a : resolved.model.assemblies)

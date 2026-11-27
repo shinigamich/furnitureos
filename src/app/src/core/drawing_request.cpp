@@ -39,6 +39,10 @@ drawings::CalibrationOptions DrawingText::calibration() {
     return c;
 }
 
+bool isPictorial(const DrawingRequest& request) noexcept {
+    return request.kind == DrawingRequest::Kind::Isometric || request.kind == DrawingRequest::Kind::Exploded;
+}
+
 core::Result<drawings::DrawingResult> generateDrawing(const project::Project& project, const project::Resolved& resolved,
                                                       const DrawingRequest& request) {
     drawings::SheetOptions sheet;
@@ -51,6 +55,26 @@ core::Result<drawings::DrawingResult> generateDrawing(const project::Project& pr
     sheet.title.date = request.date;
     sheet.scale = request.scale ? drawings::ScaleRequest::explicitScale(request.scale->numerator, request.scale->denominator)
                                 : drawings::ScaleRequest::fit();
+    if (isPictorial(request)) {
+        const domain::AssemblyId assemblyId(request.id);
+        if (!resolved.model.findAssembly(assemblyId))
+            return core::makeError(core::ErrorCode::NotFound,
+                                   "Item '" + request.id + "' has no generated assembly to draw.");
+        drawings::PictorialDrawingOptions options;
+        options.sheet = sheet; // empty title -> the assembly name
+        options.view.kind = request.kind == DrawingRequest::Kind::Exploded ? drawings::PictorialKind::Exploded
+                                                                           : drawings::PictorialKind::Isometric;
+        options.view.direction = request.direction;
+        options.view.explodeFactor = request.explodeFactor;
+        options.render.balloons = request.balloons;
+        auto pictorial = drawings::generatePictorialDrawing(resolved.model, assemblyId, options);
+        if (!pictorial)
+            return pictorial.error();
+        drawings::DrawingResult result;
+        result.sheets.push_back(std::move(pictorial.value().sheet));
+        result.diagnostics = std::move(pictorial.value().diagnostics);
+        return result;
+    }
     if (request.kind == DrawingRequest::Kind::Assembly) {
         drawings::AssemblyDrawingOptions options;
         options.sheet = sheet; // empty title -> the assembly name

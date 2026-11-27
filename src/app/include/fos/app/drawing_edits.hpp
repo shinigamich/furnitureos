@@ -18,7 +18,8 @@
 
 namespace fos::app {
 
-/// Key of the request's stored edits: project::assemblyDrawingId(id) or partDrawingId(id).
+/// Key of the request's stored edits: project::assemblyDrawingId(id) or partDrawingId(id);
+/// empty for a pictorial request (no stored edits).
 std::string drawingIdOf(const DrawingRequest& request);
 /// Model geometry of the requested drawing (drawn assembly or drawn part; null pointers when
 /// it is not in the resolved model).

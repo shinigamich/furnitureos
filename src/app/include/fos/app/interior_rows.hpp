@@ -31,6 +31,7 @@ struct SectionRow {
     int shelfCount = 0; ///< Leaf only.
     std::optional<furniture::FrontSpec> front;
     std::optional<furniture::HangingRailSpec> hangingRail; ///< Leaf only: clothes rail.
+    std::optional<furniture::InnerDrawerSpec> innerDrawers; ///< Leaf only: drawers behind the door.
     bool isRoot() const noexcept { return depth == 0; }
     bool isLeaf() const noexcept { return split == furniture::SplitDirection::None; }
 };
@@ -45,7 +46,7 @@ QString sectionCaption(const SectionRow& row);
 QString sizeDescription(const furniture::SectionSize& size);
 /// Translated content column, e.g. "2 side by side" (vertical split), "3 stacked"
 /// (horizontal split), "shelves: 2", "clothes rail" (a leaf with a hanging rail; after the
-/// shelves when both are set), "empty",
+/// shelves when both are set), "inner drawers: 2" (innerDrawersText), "empty",
 /// followed by the front ("; door pair", "; door, hinged left", "; drawers: 3").
 QString contentText(const SectionRow& row);
 
