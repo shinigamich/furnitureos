@@ -102,6 +102,7 @@ struct PendingCutout {
     std::string slot;
     Vec3 lo, hi;       ///< Opposite corners of the region (assembly frame, mm).
     std::string owner; ///< For messages, e.g. "appliance niche '2' of cabinet 'c'".
+    double radius = 0; ///< Corner radius of the cut-out, mm (0 = sharp; desk cable slot = half its width).
 };
 
 struct Gen {
@@ -122,6 +123,9 @@ struct Gen {
     std::vector<PendingCutout> cutouts;
     /// Inner-drawer packers (packer part index, panel it is fixed to), in creation order.
     std::vector<std::pair<std::size_t, std::size_t>> packers;
+    /// Generator outlines by slot (desk top with rounded front corners), used by applyContours()
+    /// when the slot has no user contour override.
+    std::map<std::string, ContourSpec> generatedContours;
 
     /// Value of a parameter of the resolved graph (all standard names exist).
     double v(const char* name) const { return values.at(name); }
@@ -183,6 +187,9 @@ std::size_t addApplianceFront(Gen& g, const FrontSpec& spec, const std::string& 
                               double z1, double yInner);
 /// Appliance gap cabinet (definition.applianceGap): end panels and decor front.
 core::Result<void> buildApplianceGap(Gen& g);
+/// Panel desk / table (definition.desk, gen_desk.cpp, README "Desks and tables"): top, end
+/// panels or legs, modesty panel, cable slot, drawer pedestal; joint jobs.
+core::Result<void> buildDesk(Gen& g);
 core::Result<void> buildFront(Gen& g, const FrontSpec& spec, const std::string& path, const Box& box, const Bounds& bounds);
 /// Sliding doors of the section at `path` (README "Sliding doors"): door parts, track and
 /// roller jobs, recessed grips. Returns the y behind which the section's interior must stay.

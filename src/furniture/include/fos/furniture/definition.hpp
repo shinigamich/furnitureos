@@ -7,6 +7,7 @@
 #include "fos/core/result.hpp"
 #include "fos/domain/model.hpp"
 #include "fos/furniture/contour_spec.hpp"
+#include "fos/furniture/desk_spec.hpp"
 #include "fos/furniture/enums.hpp"
 #include "fos/hardware/catalog.hpp"
 #include "fos/parametric/parameter_graph.hpp"
@@ -373,6 +374,14 @@ struct CabinetDefinition {
     CornerSpec corner; ///< Default: ordinary rectangular cabinet.
     /// Set = appliance gap (ApplianceGapSpec) instead of a carcass. Default: ordinary cabinet.
     std::optional<ApplianceGapSpec> applianceGap;
+    /// Set = panel desk / table (desk_spec.hpp, README "Desks and tables") instead of a
+    /// carcass. Default: ordinary cabinet.
+    std::optional<DeskSpec> desk;
 };
+
+/// GENERIC hardware definitions that `definition` needs but the hardware module's built-in
+/// catalogue does not provide (today: genericLegDefinition() for a desk on legs that selects
+/// kGenericLegId). A project adds the missing ones to its library when the item is inserted.
+std::vector<domain::HardwareDefinition> requiredGenericHardware(const CabinetDefinition& definition);
 
 } // namespace fos::furniture

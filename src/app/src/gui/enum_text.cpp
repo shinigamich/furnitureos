@@ -110,6 +110,18 @@ Choices<furniture::DrawerBottomMount> drawerBottomChoices() {
             {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Bottom nailed under")), B::NailedUnder}};
 }
 
+Choices<furniture::InnerDrawerFront> innerDrawerFrontChoices() {
+    using F = furniture::InnerDrawerFront;
+    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Box front (no separate front)")), F::Box},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Facia in front of the box")), F::Facia}};
+}
+
+Choices<furniture::InnerFaciaHandle> innerFaciaHandleChoices() {
+    using H = furniture::InnerFaciaHandle;
+    return {{t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "Grip cut-out")), H::CutOut},
+            {t(QT_TRANSLATE_NOOP("fos::app::gui::EnumText", "No handle")), H::None}};
+}
+
 Choices<furniture::NicheVent> nicheVentChoices() {
     using V = furniture::NicheVent;
     return {{nicheVentTitle(V::None), V::None}, {nicheVentTitle(V::ShelfSlot), V::ShelfSlot},

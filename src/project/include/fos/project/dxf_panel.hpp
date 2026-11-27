@@ -17,6 +17,7 @@
 #include <cstddef>
 #include <optional>
 #include <string>
+#include <vector>
 
 namespace fos::project {
 
@@ -30,7 +31,13 @@ struct DxfPanelRequest {
     /// How the front end names the "skip unsupported cut-outs" switch in messages, e.g.
     /// "--skip-unsupported-cutouts" (CLI) or "\"Skip unsupported cut-outs\"" (app).
     std::string skipOptionLabel = "--skip-unsupported-cutouts";
+    /// Prefix of the diagnostics this module adds ("<prefix>.cutout_unsupported"):
+    /// "project.import_dxf" for DXF, "project.import_svg" for SVG.
+    std::string diagnosticPrefix = "project.import_dxf";
 };
+
+/// Format-neutral names (the request / result are not DXF specific).
+using OutlinePanelRequest = DxfPanelRequest;
 
 /// The material for the request, or InvalidArgument naming the problem (unknown id, thickness
 /// mismatch, no material of the thickness, neither given).
@@ -56,6 +63,16 @@ core::Result<DxfPanelImport> buildDxfPanelItem(const Project& project, const for
                                                const DxfPanelRequest& request, const std::string& itemId,
                                                const geometry::Transform& placement = geometry::Transform::identity(),
                                                core::Diagnostics* diagnosticsOut = nullptr);
+
+/// Format-neutral form of buildDxfPanelItem: `loops` are closed contours (mm, any frame, any
+/// order) from any outline reader (DXF, SVG), `readerDiagnostics` that reader's findings (copied
+/// first into the result's diagnostics). Same rules, refusals and results as buildDxfPanelItem.
+core::Result<DxfPanelImport> buildOutlinePanelItem(const Project& project, const std::vector<geometry::Contour>& loops,
+                                                   const core::Diagnostics& readerDiagnostics,
+                                                   const DxfPanelRequest& request, const std::string& itemId,
+                                                   const geometry::Transform& placement = geometry::Transform::identity(),
+                                                   core::Diagnostics* diagnosticsOut = nullptr);
+using OutlinePanelImport = DxfPanelImport;
 
 /// Item id for a panel named `name`: a lower-case slug ("Table top" -> "table-top"), made unique
 /// in `project` with "-2", "-3", ... ("panel" when nothing is left).

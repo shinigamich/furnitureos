@@ -692,6 +692,27 @@ real tools or any machine.
 Exit codes: 0 ok (warnings allowed); 1 invalid tool table (structure or values; also for `fos cam --tools`);
 2 usage error, unreadable file, existing output without `--force`.
 
+### `fos remnants`
+
+Workshop remnant (offcut) stock in a `.fosremnants` file (schema: `src/project/README.md` 4g).
+
+```
+fos remnants list <store> [--material M]
+fos remnants add <store> --material M --length L --width W --thickness T [--grain none|length|width]
+                 [--location TEXT] [--note TEXT] [--reserved-by JOB] [--date YYYY-MM-DD] [--id ID]
+fos remnants remove <store> <id>...
+fos remnants import-offcuts <store> <file.fosp> [--min-length 300] [--min-width 100] [--location TEXT] [--date D] [--force]
+fos remnants use <store> <file.fosp> [--commit] [--prefer-remnants] [--job NAME] [--out-dir DIR] [offcut options]
+```
+
+`import-offcuts` recomputes the plans exactly as `fos cut` (deterministic) and adds the offcuts at least
+min-length × min-width; a second import of the same project is refused unless `--force`. `use` cuts the
+project with matching boards (same material id and thickness, free or reserved by `--job`, default the
+project name) offered before full sheets, prints which boards were used (dry run); `--commit` removes them
+and adds the new offcuts. Both refuse to change the store when the project has model errors or a plan has
+errors. Every added/removed board is printed; saves are atomic with 3 backups. Exit codes: 0 ok; 1 refused
+(duplicate import, unknown id on remove, plan/model errors); 2 usage or I/O error.
+
 ## Tests
 
 * `src/cli/tests/cli_tests.cpp` (`fos_cli_tests`): every command in-process on a temporary project — exit codes,

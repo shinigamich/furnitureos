@@ -37,6 +37,7 @@ CutoutSpec localCutout(const domain::Part& part, const PendingCutout& c) {
     out.y = exprNumber(y0);
     out.length = exprNumber(x1 - x0);
     out.width = exprNumber(y1 - y0);
+    if (c.radius > 0) out.radius = exprNumber(c.radius);
     return out;
 }
 
@@ -64,6 +65,7 @@ core::Result<void> applyContours(Gen& g) {
     for (const auto& [slot, ov] : g.def.materials.overrides)
         if (ov.contour) slots.insert(slot);
     for (const auto& [slot, list] : extra) slots.insert(slot);
+    for (const auto& [slot, spec] : g.generatedContours) slots.insert(slot);
     const auto& overrides = g.def.materials.overrides;
     for (const std::string& slot : slots) {
         const auto ov = overrides.find(slot);
@@ -76,7 +78,10 @@ core::Result<void> applyContours(Gen& g) {
                    g.def.id.str());
             continue;
         }
-        ContourSpec spec = hasOverride ? *ov->second.contour : ContourSpec{};
+        const auto generated = g.generatedContours.find(slot);
+        ContourSpec spec = hasOverride                            ? *ov->second.contour
+                           : generated != g.generatedContours.end() ? generated->second
+                                                                    : ContourSpec{};
         if (const auto e = extra.find(slot); e != extra.end())
             spec.cutouts.insert(spec.cutouts.end(), e->second.begin(), e->second.end());
         domain::Part& part = g.assembly.parts[index];

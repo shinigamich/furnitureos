@@ -43,7 +43,9 @@ add_library(fos_app_core STATIC
     src/core/plan_view.cpp
     src/core/label_export.cpp
     src/core/edge_banding_rows.cpp
-    src/core/project_compare.cpp)
+    src/core/project_compare.cpp
+    src/core/inner_drawer_rows.cpp
+    src/core/job_pack_export.cpp)
 add_library(fos::app_core ALIAS fos_app_core)
 # moc (Qt 6.4) cannot parse libstdc++ C++20 concepts with the compiler predefines (see viewport).
 set_target_properties(fos_app_core PROPERTIES AUTOMOC ON AUTOMOC_COMPILER_PREDEFINES OFF)
@@ -79,7 +81,10 @@ if(FOS_BUILD_TESTS)
         tests/core/packing_tests.cpp
         tests/core/plan_view_tests.cpp
         tests/core/label_export_tests.cpp
-        tests/core/production_extras_tests.cpp)
+        tests/core/production_extras_tests.cpp
+        tests/core/inner_drawer_tests.cpp
+        tests/core/pictorial_tests.cpp
+        tests/core/job_pack_tests.cpp)
     target_link_libraries(fos_app_core_tests PRIVATE fos::app_core Qt6::Test GTest::gtest GTest::gmock)
     fos_set_warnings(fos_app_core_tests PRIVATE)
     gtest_discover_tests(fos_app_core_tests DISCOVERY_TIMEOUT 60
@@ -157,7 +162,11 @@ set(FOS_APP_GUI_SOURCES
     src/gui/edge_banding_view.hpp
     src/gui/edge_banding_view.cpp
     src/gui/compare_dialog.hpp
-    src/gui/compare_dialog.cpp)
+    src/gui/compare_dialog.cpp
+    src/gui/inner_drawers_box.hpp
+    src/gui/inner_drawers_box.cpp
+    src/gui/job_pack_dialog.hpp
+    src/gui/job_pack_dialog.cpp)
 
 # Everything except main.cpp goes into a static library shared by the executable and the
 # GUI smoke test.

@@ -3,6 +3,8 @@
 /// \file
 /// Drawings workspace: assembly / part drawing sheets (drawings module) previewed with
 /// printing::renderPreview, sheet/scale/paper options, zoom, export and exact-scale printing.
+/// Per assembly also the pictorial views "Isometric" and "Exploded" (direction, explode factor,
+/// part balloons; SVG / PDF / print, no DXF and no annotation edits).
 #include "fos/app/drawing_request.hpp"
 
 #include <QImage>
@@ -10,7 +12,10 @@
 
 #include <optional>
 
+class QCheckBox;
 class QComboBox;
+class QDoubleSpinBox;
+class QPushButton;
 class QLabel;
 class QScrollArea;
 class QSplitter;
@@ -55,6 +60,7 @@ private:
     void regenerate();
     void renderSheet();
     void showOverlay();
+    void updatePictorialFields();
     void previewClicked(QPointF pixel);
     std::optional<DrawingRequest> request() const;
     bool ensureDrawing();
@@ -66,6 +72,10 @@ private:
     QComboBox* scale_;
     QComboBox* sheet_;
     QComboBox* zoom_;
+    QComboBox* direction_;      ///< drawings::IsoDirection (pictorial views).
+    QDoubleSpinBox* explode_;   ///< Explode factor (exploded view).
+    QCheckBox* balloons_;       ///< Part-list balloons (pictorial views).
+    QPushButton* dxf_;
     QLabel* status_;
     SheetPreview* image_;
     QScrollArea* scroll_;

@@ -76,4 +76,17 @@ CabinetDefinition ovenTallHousing(domain::AssemblyId id, const TemplateMaterials
 /// appliance door, no hinges.
 CabinetDefinition dishwasherFront(domain::AssemblyId id, const TemplateMaterials& materials);
 
+/// Panel desk 1400 x 740 x 700 (README "Desks and tables"): DeskSpec with end panels, top and
+/// end panels joined by confirmats, modesty panel 350 high set back 100 from the rear edge
+/// (confirmats into the ends), rounded cable slot 300 x 60 centred 20 mm from the rear edge
+/// (behind the modesty panel), and a 400 mm drawer pedestal on the right with 3 drawer boxes
+/// (templates::drawerUnitWithBoxes(), 400 x 722 x 582, on feet). Clear knee space 722 high,
+/// 964 wide. No back panel on the desk itself (BackMount::None).
+CabinetDefinition desk(domain::AssemblyId id, const TemplateMaterials& materials);
+/// Table 1600 x 750 x 800: a DeskSpec on four generic legs (furniture::kGenericLegId, axes
+/// 70 mm from the edges, 4 plate pilot holes each in the underside of the top), no modesty
+/// panel, no cable slot, sharp corners. The project library must contain the leg definition
+/// (furniture::requiredGenericHardware()).
+CabinetDefinition table(domain::AssemblyId id, const TemplateMaterials& materials);
+
 } // namespace fos::furniture::templates

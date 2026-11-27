@@ -87,8 +87,19 @@ core::Result<DxfPanelImport> buildDxfPanelItem(const Project& project, const for
                                                const DxfPanelRequest& request, const std::string& itemId,
                                                const geometry::Transform& placement,
                                                core::Diagnostics* diagnosticsOut) {
+    std::vector<geometry::Contour> loops;
+    loops.reserve(dxf.loops.size());
+    for (const auto& l : dxf.loops) loops.push_back(l.contour);
+    return buildOutlinePanelItem(project, loops, dxf.diagnostics, request, itemId, placement, diagnosticsOut);
+}
+
+core::Result<DxfPanelImport> buildOutlinePanelItem(const Project& project, const std::vector<geometry::Contour>& loops,
+                                                   const core::Diagnostics& readerDiagnostics,
+                                                   const DxfPanelRequest& request, const std::string& itemId,
+                                                   const geometry::Transform& placement,
+                                                   core::Diagnostics* diagnosticsOut) {
     DxfPanelImport out;
-    out.diagnostics = dxf.diagnostics;
+    out.diagnostics = readerDiagnostics;
     const auto fail = [&](const std::string& message) -> core::Result<DxfPanelImport> {
         if (diagnosticsOut) *diagnosticsOut = out.diagnostics;
         return refused(message);
@@ -98,8 +109,6 @@ core::Result<DxfPanelImport> buildDxfPanelItem(const Project& project, const for
     auto material = pickDxfPanelMaterial(project.libraries, request);
     if (!material) return fail(material.error().message);
 
-    std::vector<geometry::Contour> loops;
-    for (const auto& l : dxf.loops) loops.push_back(l.contour);
     auto shape = formats::importPanelShape(loops);
     if (!shape) return fail(shape.error().message);
     const formats::PanelShapeImport& s = shape.value();
@@ -139,7 +148,7 @@ core::Result<DxfPanelImport> buildDxfPanelItem(const Project& project, const for
                                      " segments is neither a circle nor an axis-parallel (rounded) rectangle";
             out.diagnostics.push_back(
                 {request.skipUnsupportedCutouts ? core::Severity::Warning : core::Severity::Error,
-                 "project.import_dxf.cutout_unsupported",
+                 request.diagnosticPrefix + ".cutout_unsupported",
                  what + (request.skipUnsupportedCutouts ? "; left out (" + request.skipOptionLabel + ")." : "."),
                  {}});
             ++unsupported;

@@ -131,6 +131,7 @@ int cmdDrawing(const std::vector<std::string>& args, Io& io);
 int cmdCam(const std::vector<std::string>& args, Io& io);
 int cmdExportObj(const std::vector<std::string>& args, Io& io);
 int cmdImportDxf(const std::vector<std::string>& args, Io& io);
+int cmdImportSvg(const std::vector<std::string>& args, Io& io);
 int cmdExportDxf(const std::vector<std::string>& args, Io& io);
 int cmdLinear(const std::vector<std::string>& args, Io& io);
 int cmdEdgebandRolls(const std::vector<std::string>& args, Io& io);
@@ -145,5 +146,6 @@ int cmdDiff(const std::vector<std::string>& args, Io& io);
 int cmdAssembly(const std::vector<std::string>& args, Io& io);
 int cmdJobpack(const std::vector<std::string>& args, Io& io);
 int cmdTools(const std::vector<std::string>& args, Io& io);
+int cmdRemnants(const std::vector<std::string>& args, Io& io);
 
 } // namespace fos::cli::detail

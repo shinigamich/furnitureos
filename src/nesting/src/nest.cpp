@@ -4,6 +4,8 @@
 #include "placer.hpp"
 
 #include <algorithm>
+#include <chrono>
+#include <cmath>
 #include <numeric>
 
 namespace fos::nesting {
@@ -101,7 +103,7 @@ NestResult assemble(const Job& job, const std::vector<Shape>& shapes, const Plac
             p.outline = it.outline;
             L.usedLength = std::max(L.usedLength, it.box.max.x);
             L.partArea += shapes[static_cast<std::size_t>(it.part)].area;
-            r.totalNetPartArea += shapes[static_cast<std::size_t>(it.part)].netArea;
+            L.netPartArea += shapes[static_cast<std::size_t>(it.part)].netArea;
             L.placements.push_back(std::move(p));
         }
         const double x0 = L.usedLength + job.partSpacing;
@@ -110,6 +112,8 @@ NestResult assemble(const Job& job, const std::vector<Shape>& shapes, const Plac
             L.remnant = geometry::Rect2{{x0, 0}, {sheet.length, sheet.width}};
         }
         L.utilisation = L.sheetArea > 0 ? L.partArea / L.sheetArea : 0;
+        L.netUtilisation = L.sheetArea > 0 ? L.netPartArea / L.sheetArea : 0;
+        r.totalNetPartArea += L.netPartArea;
         r.placedCount += static_cast<int>(L.placements.size());
         r.totalPartArea += L.partArea;
         r.totalSheetArea += L.sheetArea;
@@ -136,6 +140,7 @@ NestResult assemble(const Job& job, const std::vector<Shape>& shapes, const Plac
         r.unplaced.push_back(std::move(u));
     }
     r.utilisation = r.totalSheetArea > 0 ? r.totalPartArea / r.totalSheetArea : 0;
+    r.netUtilisation = r.totalSheetArea > 0 ? r.totalNetPartArea / r.totalSheetArea : 0;
     r.isHeuristic = true;
     return r;
 }
@@ -149,66 +154,121 @@ core::Result<NestResult> nest(const Job& job, const NestOptions& options) {
             return core::makeError(core::ErrorCode::InvalidArgument, dg.message, dg.entityId);
 
     std::vector<Shape> shapes;
-    std::vector<double> byArea, byLength, byBox;
+    std::vector<double> byArea, byLength, byBox, byPerimeter;
     for (const Part& p : job.parts) {
         shapes.push_back(buildShape(p, allowedRotations(p, options)));
         const auto bb = geometry::bounds(p.outline);
         byArea.push_back(shapes.back().area);
         byLength.push_back(std::max(bb.width(), bb.height()));
         byBox.push_back(bb.area());
+        byPerimeter.push_back(geometry::perimeter(p.outline));
     }
     Placer placer(job, shapes, options);
 
-    // Deterministic initial orders, then seeded improvement from the best one.
+    const auto t0 = std::chrono::steady_clock::now();
+    int decodes = 0;
+    bool cancelled = false;
+    const auto budgetLeft = [&]() {
+        if (options.maxDecodes > 0 && decodes >= options.maxDecodes) return false;
+        if (options.timeBudgetMs > 0 &&
+            std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count() >=
+                options.timeBudgetMs)
+            return false;
+        return true;
+    };
+
     std::vector<Instance> bestOrder;
+    PlacementScore bestPolicy = options.placementScores.front();
     Decoded best;
     Score bestScore;
     bool have = false;
-    bool cancelled = false;
-    for (const auto* key : {&byArea, &byLength, &byBox}) {
-        std::vector<Instance> order = orderBy(job, *key);
-        if (have && order.size() == bestOrder.size() &&
-            std::equal(order.begin(), order.end(), bestOrder.begin(),
-                       [](const Instance& a, const Instance& b) { return a.part == b.part && a.instance == b.instance; }))
-            continue;
-        Decoded d = placer.decode(order);
+    // Evaluates one (policy, order); returns false when cancelled or out of budget.
+    const auto tryStart = [&](PlacementScore policy, std::vector<Instance> order) {
+        if (have && !budgetLeft()) return false;
+        Decoded d = placer.decode(order, policy);
         if (d.aborted) {
             cancelled = true;
-            break;
+            return false;
         }
-        const Score s = scoreOf(d);
-        if (!have || s.betterThan(bestScore)) {
+        ++decodes;
+        const Score sc = scoreOf(job, d);
+        if (!have || sc.betterThan(bestScore)) {
             best = std::move(d);
-            bestScore = s;
+            bestScore = sc;
             bestOrder = std::move(order);
+            bestPolicy = policy;
             have = true;
         }
+        return true;
+    };
+    const auto same = [](const std::vector<Instance>& a, const std::vector<Instance>& b) {
+        return a.size() == b.size() && std::equal(a.begin(), a.end(), b.begin(), [](const Instance& x, const Instance& y) {
+                   return x.part == y.part && x.instance == y.instance;
+               });
+    };
+
+    // 1. Deterministic restarts: every placement score with every distinct starting order.
+    std::vector<std::vector<Instance>> starts;
+    for (InstanceOrder o : options.orders) {
+        const std::vector<double>* key = &byArea;
+        switch (o) {
+        case InstanceOrder::AreaDesc: key = &byArea; break;
+        case InstanceOrder::LongestSideDesc: key = &byLength; break;
+        case InstanceOrder::BoxAreaDesc: key = &byBox; break;
+        case InstanceOrder::PerimeterDesc: key = &byPerimeter; break;
+        }
+        std::vector<Instance> order = orderBy(job, *key);
+        if (std::none_of(starts.begin(), starts.end(), [&](const auto& s) { return same(s, order); }))
+            starts.push_back(std::move(order));
     }
+    // Seeded shuffles (Fisher-Yates with a seed-derived LCG per restart).
+    for (int k = 0; k < options.randomRestarts; ++k) {
+        std::vector<Instance> order = starts.front();
+        Lcg shuffle(options.seed ^ (0x9E3779B9u * static_cast<std::uint32_t>(k + 1)));
+        for (std::size_t i = order.size(); i > 1; --i) std::swap(order[i - 1], order[shuffle.below(i)]);
+        starts.push_back(std::move(order));
+    }
+    bool stop = false;
+    for (std::size_t si = 0; si < starts.size() && !stop; ++si)
+        for (PlacementScore policy : options.placementScores)
+            if (!tryStart(policy, starts[si])) {
+                stop = true;
+                break;
+            }
     if (!have)
         return core::makeError(core::ErrorCode::Cancelled, "Nesting was cancelled before the first complete layout.");
 
+    // 2. Seeded improvement (hill climbing with plateau moves) from the best start, same policy.
     Lcg rng(options.seed);
     int iterations = 0;
-    for (int it = 0; !cancelled && it < options.iterations; ++it) {
+    for (int it = 0; !cancelled && it < options.iterations && budgetLeft(); ++it) {
         std::vector<Instance> order = bestOrder;
         if (!perturb(order, rng)) break;
-        Decoded d = placer.decode(order);
+        Decoded d = placer.decode(order, bestPolicy);
         if (d.aborted) {
             cancelled = true;
             break;
         }
         ++iterations;
-        const Score s = scoreOf(d);
-        // Accept equal scores too (plateau moves), so the search can drift.
-        if (!bestScore.betterThan(s)) {
+        ++decodes;
+        const Score sc = scoreOf(job, d);
+        if (!bestScore.betterThan(sc)) {
             best = std::move(d);
-            bestScore = s;
+            bestScore = sc;
             bestOrder = std::move(order);
         }
     }
     NestResult r = assemble(job, shapes, placer, best);
     r.iterationsRun = iterations;
+    r.decodesRun = decodes;
+    r.placementScoreUsed = bestPolicy;
     r.cancelled = cancelled;
+    // Area lower bound on sheets for all instances.
+    double need = 0, cap = 0;
+    for (std::size_t p = 0; p < job.parts.size(); ++p)
+        need += job.parts[p].quantity * (options.partInPart ? shapes[p].netArea : shapes[p].area);
+    for (const Sheet& sh : job.sheets) cap = std::max(cap, placementArea(job, sh).area());
+    r.sheetLowerBound = cap > 0 ? static_cast<int>(std::ceil(need / cap - 1e-9)) : 0;
     return r;
 }
 

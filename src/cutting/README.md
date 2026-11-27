@@ -12,6 +12,7 @@ search for and never claims an optimal one (`CuttingResult::isProvenOptimal` is 
 | `fos/cutting/types.hpp` | `Job`, `Piece`, `StockSheet`, `Trim`, `CuttingResult`, `SheetLayout`, `Cut`, `CutNode`, … | — |
 | `fos/cutting/optimizer.hpp` | `optimize()`, `validateJob()`, `usableArea()`, `isReusableRemnant()`, `areaLowerBoundOnSheetCount()` | core |
 | `fos/cutting/validate.hpp` | `validateLayout()` — independent checker | core |
+| `fos/cutting/offcuts.hpp` | `usableOffcuts(layout \| result, minLength, minWidth)` — offcuts worth keeping as remnant stock | core |
 | `fos/cutting/svg.hpp` | `renderSheetSvg()`, `xmlEscape()` | core |
 | `fos/cutting/from_model.hpp` | `jobsFromModel()` — adapter from `domain::Model` (target **`fos::cutting_model`**) | cutting, domain |
 
@@ -144,6 +145,15 @@ available usable areas cover the area of the placed pieces. If nothing is unplac
 layout uses exactly that many sheets, `isSheetCountProvenMinimal` is `true`: no layout can
 use fewer sheets. This says nothing about waste, cuts or remnants, and the bound ignores
 shapes and kerf, so `false` does **not** mean the sheet count can be improved.
+
+### Usable offcuts (`fos/cutting/offcuts.hpp`)
+
+`usableOffcuts(layout, minLength, minWidth)` returns the free rectangles of a finished layout (the
+Offcut leaves of the cut tree, kerf already removed, so each can be sawn out with the plan's cuts)
+whose longer side ≥ `minLength` and shorter side ≥ `minWidth` (tolerance `kLengthEps`), independent
+of the job's own remnant limits; order: area descending, then y, then x. The `CuttingResult`
+overload does this per sheet and sets `sheetIndex`. Used by the workshop remnant store
+(`fos/project/remnant_use.hpp`, `fos remnants`). Adjacent offcuts are not merged (see *Limits*).
 
 ## Validator
 

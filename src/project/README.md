@@ -493,6 +493,27 @@ projects are resolved and the parts compared by id (size, material, edge bands, 
 hardware quantity per definition; items that fail to generate are listed. Limitations: an entity whose id changed
 appears as removed + added; a reordered section tree is reported as per-index field changes.
 
+## 4g. Workshop remnant store (`fos/project/remnant_store.hpp`, `remnant_use.hpp`)
+
+`.fosremnants` file, container kind `furnitureos-remnants`, version 1, independent of any project.
+Payload `{"remnants": [entry...], <other keys kept>}`; entry keys: `id` (unique), `material`
+(material id), `length`, `width`, `thickness` (mm, > 0), `grain` (`none` | `length` | `width`, default
+`none`), `dateAdded` (`YYYY-MM-DD`), optional `location`, `note`, `reservedBy`, `source`. Unknown entry
+keys are refused. Each entry is one physical board. `saveRemnantStore` validates first and writes
+atomically with rotating backups (`formats::saveDocument`). Ids: `nextRemnantId` = `R` + 4 digits.
+
+* `remnantsFromOffcuts(plans, model, store, options)` — new entries for `cutting::usableOffcuts` of
+  every guillotine plan (min size default 300 × 100; grain `length` when the material has grain;
+  note = sheet and position).
+* `cuttingPlansWithStore(resolved, settings, store, options)` — `cuttingPlans` with every store board
+  of the same material id and thickness that is free (or reserved by `options.jobName`) appended to
+  that material's listed remnants as `store:<id>` (stock id `<material>/remnant/store:<id>`, priority
+  1, opened before full sheets; grain `width` swaps length and width); `preferRemnants` switches
+  those materials to `PreferRemnants`. Reports `offered`, `skipped` (with reason) and `used`
+  (board, sheet, piece count).
+* `commitStoreUse(store, run, model, options)` — removes the used boards and adds the offcuts of all
+  sheets (including sheets cut from store boards); refused when the plans have errors.
+
 ## 5. Limitations
 
 * The per-project parts limit is checked on the estimate (`estimatePartCount`), an upper bound; custom parameter

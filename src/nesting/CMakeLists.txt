@@ -5,7 +5,8 @@ fos_add_module(nesting
     DEPS fos::core fos::geometry)
 fos_add_tests(nesting
     SOURCES tests/test_support.cpp tests/basic_tests.cpp tests/shape_tests.cpp tests/constraint_tests.cpp
-            tests/large_job_tests.cpp tests/benchmark_jobs.cpp tests/benchmark_tests.cpp)
+            tests/large_job_tests.cpp tests/benchmark_jobs.cpp tests/benchmark_tests.cpp
+            tests/improvement_tests.cpp)
 # Model adapter for shaped parts (fos/nesting/from_model.hpp: nestingJobsFromModel). Separate target so
 # that fos::nesting itself stays free of the domain model. Created only when fos::domain is built
 # (domain precedes nesting in the module order, so the target exists at this point).

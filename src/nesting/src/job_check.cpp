@@ -38,7 +38,8 @@ geometry::Rect2 placementArea(const Job& job, const Sheet& sheet) noexcept {
     return r;
 }
 
-std::vector<double> allowedRotations(const Part& part, const NestOptions& options) {
+namespace {
+std::vector<double> ruleRotations(const Part& part, const NestOptions& options) {
     switch (part.rotation) {
     case RotationRule::None: return {0.0};
     case RotationRule::Half: return {0.0, 180.0};
@@ -52,6 +53,20 @@ std::vector<double> allowedRotations(const Part& part, const NestOptions& option
     }
     }
     return {0.0};
+}
+} // namespace
+
+std::vector<double> allowedRotations(const Part& part, const NestOptions& options) {
+    std::vector<double> r = ruleRotations(part, options);
+    if (options.rotationSetDeg.empty()) return r;
+    std::vector<double> kept;
+    for (double a : r)
+        for (double b : options.rotationSetDeg)
+            if (std::fabs(a - b) <= 1e-9) {
+                kept.push_back(a);
+                break;
+            }
+    return kept;
 }
 
 core::Diagnostics validateJob(const Job& job, const NestOptions& options) {
@@ -69,6 +84,20 @@ core::Diagnostics validateJob(const Job& job, const NestOptions& options) {
         err(out, "nesting.job.rotation_step",
             "Default rotation step " + fmt(options.rotationStepDeg) + " degrees must be in (0, 360].", "");
 
+    for (double a : options.rotationSetDeg)
+        if (!std::isfinite(a) || a < 0 || a >= 360)
+            err(out, "nesting.job.rotation_set", "Rotation candidate " + fmt(a) + " degrees must be in [0, 360).", "");
+    if (options.placementScores.empty())
+        err(out, "nesting.job.options", "At least one placement score must be given.", "");
+    if (options.orders.empty()) err(out, "nesting.job.options", "At least one starting order must be given.", "");
+    if (options.iterations < 0 || options.randomRestarts < 0 || options.maxDecodes < 0)
+        err(out, "nesting.job.options",
+            "Iterations (" + std::to_string(options.iterations) + "), random restarts (" +
+                std::to_string(options.randomRestarts) + ") and the decode budget (" +
+                std::to_string(options.maxDecodes) + ") must be >= 0.",
+            "");
+    if (!std::isfinite(options.timeBudgetMs) || options.timeBudgetMs < 0)
+        err(out, "nesting.job.options", "Time budget " + fmt(options.timeBudgetMs) + " ms must be finite and >= 0.", "");
     std::set<std::string> ids;
     for (const Sheet& s : job.sheets) {
         if (s.id.empty()) err(out, "nesting.job.sheet_id", "A stock sheet has an empty id.", "");
@@ -133,6 +162,11 @@ core::Diagnostics validateJob(const Job& job, const NestOptions& options) {
             err(out, "nesting.job.rotation_step",
                 name + " has rotation step " + fmt(p.rotationStepDeg) + " degrees; it must be in (0, 360].", p.id);
     }
+    for (const Part& p : job.parts)
+        if (allowedRotations(p, options).empty())
+            err(out, "nesting.job.rotation_set",
+                "Part '" + p.id + "' has no allowed rotation: none of its rotation rule's angles is in the rotation "
+                "candidate set.", p.id);
     if (instances > 10000)
         err(out, "nesting.job.too_many",
             "The job has " + std::to_string(instances) + " part instances; at most 10000 are supported.", "");

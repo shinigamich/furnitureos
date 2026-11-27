@@ -21,6 +21,8 @@ struct PlacedItem {
     Polygon2 outline;  ///< transformOutline(original, rot, mirrored, pos - offset).
     Rect2 box;
     Instance inst;
+    std::vector<Polygon2> holes; ///< Cut-outs in the sheet frame (only filled with partInPart).
+    std::vector<Rect2> holeBoxes;
 };
 
 struct OpenSheet {
@@ -37,22 +39,23 @@ struct Decoded {
     bool aborted = false;
 };
 
-/// Lexicographic quality of a layout: (unplaced instances, sheets used, used length of the
-/// last sheet). Smaller is better.
+/// Lexicographic quality of a layout: (unplaced instances, sheets used, total area of the used
+/// sheets (= higher utilisation), used length of the last sheet). Smaller is better.
 struct Score {
     int unplaced = 0;
     int sheets = 0;
+    double sheetArea = 0;
     double lastLength = 0;
     bool betterThan(const Score& o) const noexcept;
 };
-Score scoreOf(const Decoded& d);
+Score scoreOf(const Job& job, const Decoded& d);
 
 class Placer {
 public:
     Placer(const Job& job, const std::vector<Shape>& shapes, const NestOptions& options);
     /// Places the instances in the given order. Stops (aborted = true) when isCancelled fires;
     /// cancellation is sticky for the lifetime of the Placer.
-    Decoded decode(const std::vector<Instance>& order);
+    Decoded decode(const std::vector<Instance>& order, PlacementScore policy);
     /// fitsEmpty[part][stock]: some orientation's bounding box fits the empty placement area.
     const std::vector<std::vector<bool>>& fitsEmpty() const noexcept { return fitsEmpty_; }
 
@@ -63,9 +66,11 @@ private:
         Rect2 box;      ///< bounds(grown).
     };
     const std::vector<Nfp>& nfps(int partQ, int orientQ, int partP, int orientP);
-    bool tryPlace(OpenSheet& sheet, int part, PlacedItem& out);
+    bool tryPlace(OpenSheet& sheet, int part, PlacedItem& out, PlacementScore policy);
     bool cancelled();
-    bool positionValid(const Polygon2& outline, const Rect2& box, const OpenSheet& sheet) const;
+    bool positionValid(const Polygon2& outline, const Rect2& box, int part, double rot, bool mirrored, Vec2 t,
+                       const OpenSheet& sheet) const;
+    void fillHoles(PlacedItem& item, double rot, bool mirrored, Vec2 t) const;
 
     const Job& job_;
     const std::vector<Shape>& shapes_;

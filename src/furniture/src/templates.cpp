@@ -198,4 +198,26 @@ CabinetDefinition dishwasherFront(domain::AssemblyId id, const TemplateMaterials
     return def;
 }
 
+CabinetDefinition desk(domain::AssemblyId id, const TemplateMaterials& m) {
+    ConstructionOptions o;
+    o.back = BackMount::None;
+    CabinetDefinition def = start(std::move(id), "Desk", m, o, 1400, 740, 700);
+    DeskSpec d;
+    d.cableCutout = DeskCableCutout{};
+    d.pedestal = DeskPedestal{};
+    def.desk = d;
+    return def;
+}
+
+CabinetDefinition table(domain::AssemblyId id, const TemplateMaterials& m) {
+    ConstructionOptions o;
+    o.back = BackMount::None;
+    CabinetDefinition def = start(std::move(id), "Table", m, o, 1600, 750, 800);
+    DeskSpec d;
+    d.support = DeskSupport::Legs;
+    d.modestyPanel = false;
+    def.desk = d;
+    return def;
+}
+
 } // namespace fos::furniture::templates

@@ -3,7 +3,7 @@
 /// \file
 /// Interior tab of the cabinet inspector: the section tree (fos::app::sectionRows) with the
 /// Split vertically / Split horizontally / Remove split / Set size / Shelves actions, the
-/// clothes rail and the front of the selected section. Every action is one project command (interior_rows.hpp); a
+/// clothes rail, the inner drawers and the front of the selected section. Every action is one project command (interior_rows.hpp); a
 /// refused edit shows the furniture module's message and changes nothing.
 #include "fos/app/interior_rows.hpp"
 
@@ -25,6 +25,8 @@ class Session;
 }
 
 namespace fos::app::gui {
+
+class InnerDrawersBox;
 
 class InteriorEditor : public QWidget {
     Q_OBJECT
@@ -84,6 +86,7 @@ private:
     QComboBox* railHardware_;     ///< Clothes rail library entries.
     QComboBox* railSupports_;     ///< Rail support library entries.
     QPushButton* applyRail_;
+    InnerDrawersBox* innerDrawers_; ///< Inner drawers of the (leaf) section behind a door.
     QLabel* selectedTitle_;
     QLabel* error_;
 };

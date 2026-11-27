@@ -285,35 +285,38 @@ core::Result<GenerationResult> generate(const CabinetDefinition& definition, con
 
     if (auto r = checkDefinitionLimits(def); !r) return r.error();
 
-    detail::Gen g{def, libraries, {}, {}, std::move(diags), {}, {}, {}, {}, {}};
+    detail::Gen g{def, libraries, {}, {}, std::move(diags), {}, {}, {}, {}, {}, {}};
     for (const auto& name : def.parameters.names()) g.values[name] = def.parameters.value(name).valueOr(0.0);
     g.assembly.id = def.id;
     g.assembly.name = def.name;
     g.assembly.placement = def.placement;
 
     const bool lShape = def.corner.kind == CornerKind::LShape;
-    if (!def.hardware.hanger.empty() && (lShape || def.applianceGap))
+    const bool special = lShape || def.applianceGap || def.desk;
+    const std::string kindText = def.desk ? "a desk / table" : lShape ? "an L-shaped corner cabinet" : "an appliance gap";
+    if (!def.hardware.hanger.empty() && special)
         return core::makeError(core::ErrorCode::Unsupported,
                                "Cabinet '" + def.id.str() + "' selects the cabinet hanger '" + def.hardware.hanger.str() +
-                                   "', but hangers are supported only on rectangular cabinets (not on " +
-                                   (lShape ? "an L-shaped corner cabinet" : "an appliance gap") +
+                                   "', but hangers are supported only on rectangular cabinets (not on " + kindText +
                                    "). Clear the hanger selection.",
                                def.id.str());
-    if ((lShape || def.applianceGap) && containsHangingRail(def.interior))
+    if (special && containsHangingRail(def.interior))
         return core::makeError(core::ErrorCode::Unsupported,
                                "Cabinet '" + def.id.str() + "' has a hanging rail, but hanging rails are supported only "
-                               "in rectangular cabinets (not in " +
-                                   (lShape ? "an L-shaped corner cabinet" : "an appliance gap") +
-                                   "). Remove the hanging rail.",
+                               "in rectangular cabinets (not in " + kindText + "). Remove the hanging rail.",
                                def.id.str());
-    if ((lShape || def.applianceGap) && containsInnerDrawers(def.interior))
+    if (special && containsInnerDrawers(def.interior))
         return core::makeError(core::ErrorCode::Unsupported,
                                "Cabinet '" + def.id.str() + "' has inner drawers, but inner drawers are supported only "
-                               "in rectangular cabinets (not in " +
-                                   (lShape ? "an L-shaped corner cabinet" : "an appliance gap") +
-                                   "). Remove the inner drawers.",
+                               "in rectangular cabinets (not in " + kindText + "). Remove the inner drawers.",
                                def.id.str());
-    if (def.applianceGap) { // refuses a corner kind itself
+    if (def.desk && def.applianceGap)
+        return core::makeError(core::ErrorCode::InvalidArgument,
+                               "Cabinet '" + def.id.str() + "' is both a desk and an appliance gap; clear one of them.",
+                               def.id.str());
+    if (def.desk) { // refuses a corner kind itself
+        if (auto r = detail::buildDesk(g); !r) return r.error();
+    } else if (def.applianceGap) { // refuses a corner kind itself
         if (auto r = detail::buildApplianceGap(g); !r) return r.error();
     } else if (auto c = detail::checkCorner(g); !c) {
         return c.error();

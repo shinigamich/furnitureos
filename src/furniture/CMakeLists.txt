@@ -5,7 +5,7 @@ fos_add_module(furniture
             src/templates.cpp src/panel.cpp src/checks.cpp src/limits.cpp
             src/contour.cpp src/contour_check.cpp src/gen_contour.cpp src/gen_drawers.cpp src/gen_sliding.cpp
             src/gen_corner_blind.cpp src/gen_corner_l.cpp src/gen_appliance.cpp src/gen_hanger.cpp src/gen_frame.cpp src/gen_rail.cpp
-            src/gen_inner_drawers.cpp
+            src/gen_inner_drawers.cpp src/gen_desk.cpp src/desk_spec.cpp
     DEPS fos::core fos::geometry fos::parametric fos::domain fos::machining fos::hardware)
 fos_add_tests(furniture
     SOURCES tests/fixture_tests.cpp tests/parametric_tests.cpp tests/construction_tests.cpp
@@ -14,4 +14,5 @@ fos_add_tests(furniture
             tests/contour_tests.cpp tests/contour_panel_tests.cpp tests/drawer_box_tests.cpp
             tests/drawer_joint_tests.cpp tests/flap_inset_tests.cpp tests/sliding_doors_tests.cpp
             tests/corner_tests.cpp tests/appliance_tests.cpp tests/hanger_tests.cpp tests/frame_panel_tests.cpp
-            tests/hanging_rail_tests.cpp tests/glass_panel_tests.cpp tests/inner_drawer_tests.cpp)
+            tests/hanging_rail_tests.cpp tests/glass_panel_tests.cpp tests/inner_drawer_tests.cpp
+            tests/desk_tests.cpp)

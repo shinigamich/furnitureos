@@ -52,8 +52,8 @@ struct Part {
     std::string id;    ///< Unique within the job.
     std::string label; ///< Used in messages and drawings.
     geometry::Polygon2 outline;
-    /// Inner cut-outs (simple polygons inside the outline). Kept as DATA ONLY: they reduce the
-    /// reported net area but no part is ever nested inside a hole.
+    /// Inner cut-outs (simple, pairwise disjoint polygons inside the outline). They reduce the
+    /// reported net area; with NestOptions::partInPart other parts may be nested inside them.
     std::vector<geometry::Polygon2> holes;
     int quantity = 1; ///< >= 1.
     RotationRule rotation = RotationRule::Quarter;
@@ -81,11 +81,49 @@ struct Job {
     double minRemnantLength = 0;
 };
 
-/// Controls of nest(). Fully deterministic for fixed inputs, seed and iteration budget.
+/// Placement criterion of the bottom-left-fill decoder: which candidate position (among the
+/// no-fit-polygon candidates) a part takes. All keys grow with x and y. Ties keep the earlier
+/// orientation.
+enum class PlacementScore {
+    MinRightEdge,   ///< Smallest right bbox edge (x + w), then smallest bottom y (packs along X).
+    BottomLeft,     ///< Smallest top bbox edge (y + h), then smallest left x (packs along Y).
+    MinBoundingBox, ///< Smallest area of the sheet's used bounding box after placing, then x + w, y.
+};
+
+/// Deterministic starting orders of the part instances (all descending, ties by part order).
+enum class InstanceOrder {
+    AreaDesc,        ///< Outline area.
+    LongestSideDesc, ///< Longest side of the unrotated bounding box.
+    BoxAreaDesc,     ///< Unrotated bounding-box area.
+    PerimeterDesc,   ///< Outline perimeter.
+};
+
+/// Controls of nest(). Fully deterministic for fixed inputs, seed and budgets, except when a
+/// time budget is set (timeBudgetMs > 0), which depends on the machine speed.
 struct NestOptions {
-    /// Improvement iterations (seeded reorders) after the deterministic initial orders.
+    /// Improvement iterations (seeded reorders) from the best starting layout.
     /// The budget is a COUNT, not a time, so results are reproducible on every machine.
     int iterations = 20;
+    /// Rotation candidate set in degrees, each in [0, 360). Empty = no restriction. When given, a
+    /// part's allowed rotations are its rule's angles intersected with this set (so grain-locked
+    /// RotationRule::Half parts keep at most 0/180); a part left with no angle is a job error.
+    std::vector<double> rotationSetDeg;
+    /// Placement criteria tried as restarts (each with every starting order), non-empty.
+    std::vector<PlacementScore> placementScores{PlacementScore::MinRightEdge, PlacementScore::BottomLeft,
+                                                PlacementScore::MinBoundingBox};
+    /// Deterministic starting orders tried for each placement score, non-empty.
+    std::vector<InstanceOrder> orders{InstanceOrder::AreaDesc, InstanceOrder::LongestSideDesc,
+                                      InstanceOrder::BoxAreaDesc, InstanceOrder::PerimeterDesc};
+    /// Additional starting orders per placement score: seeded shuffles (seed-derived LCG), >= 0.
+    int randomRestarts = 0;
+    /// Allow parts inside the cut-outs (Part::holes) of other placed parts, fully inside the
+    /// hole and at least Job::partSpacing from its boundary. Default off.
+    bool partInPart = false;
+    /// Total number of complete layouts (decodes) evaluated, 0 = unlimited (>= 0). The first
+    /// layout is always evaluated. Deterministic.
+    int maxDecodes = 0;
+    /// Wall-clock budget in milliseconds, 0 = none (>= 0). NOT deterministic across machines.
+    double timeBudgetMs = 0;
     /// Seed of the internal 32-bit linear congruential generator.
     std::uint32_t seed = 12345u;
     /// Default step for RotationRule::Step parts without their own step, degrees in (0, 360].
@@ -115,8 +153,10 @@ struct SheetLayout {
     geometry::Rect2 remnant;
     bool hasRemnant = false;
     double partArea = 0;      ///< Sum of outline areas (holes NOT subtracted), mm^2.
+    double netPartArea = 0;   ///< Sum of outline areas minus hole areas, mm^2.
     double sheetArea = 0;     ///< length * width, mm^2.
-    double utilisation = 0;   ///< partArea / sheetArea.
+    double utilisation = 0;   ///< partArea / sheetArea (can exceed 1 with part-in-part).
+    double netUtilisation = 0; ///< netPartArea / sheetArea (material actually used, <= 1).
 };
 
 enum class UnplacedReason {
@@ -139,7 +179,14 @@ struct NestResult {
     double totalNetPartArea = 0;  ///< Same minus hole areas, mm^2.
     double totalSheetArea = 0;    ///< Areas of all used sheets, mm^2.
     double utilisation = 0;       ///< totalPartArea / totalSheetArea (0 when no sheet used).
+    double netUtilisation = 0;    ///< totalNetPartArea / totalSheetArea (0 when no sheet used).
+    /// Area lower bound on the sheets needed for ALL instances: ceil(sum of instance areas /
+    /// largest placement area of any sheet type), instance area = net area with partInPart,
+    /// outline area otherwise (parts lie disjoint inside the placement area). Not an optimum.
+    int sheetLowerBound = 0;
     int iterationsRun = 0;        ///< Improvement iterations actually evaluated.
+    int decodesRun = 0;           ///< Complete layouts evaluated (starts + improvements).
+    PlacementScore placementScoreUsed = PlacementScore::MinRightEdge; ///< Criterion of the kept layout.
     bool cancelled = false;       ///< True when isCancelled stopped the run early.
     bool isHeuristic = true;      ///< Always true: the layout is NOT proven optimal.
 };

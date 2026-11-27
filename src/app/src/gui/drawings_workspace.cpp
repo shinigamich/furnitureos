@@ -7,7 +7,9 @@
 #include "fos/printing/paint.hpp"
 #include "fos/printing/print.hpp"
 
+#include <QCheckBox>
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QDate>
 #include <QFileDialog>
 #include <QHBoxLayout>
@@ -27,6 +29,8 @@ namespace fos::app::gui {
 namespace {
 constexpr const char* kAssemblyPrefix = "A:";
 constexpr const char* kPartPrefix = "P:";
+constexpr const char* kIsoPrefix = "I:";
+constexpr const char* kExplodedPrefix = "E:";
 
 QString filesText(const WrittenFiles& files) {
     QStringList names;
@@ -57,6 +61,22 @@ DrawingsWorkspace::DrawingsWorkspace(Session& session, QWidget* parent) : QWidge
     for (int z : {25, 50, 75, 100, 150, 200, 400}) zoom_->addItem(QStringLiteral("%1 %").arg(z), z);
     zoom_->setCurrentIndex(0);
     zoom_->setToolTip(tr("100 % = real paper size on a correctly calibrated screen"));
+    direction_ = new QComboBox(this);
+    direction_->setObjectName(QStringLiteral("pictorialDirection"));
+    direction_->addItem(tr("From front left"), static_cast<int>(drawings::IsoDirection::FrontLeft));
+    direction_->addItem(tr("From front right"), static_cast<int>(drawings::IsoDirection::FrontRight));
+    explode_ = new QDoubleSpinBox(this);
+    explode_->setObjectName(QStringLiteral("explodeFactor"));
+    explode_->setRange(1.0, 10.0);
+    explode_->setSingleStep(0.25);
+    explode_->setDecimals(2);
+    explode_->setValue(1.5);
+    explode_->setKeyboardTracking(false);
+    explode_->setToolTip(tr("1 = not exploded; 1.5 = moving parts travel half the assembly size along their axis."));
+    balloons_ = new QCheckBox(tr("Balloons"), this);
+    balloons_->setObjectName(QStringLiteral("pictorialBalloons"));
+    balloons_->setChecked(true);
+    balloons_->setToolTip(tr("Part numbers as in the part list, in circles with leaders."));
 
     // Two rows so that long (translated) captions never force the window wider.
     auto* bar = new QHBoxLayout;
@@ -72,10 +92,14 @@ DrawingsWorkspace::DrawingsWorkspace(Session& session, QWidget* parent) : QWidge
     addLabeled(bar, tr("Scale:"), scale_);
     addLabeled(bar2, tr("Sheet:"), sheet_);
     addLabeled(bar2, tr("Zoom:"), zoom_);
+    addLabeled(bar2, tr("View from:"), direction_);
+    addLabeled(bar2, tr("Explode:"), explode_);
+    bar2->addWidget(balloons_);
     bar2->addStretch(1);
     auto* pdf = new QPushButton(tr("PDF…"), this);
     auto* svg = new QPushButton(tr("SVG…"), this);
     auto* dxf = new QPushButton(tr("DXF…"), this);
+    dxf_ = dxf;
     auto* print = new QPushButton(tr("Print…"), this);
     for (QPushButton* b : {pdf, svg, dxf, print}) bar2->addWidget(b);
 
@@ -129,8 +153,10 @@ DrawingsWorkspace::DrawingsWorkspace(Session& session, QWidget* parent) : QWidge
         stale_ = true;
         if (isVisible()) regenerate();
     });
-    for (QComboBox* c : {target_, paper_, orientation_, scale_})
+    for (QComboBox* c : {target_, paper_, orientation_, scale_, direction_})
         connect(c, qOverload<int>(&QComboBox::activated), this, [this] { regenerate(); });
+    connect(explode_, qOverload<double>(&QDoubleSpinBox::valueChanged), this, [this] { regenerate(); });
+    connect(balloons_, &QCheckBox::toggled, this, [this] { regenerate(); });
     connect(sheet_, qOverload<int>(&QComboBox::activated), this, [this] { renderSheet(); });
     connect(zoom_, qOverload<int>(&QComboBox::activated), this, [this] { renderSheet(); });
     connect(pdf, &QPushButton::clicked, this, &DrawingsWorkspace::exportPdf);
@@ -152,8 +178,11 @@ void DrawingsWorkspace::refillTargets() {
     if (const project::Resolved* r = session_.resolved()) {
         const std::string selectedItem = session_.selection().itemId;
         for (const auto& a : r->model.assemblies) {
-            target_->addItem(tr("%1 — assembly drawing").arg(QString::fromStdString(a.name)),
-                             QString::fromLatin1(kAssemblyPrefix) + QString::fromStdString(a.id.str()));
+            const QString name = QString::fromStdString(a.name);
+            const QString id = QString::fromStdString(a.id.str());
+            target_->addItem(tr("%1 — assembly drawing").arg(name), QString::fromLatin1(kAssemblyPrefix) + id);
+            target_->addItem(tr("%1 — isometric view").arg(name), QString::fromLatin1(kIsoPrefix) + id);
+            target_->addItem(tr("%1 — exploded view").arg(name), QString::fromLatin1(kExplodedPrefix) + id);
             if (a.id.str() != selectedItem) continue;
             for (const auto& p : a.parts)
                 target_->addItem(QStringLiteral("    ") + tr("%1 — part drawing").arg(QString::fromStdString(p.name)),
@@ -162,13 +191,31 @@ void DrawingsWorkspace::refillTargets() {
     }
     target_->setCurrentIndex(std::max(0, target_->findData(current)));
     target_->blockSignals(false);
+    updatePictorialFields();
+}
+
+void DrawingsWorkspace::updatePictorialFields() {
+    const QString selected = target_->currentData().toString();
+    const bool iso = selected.startsWith(QLatin1String(kIsoPrefix));
+    const bool exploded = selected.startsWith(QLatin1String(kExplodedPrefix));
+    direction_->setEnabled(iso || exploded);
+    balloons_->setEnabled(iso || exploded);
+    explode_->setEnabled(exploded);
+    dxf_->setEnabled(!iso && !exploded);
+    dxf_->setToolTip(iso || exploded ? tr("Pictorial views are exported as SVG or PDF.") : QString());
 }
 
 std::optional<DrawingRequest> DrawingsWorkspace::request() const {
     const QString selected = target_->currentData().toString();
     if (selected.isEmpty()) return std::nullopt;
     DrawingRequest r;
-    r.kind = selected.startsWith(QLatin1String(kPartPrefix)) ? DrawingRequest::Kind::Part : DrawingRequest::Kind::Assembly;
+    r.kind = selected.startsWith(QLatin1String(kPartPrefix))       ? DrawingRequest::Kind::Part
+             : selected.startsWith(QLatin1String(kIsoPrefix))      ? DrawingRequest::Kind::Isometric
+             : selected.startsWith(QLatin1String(kExplodedPrefix)) ? DrawingRequest::Kind::Exploded
+                                                                   : DrawingRequest::Kind::Assembly;
+    r.direction = static_cast<drawings::IsoDirection>(direction_->currentData().toInt());
+    r.explodeFactor = explode_->value();
+    r.balloons = balloons_->isChecked();
     r.id = selected.mid(2).toStdString();
     r.format = static_cast<drawings::PaperFormat>(paper_->currentData().toInt());
     r.orientation = static_cast<drawings::PaperOrientation>(orientation_->currentData().toInt());
@@ -180,6 +227,7 @@ std::optional<DrawingRequest> DrawingsWorkspace::request() const {
 
 void DrawingsWorkspace::regenerate() {
     stale_ = false;
+    updatePictorialFields();
     annotations_->setDrawing(nullptr, request(), 0); // the old result is about to be destroyed
     drawing_.reset();
     const auto req = request();
@@ -231,7 +279,8 @@ void DrawingsWorkspace::renderSheet() {
     }
     // The panel follows the drawing and sheet shown (its overlay is drawn by showOverlay()).
     std::optional<DrawingRequest> req = drawing_ ? request() : std::nullopt;
-    annotations_->setDrawing(drawing_ ? &*drawing_ : nullptr, req, static_cast<std::size_t>(std::max(0, index)));
+    if (req && isPictorial(*req)) req.reset(); // pictorial views carry no annotation edits
+    annotations_->setDrawing(drawing_ && req ? &*drawing_ : nullptr, req, static_cast<std::size_t>(std::max(0, index)));
     showOverlay();
 }
 
@@ -309,6 +358,10 @@ void DrawingsWorkspace::exportSvg() {
 
 void DrawingsWorkspace::exportDxf() {
     if (!ensureDrawing()) return;
+    if (const auto req = request(); req && isPictorial(*req)) {
+        QMessageBox::information(this, tr("Export"), tr("Pictorial views are exported as SVG or PDF."));
+        return;
+    }
     const QString file = QFileDialog::getSaveFileName(this, tr("Export drawing views as DXF"),
                                                       drawingName() + QStringLiteral(".dxf"), tr("DXF files (*.dxf)"));
     if (file.isEmpty()) return;

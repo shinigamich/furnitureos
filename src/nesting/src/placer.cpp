@@ -2,6 +2,7 @@
 #include "placer.hpp"
 
 #include "fos/geometry/offset.hpp"
+#include "fos/geometry/segment.hpp"
 #include "fos/nesting/nest.hpp"
 
 #include <algorithm>
@@ -66,18 +67,61 @@ void crossHorizontal(Vec2 a, Vec2 b, double Y, double x0, double x1, std::vector
     if (x >= x0 - kEps && x <= x1 + kEps) out.push_back({x, Y});
 }
 
+/// Minimum distance between the BOUNDARIES of two polygons (also when one contains the other).
+double boundaryDistance(const Polygon2& a, const Polygon2& b) {
+    double best = std::numeric_limits<double>::infinity();
+    for (std::size_t i = 0; i < a.size(); ++i) {
+        const geometry::Segment2 sa{a[i], a[(i + 1) % a.size()]};
+        for (std::size_t j = 0; j < b.size(); ++j) {
+            best = std::min(best, geometry::closestPointsSegments(sa, {b[j], b[(j + 1) % b.size()]}).distance);
+            if (best == 0) return 0;
+        }
+    }
+    return best;
+}
+
+/// `inner` lies inside one of the holes, at least s from that hole's boundary (s = 0: inside or on it).
+bool insideSomeHole(const Polygon2& inner, const Rect2& innerBox, const std::vector<Polygon2>& holes,
+                    const std::vector<Rect2>& boxes, double s) {
+    for (std::size_t i = 0; i < holes.size(); ++i) {
+        const Rect2& hb = boxes[i];
+        if (innerBox.min.x < hb.min.x + s - kEps || innerBox.min.y < hb.min.y + s - kEps ||
+            innerBox.max.x > hb.max.x - s + kEps || innerBox.max.y > hb.max.y - s + kEps)
+            continue;
+        if (!geometry::polygonContainsPolygon(holes[i], inner)) continue;
+        if (s <= kEps || boundaryDistance(inner, holes[i]) >= s - kEps) return true;
+    }
+    return false;
+}
+
+using Key = std::array<double, 3>;
+
+/// a < b lexicographically with tolerance kEps per component.
+bool keyLess(const Key& a, const Key& b) noexcept {
+    for (std::size_t i = 0; i < 3; ++i) {
+        if (a[i] < b[i] - kEps) return true;
+        if (a[i] > b[i] + kEps) return false;
+    }
+    return false;
+}
+
 } // namespace
 
 bool Score::betterThan(const Score& o) const noexcept {
     if (unplaced != o.unplaced) return unplaced < o.unplaced;
     if (sheets != o.sheets) return sheets < o.sheets;
+    if (std::fabs(sheetArea - o.sheetArea) > 1e-6) return sheetArea < o.sheetArea;
     return lastLength < o.lastLength - kEps;
 }
 
-Score scoreOf(const Decoded& d) {
+Score scoreOf(const Job& job, const Decoded& d) {
     Score s;
     s.unplaced = static_cast<int>(d.unplaced.size());
     s.sheets = static_cast<int>(d.sheets.size());
+    for (const auto& sh : d.sheets) {
+        const Sheet& st = job.sheets[static_cast<std::size_t>(sh.stock)];
+        s.sheetArea += st.length * st.width;
+    }
     if (!d.sheets.empty())
         for (const auto& it : d.sheets.back().items) s.lastLength = std::max(s.lastLength, it.box.max.x);
     return s;
@@ -118,29 +162,67 @@ const std::vector<Placer::Nfp>& Placer::nfps(int partQ, int orientQ, int partP, 
     return cache_.emplace(key, std::move(list)).first->second;
 }
 
-bool Placer::positionValid(const Polygon2& outline, const Rect2& box, const OpenSheet& sheet) const {
+void Placer::fillHoles(PlacedItem& item, double rot, bool mirrored, Vec2 t) const {
+    item.holes.clear();
+    item.holeBoxes.clear();
+    if (!options_.partInPart) return;
+    for (const auto& h : job_.parts[static_cast<std::size_t>(item.part)].holes) {
+        item.holes.push_back(transformOutline(h, rot, mirrored, t));
+        item.holeBoxes.push_back(geometry::bounds(item.holes.back()));
+    }
+}
+
+bool Placer::positionValid(const Polygon2& outline, const Rect2& box, int part, double rot, bool mirrored, Vec2 t,
+                           const OpenSheet& sheet) const {
     const double s = job_.partSpacing;
+    PlacedItem self; // this part's own holes, built lazily (another part may sit inside one of them)
+    bool selfHoles = false;
     for (const auto& q : sheet.items) {
         if (rectDistance(box, q.box) >= s + 1e-9) continue;
-        if (s > kEps) {
-            if (geometry::polygonDistance(outline, q.outline) < s - kEps) return false;
-        } else if (geometry::polygonsOverlap(outline, q.outline)) {
-            return false;
+        const bool ok = s > kEps ? geometry::polygonDistance(outline, q.outline) >= s - kEps
+                                 : !geometry::polygonsOverlap(outline, q.outline);
+        if (ok) continue;
+        if (!options_.partInPart) return false;
+        if (insideSomeHole(outline, box, q.holes, q.holeBoxes, s)) continue;
+        if (!selfHoles) {
+            self.part = part;
+            fillHoles(self, rot, mirrored, t);
+            selfHoles = true;
         }
+        if (insideSomeHole(q.outline, q.box, self.holes, self.holeBoxes, s)) continue;
+        return false;
     }
     return true;
 }
 
-bool Placer::tryPlace(OpenSheet& sheet, int part, PlacedItem& out) {
+bool Placer::tryPlace(OpenSheet& sheet, int part, PlacedItem& out, PlacementScore policy) {
     const Shape& shape = shapes_[static_cast<std::size_t>(part)];
     const Rect2 area = areas_[static_cast<std::size_t>(sheet.stock)];
     const Part& src = job_.parts[static_cast<std::size_t>(part)];
+    const double s = job_.partSpacing;
     bool found = false;
-    double bestMaxX = 0, bestY = 0;
+    Key best{};
+
+    // Used bounding box of the sheet (for MinBoundingBox), anchored at the placement-area corner.
+    double usedX = area.min.x, usedY = area.min.y;
+    for (const auto& q : sheet.items) {
+        usedX = std::max(usedX, q.box.max.x);
+        usedY = std::max(usedY, q.box.max.y);
+    }
+    const auto keyOf = [&](Vec2 c, double w, double h) -> Key {
+        switch (policy) {
+        case PlacementScore::BottomLeft: return {c.y + h, c.x, 0.0};
+        case PlacementScore::MinBoundingBox:
+            return {(std::max(usedX, c.x + w) - area.min.x) * (std::max(usedY, c.y + h) - area.min.y), c.x + w, c.y};
+        case PlacementScore::MinRightEdge: break;
+        }
+        return {c.x + w, c.y, 0.0};
+    };
 
     struct Rel {
         Polygon2 raw, grown;
         Rect2 box;
+        bool holey; ///< From a part with cut-outs (partInPart): no cheap deep-inside reject.
     };
     std::vector<Rel> rel;
     std::vector<Vec2> cand;
@@ -148,7 +230,8 @@ bool Placer::tryPlace(OpenSheet& sheet, int part, PlacedItem& out) {
         if (cancelled()) return false;
         const Orientation& o = shape.orients[oi];
         if (o.w > area.width() + kEps || o.h > area.height() + kEps) continue;
-        if (found && area.min.x + o.w > bestMaxX + kEps) continue;
+        // Keys grow with x and y, so the inner-fit corner bounds every candidate of this orientation.
+        if (found && !keyLess(keyOf(area.min, o.w, o.h), best)) continue;
         const Rect2 ifp{area.min, {std::max(area.min.x, area.max.x - o.w), std::max(area.min.y, area.max.y - o.h)}};
 
         rel.clear();
@@ -156,7 +239,8 @@ bool Placer::tryPlace(OpenSheet& sheet, int part, PlacedItem& out) {
             for (const auto& n : nfps(q.part, q.orient, part, static_cast<int>(oi))) {
                 Rect2 b{n.box.min + q.pos, n.box.max + q.pos};
                 if (!boxesMeet(b, ifp, kEps)) continue;
-                rel.push_back({geometry::translated(n.raw, q.pos), geometry::translated(n.grown, q.pos), b});
+                rel.push_back({geometry::translated(n.raw, q.pos), geometry::translated(n.grown, q.pos), b,
+                               !q.holes.empty()});
             }
 
         cand.clear();
@@ -190,32 +274,54 @@ bool Placer::tryPlace(OpenSheet& sheet, int part, PlacedItem& out) {
                 }
             }
         }
-        // Keep candidates inside the inner-fit rectangle (clamped) that could beat the best position
-        // found so far; order bottom-left-fill style: smallest x first (0.1 um buckets), then smallest y.
-        struct Key {
-            double bx, y, x;
+        // Part-in-part: SAMPLED candidates inside every cut-out of the placed parts (not an exact
+        // inner-fit polygon): corners of the hole bbox inset by the spacing, the hole vertices offset
+        // by the spacing toward each bbox corner of the part, and a 9 x 9 grid over the inset box.
+        if (options_.partInPart)
+            for (const auto& q : sheet.items)
+                for (std::size_t hi = 0; hi < q.holes.size(); ++hi) {
+                    const Rect2& hb = q.holeBoxes[hi];
+                    const Rect2 r{{hb.min.x + s, hb.min.y + s}, {hb.max.x - s - o.w, hb.max.y - s - o.h}};
+                    if (r.min.x > r.max.x + kEps || r.min.y > r.max.y + kEps) continue;
+                    for (int gx = 0; gx <= 8; ++gx)
+                        for (int gy = 0; gy <= 8; ++gy)
+                            cand.push_back({r.min.x + (r.max.x - r.min.x) * gx / 8.0, r.min.y + (r.max.y - r.min.y) * gy / 8.0});
+                    for (Vec2 v : q.holes[hi].vertices) {
+                        cand.push_back({v.x + s, v.y + s});
+                        cand.push_back({v.x - s - o.w, v.y + s});
+                        cand.push_back({v.x + s, v.y - s - o.h});
+                        cand.push_back({v.x - s - o.w, v.y - s - o.h});
+                    }
+                }
+        // Candidates inside the inner-fit rectangle (clamped) that could beat the best key so far,
+        // tried in key order: the first valid one is this orientation's best.
+        struct Cand {
+            Key key;
+            Vec2 c;
         };
-        std::vector<Key> pts;
+        std::vector<Cand> pts;
         pts.reserve(cand.size());
-        const double xLimit = found ? bestMaxX - o.w + kEps : std::numeric_limits<double>::infinity();
         for (Vec2 c : cand) {
             if (!ifp.contains(c, kEps)) continue;
-            const double x = std::clamp(c.x, ifp.min.x, ifp.max.x);
-            if (x > xLimit) continue;
-            pts.push_back({std::round(x * 1e4), std::clamp(c.y, ifp.min.y, ifp.max.y), x});
+            const Vec2 cc{std::clamp(c.x, ifp.min.x, ifp.max.x), std::clamp(c.y, ifp.min.y, ifp.max.y)};
+            const Key k = keyOf(cc, o.w, o.h);
+            if (found && !keyLess(k, best)) continue;
+            pts.push_back({k, cc});
         }
-        std::sort(pts.begin(), pts.end(), [](const Key& a, const Key& b) { return a.bx != b.bx ? a.bx < b.bx : a.y < b.y; });
+        std::sort(pts.begin(), pts.end(), [](const Cand& a, const Cand& b) {
+            for (std::size_t i = 0; i < 3; ++i)
+                if (a.key[i] != b.key[i]) return a.key[i] < b.key[i];
+            return a.c.x != b.c.x ? a.c.x < b.c.x : a.c.y < b.c.y;
+        });
         Vec2 prev{std::numeric_limits<double>::quiet_NaN(), 0};
-        for (const Key& k : pts) {
-            const Vec2 c{k.x, k.y};
+        for (const Cand& k : pts) {
+            const Vec2 c = k.c;
             if (std::fabs(c.x - prev.x) <= 1e-9 && std::fabs(c.y - prev.y) <= 1e-9) continue;
             prev = c;
-            const double maxX = c.x + o.w;
-            if (found && maxX > bestMaxX + kEps) break;
-            if (found && maxX >= bestMaxX - kEps && c.y >= bestY - kEps) break;
+            if (found && !keyLess(k.key, best)) break;
             bool deep = false;
             for (const auto& r : rel)
-                if (r.box.contains(c) && deepInsideConvex(r.raw, c, 1e-5)) {
+                if (!r.holey && r.box.contains(c) && deepInsideConvex(r.raw, c, 1e-5)) {
                     deep = true;
                     break;
                 }
@@ -223,15 +329,15 @@ bool Placer::tryPlace(OpenSheet& sheet, int part, PlacedItem& out) {
             const Vec2 t = c - o.offset;
             Polygon2 outline = transformOutline(src.outline, o.rotationDeg, o.mirrored, t);
             const Rect2 box = geometry::bounds(outline);
-            if (!positionValid(outline, box, sheet)) continue;
+            if (!positionValid(outline, box, part, o.rotationDeg, o.mirrored, t, sheet)) continue;
             found = true;
-            bestMaxX = maxX;
-            bestY = c.y;
+            best = k.key;
             out.part = part;
             out.orient = static_cast<int>(oi);
             out.pos = c;
             out.outline = std::move(outline);
             out.box = box;
+            fillHoles(out, o.rotationDeg, o.mirrored, t);
             break;
         }
     }
@@ -243,7 +349,7 @@ bool Placer::cancelled() {
     return cancelled_;
 }
 
-Decoded Placer::decode(const std::vector<Instance>& order) {
+Decoded Placer::decode(const std::vector<Instance>& order, PlacementScore policy) {
     Decoded d;
     std::vector<int> remaining;
     for (const Sheet& s : job_.sheets) remaining.push_back(s.quantity);
@@ -252,13 +358,15 @@ Decoded Placer::decode(const std::vector<Instance>& order) {
             d.aborted = true;
             return d;
         }
-        const double a = shapes_[static_cast<std::size_t>(inst.part)].area;
+        // Net area with part-in-part (the part's own cut-outs stay free for others), else outline area.
+        const auto& shp = shapes_[static_cast<std::size_t>(inst.part)];
+        const double a = options_.partInPart ? shp.netArea : shp.area;
         PlacedItem item;
         bool placed = false;
         for (auto& sh : d.sheets) {
             const auto pi = static_cast<std::size_t>(inst.part);
             if (sh.failed[pi] || sh.freeArea < a - 1e-6) continue;
-            if (!tryPlace(sh, inst.part, item)) {
+            if (!tryPlace(sh, inst.part, item, policy)) {
                 sh.failed[pi] = !cancelled_;
             } else {
                 item.inst = inst;
@@ -274,7 +382,7 @@ Decoded Placer::decode(const std::vector<Instance>& order) {
             sh.stock = static_cast<int>(t);
             sh.freeArea = areas_[t].area();
             sh.failed.assign(shapes_.size(), false);
-            if (!tryPlace(sh, inst.part, item)) continue;
+            if (!tryPlace(sh, inst.part, item, policy)) continue;
             if (remaining[t] > 0) --remaining[t];
             item.inst = inst;
             sh.freeArea -= a;

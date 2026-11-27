@@ -7,6 +7,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
+#include "fos/geometry/segment.hpp"
 #include <map>
 #include <set>
 #include <string>
@@ -32,7 +34,29 @@ struct Placed {
     const Placement* p;
     Polygon2 outline;
     Rect2 box;
+    std::vector<Polygon2> holes; ///< Re-derived cut-outs in the sheet frame.
 };
+
+/// Smallest distance between any edge of `a` and any edge of `b` (boundaries only).
+double edgeDistance(const Polygon2& a, const Polygon2& b) {
+    double d = std::numeric_limits<double>::infinity();
+    for (std::size_t i = 0; i < a.size(); ++i)
+        for (std::size_t j = 0; j < b.size(); ++j)
+            d = std::min(d, geometry::closestPointsSegments({a[i], a[(i + 1) % a.size()]},
+                                                            {b[j], b[(j + 1) % b.size()]}).distance);
+    return d;
+}
+
+/// Part-in-part rule: `inner` is valid next to its host when it lies entirely inside one of the
+/// host's cut-outs and its boundary keeps at least `s` from that cut-out's boundary (s = 0: it may
+/// touch). Containment + boundary distance >= s means inner lies in the hole shrunk by s.
+bool inHoleOf(const Placed& inner, const Placed& host, double s) {
+    for (const auto& h : host.holes) {
+        if (!geometry::polygonContainsPolygon(h, inner.outline)) continue;
+        if (s <= kEps || edgeDistance(inner.outline, h) >= s - kEps) return true;
+    }
+    return false;
+}
 
 } // namespace
 
@@ -64,7 +88,7 @@ core::Diagnostics validateNest(const Job& job, const NestResult& result, const N
             err(out, "stock", sname + " copy " + std::to_string(L.copy) + " is used twice.", L.sheetId);
         const Rect2 area = placementArea(job, sheet);
         std::vector<Placed> placed;
-        double partArea = 0, used = 0;
+        double partArea = 0, netArea = 0, used = 0;
         for (const Placement& p : L.placements) {
             auto pit = partIx.find(p.partId);
             if (pit == partIx.end()) {
@@ -107,7 +131,13 @@ core::Diagnostics validateNest(const Job& job, const NestResult& result, const N
             totalNet += net;
             const Rect2 box = geometry::bounds(o);
             used = std::max(used, box.max.x);
-            placed.push_back({&p, std::move(o), box});
+            std::vector<Polygon2> holes;
+            for (const auto& h : part.holes) {
+                Polygon2 hh = p.mirrored ? geometry::mirroredX(h, 0.0) : h;
+                holes.push_back(geometry::translated(geometry::rotated(hh, p.rotationDeg), p.translation));
+            }
+            netArea += net;
+            placed.push_back({&p, std::move(o), box, std::move(holes)});
         }
         for (std::size_t i = 0; i < placed.size(); ++i)
             for (std::size_t j = i + 1; j < placed.size(); ++j) {
@@ -117,18 +147,21 @@ core::Diagnostics validateNest(const Job& job, const NestResult& result, const N
                 if (std::hypot(dx, dy) >= s + 1e-9) continue;
                 const std::string pair = "Parts '" + placed[i].p->partId + "'#" + std::to_string(placed[i].p->instance) +
                                          " and '" + placed[j].p->partId + "'#" + std::to_string(placed[j].p->instance);
+                const auto nested = [&] { return inHoleOf(placed[i], placed[j], s) || inHoleOf(placed[j], placed[i], s); };
                 if (s > kEps) {
                     const double d = geometry::polygonDistance(placed[i].outline, placed[j].outline);
-                    if (d < s - kEps)
+                    if (d < s - kEps && !nested())
                         err(out, "spacing", pair + " on " + sname + " are " + fmt(d) + " mm apart; the spacing is " +
-                                                fmt(s) + " mm.", placed[i].p->partId);
-                } else if (geometry::polygonsOverlap(placed[i].outline, placed[j].outline)) {
+                                                fmt(s) + " mm and neither lies inside a cut-out of the other with that spacing.",
+                            placed[i].p->partId);
+                } else if (geometry::polygonsOverlap(placed[i].outline, placed[j].outline) && !nested()) {
                     err(out, "spacing", pair + " on " + sname + " overlap.", placed[i].p->partId);
                 }
             }
         const double sheetArea = sheet.length * sheet.width;
         if (!closeRel(partArea, L.partArea) || !closeRel(sheetArea, L.sheetArea) ||
-            !closeRel(L.utilisation, sheetArea > 0 ? partArea / sheetArea : 0) || !closeRel(used, L.usedLength))
+            !closeRel(L.utilisation, sheetArea > 0 ? partArea / sheetArea : 0) || !closeRel(used, L.usedLength) ||
+            !closeRel(netArea, L.netPartArea) || !closeRel(L.netUtilisation, sheetArea > 0 ? netArea / sheetArea : 0))
             err(out, "area", sname + ": reported areas/utilisation/used length differ from recomputed values (part area " +
                                  fmt(partArea) + " mm2, used length " + fmt(used) + " mm).", L.sheetId);
         const double x0 = used + s;
@@ -169,6 +202,24 @@ core::Diagnostics validateNest(const Job& job, const NestResult& result, const N
         !closeRel(totalNet, result.totalNetPartArea) || !closeRel(totalSheet, result.totalSheetArea) ||
         !closeRel(result.utilisation, totalSheet > 0 ? totalPart / totalSheet : 0))
         err(out, "area", "Result totals (count, areas, utilisation) differ from the recomputed values.", "");
+    if (!closeRel(result.netUtilisation, totalSheet > 0 ? totalNet / totalSheet : 0))
+        err(out, "area", "Result net utilisation differs from the recomputed value.", "");
+    // Area lower bound on sheets (see NestResult::sheetLowerBound).
+    double need = 0, cap = 0;
+    for (const Part& part : job.parts) {
+        double a = geometry::area(part.outline);
+        if (options.partInPart)
+            for (const auto& h : part.holes) a -= geometry::area(h);
+        need += part.quantity * a;
+    }
+    for (const Sheet& sh : job.sheets) cap = std::max(cap, placementArea(job, sh).area());
+    const int bound = cap > 0 ? static_cast<int>(std::ceil(need / cap - 1e-9)) : 0;
+    if (bound != result.sheetLowerBound)
+        err(out, "area", "Reported sheet lower bound " + std::to_string(result.sheetLowerBound) +
+                             " differs from the recomputed area bound " + std::to_string(bound) + ".", "");
+    if (result.unplaced.empty() && static_cast<int>(result.sheets.size()) < bound)
+        err(out, "area", "The layout uses " + std::to_string(result.sheets.size()) +
+                             " sheets, fewer than the area lower bound " + std::to_string(bound) + ".", "");
     return out;
 }
 

@@ -3,6 +3,7 @@
 
 #include "form_widgets.hpp"
 #include "fos/app/session.hpp"
+#include "inner_drawers_box.hpp"
 #include "inspector_panel.hpp"
 
 #include <QCheckBox>
@@ -144,6 +145,8 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
     railForm->addRow(tr("Supports:"), railSupports_);
     railForm->addRow(applyRail_);
     layout->addWidget(railBox);
+    innerDrawers_ = new InnerDrawersBox(session_, itemId_, this);
+    layout->addWidget(innerDrawers_);
 
     auto* frontBox = new QGroupBox(tr("Front of the section"), this);
     auto* frontForm = new QFormLayout(frontBox);
@@ -458,6 +461,7 @@ void InteriorEditor::showSelected() {
     selectData(panelMaterial_, QString::fromStdString(panelMaterial));
     applyFront_->setEnabled(have);
     showRail(row);
+    innerDrawers_->showSection(row);
 }
 
 void InteriorEditor::showRail(const SectionRow* row) {

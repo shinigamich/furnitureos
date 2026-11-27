@@ -45,7 +45,9 @@ constexpr auto kCommands = std::to_array<CommandEntry>({
     {"plinth", "Add a kitchen plinth (toe-kick) under a run of cabinets on feet (setback, joints, returns).", detail::cmdPlinth},
     {"batch", "Production batches: several projects (orders) cut and labelled together (.fosbatch).", detail::cmdBatch},
     {"import-dxf", "Add a free panel whose outline (and cut-outs) come from an ASCII DXF file.", detail::cmdImportDxf},
+    {"import-svg", "Add a free panel whose outline (and cut-outs) come from an SVG file.", detail::cmdImportSvg},
     {"tools", "Validate, list and export CAM tool tables (.fostools) for `fos cam --tools`.", detail::cmdTools},
+    {"remnants", "Workshop remnant (offcut) stock (.fosremnants): list, add, remove, import offcuts, cut a project using it.", detail::cmdRemnants},
 });
 
 } // namespace

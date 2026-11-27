@@ -3,6 +3,7 @@
 #include "component_browser.hpp"
 #include "dialogs.hpp"
 #include "drawings_workspace.hpp"
+#include "job_pack_dialog.hpp"
 #include "fos/viewport/viewport_widget.hpp"
 #include "main_window.hpp"
 #include "packing_workspace.hpp"
@@ -46,6 +47,10 @@ void MainWindow::buildActions() {
     a_.exportSvg = make(tr("Drawing (SVG)…"));
     a_.exportDxf = make(tr("Drawing views (DXF)…"));
     a_.exportObj = make(tr("3D model (OBJ)…"));
+    a_.exportJobPack = make(tr("Export &job pack…"));
+    a_.exportJobPack->setObjectName(QStringLiteral("actionExportJobPack"));
+    a_.exportJobPack->setToolTip(tr("One printable HTML document for the workshop: part and cut lists, hardware, "
+                                    "packing, assembly sheets and cutting plans"));
     a_.batch = make(tr("Production &batch…"));
     a_.batch->setObjectName(QStringLiteral("actionProductionBatch"));
     a_.batch->setToolTip(tr("Combine several saved projects with quantities into one production run"));
@@ -129,6 +134,7 @@ void MainWindow::buildActions() {
     connect(a_.exportSvg, &QAction::triggered, drawings_, &DrawingsWorkspace::exportSvg);
     connect(a_.exportDxf, &QAction::triggered, drawings_, &DrawingsWorkspace::exportDxf);
     connect(a_.exportObj, &QAction::triggered, this, &MainWindow::exportModelObj);
+    connect(a_.exportJobPack, &QAction::triggered, this, [this] { exportJobPack(this, session_); });
     connect(a_.importDxf, &QAction::triggered, this, &MainWindow::importDxfOutline);
     connect(a_.compare, &QAction::triggered, this, &MainWindow::compareWithDialog);
     connect(a_.batch, &QAction::triggered, this, &MainWindow::showBatchWindow);
@@ -185,6 +191,7 @@ void MainWindow::buildMenus() {
     for (QAction* a : {a_.exportPdf, a_.exportSvg, a_.exportDxf}) exportMenu->addAction(a);
     exportMenu->addSeparator();
     exportMenu->addAction(a_.exportObj);
+    file->addAction(a_.exportJobPack);
     file->addAction(a_.batch);
     file->addAction(a_.print);
     file->addSeparator();

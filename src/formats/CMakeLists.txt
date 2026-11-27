@@ -19,6 +19,9 @@ fos_add_module(formats
         src/dxf_import.cpp
         src/dxf_chain.cpp
         src/panel_shape_import.cpp
+        src/svg_xml.cpp
+        src/svg_geometry.cpp
+        src/svg_import.cpp
         src/csv_materials.cpp
         src/dxf_export.cpp
         src/component.cpp
@@ -37,6 +40,7 @@ fos_add_tests(formats
         tests/shape_codec_tests.cpp
         tests/obj_shape_tests.cpp
         tests/dxf_import_tests.cpp
+        tests/svg_import_tests.cpp
         tests/dxf_export_tests.cpp
         tests/component_tests.cpp)
 
