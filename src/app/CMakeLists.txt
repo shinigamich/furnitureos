@@ -39,6 +39,9 @@ add_library(fos_app_core STATIC
     src/core/library_editor.cpp
     src/core/library_text.cpp
     src/core/corner_rows.cpp
+    src/core/desk_rows.cpp
+    src/core/merge_rows.cpp
+    src/core/workshop_offcuts.cpp
     src/core/appliance_text.cpp
     src/core/worktop_form.cpp
     src/core/cabinet_run_form.cpp
@@ -89,6 +92,9 @@ if(FOS_BUILD_TESTS)
         tests/core/quote_tests.cpp
         tests/core/library_editor_tests.cpp
         tests/core/corner_tests.cpp
+        tests/core/desk_tests.cpp
+        tests/core/merge_tests.cpp
+        tests/core/workshop_offcuts_tests.cpp
         tests/core/appliance_tests.cpp
         tests/core/worktop_tests.cpp
         tests/core/plinth_tests.cpp
@@ -121,6 +127,12 @@ set(FOS_APP_GUI_SOURCES
     src/gui/main_window.cpp
     src/gui/main_window_files.cpp
     src/gui/main_window_actions.cpp
+    src/gui/edit_tools_controller.hpp
+    src/gui/edit_tools_controller.cpp
+    src/gui/transform_dialog.hpp
+    src/gui/transform_dialog.cpp
+    src/gui/add_panel_dialog.hpp
+    src/gui/add_panel_dialog.cpp
     src/gui/main_window_start.cpp
     src/gui/welcome_dialog.hpp
     src/gui/welcome_dialog.cpp
@@ -129,6 +141,7 @@ set(FOS_APP_GUI_SOURCES
     src/gui/inspector_panel.hpp
     src/gui/inspector_panel.cpp
     src/gui/inspector_cabinet.cpp
+    src/gui/inspector_desk.cpp
     src/gui/interior_editor.hpp
     src/gui/interior_editor.cpp
     src/gui/form_widgets.hpp
@@ -182,6 +195,8 @@ set(FOS_APP_GUI_SOURCES
     src/gui/edge_banding_view.cpp
     src/gui/compare_dialog.hpp
     src/gui/compare_dialog.cpp
+    src/gui/merge_dialog.hpp
+    src/gui/merge_dialog.cpp
     src/gui/inner_drawers_box.hpp
     src/gui/inner_drawers_box.cpp
     src/gui/job_pack_dialog.hpp
@@ -232,7 +247,7 @@ if(FOS_BUILD_TESTS)
     # GUI smoke test: needs an X display; run under xvfb-run when available. Without a
     # display the test skips itself (label `gui`).
     add_executable(fos_app_gui_tests tests/gui/gui_smoke_tests.cpp tests/gui/shape_gui_tests.cpp
-        tests/gui/drawer_gui_tests.cpp)
+        tests/gui/drawer_gui_tests.cpp tests/gui/edit_tools_gui_tests.cpp)
     target_link_libraries(fos_app_gui_tests PRIVATE fos_app_gui Qt6::Test GTest::gtest)
     fos_set_warnings(fos_app_gui_tests PRIVATE)
     # The test loads the compiled Ukrainian catalogue from the build tree.

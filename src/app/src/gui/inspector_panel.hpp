@@ -14,6 +14,7 @@
 #include <map>
 #include <string>
 
+class QAction;
 class QLineEdit;
 class QTabWidget;
 class QVBoxLayout;
@@ -43,6 +44,8 @@ public:
     InteriorEditor* interiorEditor() const;
     /// Shape section of the selected part / panel item (null when none is shown).
     ShapeEditor* shapeEditor() const;
+    /// Actions offered as buttons while several items are selected ("N items selected").
+    void setMultiSelectionActions(QList<QAction*> actions);
 
 private:
     void rebuild();
@@ -56,6 +59,9 @@ private:
     void buildHardware(QVBoxLayout* layout, const std::string& itemId);
     /// Corner group of a corner cabinet (kind, blind side, corner parameters).
     void buildCorner(QVBoxLayout* layout, const std::string& itemId);
+    /// Desk group of a desk / table (support, corner radius, modesty panel, cable slot,
+    /// pedestal; inspector_desk.cpp).
+    void buildDesk(QVBoxLayout* layout, const std::string& itemId);
     void buildShape(QVBoxLayout* layout, const std::string& itemId, const std::string& partId);
     void buildPartOverride(QVBoxLayout* layout, const std::string& itemId, const std::string& partId);
     void buildNameEditor(QVBoxLayout* layout, const std::string& itemId);
@@ -69,6 +75,7 @@ private:
     };
 
     Session& session_;
+    QList<QAction*> multiActions_;
     QString filter_;
     std::map<std::string, Editor> editors_;
     QPointer<QTabWidget> cabinetTabs_;

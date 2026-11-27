@@ -100,9 +100,15 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), preferences_(Pref
             if (!additive) session_.setSelection({});
             return;
         }
+        const std::string pid = id.toStdString();
+        // Ctrl+click on another item toggles that whole item in the multi-selection.
+        if (additive && !session_.selection().itemId.empty() &&
+            (session_.itemOfPart(pid) != session_.selection().itemId || !session_.selection().extraItemIds.empty())) {
+            session_.toggleItemSelected(session_.itemOfPart(pid));
+            return;
+        }
         Selection sel = additive ? session_.selection() : Selection{};
         auto& parts = sel.partIds;
-        const std::string pid = id.toStdString();
         const auto it = std::find(parts.begin(), parts.end(), pid);
         if (it != parts.end()) parts.erase(it);
         else parts.push_back(pid);
@@ -205,7 +211,9 @@ void MainWindow::updateTitle() {
 void MainWindow::updateStatus() {
     const Selection& sel = session_.selection();
     QString text;
-    if (sel.partIds.size() == 1) {
+    if (const auto items = sel.allItems(); items.size() > 1) {
+        text = tr("%1 items selected").arg(items.size());
+    } else if (sel.partIds.size() == 1) {
         if (const domain::Part* p = session_.findPart(sel.partIds[0])) {
             const project::Item* item = session_.project().findItem(sel.itemId);
             text = tr("%1 — %2 (%3): %4 × %5 × %6 mm")
@@ -251,6 +259,10 @@ void MainWindow::syncViewportSelection() {
     if (parts.empty() && !sel.itemId.empty() && session_.resolved())
         if (const auto* a = session_.resolved()->model.findAssembly(domain::AssemblyId(sel.itemId)))
             for (const auto& p : a->parts) parts.push_back(p.id.str());
+    if (session_.resolved())
+        for (const auto& extra : sel.extraItemIds)
+            if (const auto* a = session_.resolved()->model.findAssembly(domain::AssemblyId(extra)))
+                for (const auto& p : a->parts) parts.push_back(p.id.str());
     viewport_->setSelection(parts);
 }
 

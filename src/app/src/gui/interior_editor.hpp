@@ -80,6 +80,12 @@ private:
     QDoubleSpinBox* panelClearance_;
     QComboBox* frameJoint_;          ///< FrameJoint.
     QComboBox* panelMaterial_;       ///< "" = same as front, else a material id.
+    QComboBox* panelKind_;           ///< FramePanelKind (grooved board / glass).
+    QDoubleSpinBox* glassThickness_; ///< GlassPanelSpec, mm.
+    QDoubleSpinBox* rebateWidth_;
+    QDoubleSpinBox* rebateDepth_;
+    QComboBox* glassBeads_;          ///< GlassBeads.
+    QLabel* glassWarning_;           ///< Panel material of a glass panel is not glass.
     QPushButton* applyFront_;
     QCheckBox* railEnabled_;      ///< Clothes rail in the (leaf) section.
     QDoubleSpinBox* railHeight_;  ///< HangingRailSpec::heightFromTop, mm.

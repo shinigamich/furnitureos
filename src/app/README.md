@@ -39,6 +39,10 @@ existing items' bounding boxes).
 | `batch_editor.hpp` | Production batch window view-model over `fos/project/batch.hpp`: `batchEntryPath` (relative to the batch file like `fos batch add`, absolute while untitled), `BatchEditor` (new / open / save / `saveAs` rebasing relative paths, `addProject` (re-adding adds to the quantity), `removeEntry`, `setQuantity` / `setKey` / `setNote`, `setMaterialSubstitutions`, `setCutListGroupAcrossAssemblies`; every edit checked by `checkBatch`; `settingsProject` + `executeSettingsCommand` run the project cutting / nesting settings commands on the batch settings; `evaluate` = `loadBatchProjects` + `mergeBatch` + `batchSummary`), `BatchEvaluation` (`incomplete` = merge errors), `batchDiagnosticRows` (with project key), `batchMaterialChoices`, `exportBatchCutListCsv` / `exportBatchLabels` (`labels-<n>.svg`) / `exportBatchCuttingPlans` (`<material>-sheet-<n>.svg`, `<material>-nest-<n>.svg`) |
 | `library_editor.hpp` | Library editor (Project ▸ Libraries…): `libraryRows` (with `usedBy` items), `validateMaterial/EdgeBand/Hardware` (translated problems), `newMaterial`/`newEdgeBand`, `duplicate*` (`<id>-copy`), `HardwareInput` + `applyHardwareInput` (kind, params, `dimensionsVerified` kept), `applyMaterial/EdgeBand/Hardware` (validate + `commands::upsert*`, one undo step), `removeLibraryEntry` (`commands::remove*`, refused while in use), `exportProjectLibrary` / `previewLibraryImport` / `importLibraryCommand` (`.foslib` via formats/library.hpp, one undo step, renamed entries `<id>-imported`), `LibraryText` |
 | `plan_view.hpp` | Plan workspace geometry (project XY, mm, seen from above): `PlanFootprint` / `planFootprints` (flat parts contribute their true outline, contours tessellated at 0.5 mm; other parts their XY box; union = footprint; `bounds` = XY of the assembly bounds), `planExtents`, `PlanRoom` + `checkPlanRoom` (session-only rectangle: the project file has no room/plan settings), `PlanGap` / `planGapsX` (nearest right neighbour sharing Y range, plus room walls; touching gaps <= 0.05 mm omitted), `PlanSnap` / `snapPlanMove` (min/max edges to other items' edges and room walls within a tolerance in mm = snap px / zoom; unsnapped axes rounded to a 1 mm grid), `movedPlacement`, `rotatedPlacement` (exact +90° about Z), `planMoveCommand` / `planRotateCommand` / `applyPlanMove` / `applyPlanRotate` (one `commands::setPlacement` = one undo step), `planItemAt`, `planSizeText`, `planLengthText` |
+| `edit_tools.hpp` | Free modelling on whole items (project frame, mm; boxes = generated assembly AABBs): `groupCommands` (several commands = ONE undo step, all or nothing), `itemBounds` / `itemsBounds`, `rotationAbout` (exact quarter turns), `translateItemsCommand`, `moveItemsToCommand` (selection min corner to a point), `rotateItemsCommand` (about the box centre; X/Y for free panels only), `mirrorItemsCommand` (copies whose box is the mirror image; rectangular aligned panels exactly reflected with L1/L2 or W1/W2 bands swapped, others listed in `CopyPlan::notReflected`), `arrayItemsCommand`, `duplicateItemsCommand`, `removeItemsCommand`, `alignItemsCommand` (to the first item), `distributeItemsCommand` (equal gaps, outer items fixed); session helpers `deleteSelectedItems`, `duplicateSelectedItems`, `nudgeSelectedItems`. `Selection::extraItemIds` / `allItems()` + `Session::selectItems` / `toggleItemSelected` hold the multi-selection. |
+| `panel_tools.hpp` | Edit > Add panel…: `AddPanelRequest` (size, orientation, material, edge bands, `PanelPlacement`: origin, at / on top of / below / left / right / in front of / behind the selection, `FillGap` between two items), `planAddPanel` (gap = clearance along the separating axis × overlap along the others; thickness from the material, must fit), `makePanelItem`, `applyAddPanel` (one undo step). |
+| `item_clipboard.hpp` | Copy / cut / paste of items as clipboard JSON (`{"format":"furnitureos-items","version":1,"project":…}`), pasted with `project::commands::mergeItems` (library entries merged, `RenameWithNewId` on conflicts, clashing item ids renamed); `pasteOffset` pastes in place unless the boxes overlap target items (then right of all items). |
+| `update_version.hpp`, `update_release.hpp`, `update_zip.hpp`, `update_plan.hpp` | In-app updater logic (see "Updates"): `SemVer` / `parseSemVer` / `compareSemVer` (semver 2.0 precedence incl. pre-releases); `releasesApiUrl`, `parseGitHubReleases` (object or array), `selectUpdate`, `parseUpdateManifest` (update.json cross-checked against the release), `parseSha256Sums`, `checkChecksumsAgree`, `verifyDownload` / `verifyDownloadedFile`; `crc32`, `inflateRaw`, `extractZip` (stored + deflate, CRC-checked, no path traversal), `safeZipEntryPath`; `detectInstallKind`, `chooseUpdate`, `planPortableSwap`, `locateStagedRoot`, `portableSwapScript` / `installerScript` (.cmd text), `parseUpdateOutcome`, `UpdateConsent` |
 | `recent_files.hpp`, `autosave.hpp`, `window_title.hpp`, `command_text.hpp`, `version.hpp` | MRU list in QSettings; `autosaveDue`, `recoveryOffer`, untitled autosave location; "name* — FurnitureOS"; translated undo labels with item names |
 
 ## Behaviour
@@ -154,6 +158,48 @@ existing items' bounding boxes).
   spin box in mm over the model bounds along the axis — re-read on every model change — "Flip" and "Off")
   and applies `ViewportWidget::setSectionPlane`; unchecking or "Off" removes the plane. Display only.
 
+## Updates
+
+Optional in-app updates (`src/gui/update_controller.*`, `update_dialog.*`; logic in `update_*.hpp`).
+Rules: FurnitureOS works fully offline; checks are opt-in; nothing is installed without the user's explicit
+confirmation; no telemetry (one anonymous GET with `User-Agent: FurnitureOS-Updater`, no cookies, no ids).
+
+* **Help ▸ Check for updates…** always checks and reports "up to date" and errors in a dialog.
+* **Startup** (`MainWindow::startupUpdateCheck`, called from `main()` only, so tests never hit the network):
+  first reports the result file of a previous update attempt; then, if `updates/startupCheck` is `ask`,
+  asks once (Yes → `yes`, No → `no`); checks only when `yes`. Failures of an automatic check only go to the
+  status bar. A version stored in `updates/skippedVersion` is not offered automatically.
+* **Channel** (`updates/includePrereleases`): stable uses `GET https://api.github.com/repos/shinigamich/furnitureos/releases/latest`
+  (GitHub excludes drafts and pre-releases); pre-releases use `/releases?per_page=30` and pick the highest
+  semantic version. A release is offered only if it is newer than `applicationVersion()` (FOS_VERSION_STRING,
+  incl. suffixes such as `-beta.1`) and carries `update.json` and `SHA256SUMS.txt`.
+* **Verification**: update.json must match the tag version and the GitHub asset sizes; update.json and
+  SHA256SUMS.txt must agree on the hash before downloading; the download (to
+  `CacheLocation/updates/<name>.part`, cancellable, aborted when larger than declared) must match size and
+  SHA-256; otherwise it is deleted and the update refused.
+* **Apply** (Windows; decided by `detectInstallKind` + `chooseUpdate`):
+  * `installed.txt` next to the exe (written by the Inno Setup installer) and a `windows-x64-setup` asset →
+    script waits for the app to exit, runs `setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART`, relaunches the exe.
+    Installed copy without a setup asset → release page only (never swap files under an installer).
+  * Portable → `extractZip` into `<parent>/<app>.update-X.Y.Z` (same volume), `locateStagedRoot` (exe at the
+    top or in the single top-level folder), then the script: wait ≤ 120 s for the PID, rename app →
+    `<app>.old` (retry 30 s), rename staged → app, roll back on failure, relaunch; the old folder is deleted
+    only after success. Every step is a directory rename on one volume, so the install is never half-updated.
+  * Linux/other → "Open release page" (no in-place replacement; the dialog says so).
+  * The script writes `ok X.Y.Z` / `failed <reason>` to `CacheLocation/updates/update-result.txt`, shown at
+    the next start.
+* **Why a generated `.cmd` and not a helper executable**: Windows cannot rename a folder while an image in it
+  runs, so a helper would have to be copied out together with its Qt and C++ runtime DLLs; `cmd.exe` is always
+  present, needs no PowerShell execution policy, and the script text is unit-tested (`update_tests.cpp`).
+  It is started detached with `CREATE_NO_WINDOW`, working directory = the cache folder.
+
+**Release contract** (implemented by `packaging/release/make_release_metadata.py` and the release workflow):
+GitHub release tagged `vX.Y.Z[-pre]` in `shinigamich/furnitureos` with assets `FurnitureOS-<ver>-windows-x64.zip`
+(one top-level folder holding `furnitureos.exe`; stored/deflate entries, no ZIP64, < 4 GiB),
+optional `FurnitureOS-<ver>-windows-x64-setup.exe`, `SHA256SUMS.txt` (`sha256sum` format, covering both) and
+`update.json` = `{"version", "published", "notes" (Markdown), "assets": {"windows-x64-zip": {name, sha256,
+size}, "windows-x64-setup": {...}}}`. Pre-releases must be marked as such on GitHub.
+
 ## Localisation
 
 All UI strings use `tr()` / `QCoreApplication::translate`. Catalogues: `translations/furnitureos_uk.ts`
@@ -243,3 +289,8 @@ means Ukrainian for a Ukrainian system locale, English otherwise.
   created in the UI (only opened from files / added by commands), so their Shape section is reached that way; no
   graphical outline preview inside the Shape editor (the 3D view and part drawings show the result after Apply).
 * Only Linux (X11 / offscreen) has been built and tested.
+* Updates: in-place installation only on Windows (portable ZIP or the Inno Setup installer); the swap script is
+  UTF-8 with `chcp 65001` (paths with exotic characters rely on that); no download resume; ZIP64 archives and
+  methods other than stored/deflate are refused; a portable folder in a non-writable location (e.g. Program
+  Files) cannot be updated in place. The `.cmd` scripts are unit-tested as text only; they were not executed
+  on Windows in this environment.

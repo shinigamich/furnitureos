@@ -32,6 +32,8 @@ public:
     void setFootprints(std::vector<PlanFootprint> footprints);
     void setRoom(std::optional<project::RoomSettings> room);
     void setSelectedItem(const std::string& itemId);
+    /// Further selected items of a multi-selection (highlighted and dragged together).
+    void setExtraSelectedItems(std::vector<std::string> itemIds);
     const std::vector<PlanFootprint>& footprints() const noexcept { return footprints_; }
     const std::optional<project::RoomSettings>& room() const noexcept { return room_; }
 
@@ -52,6 +54,10 @@ signals:
     void itemClicked(const QString& itemId);
     /// A drag ended with a non-zero (snapped) translation, mm.
     void moveRequested(const QString& itemId, double dx, double dy);
+    /// Ctrl+click on an item: add it to / remove it from the selection.
+    void itemToggled(const QString& itemId);
+    /// Arrow key: move the selection by (dx, dy) mm (1 mm, with Shift 10 mm).
+    void nudgeRequested(double dx, double dy);
 
 protected:
     void paintEvent(QPaintEvent* event) override;
@@ -59,6 +65,7 @@ protected:
     void mouseMoveEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
     void resizeEvent(QResizeEvent* event) override;
 
 private:
@@ -69,6 +76,8 @@ private:
     std::vector<QPainterPath> paths_;  ///< Union of each footprint's outlines (project mm).
     std::optional<project::RoomSettings> room_;
     std::string selected_;
+    std::vector<std::string> extraSelected_;
+    bool isSelected(const std::string& itemId) const;
     double scale_ = 0.2;               ///< px per mm.
     QPointF origin_{40, 400};          ///< Screen position of project (0,0).
     bool fitted_ = false;

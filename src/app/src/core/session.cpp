@@ -85,6 +85,7 @@ core::Result<void> Session::newFromTemplate(TemplateKind kind, const std::option
     project::Project p = project::newProject(freshMetadata());
     auto item = makeTemplateItem(kind, nextItemId(p), templateTitle(kind).toStdString(), p.libraries, size);
     if (!item) return item.error();
+    addRequiredGenericHardware(p.libraries, item.value()); // a table's generic leg
     p.items.push_back(std::move(item).value());
     const std::string id = p.items.back().id();
     replaceDocument(std::move(p), {});

@@ -12,7 +12,7 @@
 namespace fos::app {
 
 enum class TemplateKind { BaseCabinet, WallCabinet, TallCabinet, DrawerUnit, DrawerUnitWithBoxes, WardrobeSection, OpenShelving,
-                          BlindCornerCabinet, LCornerCabinet, OvenTallHousing, DishwasherFront };
+                          BlindCornerCabinet, LCornerCabinet, OvenTallHousing, DishwasherFront, Desk, Table };
 
 /// All kinds in menu order.
 const std::vector<TemplateKind>& allTemplates();
@@ -37,6 +37,11 @@ TemplateSize defaultTemplateSize(TemplateKind kind);
 core::Result<project::Item> makeTemplateItem(TemplateKind kind, const std::string& id, const std::string& name,
                                              const furniture::Libraries& libraries,
                                              const std::optional<TemplateSize>& size = std::nullopt);
+
+/// Adds to `libraries` the generic fittings the item needs that the built-in catalogue lacks
+/// (furniture::requiredGenericHardware(): the generic leg of a table) and that are not there yet.
+/// Returns true when anything was added. project::commands::addItem does the same.
+bool addRequiredGenericHardware(furniture::Libraries& libraries, const project::Item& item);
 
 /// First unused item id "<prefix><n>" (n = 1, 2, ...).
 std::string nextItemId(const project::Project& project, const std::string& prefix = "cab");

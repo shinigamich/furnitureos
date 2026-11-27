@@ -410,11 +410,11 @@ TEST(UpdatePlan, PortableScriptSwapsWithRollback) {
     EXPECT_TRUE(script.endsWith(QStringLiteral("\r\n")));
     EXPECT_EQ(script.count(QStringLiteral("\n")), script.count(QStringLiteral("\r\n"))); // CRLF only
     // Staging cleanup on success only when the new folder was nested inside it.
-    const int successCleanups = script.mid(at(":swapped"), at(":fail_precheck") - at(":swapped"))
+    const qsizetype successCleanups = script.mid(at(":swapped"), at(":fail_precheck") - at(":swapped"))
                                     .count(QStringLiteral("rd /s /q \"%FOS_STAGING%\""));
     EXPECT_EQ(successCleanups, 1);
     const QString flat = portableSwapScript(plan, plan.stagingDir, 1, QStringLiteral("0.2.0"), QStringLiteral("r.txt"));
-    const int s0 = flat.indexOf(QLatin1String(":swapped")), s1 = flat.indexOf(QLatin1String(":fail_precheck"));
+    const qsizetype s0 = flat.indexOf(QLatin1String(":swapped")), s1 = flat.indexOf(QLatin1String(":fail_precheck"));
     EXPECT_EQ(flat.mid(s0, s1 - s0).count(QStringLiteral("rd /s /q \"%FOS_STAGING%\"")), 0);
 }
 

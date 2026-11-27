@@ -2017,6 +2017,69 @@
         <source>Add worktop {0} over {1}</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Move {0} items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rotate {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rotate {0} items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete {0} items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Duplicate {0} items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mirror {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mirror {0} items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Array {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Array {0} items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Align {0} items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Distribute {0} items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add panel {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Paste {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Paste {0} items</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::PanelTools</name>
+    <message>
+        <source>Panel</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>fos::app::Parameters</name>
@@ -2073,6 +2136,33 @@
     <message>
         <source>L</source>
         <comment>length</comment>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::Samples</name>
+    <message>
+        <source>Kitchen run with worktop</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Base cabinet, drawer unit, dishwasher front and sink cabinet under one worktop.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Wardrobe with sliding doors</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>1800 mm wardrobe: shelves, hanging rail, two sliding doors.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Desk</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>1400 mm desk with modesty panel and a three-drawer pedestal.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -4716,14 +4806,6 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Preferences</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>The new language is used after a restart.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>About FurnitureOS</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5227,6 +5309,50 @@ Replace it?</source>
     </message>
     <message>
         <source>One printable HTML document for the workshop: part and cut lists, hardware, packing, assembly sheets and cutting plans</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Check for &amp;updates…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Welcome…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open sample project</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Opened the sample &quot;%1&quot; as a new project; Save asks where to keep it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The sample project &quot;%1&quot; is missing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Language</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The new language is used after FurnitureOS restarts. Restart now?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Restart now</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Later</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Restart</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>FurnitureOS could not be started again (%1). Your settings are saved; close the application and start it again to use them.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -5764,10 +5890,6 @@ Replace it?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>A change of language takes effect when the application is restarted. Messages from the engineering core (diagnostics) are always in English.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Add folder…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5785,6 +5907,34 @@ Replace it?</source>
     </message>
     <message>
         <source>Component folders:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Check for updates at startup</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Asks GitHub for the list of FurnitureOS releases; no personal data is sent. Updates are only installed after you confirm.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Stable releases only</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Include pre-releases (beta)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Updates:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Update channel:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A new language is used after the application restarts; you are asked whether to restart now. Messages from the engineering core (diagnostics) are always in English.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -6344,6 +6494,264 @@ Circle: X, Y = centre, Radius.</source>
     </message>
     <message>
         <source>The niche height (generic 595 mm) is the parameter niche_height in the inspector; check the appliance&apos;s installation sheet for the niche and ventilation sizes.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::UpdateController</name>
+    <message>
+        <source>Check for updates</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Should FurnitureOS check for a new version each time it starts?
+
+It asks GitHub for the list of published FurnitureOS releases; no personal data and no usage data are sent. Nothing is downloaded or installed without your confirmation, and FurnitureOS works fully offline either way. You can change this later in Preferences.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>FurnitureOS was updated to version %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The last update could not be installed:
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>An update check is already running.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Checking for updates…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The release list could not be read.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>FurnitureOS %1 is the newest version.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The update description (update.json) is invalid.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not reach %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The answer is unexpectedly large.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>GitHub&apos;s limit for anonymous requests from your network was reached. Try again in an hour.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Nothing is published there (HTTP 404).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The request was cancelled or timed out.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The server answered HTTP %1 (%2).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>FurnitureOS keeps working offline; you can try again later.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Update check failed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The checksum list (SHA256SUMS.txt) is invalid.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The published checksums are inconsistent.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The download folder could not be created.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The download could not be saved.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Downloading %1…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The download was cancelled.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The server sent more than the expected %1 bytes.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Writing %1 failed: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The download is larger than expected or could not be written.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The update was not installed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The verified download could not be renamed to %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The update was not installed; nothing was changed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The folder %1 is not writable, so the new version cannot be unpacked next to the program. Move FurnitureOS to a folder you can write to, or download the release manually.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unpacking the update…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The update helper script could not be written to %1; nothing was changed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The update is ready. FurnitureOS will now close (you will be asked about unsaved changes), install it and start again.
+
+Continue?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The update was cancelled; nothing was changed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The update helper could not be started (%1); nothing was changed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::UpdateDialog</name>
+    <message>
+        <source>Update available</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>FurnitureOS %1 is available.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>You have version %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Published %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Download size: %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This is a pre-release.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No release notes were published for this version.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>“Update now” downloads the installer and checks its SHA-256 checksum. FurnitureOS then closes, the installer upgrades this installation silently and FurnitureOS starts again.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>“Update now” downloads the portable package, checks its SHA-256 checksum and unpacks it next to this folder. After FurnitureOS closes, the old folder is replaced by the new one (and restored if anything fails) and FurnitureOS starts again. Settings and libraries are kept: they are stored in your user profile, not in the program folder.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>FurnitureOS cannot install this update itself here: automatic installation is only available for the Windows portable and installer builds. Open the release page to download it, or update through the package manager or build you installed it from.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open release page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Update now</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Later</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skip this version</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::WelcomeDialog</name>
+    <message>
+        <source>Welcome to FurnitureOS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;h3&gt;Welcome to FurnitureOS&lt;/h3&gt;&lt;p&gt;Parametric furniture design, drawings, cut lists and production documents.&lt;/p&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Language:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The main window uses the new language after a restart; you will be asked whether to restart now.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>All lengths are in millimetres (mm). Change the language later in Edit ▸ Preferences; open this dialog again from Help ▸ Welcome.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New from template</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open sample project</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open file…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Close</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -35,6 +35,7 @@ class QuoteWorkspace;
 class PackingWorkspace;
 class PlanWorkspace;
 class SectionToolBar;
+class EditToolsController;
 class UpdateController;
 
 class MainWindow : public QMainWindow {
@@ -58,6 +59,8 @@ public:
     ComponentBrowser* componentBrowser() const noexcept { return components_; }
     QTabWidget* workspaces() const noexcept { return tabs_; }
     SectionToolBar* sectionToolBar() const noexcept { return sectionBar_; }
+    /// Free-modelling actions (Add panel, copy/paste, transform, mirror, array, align).
+    EditToolsController* editTools() const noexcept { return editTools_; }
 
     /// Opens a project file (with recovery offer when a newer autosave/backup exists);
     /// errors are shown with the core's message. Returns true when the file was opened.
@@ -159,6 +162,7 @@ private:
     QLabel* validationLabel_ = nullptr;
     QLabel* measureLabel_ = nullptr;
     SectionToolBar* sectionBar_ = nullptr;
+    EditToolsController* editTools_ = nullptr;
     bool fitOnNextModel_ = true;
     bool restarting_ = false; ///< restartApplication() started the new process.
 

@@ -68,6 +68,7 @@ void InspectorPanel::buildCabinet(QVBoxLayout* layout, const std::string& itemId
         buildParameters(parameters, itemId,
                         withoutParameters(parameterGroups(*cabinet), cornerParameterNames(cabinet->corner.kind)), true);
     } else {
+        if (cabinet->desk) buildDesk(parameters, itemId);
         buildParameters(parameters, itemId, parameterGroups(*cabinet), true);
     }
     buildConstruction(construction, itemId);

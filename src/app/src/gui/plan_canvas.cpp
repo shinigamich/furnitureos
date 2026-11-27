@@ -2,6 +2,7 @@
 #include "plan_canvas.hpp"
 
 #include <QFileInfo>
+#include <QKeyEvent>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPolygonF>
@@ -80,6 +81,29 @@ void PlanCanvas::setSelectedItem(const std::string& itemId) {
     update();
 }
 
+void PlanCanvas::setExtraSelectedItems(std::vector<std::string> itemIds) {
+    if (extraSelected_ == itemIds) return;
+    extraSelected_ = std::move(itemIds);
+    update();
+}
+
+bool PlanCanvas::isSelected(const std::string& itemId) const {
+    return !itemId.empty() && (itemId == selected_ ||
+                               std::find(extraSelected_.begin(), extraSelected_.end(), itemId) != extraSelected_.end());
+}
+
+void PlanCanvas::keyPressEvent(QKeyEvent* event) {
+    const double step = (event->modifiers() & Qt::ShiftModifier) ? 10.0 : 1.0;
+    switch (event->key()) {
+    case Qt::Key_Left: emit nudgeRequested(-step, 0); break;
+    case Qt::Key_Right: emit nudgeRequested(step, 0); break;
+    case Qt::Key_Up: emit nudgeRequested(0, step); break; // +Y is up on screen
+    case Qt::Key_Down: emit nudgeRequested(0, -step); break;
+    default: QWidget::keyPressEvent(event); return;
+    }
+    event->accept();
+}
+
 geometry::Rect2 PlanCanvas::contentRect() const {
     geometry::Rect2 r = planExtents(footprints_);
     if (room_ && project::checkRoomSettings(*room_).ok()) r.expand(planRoomInner(*room_).inflated(room_->wallThickness));
@@ -146,9 +170,9 @@ void PlanCanvas::render(QPainter& p, double scale, QPointF origin, double textPi
 
     // Items.
     for (std::size_t i = 0; i < shown.size(); ++i) {
-        const bool selected = shown[i].itemId == selected_;
+        const bool selected = isSelected(shown[i].itemId);
         QPainterPath path = paths_[i];
-        if (shown[i].itemId == dragItem_) path.translate(moveBy.x, moveBy.y);
+        if (shown[i].itemId == dragItem_ || (selected && isSelected(dragItem_))) path.translate(moveBy.x, moveBy.y);
         p.setPen(QPen(selected ? QColor(20, 90, 200) : QColor(40, 40, 40), selected ? 2.2 : 1.2));
         p.setBrush(selected ? QColor(200, 220, 250) : QColor(235, 225, 205));
         p.drawPath(world.map(path));
@@ -215,7 +239,12 @@ void PlanCanvas::mousePressEvent(QMouseEvent* event) {
     }
     if (event->button() != Qt::LeftButton) return;
     const std::string id = planItemAt(footprints_, toProject(event->position()), 3.0 / scale_);
-    emit itemClicked(QString::fromStdString(id));
+    if ((event->modifiers() & Qt::ControlModifier) && !id.empty()) {
+        emit itemToggled(QString::fromStdString(id));
+        return;
+    }
+    // Pressing on an item of a multi-selection keeps the selection (the drag moves all of it).
+    if (!(isSelected(id) && !extraSelected_.empty())) emit itemClicked(QString::fromStdString(id));
     if (!id.empty()) {
         drag_ = Drag::Move;
         dragItem_ = id;

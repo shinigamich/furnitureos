@@ -29,6 +29,8 @@ furniture::CabinetDefinition makeDefinition(TemplateKind kind, const std::string
     case TemplateKind::LCornerCabinet: return t::lCornerCabinet(aid, materials);
     case TemplateKind::OvenTallHousing: return t::ovenTallHousing(aid, materials);
     case TemplateKind::DishwasherFront: return t::dishwasherFront(aid, materials);
+    case TemplateKind::Desk: return t::desk(aid, materials);
+    case TemplateKind::Table: return t::table(aid, materials);
     }
     return t::baseCabinet(aid, materials);
 }
@@ -40,7 +42,8 @@ const std::vector<TemplateKind>& allTemplates() {
                                                  TemplateKind::TallCabinet,  TemplateKind::DrawerUnit,
                                                  TemplateKind::DrawerUnitWithBoxes, TemplateKind::WardrobeSection, TemplateKind::OpenShelving,
                                                  TemplateKind::BlindCornerCabinet, TemplateKind::LCornerCabinet,
-                                                 TemplateKind::OvenTallHousing, TemplateKind::DishwasherFront};
+                                                 TemplateKind::OvenTallHousing, TemplateKind::DishwasherFront,
+                                                 TemplateKind::Desk, TemplateKind::Table};
     return kinds;
 }
 
@@ -62,6 +65,8 @@ QString templateTitle(TemplateKind kind) {
         return QCoreApplication::translate("fos::app::Templates", "Tall oven housing");
     case TemplateKind::DishwasherFront:
         return QCoreApplication::translate("fos::app::Templates", "Dishwasher gap with decor front");
+    case TemplateKind::Desk: return QCoreApplication::translate("fos::app::Templates", "Desk");
+    case TemplateKind::Table: return QCoreApplication::translate("fos::app::Templates", "Table");
     }
     return {};
 }
@@ -79,6 +84,8 @@ const char* templateToken(TemplateKind kind) noexcept {
     case TemplateKind::LCornerCabinet: return "corner-l";
     case TemplateKind::OvenTallHousing: return "oven-tall";
     case TemplateKind::DishwasherFront: return "dishwasher";
+    case TemplateKind::Desk: return "desk";
+    case TemplateKind::Table: return "table";
     }
     return "";
 }
@@ -96,8 +103,13 @@ core::Result<project::Item> makeTemplateItem(TemplateKind kind, const std::strin
     furniture::CabinetDefinition def = makeDefinition(kind, id);
     if (!name.empty()) def.name = name;
     if (size) {
+        // The size is judged against the libraries the item will have once inserted (a table
+        // brings its generic leg, see addRequiredGenericHardware()).
+        furniture::Libraries withGeneric = libraries;
+        for (auto& hw : furniture::requiredGenericHardware(def))
+            if (!withGeneric.findHardware(hw.id)) withGeneric.hardware.push_back(std::move(hw));
         // One atomic edit: all three or none (the furniture module validates the result).
-        auto edited = furniture::applyEdit(def, libraries, [&](furniture::CabinetDefinition& d) -> core::Result<void> {
+        auto edited = furniture::applyEdit(def, withGeneric, [&](furniture::CabinetDefinition& d) -> core::Result<void> {
             // Only sizes that differ from the template's current value are set, so a template
             // formula (dishwasher: width = appliance_gap_width + thickness) survives an
             // unchanged size.
@@ -123,6 +135,18 @@ core::Result<project::Item> makeTemplateItem(TemplateKind kind, const std::strin
     project::Item item;
     item.definition = std::move(def);
     return item;
+}
+
+bool addRequiredGenericHardware(furniture::Libraries& libraries, const project::Item& item) {
+    const furniture::CabinetDefinition* cabinet = item.cabinet();
+    if (!cabinet) return false;
+    bool added = false;
+    for (auto& hw : furniture::requiredGenericHardware(*cabinet))
+        if (!libraries.findHardware(hw.id)) {
+            libraries.hardware.push_back(std::move(hw));
+            added = true;
+        }
+    return added;
 }
 
 std::string nextItemId(const project::Project& project, const std::string& prefix) {

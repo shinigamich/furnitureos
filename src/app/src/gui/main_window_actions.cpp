@@ -3,9 +3,12 @@
 #include "component_browser.hpp"
 #include "dialogs.hpp"
 #include "drawings_workspace.hpp"
+#include "edit_tools_controller.hpp"
+#include "inspector_panel.hpp"
 #include "job_pack_dialog.hpp"
 #include "fos/viewport/viewport_widget.hpp"
 #include "main_window.hpp"
+#include "merge_dialog.hpp"
 #include "packing_workspace.hpp"
 #include "quote_workspace.hpp"
 #include "update_controller.hpp"
@@ -165,6 +168,8 @@ void MainWindow::buildActions() {
     updates_ = new UpdateController(this);
     connect(a_.checkUpdates, &QAction::triggered, updates_, &UpdateController::checkNow);
     connect(a_.shortcuts, &QAction::triggered, this, [this] { ShortcutsDialog(allActions_, this).exec(); });
+    editTools_ = new EditToolsController(session_, this, allActions_);
+    inspector_->setMultiSelectionActions(editTools_->multiSelectionActions() << a_.duplicateItem << a_.deleteItem);
 }
 
 void MainWindow::buildMenus() {
@@ -189,6 +194,8 @@ void MainWindow::buildMenus() {
     file->addSeparator();
     file->addAction(a_.compare);
     file->addAction(a_.importDxf);
+    file->addAction(tr("Import &items from project…"), this, [this] { importItemsFromProject(session_, this); })
+        ->setObjectName(QStringLiteral("importItemsFromProject"));
     QMenu* exportMenu = file->addMenu(tr("&Export"));
     for (QAction* a : {a_.exportCsv, a_.exportHtml, a_.exportLabels}) exportMenu->addAction(a);
     exportMenu->addSeparator();
@@ -213,6 +220,7 @@ void MainWindow::buildMenus() {
     edit->addAction(a_.duplicateItem);
     edit->addAction(a_.deleteItem);
     edit->addAction(a_.saveAsComponent);
+    editTools_->populateMenu(edit);
     edit->addSeparator();
     edit->addAction(a_.preferences);
 

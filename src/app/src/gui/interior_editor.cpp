@@ -210,6 +210,27 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
     frameJoint_->setObjectName(QStringLiteral("frameJoint"));
     panelMaterial_ = narrowCombo(frontBox);
     panelMaterial_->setObjectName(QStringLiteral("framePanelMaterial"));
+    panelKind_ = narrowCombo(frontBox);
+    panelKind_->setObjectName(QStringLiteral("framePanelKind"));
+    panelKind_->addItem(tr("Board in a groove"), static_cast<int>(furniture::FramePanelKind::Grooved));
+    panelKind_->addItem(tr("Glass in a rebate"), static_cast<int>(furniture::FramePanelKind::Glass));
+    panelKind_->setToolTip(tr("Glass: a pane in a rebate on the back of the frame instead of a board in a groove; "
+                              "needs the dowel joint and a glass panel material."));
+    glassThickness_ = ventSpin("glassThickness", frontBox);
+    glassThickness_->setToolTip(tr("Thickness of the glass pane."));
+    rebateWidth_ = ventSpin("glassRebateWidth", frontBox);
+    rebateWidth_->setToolTip(tr("Width of the rebate into the inner frame edge."));
+    rebateDepth_ = ventSpin("glassRebateDepth", frontBox);
+    rebateDepth_->setToolTip(tr("Depth of the rebate from the back face of the frame."));
+    glassBeads_ = narrowCombo(frontBox);
+    glassBeads_->setObjectName(QStringLiteral("glassBeads"));
+    glassBeads_->addItem(tr("Glazing-bead strips"), static_cast<int>(furniture::GlassBeads::Strip));
+    glassBeads_->addItem(tr("None (clips or silicone, not modelled)"), static_cast<int>(furniture::GlassBeads::None));
+    glassWarning_ = new QLabel(frontBox);
+    glassWarning_->setObjectName(QStringLiteral("glassWarning"));
+    glassWarning_->setWordWrap(true);
+    glassWarning_->setStyleSheet(QStringLiteral("color: #b36b00;"));
+    glassWarning_->hide();
     applyFront_ = new QPushButton(tr("Apply front"), frontBox);
     applyFront_->setObjectName(QStringLiteral("applyFront"));
     frontForm->addRow(tr("Type:"), frontKind_);
@@ -224,7 +245,13 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
     frontForm->addRow(tr("Groove depth:"), grooveDepth_);
     frontForm->addRow(tr("Panel clearance:"), panelClearance_);
     frontForm->addRow(tr("Frame joint:"), frameJoint_);
+    frontForm->addRow(tr("Panel:"), panelKind_);
     frontForm->addRow(tr("Panel material:"), panelMaterial_);
+    frontForm->addRow(tr("Glass thickness:"), glassThickness_);
+    frontForm->addRow(tr("Rebate width:"), rebateWidth_);
+    frontForm->addRow(tr("Rebate depth:"), rebateDepth_);
+    frontForm->addRow(tr("Glass retention:"), glassBeads_);
+    frontForm->addRow(glassWarning_);
     frontForm->addRow(tr("Sliding doors:"), slidingDoors);
     frontForm->addRow(tr("Drawer heights:"), drawerHeights_);
     frontForm->addRow(tr("Drawer boxes:"), drawerBox_);
@@ -314,14 +341,32 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
         const bool styled = frontStyleApplies(choice);
         frontStyle_->setEnabled(styled);
         const bool frame = styled && valueOf<furniture::FrontStyle>(frontStyle_) == furniture::FrontStyle::FramePanel;
-        for (QWidget* w : std::initializer_list<QWidget*>{stileWidth_, railWidth_, panelThickness_, grooveDepth_,
-                                                          panelClearance_, frameJoint_, panelMaterial_})
+        for (QWidget* w : std::initializer_list<QWidget*>{stileWidth_, railWidth_, panelClearance_, frameJoint_,
+                                                          panelMaterial_, panelKind_})
             w->setEnabled(frame);
+        const bool glass = frame && valueOf<furniture::FramePanelKind>(panelKind_) == furniture::FramePanelKind::Glass;
+        panelThickness_->setEnabled(frame && !glass);
+        grooveDepth_->setEnabled(frame && !glass);
+        for (QWidget* w : std::initializer_list<QWidget*>{glassThickness_, rebateWidth_, rebateDepth_, glassBeads_})
+            w->setEnabled(glass);
+        QString warning;
+        const project::Item* item = session_.project().findItem(itemId_);
+        if (glass && item && item->cabinet()) {
+            furniture::FramePanelSpec probe;
+            probe.panelKind = furniture::FramePanelKind::Glass;
+            const std::string material = panelMaterial_->currentData().toString().toStdString();
+            if (!material.empty()) probe.panelMaterial = domain::MaterialId(material);
+            warning = glassPanelMaterialWarning(*item->cabinet(), session_.project().libraries, probe);
+        }
+        glassWarning_->setText(warning);
+        glassWarning_->setVisible(!warning.isEmpty());
     };
     connect(frontKind_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
     connect(drawerBox_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
     connect(nicheVent_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
     connect(frontStyle_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
+    connect(panelKind_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
+    connect(panelMaterial_, qOverload<int>(&QComboBox::currentIndexChanged), this, updateFrontFields);
     connect(applyFront_, &QPushButton::clicked, this, [this] {
         FrontInput in;
         in.choice = valueOf<FrontInput::Choice>(frontKind_);
@@ -346,6 +391,11 @@ InteriorEditor::InteriorEditor(Session& session, std::string itemId, std::string
         in.frame.grooveDepth = grooveDepth_->value();
         in.frame.panelClearance = panelClearance_->value();
         in.frame.joint = valueOf<furniture::FrameJoint>(frameJoint_);
+        in.frame.panelKind = valueOf<furniture::FramePanelKind>(panelKind_);
+        in.frame.glass.glassThickness = glassThickness_->value();
+        in.frame.glass.rebateWidth = rebateWidth_->value();
+        in.frame.glass.rebateDepth = rebateDepth_->value();
+        in.frame.glass.beads = valueOf<furniture::GlassBeads>(glassBeads_);
         const std::string material = panelMaterial_->currentData().toString().toStdString();
         in.frame.panelMaterial =
             material.empty() ? std::nullopt : std::optional<domain::MaterialId>(domain::MaterialId(material));
@@ -459,6 +509,11 @@ void InteriorEditor::showSelected() {
     for (const auto& c : panelMaterialChoices(session_.project().libraries, panelMaterial))
         panelMaterial_->addItem(c.text, QString::fromStdString(c.id));
     selectData(panelMaterial_, QString::fromStdString(panelMaterial));
+    glassThickness_->setValue(in.frame.glass.glassThickness);
+    rebateWidth_->setValue(in.frame.glass.rebateWidth);
+    rebateDepth_->setValue(in.frame.glass.rebateDepth);
+    selectData(glassBeads_, static_cast<int>(in.frame.glass.beads));
+    selectData(panelKind_, static_cast<int>(in.frame.panelKind));
     applyFront_->setEnabled(have);
     showRail(row);
     innerDrawers_->showSection(row);

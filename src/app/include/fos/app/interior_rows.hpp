@@ -116,6 +116,15 @@ struct PanelMaterialChoice {
 };
 std::vector<PanelMaterialChoice> panelMaterialChoices(const furniture::Libraries& libraries,
                                                       const std::string& current);
+/// Material a frame-and-panel front of `cabinet` would use for its panel: frame.panelMaterial,
+/// else the front material, else (empty front) the carcass material.
+domain::MaterialId framePanelMaterialId(const furniture::CabinetDefinition& cabinet,
+                                        const furniture::FramePanelSpec& frame);
+/// Translated warning for a GLASS frame panel (frame.panelKind == Glass) whose material
+/// (framePanelMaterialId) is not of MaterialKind::Glass or not in the library, mirroring the
+/// engine warning furniture.front.glass_material; empty otherwise (also for grooved panels).
+QString glassPanelMaterialWarning(const furniture::CabinetDefinition& cabinet, const furniture::Libraries& libraries,
+                                  const furniture::FramePanelSpec& frame);
 /// Library entries of kind DrawerSlide (id, name) in library order; `current` is appended
 /// with `missing` set when it is not among them.
 struct SlideChoice {

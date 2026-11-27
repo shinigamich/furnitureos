@@ -3,6 +3,7 @@
 
 #include "fos/app/appliance_text.hpp"
 #include "fos/app/corner_rows.hpp"
+#include "fos/app/desk_rows.hpp"
 #include "fos/core/units.hpp"
 
 namespace fos::app {
@@ -22,7 +23,9 @@ std::vector<BrowserNode> buildBrowserTree(const project::Project& project, const
         node.isCabinet = item.isCabinet();
         node.generated = false;
         if (const auto* cabinet = item.cabinet())
-            node.detail = (isApplianceGap(*cabinet) ? applianceGapDescription(*cabinet) : cornerDescription(*cabinet))
+            node.detail = (isDesk(*cabinet)           ? deskDescription(*cabinet)
+                           : isApplianceGap(*cabinet) ? applianceGapDescription(*cabinet)
+                                                      : cornerDescription(*cabinet))
                               .toStdString();
         const domain::Assembly* assembly = resolved ? resolved->model.findAssembly(domain::AssemblyId(item.id())) : nullptr;
         if (assembly) {

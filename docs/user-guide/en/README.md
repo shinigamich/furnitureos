@@ -24,6 +24,7 @@ program can do today. Parts marked **Experimental** or **Command line only** are
 11. [Files](11-files.md): saving, autosave and recovery, components, merging, comparing, production batches
 12. [Keyboard shortcuts](12-keyboard-shortcuts.md)
 13. [Limitations and safety](13-limitations-and-safety.md)
+14. [Updates](14-updates.md)
 
 ## Conventions
 

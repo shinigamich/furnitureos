@@ -15,6 +15,7 @@
 #include <QPushButton>
 #include <QTabWidget>
 #include <QTimer>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 namespace fos::app::gui {
@@ -47,6 +48,11 @@ InspectorPanel::InspectorPanel(Session& session, QWidget* parent) : QScrollArea(
     rebuild();
 }
 
+void InspectorPanel::setMultiSelectionActions(QList<QAction*> actions) {
+    multiActions_ = std::move(actions);
+    rebuild();
+}
+
 void InspectorPanel::rebuild() {
     // The editor that triggered a change may still be inside its signal: delete later.
     if (QWidget* old = takeWidget()) old->deleteLater();
@@ -56,7 +62,25 @@ void InspectorPanel::rebuild() {
     auto* content = new QWidget;
     auto* layout = new QVBoxLayout(content);
     const Selection& sel = session_.selection();
-    if (sel.partIds.size() == 1) {
+    if (const auto items = sel.allItems(); items.size() > 1) {
+        // Multi-selection: the common editing tools; the property editors work on one item.
+        auto* box = new QGroupBox(tr("%1 items selected").arg(items.size()), content);
+        box->setObjectName(QStringLiteral("multiSelection"));
+        auto* boxLayout = new QVBoxLayout(box);
+        for (QAction* action : multiActions_) {
+            auto* button = new QToolButton(box);
+            button->setDefaultAction(action);
+            button->setToolButtonStyle(Qt::ToolButtonTextOnly);
+            button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+            boxLayout->addWidget(button);
+        }
+        auto* hint = new QLabel(tr("Ctrl+click an item to add it to or remove it from the selection. Align uses the "
+                                   "first selected item as reference."),
+                                box);
+        hint->setWordWrap(true);
+        boxLayout->addWidget(hint);
+        layout->addWidget(box);
+    } else if (sel.partIds.size() == 1) {
         buildPart(layout, sel.partIds.front());
     } else if (sel.partIds.size() > 1) {
         layout->addWidget(new QLabel(tr("%1 parts selected.").arg(sel.partIds.size()), content));

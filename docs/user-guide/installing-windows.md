@@ -37,6 +37,7 @@ FurnitureOS — безкоштовна програма для проєктув�
 
 Завантажте новий `…-setup.exe` і запустіть його так само — він оновить програму, ваші проєкти та
 налаштування залишаться. Закрийте FurnitureOS перед оновленням (інакше інсталятор закриє її сам).
+Або скористайтеся **Довідка ▸ Перевірити оновлення…** — див. [розділ 14](uk/14-updates.md).
 
 ### 4. Видалення
 
@@ -86,6 +87,7 @@ The program is installed for your user only, in `%LOCALAPPDATA%\Programs\Furnitu
 
 Download the new `…-setup.exe` and run it the same way; it updates the program and keeps your projects and
 settings. Close FurnitureOS first (otherwise the installer closes it for you).
+Or use **Help ▸ Check for updates…** — see [chapter 14](en/14-updates.md).
 
 ### 4. Uninstall
 

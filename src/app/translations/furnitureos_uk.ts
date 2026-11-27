@@ -2029,6 +2029,69 @@
         <source>Add worktop {0} over {1}</source>
         <translation>Додати стільницю {0} над {1}</translation>
     </message>
+    <message>
+        <source>Move {0} items</source>
+        <translation>Перемістити {0} елементів</translation>
+    </message>
+    <message>
+        <source>Rotate {0}</source>
+        <translation>Повернути {0}</translation>
+    </message>
+    <message>
+        <source>Rotate {0} items</source>
+        <translation>Повернути {0} елементів</translation>
+    </message>
+    <message>
+        <source>Delete {0} items</source>
+        <translation>Видалити {0} елементів</translation>
+    </message>
+    <message>
+        <source>Duplicate {0} items</source>
+        <translation>Дублювати {0} елементів</translation>
+    </message>
+    <message>
+        <source>Mirror {0}</source>
+        <translation>Віддзеркалити {0}</translation>
+    </message>
+    <message>
+        <source>Mirror {0} items</source>
+        <translation>Віддзеркалити {0} елементів</translation>
+    </message>
+    <message>
+        <source>Array {0}</source>
+        <translation>Масив {0}</translation>
+    </message>
+    <message>
+        <source>Array {0} items</source>
+        <translation>Масив із {0} елементів</translation>
+    </message>
+    <message>
+        <source>Align {0} items</source>
+        <translation>Вирівняти {0} елементів</translation>
+    </message>
+    <message>
+        <source>Distribute {0} items</source>
+        <translation>Розподілити {0} елементів</translation>
+    </message>
+    <message>
+        <source>Add panel {0}</source>
+        <translation>Додати панель {0}</translation>
+    </message>
+    <message>
+        <source>Paste {0}</source>
+        <translation>Вставити {0}</translation>
+    </message>
+    <message>
+        <source>Paste {0} items</source>
+        <translation>Вставити {0} елементів</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::PanelTools</name>
+    <message>
+        <source>Panel</source>
+        <translation>Панель</translation>
+    </message>
 </context>
 <context>
     <name>fos::app::Parameters</name>
@@ -2086,6 +2149,33 @@
         <source>L</source>
         <comment>length</comment>
         <translation>Д</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::Samples</name>
+    <message>
+        <source>Kitchen run with worktop</source>
+        <translation>Кухонний ряд зі стільницею</translation>
+    </message>
+    <message>
+        <source>Base cabinet, drawer unit, dishwasher front and sink cabinet under one worktop.</source>
+        <translation>Нижня шафа, шухлядна тумба, фасад посудомийної машини та шафа під мийку під однією стільницею.</translation>
+    </message>
+    <message>
+        <source>Wardrobe with sliding doors</source>
+        <translation>Шафа-купе з розсувними дверима</translation>
+    </message>
+    <message>
+        <source>1800 mm wardrobe: shelves, hanging rail, two sliding doors.</source>
+        <translation>Шафа 1800 мм: полиці, штанга для одягу, двоє розсувних дверей.</translation>
+    </message>
+    <message>
+        <source>Desk</source>
+        <translation>Письмовий стіл</translation>
+    </message>
+    <message>
+        <source>1400 mm desk with modesty panel and a three-drawer pedestal.</source>
+        <translation>Стіл 1400 мм з царгою та тумбою з трьома шухлядами.</translation>
     </message>
 </context>
 <context>
@@ -4740,14 +4830,6 @@ Print it scaled to fit the page instead? The printout will then NOT be to scale 
         <translation>Помилка автозбереження: %1</translation>
     </message>
     <message>
-        <source>Preferences</source>
-        <translation>Параметри</translation>
-    </message>
-    <message>
-        <source>The new language is used after a restart.</source>
-        <translation>Нова мова застосується після перезапуску.</translation>
-    </message>
-    <message>
         <source>About FurnitureOS</source>
         <translation>Про FurnitureOS</translation>
     </message>
@@ -5256,6 +5338,50 @@ Replace it?</source>
     <message>
         <source>One printable HTML document for the workshop: part and cut lists, hardware, packing, assembly sheets and cutting plans</source>
         <translation>Один HTML-документ для друку для цеху: перелік деталей і карта розкрою, фурнітура, пакування, складальні листи та плани розкрою</translation>
+    </message>
+    <message>
+        <source>Check for &amp;updates…</source>
+        <translation>Перевірити &amp;оновлення…</translation>
+    </message>
+    <message>
+        <source>&amp;Welcome…</source>
+        <translation>&amp;Ласкаво просимо…</translation>
+    </message>
+    <message>
+        <source>Open sample project</source>
+        <translation>Відкрити зразок проєкту</translation>
+    </message>
+    <message>
+        <source>Opened the sample &quot;%1&quot; as a new project; Save asks where to keep it.</source>
+        <translation>Зразок «%1» відкрито як новий проєкт; під час збереження буде запитано, де його зберегти.</translation>
+    </message>
+    <message>
+        <source>The sample project &quot;%1&quot; is missing.</source>
+        <translation>Зразок проєкту «%1» відсутній.</translation>
+    </message>
+    <message>
+        <source>Language</source>
+        <translation>Мова</translation>
+    </message>
+    <message>
+        <source>The new language is used after FurnitureOS restarts. Restart now?</source>
+        <translation>Нова мова застосовується після перезапуску FurnitureOS. Перезапустити зараз?</translation>
+    </message>
+    <message>
+        <source>Restart now</source>
+        <translation>Перезапустити зараз</translation>
+    </message>
+    <message>
+        <source>Later</source>
+        <translation>Пізніше</translation>
+    </message>
+    <message>
+        <source>Restart</source>
+        <translation>Перезапуск</translation>
+    </message>
+    <message>
+        <source>FurnitureOS could not be started again (%1). Your settings are saved; close the application and start it again to use them.</source>
+        <translation>Не вдалося знову запустити FurnitureOS (%1). Налаштування збережено; закрийте програму та запустіть її знову, щоб їх застосувати.</translation>
     </message>
 </context>
 <context>
@@ -5792,10 +5918,6 @@ Replace it?</source>
         <translation>Автозбереження кожні:</translation>
     </message>
     <message>
-        <source>A change of language takes effect when the application is restarted. Messages from the engineering core (diagnostics) are always in English.</source>
-        <translation>Зміна мови набуває чинності після перезапуску програми. Повідомлення інженерного ядра (діагностика) завжди англійською.</translation>
-    </message>
-    <message>
         <source>Add folder…</source>
         <translation>Додати теку…</translation>
     </message>
@@ -5814,6 +5936,34 @@ Replace it?</source>
     <message>
         <source>Component folders:</source>
         <translation>Теки компонентів:</translation>
+    </message>
+    <message>
+        <source>Check for updates at startup</source>
+        <translation>Перевіряти оновлення під час запуску</translation>
+    </message>
+    <message>
+        <source>Asks GitHub for the list of FurnitureOS releases; no personal data is sent. Updates are only installed after you confirm.</source>
+        <translation>Запитує в GitHub список випусків FurnitureOS; жодні персональні дані не надсилаються. Оновлення встановлюються лише після вашого підтвердження.</translation>
+    </message>
+    <message>
+        <source>Stable releases only</source>
+        <translation>Лише стабільні випуски</translation>
+    </message>
+    <message>
+        <source>Include pre-releases (beta)</source>
+        <translation>Включно з попередніми випусками (бета)</translation>
+    </message>
+    <message>
+        <source>Updates:</source>
+        <translation>Оновлення:</translation>
+    </message>
+    <message>
+        <source>Update channel:</source>
+        <translation>Канал оновлень:</translation>
+    </message>
+    <message>
+        <source>A new language is used after the application restarts; you are asked whether to restart now. Messages from the engineering core (diagnostics) are always in English.</source>
+        <translation>Нова мова застосовується після перезапуску програми; вас буде запитано, чи перезапустити зараз. Повідомлення інженерного ядра (діагностика) завжди англійською.</translation>
     </message>
 </context>
 <context>
@@ -6376,6 +6526,269 @@ Circle: X, Y = centre, Radius.</source>
     <message>
         <source>The niche height (generic 595 mm) is the parameter niche_height in the inspector; check the appliance&apos;s installation sheet for the niche and ventilation sizes.</source>
         <translation>Висота ніші (типово 595 мм) — це параметр niche_height в інспекторі; розміри ніші та вентиляції перевірте в інструкції з монтажу техніки.</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::UpdateController</name>
+    <message>
+        <source>Check for updates</source>
+        <translation>Перевірка оновлень</translation>
+    </message>
+    <message>
+        <source>Should FurnitureOS check for a new version each time it starts?
+
+It asks GitHub for the list of published FurnitureOS releases; no personal data and no usage data are sent. Nothing is downloaded or installed without your confirmation, and FurnitureOS works fully offline either way. You can change this later in Preferences.</source>
+        <translation>Чи має FurnitureOS перевіряти наявність нової версії під час кожного запуску?
+
+Програма запитує в GitHub список опублікованих випусків FurnitureOS; жодні персональні дані чи дані про використання не надсилаються. Нічого не завантажується й не встановлюється без вашого підтвердження, а FurnitureOS у будь-якому разі повністю працює без мережі. Змінити це можна пізніше в Параметрах.</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>Оновлення</translation>
+    </message>
+    <message>
+        <source>FurnitureOS was updated to version %1.</source>
+        <translation>FurnitureOS оновлено до версії %1.</translation>
+    </message>
+    <message>
+        <source>The last update could not be installed:
+%1</source>
+        <translation>Останнє оновлення не вдалося встановити:
+%1</translation>
+    </message>
+    <message>
+        <source>An update check is already running.</source>
+        <translation>Перевірка оновлень уже триває.</translation>
+    </message>
+    <message>
+        <source>Checking for updates…</source>
+        <translation>Перевірка оновлень…</translation>
+    </message>
+    <message>
+        <source>The release list could not be read.</source>
+        <translation>Не вдалося прочитати список випусків.</translation>
+    </message>
+    <message>
+        <source>FurnitureOS %1 is the newest version.</source>
+        <translation>FurnitureOS %1 — найновіша версія.</translation>
+    </message>
+    <message>
+        <source>The update description (update.json) is invalid.</source>
+        <translation>Опис оновлення (update.json) некоректний.</translation>
+    </message>
+    <message>
+        <source>Could not reach %1.</source>
+        <translation>Не вдалося з’єднатися з %1.</translation>
+    </message>
+    <message>
+        <source>The answer is unexpectedly large.</source>
+        <translation>Відповідь несподівано велика.</translation>
+    </message>
+    <message>
+        <source>GitHub&apos;s limit for anonymous requests from your network was reached. Try again in an hour.</source>
+        <translation>Досягнуто ліміту GitHub для анонімних запитів із вашої мережі. Спробуйте знову за годину.</translation>
+    </message>
+    <message>
+        <source>Nothing is published there (HTTP 404).</source>
+        <translation>Там нічого не опубліковано (HTTP 404).</translation>
+    </message>
+    <message>
+        <source>The request was cancelled or timed out.</source>
+        <translation>Запит скасовано або перевищено час очікування.</translation>
+    </message>
+    <message>
+        <source>The server answered HTTP %1 (%2).</source>
+        <translation>Сервер відповів HTTP %1 (%2).</translation>
+    </message>
+    <message>
+        <source>FurnitureOS keeps working offline; you can try again later.</source>
+        <translation>FurnitureOS і далі працює без мережі; спробуйте пізніше.</translation>
+    </message>
+    <message>
+        <source>Update check failed: %1</source>
+        <translation>Не вдалося перевірити оновлення: %1</translation>
+    </message>
+    <message>
+        <source>The checksum list (SHA256SUMS.txt) is invalid.</source>
+        <translation>Список контрольних сум (SHA256SUMS.txt) некоректний.</translation>
+    </message>
+    <message>
+        <source>The published checksums are inconsistent.</source>
+        <translation>Опубліковані контрольні суми не збігаються.</translation>
+    </message>
+    <message>
+        <source>The download folder could not be created.</source>
+        <translation>Не вдалося створити теку для завантаження.</translation>
+    </message>
+    <message>
+        <source>The download could not be saved.</source>
+        <translation>Не вдалося зберегти завантаження.</translation>
+    </message>
+    <message>
+        <source>%1: %2</source>
+        <translation>%1: %2</translation>
+    </message>
+    <message>
+        <source>Downloading %1…</source>
+        <translation>Завантаження %1…</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Скасувати</translation>
+    </message>
+    <message>
+        <source>The download was cancelled.</source>
+        <translation>Завантаження скасовано.</translation>
+    </message>
+    <message>
+        <source>The server sent more than the expected %1 bytes.</source>
+        <translation>Сервер надіслав більше за очікувані %1 байтів.</translation>
+    </message>
+    <message>
+        <source>Writing %1 failed: %2</source>
+        <translation>Не вдалося записати %1: %2</translation>
+    </message>
+    <message>
+        <source>The download is larger than expected or could not be written.</source>
+        <translation>Завантажений файл більший за очікуваний або його не вдалося записати.</translation>
+    </message>
+    <message>
+        <source>The update was not installed.</source>
+        <translation>Оновлення не встановлено.</translation>
+    </message>
+    <message>
+        <source>The verified download could not be renamed to %1.</source>
+        <translation>Перевірений файл не вдалося перейменувати на %1.</translation>
+    </message>
+    <message>
+        <source>The update was not installed; nothing was changed.</source>
+        <translation>Оновлення не встановлено; нічого не змінено.</translation>
+    </message>
+    <message>
+        <source>The folder %1 is not writable, so the new version cannot be unpacked next to the program. Move FurnitureOS to a folder you can write to, or download the release manually.</source>
+        <translation>Тека %1 недоступна для запису, тому нову версію не можна розпакувати поруч із програмою. Перемістіть FurnitureOS до теки, у яку можна записувати, або завантажте випуск вручну.</translation>
+    </message>
+    <message>
+        <source>Unpacking the update…</source>
+        <translation>Розпакування оновлення…</translation>
+    </message>
+    <message>
+        <source>The update helper script could not be written to %1; nothing was changed.</source>
+        <translation>Не вдалося записати сценарій оновлення до %1; нічого не змінено.</translation>
+    </message>
+    <message>
+        <source>The update is ready. FurnitureOS will now close (you will be asked about unsaved changes), install it and start again.
+
+Continue?</source>
+        <translation>Оновлення готове. FurnitureOS зараз закриється (вас буде запитано про незбережені зміни), встановить його та запуститься знову.
+
+Продовжити?</translation>
+    </message>
+    <message>
+        <source>The update was cancelled; nothing was changed.</source>
+        <translation>Оновлення скасовано; нічого не змінено.</translation>
+    </message>
+    <message>
+        <source>The update helper could not be started (%1); nothing was changed.</source>
+        <translation>Не вдалося запустити помічник оновлення (%1); нічого не змінено.</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::UpdateDialog</name>
+    <message>
+        <source>Update available</source>
+        <translation>Доступне оновлення</translation>
+    </message>
+    <message>
+        <source>FurnitureOS %1 is available.</source>
+        <translation>Доступна FurnitureOS %1.</translation>
+    </message>
+    <message>
+        <source>You have version %1.</source>
+        <translation>У вас версія %1.</translation>
+    </message>
+    <message>
+        <source>Published %1.</source>
+        <translation>Опубліковано %1.</translation>
+    </message>
+    <message>
+        <source>Download size: %1.</source>
+        <translation>Розмір завантаження: %1.</translation>
+    </message>
+    <message>
+        <source>This is a pre-release.</source>
+        <translation>Це попередній випуск.</translation>
+    </message>
+    <message>
+        <source>No release notes were published for this version.</source>
+        <translation>Для цієї версії не опубліковано приміток до випуску.</translation>
+    </message>
+    <message>
+        <source>“Update now” downloads the installer and checks its SHA-256 checksum. FurnitureOS then closes, the installer upgrades this installation silently and FurnitureOS starts again.</source>
+        <translation>«Оновити зараз» завантажує інсталятор і перевіряє його контрольну суму SHA-256. Потім FurnitureOS закривається, інсталятор у фоновому режимі оновлює цю інсталяцію, і FurnitureOS запускається знову.</translation>
+    </message>
+    <message>
+        <source>“Update now” downloads the portable package, checks its SHA-256 checksum and unpacks it next to this folder. After FurnitureOS closes, the old folder is replaced by the new one (and restored if anything fails) and FurnitureOS starts again. Settings and libraries are kept: they are stored in your user profile, not in the program folder.</source>
+        <translation>«Оновити зараз» завантажує портативний пакет, перевіряє його контрольну суму SHA-256 і розпаковує його поруч із цією текою. Після закриття FurnitureOS стара тека замінюється новою (і відновлюється, якщо щось піде не так), і FurnitureOS запускається знову. Налаштування й бібліотеки зберігаються: вони лежать у вашому профілі користувача, а не в теці програми.</translation>
+    </message>
+    <message>
+        <source>FurnitureOS cannot install this update itself here: automatic installation is only available for the Windows portable and installer builds. Open the release page to download it, or update through the package manager or build you installed it from.</source>
+        <translation>FurnitureOS не може сама встановити це оновлення тут: автоматичне встановлення доступне лише для портативної збірки та інсталятора для Windows. Відкрийте сторінку випуску, щоб завантажити його, або оновіть через менеджер пакетів чи збірку, з якої ви встановили програму.</translation>
+    </message>
+    <message>
+        <source>Open release page</source>
+        <translation>Відкрити сторінку випуску</translation>
+    </message>
+    <message>
+        <source>Update now</source>
+        <translation>Оновити зараз</translation>
+    </message>
+    <message>
+        <source>Later</source>
+        <translation>Пізніше</translation>
+    </message>
+    <message>
+        <source>Skip this version</source>
+        <translation>Пропустити цю версію</translation>
+    </message>
+</context>
+<context>
+    <name>fos::app::gui::WelcomeDialog</name>
+    <message>
+        <source>Welcome to FurnitureOS</source>
+        <translation>Ласкаво просимо до FurnitureOS</translation>
+    </message>
+    <message>
+        <source>&lt;h3&gt;Welcome to FurnitureOS&lt;/h3&gt;&lt;p&gt;Parametric furniture design, drawings, cut lists and production documents.&lt;/p&gt;</source>
+        <translation>&lt;h3&gt;Ласкаво просимо до FurnitureOS&lt;/h3&gt;&lt;p&gt;Параметричне проєктування меблів, креслення, списки розкрою та виробничі документи.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <source>&amp;Language:</source>
+        <translation>&amp;Мова:</translation>
+    </message>
+    <message>
+        <source>The main window uses the new language after a restart; you will be asked whether to restart now.</source>
+        <translation>Головне вікно використовуватиме нову мову після перезапуску; вас буде запитано, чи перезапустити зараз.</translation>
+    </message>
+    <message>
+        <source>All lengths are in millimetres (mm). Change the language later in Edit ▸ Preferences; open this dialog again from Help ▸ Welcome.</source>
+        <translation>Усі довжини — в міліметрах (мм). Змінити мову можна пізніше в меню Редагування ▸ Параметри; знову відкрити це вікно — з Довідка ▸ Ласкаво просимо.</translation>
+    </message>
+    <message>
+        <source>New from template</source>
+        <translation>Створити з шаблону</translation>
+    </message>
+    <message>
+        <source>Open sample project</source>
+        <translation>Відкрити зразок проєкту</translation>
+    </message>
+    <message>
+        <source>Open file…</source>
+        <translation>Відкрити файл…</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Закрити</translation>
     </message>
 </context>
 <context>

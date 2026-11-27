@@ -141,7 +141,9 @@ QString contentText(const SectionRow& row) {
             break;
         }
         if (row.front->style == furniture::FrontStyle::FramePanel)
-            front += InteriorText::tr(", frame and panel");
+            front += row.front->frame.panelKind == furniture::FramePanelKind::Glass
+                         ? InteriorText::tr(", frame with glass")
+                         : InteriorText::tr(", frame and panel");
         text += QStringLiteral("; ") + front;
     }
     return text;
@@ -297,6 +299,25 @@ std::vector<PanelMaterialChoice> panelMaterialChoices(const furniture::Libraries
         out.push_back({current, InteriorText::tr("%1 (not in the library)").arg(QString::fromStdString(current)),
                        true});
     return out;
+}
+
+domain::MaterialId framePanelMaterialId(const furniture::CabinetDefinition& cabinet,
+                                        const furniture::FramePanelSpec& frame) {
+    if (frame.panelMaterial && !frame.panelMaterial->str().empty()) return *frame.panelMaterial;
+    return cabinet.materials.front.str().empty() ? cabinet.materials.carcass : cabinet.materials.front;
+}
+
+QString glassPanelMaterialWarning(const furniture::CabinetDefinition& cabinet, const furniture::Libraries& libraries,
+                                  const furniture::FramePanelSpec& frame) {
+    if (frame.panelKind != furniture::FramePanelKind::Glass) return {};
+    const domain::MaterialId id = framePanelMaterialId(cabinet, frame);
+    const domain::Material* m = libraries.findMaterial(id);
+    if (!m)
+        return InteriorText::tr("The glass panel material “%1” is not in the library.").arg(QString::fromStdString(id.str()));
+    if (m->kind == domain::MaterialKind::Glass) return {};
+    return InteriorText::tr("The glass panel uses “%1”, which is not a glass material; add a glass material "
+                            "in the Libraries window and choose it as panel material.")
+        .arg(QString::fromStdString(m->name));
 }
 
 std::vector<SlideChoice> slideChoices(const furniture::Libraries& libraries, const std::string& current) {

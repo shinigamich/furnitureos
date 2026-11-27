@@ -80,7 +80,9 @@ void ProjectBrowser::syncFromSession() {
         const bool selected =
             (kind == BrowserNode::Kind::Part &&
              std::find(sel.partIds.begin(), sel.partIds.end(), id) != sel.partIds.end()) ||
-            (kind == BrowserNode::Kind::Item && sel.partIds.empty() && id == sel.itemId);
+            (kind == BrowserNode::Kind::Item && sel.partIds.empty() && id == sel.itemId) ||
+            (kind == BrowserNode::Kind::Item &&
+             std::find(sel.extraItemIds.begin(), sel.extraItemIds.end(), id) != sel.extraItemIds.end());
         if (selected) {
             (*it)->setSelected(true);
             if (!current) current = *it;
@@ -93,13 +95,22 @@ void ProjectBrowser::syncFromSession() {
 void ProjectBrowser::pushToSession() {
     if (syncing_) return;
     Selection sel;
+    std::vector<std::string> items; // Ctrl+clicked item / assembly rows, in tree order
     for (QTreeWidgetItem* item : selectedItems()) {
         const auto kind = static_cast<BrowserNode::Kind>(item->data(0, kKindRole).toInt());
         const std::string id = item->data(0, kIdRole).toString().toStdString();
         if (kind == BrowserNode::Kind::Part) sel.partIds.push_back(id);
-        else if (sel.itemId.empty()) sel.itemId = id; // item or assembly (same id)
+        else if (std::find(items.begin(), items.end(), id) == items.end()) items.push_back(id); // item or assembly
     }
-    if (!sel.partIds.empty()) sel.itemId.clear(); // parts determine the item
+    if (!sel.partIds.empty()) {
+        // Parts determine the primary item; whole item rows of other items join the selection.
+        sel.itemId = session_.itemOfPart(sel.partIds.front());
+        for (const auto& id : items)
+            if (id != sel.itemId) sel.extraItemIds.push_back(id);
+    } else if (!items.empty()) {
+        sel.itemId = items.front();
+        sel.extraItemIds.assign(items.begin() + 1, items.end());
+    }
     session_.setSelection(sel);
 }
 

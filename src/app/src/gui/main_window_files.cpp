@@ -7,6 +7,7 @@
 #include "fos/app/project_compare.hpp"
 #include "dialogs.hpp"
 #include "fos/app/autosave.hpp"
+#include "fos/app/edit_tools.hpp"
 #include "fos/app/production_text.hpp"
 #include "fos/app/version.hpp"
 #include "fos/formats/obj_export.hpp"
@@ -280,16 +281,15 @@ void MainWindow::showAbout() {
 }
 
 void MainWindow::deleteSelectedItem() {
-    const std::string id = session_.selection().itemId;
-    if (id.empty()) return;
-    auto r = session_.deleteItem(id);
+    if (session_.selection().itemId.empty()) return;
+    // All selected items in one undo step (fos::app::deleteSelectedItems).
+    auto r = deleteSelectedItems(session_);
     if (!r) showError(tr("Delete item"), r.error());
 }
 
 void MainWindow::duplicateSelectedItem() {
-    const std::string id = session_.selection().itemId;
-    if (id.empty()) return;
-    auto r = session_.duplicateItem(id);
+    if (session_.selection().itemId.empty()) return;
+    auto r = duplicateSelectedItems(session_);
     if (!r) showError(tr("Duplicate item"), r.error());
 }
 

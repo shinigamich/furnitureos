@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "plan_workspace.hpp"
 
+#include "fos/app/edit_tools.hpp"
 #include "fos/app/plan_view.hpp"
 #include "fos/app/session.hpp"
 #include "plan_canvas.hpp"
@@ -107,7 +108,8 @@ PlanWorkspace::PlanWorkspace(Session& session, QWidget* parent) : QWidget(parent
     message_->setObjectName(QStringLiteral("planMessage"));
     message_->setWordWrap(true);
     auto* hint = new QLabel(tr("Drag an item to move it (snaps to item edges and walls); wheel zooms, middle or "
-                               "right button pans. Each move or rotation is one undo step."),
+                               "right button pans. Ctrl+click selects several items; arrow keys move the selection by 1 mm (Shift: "
+                               "10 mm). Each move or rotation is one undo step."),
                             this);
     hint->setWordWrap(true);
 
@@ -121,8 +123,18 @@ PlanWorkspace::PlanWorkspace(Session& session, QWidget* parent) : QWidget(parent
     connect(canvas_, &PlanCanvas::itemClicked, this, [this](const QString& id) {
         session_.selectItem(id.toStdString());
     });
+    connect(canvas_, &PlanCanvas::itemToggled, this,
+            [this](const QString& id) { session_.toggleItemSelected(id.toStdString()); });
+    connect(canvas_, &PlanCanvas::nudgeRequested, this, [this](double dx, double dy) {
+        if (session_.selection().itemId.empty()) return;
+        const auto r = nudgeSelectedItems(session_, {dx, dy, 0});
+        showMessage(r ? QString() : tr("Move refused: %1").arg(QString::fromStdString(r.error().message)));
+    });
     connect(canvas_, &PlanCanvas::moveRequested, this, [this](const QString& id, double dx, double dy) {
-        const auto r = applyPlanMove(session_, id.toStdString(), {dx, dy});
+        // Dragging an item of a multi-selection moves the whole selection (one undo step).
+        const auto all = session_.selection().allItems();
+        const bool group = all.size() > 1 && std::find(all.begin(), all.end(), id.toStdString()) != all.end();
+        const auto r = group ? nudgeSelectedItems(session_, {dx, dy, 0}) : applyPlanMove(session_, id.toStdString(), {dx, dy});
         showMessage(r ? QString() : tr("Move refused: %1").arg(QString::fromStdString(r.error().message)));
     });
     connect(&session_, &Session::projectChanged, this, [this] {
@@ -132,6 +144,7 @@ PlanWorkspace::PlanWorkspace(Session& session, QWidget* parent) : QWidget(parent
     });
     connect(&session_, &Session::selectionChanged, this, [this] {
         canvas_->setSelectedItem(session_.selection().itemId);
+        canvas_->setExtraSelectedItems(session_.selection().extraItemIds);
         updateButtons();
     });
     syncRoom();
@@ -147,6 +160,7 @@ void PlanWorkspace::refresh() {
     stale_ = false;
     canvas_->setFootprints(planFootprints(session_));
     canvas_->setSelectedItem(session_.selection().itemId);
+    canvas_->setExtraSelectedItems(session_.selection().extraItemIds);
     if (session_.resolved() == nullptr)
         showMessage(tr("The project could not be resolved: %1").arg(QString::fromStdString(session_.resolveError())));
     updateButtons();
