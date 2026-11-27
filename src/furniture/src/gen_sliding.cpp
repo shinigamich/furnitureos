@@ -81,6 +81,15 @@ core::Result<void> addGrip(Gen& g, std::size_t partIndex, HandlePosition pos) {
                                                  {cx + dx * wid / 2, b.min.y, cz + dz * len / 2});
         pocket.contour.push_back({c.u, c.v});
     }
+    // Face B is seen from the front, so its (u, v) frame may mirror the assembly x / z order
+    // above; pocket contours must run counter-clockwise in face coordinates (shoelace > 0).
+    double twiceArea = 0;
+    for (std::size_t i = 0; i < pocket.contour.size(); ++i) {
+        const auto& a = pocket.contour[i];
+        const auto& b = pocket.contour[(i + 1) % pocket.contour.size()];
+        twiceArea += a.x * b.y - b.x * a.y;
+    }
+    if (twiceArea < 0) std::reverse(pocket.contour.begin(), pocket.contour.end());
     domain::Operation op;
     op.id = domain::OperationId(door.id.str() + "/op.grip");
     op.shape = pocket;

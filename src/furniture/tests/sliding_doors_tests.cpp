@@ -87,6 +87,14 @@ TEST(SlidingDoors, TwoDoorWardrobe) {
         }
         EXPECT_NEAR(std::min(u1 - u0, v1 - v0), 40, 1e-9);
         EXPECT_NEAR(std::max(u1 - u0, v1 - v0), 200, 1e-9);
+        // Counter-clockwise in face coordinates: shoelace 2A = +2 * 40 * 200 = +16000.
+        double twiceArea = 0;
+        for (std::size_t i = 0; i < 4; ++i) {
+            const auto& p0 = pk.contour[i];
+            const auto& p1 = pk.contour[(i + 1) % 4];
+            twiceArea += p0.x * p1.y - p1.x * p0.y;
+        }
+        EXPECT_NEAR(twiceArea, 16000, 1e-6);
     }
     // Interior behind the tracks: 10 + 80 + 5 = 95; partition 600 - 95 = 505 deep, shelves too.
     expectBox(part(a, "partition.1"), {891, 95, 18}, {909, 600, 2382});
