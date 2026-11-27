@@ -24,6 +24,8 @@ Preferences Preferences::load() {
         std::clamp(s.value(QStringLiteral("files/autosaveMinutes"), kDefaultAutosaveMinutes).toInt(), 0, kMaxAutosaveMinutes);
     p.componentFolders = s.value(QStringLiteral("components/folders"), QStringList()).toStringList();
     p.componentFolders.removeAll(QString());
+    p.updateConsent = updateConsentFromKey(s.value(QStringLiteral("updates/startupCheck")).toString());
+    p.includePrereleases = s.value(QStringLiteral("updates/includePrereleases"), false).toBool();
     return p;
 }
 
@@ -32,6 +34,8 @@ void Preferences::save() const {
     s.setValue(QStringLiteral("ui/language"), language);
     s.setValue(QStringLiteral("files/autosaveMinutes"), autosaveMinutes);
     s.setValue(QStringLiteral("components/folders"), componentFolders);
+    s.setValue(QStringLiteral("updates/startupCheck"), updateConsentKey(updateConsent));
+    s.setValue(QStringLiteral("updates/includePrereleases"), includePrereleases);
 }
 
 LabelBarcodeSettings loadLabelBarcodeSettings() {

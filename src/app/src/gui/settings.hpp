@@ -3,6 +3,7 @@
 /// \file
 /// Persistent user preferences (QSettings, organisation/application "FurnitureOS").
 #include "fos/app/label_export.hpp"
+#include "fos/app/update_plan.hpp"
 
 #include <QString>
 #include <QStringList>
@@ -18,6 +19,11 @@ struct Preferences {
     /// Component library folders of the "Components" dock; empty = the default per-user
     /// folder (fos::app::defaultComponentFolder()).
     QStringList componentFolders;
+    /// Automatic update check at startup ("updates/startupCheck"): asked once on first run;
+    /// nothing is checked automatically before the user agreed.
+    UpdateConsent updateConsent = UpdateConsent::NotAsked;
+    /// Update channel ("updates/includePrereleases"): false = stable releases only.
+    bool includePrereleases = false;
 
     static Preferences load();
     void save() const;

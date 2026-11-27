@@ -11,6 +11,7 @@
 
 class QAction;
 class QComboBox;
+class QCheckBox;
 class QDoubleSpinBox;
 class QListWidget;
 class QSpinBox;
@@ -44,6 +45,9 @@ private:
     QComboBox* language_;
     QSpinBox* autosave_;
     QListWidget* componentFolders_; ///< Empty list = default per-user folder.
+    QCheckBox* checkUpdates_;
+    QComboBox* updateChannel_;
+    UpdateConsent initialConsent_; ///< kept as "not asked" unless the box is toggled
 };
 
 /// Lists the shortcuts of the given actions (read from the actions themselves).

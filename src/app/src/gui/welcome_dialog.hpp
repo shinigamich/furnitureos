@@ -26,11 +26,11 @@ struct WelcomeChoice {
 class WelcomeDialog : public QDialog {
     Q_OBJECT
 public:
-    /// `language`: "en" or "uk", pre-selected. `liveLanguage`: a language change is announced
+    /// `initialLanguage`: "en" or "uk", pre-selected. `liveLanguage`: a language change is announced
     /// at once with languageChanged() (start-up, before the main window exists; the receiver
     /// installs the translators and this dialog retranslates itself); otherwise the dialog
     /// notes that the main window changes language after a restart.
-    WelcomeDialog(const QString& language, bool liveLanguage, QWidget* parent = nullptr);
+    WelcomeDialog(const QString& initialLanguage, bool liveLanguage, QWidget* parent = nullptr);
 
     QString language() const; ///< "en" or "uk".
     WelcomeChoice choice() const { return choice_; }

@@ -8,6 +8,7 @@
 #include "main_window.hpp"
 #include "packing_workspace.hpp"
 #include "quote_workspace.hpp"
+#include "update_controller.hpp"
 #include "view_tools.hpp"
 
 #include <QAction>
@@ -100,6 +101,7 @@ void MainWindow::buildActions() {
     a_.libraries->setObjectName(QStringLiteral("actionLibraries"));
     a_.libraries->setToolTip(tr("Edit the materials, edge bands and hardware of the project"));
     a_.about = make(tr("&About FurnitureOS"));
+    a_.checkUpdates = make(tr("Check for &updates…"));
     a_.shortcuts = make(tr("&Keyboard shortcuts"), QKeySequence::HelpContents);
 
     for (QAction* a : {a_.perspective, a_.orthographic, a_.shaded, a_.shadedEdges, a_.wireframe, a_.realistic, a_.measure,
@@ -160,6 +162,8 @@ void MainWindow::buildActions() {
     connect(a_.showPacking, &QAction::triggered, this, [this] { tabs_->setCurrentWidget(packing_); });
     connect(a_.libraries, &QAction::triggered, this, &MainWindow::showLibraryWindow);
     connect(a_.about, &QAction::triggered, this, &MainWindow::showAbout);
+    updates_ = new UpdateController(this);
+    connect(a_.checkUpdates, &QAction::triggered, updates_, &UpdateController::checkNow);
     connect(a_.shortcuts, &QAction::triggered, this, [this] { ShortcutsDialog(allActions_, this).exec(); });
 }
 
@@ -252,6 +256,7 @@ void MainWindow::buildMenus() {
     QMenu* help = menuBar()->addMenu(tr("&Help"));
     help->addAction(tr("&Welcome…"), this, &MainWindow::showWelcome);
     help->addAction(a_.shortcuts);
+    help->addAction(a_.checkUpdates);
     help->addAction(a_.about);
 
     QToolBar* bar = addToolBar(tr("Main toolbar"));
@@ -324,5 +329,7 @@ void MainWindow::rebuildRecentMenu() {
         });
     }
 }
+
+void MainWindow::startupUpdateCheck() { updates_->startupCheck(); }
 
 } // namespace fos::app::gui

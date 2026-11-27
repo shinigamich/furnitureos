@@ -5,6 +5,7 @@
 #include "fos/app/component_browser.hpp"
 
 #include <QAction>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QDialogButtonBox>
@@ -162,9 +163,23 @@ PreferencesDialog::PreferencesDialog(const Preferences& current, QWidget* parent
     folderBox->addWidget(folderNote);
     form->addRow(tr("Component folders:"), folderBox);
 
+    initialConsent_ = current.updateConsent;
+    checkUpdates_ = new QCheckBox(tr("Check for updates at startup"), this);
+    checkUpdates_->setObjectName(QStringLiteral("checkUpdates"));
+    checkUpdates_->setChecked(current.updateConsent == UpdateConsent::Allowed);
+    checkUpdates_->setToolTip(tr("Asks GitHub for the list of FurnitureOS releases; no personal data is sent. "
+                                 "Updates are only installed after you confirm."));
+    updateChannel_ = new QComboBox(this);
+    updateChannel_->setObjectName(QStringLiteral("updateChannel"));
+    updateChannel_->addItem(tr("Stable releases only"), false);
+    updateChannel_->addItem(tr("Include pre-releases (beta)"), true);
+    updateChannel_->setCurrentIndex(current.includePrereleases ? 1 : 0);
+    form->addRow(tr("Updates:"), checkUpdates_);
+    form->addRow(tr("Update channel:"), updateChannel_);
+
     auto* layout = new QVBoxLayout(this);
     layout->addLayout(form);
-    auto* note = new QLabel(tr("A change of language takes effect when the application is restarted. "
+    auto* note = new QLabel(tr("A new language is used after the application restarts; you are asked whether to restart now. "
                                "Messages from the engineering core (diagnostics) are always in English."),
                             this);
     note->setWordWrap(true);
@@ -177,6 +192,11 @@ Preferences PreferencesDialog::preferences() const {
     p.language = language_->currentData().toString();
     p.autosaveMinutes = autosave_->value();
     for (int i = 0; i < componentFolders_->count(); ++i) p.componentFolders << componentFolders_->item(i)->text();
+    const bool wasChecked = initialConsent_ == UpdateConsent::Allowed;
+    p.updateConsent = checkUpdates_->isChecked() == wasChecked
+                          ? initialConsent_
+                          : (checkUpdates_->isChecked() ? UpdateConsent::Allowed : UpdateConsent::Declined);
+    p.includePrereleases = updateChannel_->currentData().toBool();
     return p;
 }
 

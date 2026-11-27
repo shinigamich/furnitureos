@@ -35,6 +35,7 @@ class QuoteWorkspace;
 class PackingWorkspace;
 class PlanWorkspace;
 class SectionToolBar;
+class UpdateController;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -68,6 +69,9 @@ public:
     /// Lists the recovery copies left by a session that did not end cleanly (RecoveryDialog)
     /// and restores / discards them (called once at start-up; nothing shown when none).
     void offerStartupRecovery();
+    /// Previous update result, the one-time consent question and (if allowed) the update
+    /// check; called once from main() after start-up (not by tests).
+    void startupUpdateCheck();
     /// Opens a recovery copy as the modified document (asks to save the current one first).
     bool restoreRecovery(const RecoveryEntry& entry);
     // main_window_start.cpp
@@ -135,6 +139,7 @@ private:
     Preferences preferences_;
     RecentFiles recent_;
     QTimer* autosaveTimer_ = nullptr;
+    UpdateController* updates_ = nullptr;
 
     QTabWidget* tabs_ = nullptr;
     viewport::ViewportWidget* viewport_ = nullptr;
@@ -155,6 +160,7 @@ private:
     QLabel* measureLabel_ = nullptr;
     SectionToolBar* sectionBar_ = nullptr;
     bool fitOnNextModel_ = true;
+    bool restarting_ = false; ///< restartApplication() started the new process.
 
     struct Actions {
         QAction *newProject, *open, *save, *saveAs, *print, *quit, *batch;
@@ -163,7 +169,7 @@ private:
         QAction *fitAll, *perspective, *orthographic, *shaded, *shadedEdges, *wireframe, *realistic;
         QAction *measure, *section;
         QAction *pricingSettings, *showQuote, *showPacking, *libraries;
-        QAction *about, *shortcuts;
+        QAction *about, *shortcuts, *checkUpdates;
     } a_{};
     QMenu* recentMenu_ = nullptr;
     QList<QAction*> allActions_;

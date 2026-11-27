@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # Module `app`: the desktop application `furnitureos` plus the widget-free, testable
 # view-model library `fos_app_core` (see README.md).
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGLWidgets PrintSupport Svg Test LinguistTools)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGLWidgets PrintSupport Svg Network Test LinguistTools)
 
 set(FOS_APP_SOURCE_URL "https://github.com/shinigamich/furnitureos" CACHE STRING
     "Public location of the corresponding source code, shown in Help > About (AGPL-3.0 section 13)")
@@ -50,6 +50,11 @@ add_library(fos_app_core STATIC
     src/core/project_compare.cpp
     src/core/inner_drawer_rows.cpp
     src/core/job_pack_export.cpp
+    src/core/update_version.cpp
+    src/core/update_release.cpp
+    src/core/update_inflate.cpp
+    src/core/update_zip.cpp
+    src/core/update_plan.cpp
     src/core/relaunch.cpp
     src/core/samples.cpp
     resources/samples.qrc)
@@ -94,6 +99,7 @@ if(FOS_BUILD_TESTS)
         tests/core/inner_drawer_tests.cpp
         tests/core/pictorial_tests.cpp
         tests/core/job_pack_tests.cpp
+        tests/core/update_tests.cpp
         tests/core/relaunch_tests.cpp)
     target_link_libraries(fos_app_core_tests PRIVATE fos::app_core Qt6::Test GTest::gtest GTest::gmock)
     fos_set_warnings(fos_app_core_tests PRIVATE)
@@ -179,7 +185,11 @@ set(FOS_APP_GUI_SOURCES
     src/gui/inner_drawers_box.hpp
     src/gui/inner_drawers_box.cpp
     src/gui/job_pack_dialog.hpp
-    src/gui/job_pack_dialog.cpp)
+    src/gui/job_pack_dialog.cpp
+    src/gui/update_dialog.hpp
+    src/gui/update_dialog.cpp
+    src/gui/update_controller.hpp
+    src/gui/update_controller.cpp)
 
 # Everything except main.cpp goes into a static library shared by the executable and the
 # GUI smoke test.
@@ -188,7 +198,7 @@ add_library(fos_app_gui STATIC ${FOS_APP_GUI_SOURCES})
 set_target_properties(fos_app_gui PROPERTIES AUTOMOC ON AUTOMOC_COMPILER_PREDEFINES OFF)
 target_include_directories(fos_app_gui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/gui)
 target_link_libraries(fos_app_gui PUBLIC fos::app_core fos::viewport
-    Qt6::Widgets Qt6::OpenGLWidgets Qt6::PrintSupport Qt6::Svg)
+    Qt6::Widgets Qt6::OpenGLWidgets Qt6::PrintSupport Qt6::Svg Qt6::Network)
 fos_set_warnings(fos_app_gui PRIVATE)
 
 qt_add_executable(furnitureos src/gui/main.cpp)

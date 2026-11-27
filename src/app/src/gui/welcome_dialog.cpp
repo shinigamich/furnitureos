@@ -11,8 +11,9 @@
 
 namespace fos::app::gui {
 
-WelcomeDialog::WelcomeDialog(const QString& language, bool liveLanguage, QWidget* parent)
-    : QDialog(parent), initialLanguage_(language == QLatin1String("uk") ? language : QStringLiteral("en")),
+WelcomeDialog::WelcomeDialog(const QString& initialLanguage, bool liveLanguage, QWidget* parent)
+    : QDialog(parent),
+      initialLanguage_(initialLanguage == QLatin1String("uk") ? initialLanguage : QStringLiteral("en")),
       liveLanguage_(liveLanguage) {
     setObjectName(QStringLiteral("welcomeDialog"));
     heading_ = new QLabel(this);
