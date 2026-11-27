@@ -36,7 +36,9 @@ QByteArray sampleText() {
     return s;
 }
 
-QString qs(const std::filesystem::path& p) { return QString::fromStdString(p.string()); }
+QString qs(const std::filesystem::path& p) {
+    return QDir::fromNativeSeparators(QString::fromStdString(p.string()));
+}
 
 bool writeFile(const QString& path, const QByteArray& data) {
     QFile f(path);
